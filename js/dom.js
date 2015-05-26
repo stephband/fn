@@ -179,6 +179,21 @@
 	}
 
 
+	// Traversal
+
+	// query(selector)
+	// query(node, selector)
+
+	function query(node, selector) {
+		if (arguments.length === 1 && typeof node === 'string') {
+			selector = node;
+			node = document;
+		}
+
+		return Array.prototype.slice.apply(node.querySelectorAll(selector));
+	}
+
+
 	// Export
 
 	window.dom = {
@@ -192,6 +207,7 @@
 		delegate: delegate,
 		classList: getClassList,
 		cloneTemplate: fetchTemplate,
-		fragmentFromChildren: fragmentFromChildren
+		fragmentFromChildren: fragmentFromChildren,
+		query: query
 	};
 })(window);
