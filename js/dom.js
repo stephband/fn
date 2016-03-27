@@ -2,16 +2,12 @@
 	"use strict";
 
 	var assign = Object.assign;
-	var A = Array.prototype;
-	var F = Function.prototype;
-
+	var slice  = Function.prototype.call.bind(Array.prototype.slice);
+	var reduce = Function.prototype.call.bind(Array.prototype.reduce);
 	var dom = {};
-
+	var rspaces = /\s+/;
 
 	// Utility functions
-
-	var slice  = F.call.bind(A.slice);
-	var reduce = F.call.bind(A.reduce);
 
 	function noop() {}
 
@@ -25,55 +21,6 @@
 			return node;
 		};
 	}
-
-
-	// Functional
-
-	function identity(n) { return n; }
-
-	function compose(fn1, fn2) {
-		return function composed(n) { fn1(fn2(n)); }
-	}
-
-	function callValueFn(value, fn) { return fn(value); }
-
-	function pipe() {
-		var fns = Array.prototype.slice.apply(arguments);
-		return function pipe(n) { return fns.reduce(callValueFn, n); }
-	}
-
-	function curry(fn, parity) {
-		var par = parity || fn.length;
-		return function curried() {
-			var args = arguments;
-			return args.length >= par ?
-				// If there are enough arguments, call fn.
-				fn.apply(this, args) :
-				// Otherwise create a new function with length equal to the
-				// remaining number of required arguments. And curry that.
-				// All functions are curried functions.
-				curry(function() {
-					var params = A.slice.apply(args);
-					A.push.apply(params, arguments);
-					return fn.apply(this, params);
-				}, par - args.length) ;
-		}
-	}
-
-	var ds = {
-		compose:  compose,
-		curry:    curry,
-		identity: identity,
-		pipe:     pipe,
-		add:      curry(function add(a, b) { return b + a; }),
-		subtract: curry(function subtract(a, b) { return b - a; }),
-		multiply: curry(function multiply(a, b) { return b * a; }),
-		divide:   curry(function divide(a, b) { return b / a; }),
-		pow:      curry(function pow(a, b) { return Math.pow(b, a); }),
-		get:      curry(function get(name, object) { return object[name]; })
-	};
-
-
 
 	// Selection, traversal and mutation
 
@@ -91,7 +38,7 @@
 		add: function() {
 			var n = arguments.length;
 			var tokens = this.get(this.node);
-			var array = tokens ? tokens.trim().split(Sparky.rspaces) : [] ;
+			var array = tokens ? tokens.trim().split(rspaces) : [] ;
 
 			while (n--) {
 				if (array.indexOf(arguments[n]) === -1) {
@@ -105,7 +52,7 @@
 		remove: function() {
 			var n = arguments.length;
 			var tokens = this.get(this.node);
-			var array = tokens ? tokens.trim().split(Sparky.rspaces) : [] ;
+			var array = tokens ? tokens.trim().split(rspaces) : [] ;
 			var i;
 
 			while (n--) {
@@ -154,7 +101,7 @@
 			node.tagName.toLowerCase() === selector ;
 	}
 
-	function closest(root, selector, node) {
+	function closest(node, selector, root) {
 		if (!node || node === root || node === document || node.nodeType === 11) { return; }
 
 		if (node.correspondingUseElement) {
@@ -172,7 +119,7 @@
 		return node.tagName.toLowerCase();
 	}
 
-	function createNode(name, text) {
+	function createNode(name) {
 		// create('comment', 'Text');
 		if (name === 'comment' || name === '!') {
 			return document.createComment(arguments[1]);
@@ -194,7 +141,7 @@
 		return node;
 	}
 
-	function appendTo(node1, node2) {
+	function append(node1, node2) {
 		node1.appendChild(node2);
 		return node1;
 	}
@@ -243,42 +190,40 @@
 	assign(dom, {
 		query:     query,
 		tag:       tagName,
-		create:    curry(createNode),
+		create:    createNode,
 
-		append: curry(function(node2, node1) {
+		append: function(node1, node2) {
 			if (Node.prototype.isPrototypeOf(node2)) {
-				appendTo(node1, node2);
+				append(node1, node2);
 			}
 			else {
 				Array.prototype.forEach.call(node2, function(node) {
-					appendTo(node1, node);
+					append(node1, node);
 				});
 			}
-		}),
+		},
 
-		remove: curry(function(node) {
+		after:     insertAfter,
+		before:    insertBefore,
+		empty:     empty,
+		remove:    function(node) {
 			if (Node.prototype.isPrototypeOf(node)) {
 				remove(node);
 				return;
 			}
 
 			Array.prototype.forEach.call(node, remove);
-		}),
-
-		appendTo:     curry(appendTo),
-		insertAfter:  curry(insertAfter),
-		insertBefore: curry(insertBefore),
-		empty:        curry(empty),
-
-		closest:   curry(closest),
-		matches:   curry(matches),
-		classes:   curry(getClassList),
-		style:     curry(getStyle),
-
-		isElementNode:  curry(isElementNode),
-		isTextNode:     curry(isTextNode),
-		isCommentNode:  curry(isCommentNode),
-		isFragmentNode: curry(isFragmentNode)
+		},
+		closest:   closest,
+		matches:   matches,
+		classes:   getClassList,
+		style:     getStyle,
+		getClass:  getClass,
+		setClass:  setClass,
+		isElementNode:  isElementNode,
+		isTextNode:     isTextNode,
+		isCommentNode:  isCommentNode,
+		isFragmentNode: isFragmentNode
 	});
 
 
@@ -364,24 +309,24 @@
 		return (e.which === 1 && !e.ctrlKey && !e.altKey);
 	}
 
-	function trigger(type, node) {
+	function trigger(node, type) {
 		// Don't cache events. It prevents you from triggering an an event of a
-		// given type from inside the handler of another event of that type.
+		// type given type from inside the handler of another event of that type.
 		node.dispatchEvent(createEvent(type));
 	}
 
-	function on(type, node, fn) {
+	function on(node, type, fn) {
 		node.addEventListener(type, fn);
 	}
 
-	function off(type, node, fn) {
+	function off(node, type, fn) {
 		node.removeEventListener(type, fn);
 	}
 
 	assign(dom, {
-		on:       curry(on),
-		off:      curry(off),
-		trigger:  curry(trigger),
+		on:       on,
+		off:      off,
+		trigger:  trigger,
 		delegate: delegate,
 		isPrimaryButton: isPrimaryButton
 	});
@@ -403,7 +348,7 @@
 		var input = document.createElement('input');
 		var result = false;
 
-		appendTo(document.body, input);
+		append(document.body, input);
 		input.disabled = true;
 		input.addEventListener('featuretest', function(e) { result = true; });
 		input.dispatchEvent(testEvent);
@@ -419,7 +364,5 @@
 
 
 	// Export
-	window.ds = ds;
 	window.DOM = dom;
-	window.exports = dom;
 })(this);
