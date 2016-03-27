@@ -23,8 +23,11 @@
 	// Functions
 
 	function noop() {}
+
 	function identity(n) { return n; }
+
 	function byGreater(a, b) { return a > b ? 1 : -1 ; }
+
 	function byLocalAlphabet(a, b) { return S.localeCompare.call(a, b); }
 
 	function slugify(value) {
@@ -32,7 +35,37 @@
 		return value.trim().toLowerCase().replace(/\W/g, '-').replace(/[_]/g, '-');
 	}
 
-	// Functional
+	function compose(fn1, fn2) {
+		return function composed(n) { fn1(fn2(n)); }
+	}
+
+	function pipe() {
+		var fns = A.slice.apply(arguments);
+		return function pipe(n) { return fns.reduce(call, n); }
+	}
+
+	function curry(fn, parity) {
+		var par = parity || fn.length;
+
+		// Define length so that curried functions accurately show how many
+		// arguments they are yet expecting.
+		return Object.defineProperty(function curried() {
+			var args = arguments;
+			return args.length >= par ?
+				// If there are enough arguments, call fn.
+				fn.apply(this, args) :
+				// Otherwise create a new function with length equal to the
+				// remaining number of required arguments. And curry that.
+				// All functions are curried functions.
+				curry(function() {
+					var params = A.slice.apply(args);
+					A.push.apply(params, arguments);
+					return fn.apply(this, params);
+				}, par - args.length) ;
+		}, 'length', { value: par });
+	}
+
+	// Curries
 
 	var concat   = curry(function concat(array2, array1) { return A.concat.call(array1, array2); });
 	var each     = curry(function each(fn, array) { return A.forEach.call(array, fn); });
@@ -58,6 +91,8 @@
 
 	var match    = curry(function match(r, string) { return r.test(string); });
 	var regexp   = curry(function parse(r, string) { return r.exec(string) || undefined; });
+	var uppercase = curry(function uppercase(string) { return S.toUpperCase.apply(string); });
+	var lowercase = curry(function lowercase(string) { return S.toLowerCase.apply(string); });
 
 	var get      = curry(function get(name, object) { return object[name]; });
 	var set      = curry(function get(name, value, object) { return object[name] = value; });
@@ -75,6 +110,9 @@
 	});
 
 	var compare  = curry(function compare(a, b) {
+		// Fast out if references are for the same object
+		if (a === b) { return true; }
+
 		var keys = Object.keys(a);
 		var n = keys.length;
 
@@ -87,82 +125,38 @@
 		return true;
 	});
 
-	function compose(fn1, fn2) {
-		return function composed(n) { fn1(fn2(n)); }
-	}
+	// Generators
 
-	function pipe() {
-		var fns = A.slice.apply(arguments);
-		return function pipe(n) { return fns.reduce(call, n); }
-	}
-
-	function curry(fn, parity) {
-		var par = parity || fn.length;
-		return function curried() {
-			var args = arguments;
-			return args.length >= par ?
-				// If there are enough arguments, call fn.
-				fn.apply(this, args) :
-				// Otherwise create a new function with length equal to the
-				// remaining number of required arguments. And curry that.
-				// All functions are curried functions.
-				curry(function() {
-					var params = A.slice.apply(args);
-					A.push.apply(params, arguments);
-					return fn.apply(this, params);
-				}, par - args.length) ;
-		}
-	}
-
-	function Generator(source, fn) {
+	function Generator(next, push) {
 		// Enable calling Generator without the new keyword.
 		if (this === window || this === null) {
-			return new Generator(source, fn);
+			return new Generator(next, push);
 		}
 
-		// Generator takes a source and a transform function.
-		// Source can be an array, generator or function.
-		source = source || identity;
-		fn = fn || identity;
+		this.next = next;
+		if (push) { this.push = push; }
+	}
 
-		// Define the next() method based on type of source.
-		this.next =
-			// Source is a Generator.
-			source.next ? function next(input) {
-				// Can be called with a input value, pushing it into the pipe.
-				var value = source.next(input);
-				return value === undefined ? undefined : fn(value) ;
-			} :
+	function ArrayGenerator(source) {
+		if (source) { A.slice(source); }
 
-			// Source is a function.
-			source.apply ? function next(input) {
-				// Can be called with a input value, pushing it into the pipe.
-				var value = source(input);
-				return value === undefined ? undefined : fn(value) ;
-			} :
+		var array = source || [] ;
 
-			// Source is an array. Copy it.
-			(source = A.slice.apply(source),
-			function next(input) {
-				var n = -1;
-				var value;
+		return new Generator(function next() {
+			var value;
+			// Ignore holes in arrays
+			while (array.length && (value = array.shift()) === undefined);
+			return value;
+		}, function push() {
+			A.push.apply(array, arguments);
+		});
+	}
 
-				// If an input value ahs been passed in, add it to the stack.
-				// This is a bit of a fudge for adding and removing from the
-				// stack at the same time. Review.
-				if (input !== undefined) { source.push(input); }
-
-				// Ignore holes in arrays
-				while (source.length && (value = source.shift()) === undefined);
-				return value !== undefined ? fn(value) : undefined ;
-			}) ;
-
-		// Define the .push() method.
-		this.push =
-			source.push ? function push(input) {
-				source.push(input);
-			} :
-			source ;
+	function MapGenerator(source, transform) {
+		return new Generator(function next() {
+			var value = source.next();
+			return value !== undefined ? transform(value) : undefined ;
+		}, source.push);
 	}
 
 	Object.assign(Generator.prototype, {
@@ -170,41 +164,37 @@
 			var source = this;
 			var i = 0;
 
-			return new Generator(function head(input) {
-				return i++ === 0 ? source.next(input) : undefined ;
-			});
+			return new Generator(function next() {
+				return i++ === 0 ? source.next() : undefined ;
+			}, source.push);
 		},
 
 		tail: function() {
 			var source = this;
 			var i = 0;
 
-			return new Generator(function tail(input) {
-				if (i++ === 0) {
-					source.next();
-					input = undefined;
-				}
-
-				return source.next(input);
-			});
+			return new Generator(function tail() {
+				if (i++ === 0) { source.next(); }
+				return source.next();
+			}, source.push);
 		},
 
 		slice: function(n, m) {
 			var source = this;
 			var i = 0;
 
-			return new Generator(function next(input) {
+			return new Generator(function next() {
 				while (i < n) {
-					source.next(input);
+					source.next();
 					++i;
 				}
 
 				return i++ < m ? source.next() : undefined ;
-			});
+			}, source.push);
 		},
 
 		map: function(fn) {
-			return Generator(this, fn);
+			return MapGenerator(this, fn);
 		},
 
 		find: function(fn) {
@@ -215,29 +205,22 @@
 				fn.apply ? fn :
 				equal(fn) ;
 
-			function process(input) {
-				var value = source.next(input);
+			function process() {
+				var value;
 
-				while (value !== undefined && !fn(value)) {
-					value = source.next();
-				}
+				while ((value = source.next()) !== undefined && !fn(value));
 
 				if (value !== undefined) {
 					// Process is a call once kind of thing
-					process = process2;
+					process = noop;
 				}
 
 				return value;
 			}
 
-			function process2(input) {
-				if (input === undefined) { return; }
-				source.next(input);
-			}
-
-			return Generator(function(input) {
-				return process(input);
-			});
+			return Generator(function next() {
+				return process();
+			}, source.push);
 		},
 
 		filter: function(fn) {
@@ -248,18 +231,17 @@
 				fn === undefined ? identity :
 				fn ;
 
-			return Generator(function(input) {
+			return Generator(function next() {
 				var value;
-				while ((value = source.next(input)) !== undefined && !fn(value));
+				while ((value = source.next()) !== undefined && !fn(value));
 				return value;
-			});
+			}, source.push);
 		},
 
 		reduce: function(fn) {
 			var i = 0, t = 0;
-			return Generator(this, function reduce(value) {
-				t = fn(value, t, i++);
-				return t;
+			return MapGenerator(this, function reduce(value) {
+				return fn(value, t, i++);
 			});
 		},
 
@@ -269,29 +251,22 @@
 
 			fn = fn || byGreater ;
 
-			return Generator(function next(input) {
+			return Generator(function next() {
 				if (array.length === 0) {
 					array = source.toArray();
 					array.sort(fn);
 				}
 
-				// Sort cant sort asynchrounous input: its added to
-				// the end of the stack.
-				if (input !== undefined) {
-					var value = source.next(input);
-					if (value !== undefined) { array.push(value); }
-				}
-
 				return array.shift();
-			});
+			}, source.push);
 		},
 
 		unique: function() {
 			var source = this;
 			var buffer = [];
 
-			return new Generator(function unique(input) {
-				var value = source.next(input);
+			return new Generator(function unique() {
+				var value = source.next();
 
 				if (value === undefined) { return; }
 
@@ -300,8 +275,10 @@
 					return value;
 				}
 
-				return unique(input);
-			});
+				// If we have not already returned carry on looking
+				// for a unique value.
+				return unique();
+			}, source.push);
 		},
 
 		batch: function(n) {
@@ -310,13 +287,12 @@
 
 			return new Generator(n ?
 				// If n is defined batch into arrays of length n.
-				function nextBatchN(input) {
+				function nextBatchN() {
 					var value;
 
 					while (buffer.length < n) {
-						value = source.next(input);
+						value = source.next();
 						if (value === undefined) { return; }
-						input = undefined;
 						buffer.push(value);
 					}
 
@@ -328,51 +304,41 @@
 				} :
 
 				// If n is undefined or 0, batch all values into an array.
-				function nextBatch(input) {
+				function nextBatch() {
 					buffer = source.toArray();
-
-					if (input !== undefined) {
-						var value = source.next(input);
-						if (value !== undefined) { buffer.push(value); }
-					}
-
 					// An empty array is equivalent to undefined
 					return buffer.length ? buffer : undefined ;
-				}
-			);
+				},
+
+			source.push);
 		},
 
 		flatten: function(n) {
 			var source = this;
 			var buffer = [];
 
-			return new Generator(function next(input) {
-					// Support flattening of generators and arrays
-					var value = buffer.next ? buffer.next() : buffer.shift() ;
-					var b;
+			return new Generator(function next() {
+				// Support flattening of generators and arrays
+				var value = buffer.next ? buffer.next() : buffer.shift() ;
+				var b;
 
-					// Buggy - separate .push() from .next()
-					if (input !== undefined) {
-						source.push(input);
-					}
-
-					if (value === undefined) {
-						b = source.next();
-						if (b === undefined) { return; }
-						buffer = b;
-						value = buffer.next ? buffer.next() : buffer.shift() ;
-					}
-
-					return value ;
+				if (value === undefined) {
+					b = source.next();
+					if (b === undefined) { return; }
+					buffer = b;
+					value = buffer.next ? buffer.next() : buffer.shift() ;
 				}
-			);
+
+				return value ;
+			}, source.push);
 		},
 
 		each: function(fn) {
-			var next = this.next;
+			var source = this;
+			var _next = this.next;
 
-			this.next = function() {
-				var value = next.apply(this, arguments);
+			this.next = function next() {
+				var value = _next.apply(source);
 				if (value !== undefined) { fn(value) };
 				return value;
 			};
@@ -395,14 +361,14 @@
 		int:         function() { return this.map(parseInt); },
 		float:       function() { return this.map(parseFloat); },
 		boolean:     function() { return this.map(Boolean); },
-		string:      function() { return this.map(String); },
-		json:        function() { return this.map(JSON.stringify); },
+		stringify:   function() { return this.map(String); },
+		jsonify:     function() { return this.map(JSON.stringify); },
 		parsejson:   function() { return this.map(JSON.parse); },
 		slugify:     function() { return this.map(slugify); },
-		match:       function(regexp) { return this.map(match(regexp)); },
+		matches:     function(regexp) { return this.map(match(regexp)); },
 		regex:       function(regexp) { return this.map(regex(regexp)); },
-		uppercase:   function(value) { return this.map(S.toUpperCase.apply); },
-		lowercase:   function(value) { return this.map(S.toLowerCase.apply); },
+		uppercase:   function() { return this.map(uppercase); },
+		lowercase:   function() { return this.map(lowercase); },
 
 		get:         function(name) { return this.map(get(name)); },
 		set:         function(name, value) { return this.map(set(name, value)); },
@@ -414,6 +380,32 @@
 			});
 		},
 
+		group: function(fn) {
+			var source = this;
+
+			if (typeof fn === 'string' || typeof fn === 'number') {
+				fn = Fn.get(fn);
+			}
+
+			return Generator(function next() {
+				var keys = Object.create(null);
+				var object, key;
+
+				// Consume source
+				while(object = source.next()) {
+					key = fn(object);
+					if (keys[key]) {
+						keys[key].push(object);
+					}
+					else {
+						keys[key] = ArrayGenerator([object]);
+					}
+				}
+
+				return keys;
+			}, source.push);
+		},
+
 		type: function() {
 			return this.map(function(value) {
 				return typeof value;
@@ -421,10 +413,11 @@
 		},
 
 		done: function(fn) {
+			var source = this;
 			var next = this.next;
 
-			this.next = function() {
-				var value = next.apply(this, arguments);
+			this.next = function next() {
+				var value = _next.apply(source);
 				if (value === undefined) { fn(); }
 				return value;
 			};
@@ -432,16 +425,15 @@
 			return this;
 		},
 
-		fn: function() {
-			// Alias to toFunction
-			return this.toFunction();
+		push: function(input) {
+			throw new Error('Fn: generator is not pushable. ' + input);
 		},
 
 		toFunction: function() {
 			var source = this;
-
-			return function fn() {
-				return source.next.apply(source, arguments);
+			return function fn(input) {
+				if (input !== undefined) { source.push(input); }
+				return source.next();
 			};
 		},
 
@@ -457,7 +449,23 @@
 		}
 	});
 
-	Object.assign(Generator, {
+	Generator.prototype.fn = Generator.prototype.toFunction;
+	Generator.prototype.toJSON = Generator.prototype.toArray;
+
+	// Fn
+
+	function Fn(source, fn) {
+		return source.apply ?
+			// Source is a .next() function, fn is a .push() fn.
+			Generator(source, fn) :
+		source.next ?
+			// Source is generator, fn is a transform.
+			MapGenerator(source, fn) :
+			// Source is an array.
+			ArrayGenerator(source) ;
+	}
+
+	Object.assign(Fn, {
 		identity: identity,
 		curry:    curry,
 		compose: compose,
@@ -505,47 +513,13 @@
 		slugify:  slugify,
 
 		// Booleans
-		not:      not
+		not:      not,
+
+		// Generators
+		Generator:      Generator,
+		ArrayGenerator: ArrayGenerator,
+		MapGenerator:   MapGenerator
 	});
 
-	window.Fn = Generator;
-	window.Events = Events;
-
-	function Events(source, fn) {
-		// Enable calling Events without the new keyword.
-		if (this === window || this === null) {
-			return new Events(source, fn);
-		}
-
-		F.call.call(Generator, this, source, fn);
-	}
-
-	Object.assign(Events.prototype, Generator.prototype, {
-		map: function(fn) {
-			return Events(this, fn);
-		},
-
-		transpose: function(n) {
-			return Events(this, function transpose(event) {
-				if (event[0] === 'note') {
-					 event = event.slice();
-					 event[1] += n;
-				}
-
-				return event;
-			})
-		},
-
-		transposeDiatonic: function(key, n) {
-			return Events(this, function transpose(event) {
-				if (event[0] === 'note') {
-					event = event.slice();
-					// Diatonic transpose!!
-					//event[1] += n;
-				}
-
-				return event;
-			})
-		}
-	});
+	window.Fn = Fn;
 })(this);
