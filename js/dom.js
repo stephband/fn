@@ -6,6 +6,7 @@
 	var reduce = Function.prototype.call.bind(Array.prototype.reduce);
 	var dom = {};
 	var rspaces = /\s+/;
+	var Stream = Fn.Stream;
 
 	// Utility functions
 
@@ -315,8 +316,24 @@
 		node.dispatchEvent(createEvent(type));
 	}
 
+	function EventStream() {
+		Stream.apply(this, arguments);
+	}
+
+	assign(EventStream.prototype, Stream.prototype, {
+		preventDefault: function() {
+			return this.call('preventDefault');
+		},
+	});
+
 	function on(node, type, fn) {
-		node.addEventListener(type, fn);
+		return fn ?
+			node.addEventListener(type, fn) :
+			new EventStream(function(push) {
+				node.addEventListener(type, push);
+			}, function(push) {
+				node.removeEventListener(type, push);
+			});
 	}
 
 	function off(node, type, fn) {
