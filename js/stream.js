@@ -139,7 +139,7 @@
 
 			return new this.constructor(function(push) {
 				source.subscribe(function(value) {
-					fn(value) && push(value);
+					fn(value) && push.apply(null, arguments);
 				});
 			});
 		},

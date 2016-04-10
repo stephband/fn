@@ -20,11 +20,10 @@
 	//	Promise.prototype.map = Promise.prototype.then;
 	//}
 
-	// Functions
+
+	// Utility functions
 
 	function noop() {}
-
-	function identity(n) { return n; }
 
 	function byGreater(a, b) { return a > b ? 1 : -1 ; }
 
@@ -34,6 +33,56 @@
 		if (typeof value !== 'string') { return; }
 		return value.trim().toLowerCase().replace(/\W/g, '-').replace(/[_]/g, '-');
 	}
+
+
+	// Get and set
+
+	var rpathtrimmer = /^\[|]$/g;
+	var rpathsplitter = /\]?\.|\[/g;
+
+	function isObject(obj) { return obj instanceof Object; }
+
+	function splitPath(path) {
+		return path
+			.replace(rpathtrimmer, '')
+			.split(rpathsplitter);
+	}
+
+	function objFrom(obj, array) {
+		var key = array.shift();
+		var val = obj[key];
+
+		return array.length === 0 ? val :
+			val !== undefined ? objFrom(val, array) :
+			val ;
+	}
+
+	function objTo(root, array, obj) {
+		var key = array[0];
+
+		return array.length > 1 ?
+			objTo(isObject(root[key]) ? root[key] : (root[key] = {}), array.slice(1), obj) :
+			(root[key] = obj) ;
+	}
+
+	function getPath(path, obj) {
+		return path === '' ?
+			obj :
+			objFrom(obj, splitPath(path));
+	}
+
+	function setPath(path, value, obj) {
+		var array = splitPath(path);
+
+		return array.length === 1 ?
+			(obj[path] = value) :
+			objTo(obj, array, value);
+	}
+
+
+	// Functional functions
+
+	function identity(n) { return n; }
 
 	function compose(fn1, fn2) {
 		return function composed(n) { fn1(fn2(n)); }
@@ -65,7 +114,11 @@
 		}, 'length', { value: par });
 	}
 
-	// Curries
+
+	// Curried functions
+
+	var get = curry(getPath);
+	var set = curry(setPath);
 
 	var concat   = curry(function concat(array2, array1) { return A.concat.call(array1, array2); });
 	var each     = curry(function each(fn, array) { return A.forEach.call(array, fn); });
@@ -94,8 +147,6 @@
 	var uppercase = curry(function uppercase(string) { return S.toUpperCase.apply(string); });
 	var lowercase = curry(function lowercase(string) { return S.toLowerCase.apply(string); });
 
-	var get      = curry(function get(name, object) { return object[name]; });
-	var set      = curry(function get(name, value, object) { return object[name] = value; });
 	var assign   = curry(function assign(obj2, obj1) { return Object.assign(obj1, obj2); });
 	var keys     = curry(function keys(obj) { return Object.keys(obj); });
 	var call     = curry(function call(value, fn) { return fn.call(null, value); });
@@ -466,10 +517,11 @@
 	}
 
 	Object.assign(Fn, {
+		noop:     noop,
 		identity: identity,
 		curry:    curry,
-		compose: compose,
-		pipe:    pipe,
+		compose:  compose,
+		pipe:     pipe,
 
 		// Arrays
 		concat:   concat,
