@@ -329,10 +329,11 @@
 	function on(node, type, fn) {
 		return fn ?
 			node.addEventListener(type, fn) :
-			new EventStream(function(push) {
+			new EventStream(function setup(push) {
 				node.addEventListener(type, push);
-			}, function(push) {
-				node.removeEventListener(type, push);
+				return function teardown() {
+					node.removeEventListener(type, push);
+				};
 			});
 	}
 

@@ -2,10 +2,10 @@
 
 	// Native
 
-	var A = Array.prototype;
-	var F = Function.prototype;
-	var N = Number.prototype;
-	var S = String.prototype;
+	var A  = Array.prototype;
+	var F  = Function.prototype;
+	var N  = Number.prototype;
+	var S  = String.prototype;
 	var Fn = window.Fn;
 
 	// Polyfill
@@ -34,41 +34,91 @@
 
 	// Streams
 
-	function Stream(initialise) {
+	function Stream(setup) {
 		// Enable calling constructor without the new keyword.
 		if (this === window || this === null || this === Fn) {
-			return new Stream(initialise);
+			return new Stream(setup);
 		}
 
-		var subscriber = noop;
+		function subscribe(fn) {
+			var stream = this;
+			var subscriptions = 1;
+			var teardown = setup(push) || noop;
 
-		function push() {
-			if (arguments.length === 0 || arguments[0] === undefined) {
-				return;
+			function getSubscriber() { return fn; }
+
+			function push() {
+				if (arguments[0] === undefined) { return; }
+				// Todo: handle END events?
+				//if (arguments[0] === Stream.END) { getSubscriber = returnNoop; }
+				getSubscriber().apply(null, arguments);
 			}
 
-			subscriber.apply(null, arguments);
-		}
+			function decrement() {
+				// When there are no subscriptions tear it down and start again.
+				if (--subscriptions < 1) {
+					teardown(push);
+					stream.subscribe = subscribe;
+				}
+			}
 
-		this.subscribe = function subscribe(fn) {
-			var sn = subscriber;
+			// Replace method with one that runs multiple subscribers.
+			this.subscribe = function subscribeTail(fn) {
+				var gS = getSubscriber;
 
-			subscriber = function() {
-				sn.apply(null, arguments);
-				fn.apply(null, arguments);
+				++subscriptions;
+
+				getSubscriber = function() {
+					return function subscriber() {
+						gS().apply(null, arguments);
+						fn.apply(null, arguments);
+					};
+				};
+
+				return function unsubscribe() {
+					if (fn === noop) { return; }
+					fn = noop;
+					decrement();
+				};
 			};
 
-			return this;
-		};
+			return function unsubscribe() {
+				if (fn === noop) { return; }
+				fn = noop;
+				decrement();
+			};
+		}
 
-		initialise(push);
+		this.subscribe = subscribe;
 	}
 
 	Object.assign(Stream.prototype, Fn.Generator.prototype, {
+
+		//	Anatomy of a Stream method:
+		//
+		//	method: function() {
+		//		var source = this;
+		//
+		//      // Construct a new stream of the same type via this.constructor,
+		//      // enabling this prototype to be inherited by other streams.
+		// 		// Pass in a fn setup(), which gets called on the first
+		//      // call to .subscribe(). It should return a teardown function.
+		//		return new this.constructor(function setup(push) {
+		//
+		//			// Return the unsubscriber returned by .subscribe(), which
+		//			// gets used as a teardown.
+		//			return source.subscribe(function() {
+		//
+		//				// Do something logic
+		//			});
+		//		};
+		//	}
+
 		subscribe: noop,
 
 		log: function() {
-			return this.subscribe(console.log.bind(console));
+			this.subscribe(console.log.bind(console));
+			return this;
 		},
 
 		call: function(name) {
@@ -80,24 +130,46 @@
 		map: function(transform) {
 			var source = this;
 			return new this.constructor(function(push) {
-				source.subscribe(Fn.compose(push, transform));
+				return source.subscribe(Fn.compose(push, transform));
+			});
+		},
+
+		merge: function() {
+			var source = this;
+			var streams = Fn.slice(0, undefined, arguments);
+
+			return new this.constructor(function(push) {
+				var stream = source;
+
+				while (stream) {
+					stream.subscribe(push);
+					stream = streams.shift();
+				}
 			});
 		},
 
 		throttle: function() {
 			var source = this;
 			return new this.constructor(function(push) {
-				source.subscribe(Throttle(push));
+				return source.subscribe(Throttle(push));
 			});
 		},
 
 		head: function() {
 			var source = this;
+			var ended = false;
 			return new this.constructor(function(push) {
-				source.subscribe(function() {
+				if (ended) { return; }
+
+				var unsubscribe = source.subscribe(function() {
 					push.apply(null, arguments);
-					push = noop;
+					unsubscribe();
+					ended = true;
+					// Todo: send end of stream event?
+					// push(Stream.END);
 				});
+
+				return unsubscribe;
 			});
 		},
 
@@ -105,7 +177,7 @@
 			var source = this;
 			return new this.constructor(function(push) {
 				var p = noop;
-				source.subscribe(function() {
+				return source.subscribe(function() {
 					p.apply(null, arguments);
 					p = push;
 				});
@@ -114,18 +186,35 @@
 
 		slice: function(n, m) {
 			var source = this;
+			var i = 0;
 
 			n = n === undefined ? 0 : n ;
 			m = m === undefined ? Infinity : m ;
 
-			return new this.constructor(function(push) {
-				var i = -1;
+			// .splice() consumes values – ie, it doesn't send teardowns up the
+			// chain until it's counted up to m values.
+			var unsubscribe = source.subscribe(function() {
+				if (++i >= m) {
+					unsubscribe();
+				}
+			});
 
-				source.subscribe(function() {
-					if (++i >= n && i < m) {
+			return new this.constructor(function(push) {
+				if (i >= m) { return noop; }
+
+				var unsubscribe = source.subscribe(function() {
+					if (i > n) {
 						push.apply(null, arguments);
 					}
+
+					if (i >= m) {
+						unsubscribe();
+						// Todo: send end of stream event?
+						// push(Stream.END);
+					}
 				});
+
+				return unsubscribe;
 			});
 		},
 
@@ -138,7 +227,7 @@
 				fn ;
 
 			return new this.constructor(function(push) {
-				source.subscribe(function(value) {
+				return source.subscribe(function(value) {
 					fn(value) && push.apply(null, arguments);
 				});
 			});
@@ -156,7 +245,7 @@
 			var source = this;
 			return new this.constructor(function(push) {
 				var buffer = [];
-				source.subscribe(function(value) {
+				return source.subscribe(function(value) {
 					if (buffer.indexOf(value) === -1) {
 						buffer.push(value);
 						push(value);
@@ -171,7 +260,7 @@
 			return new Stream(function(push) {
 				var buffer = [];
 
-				source.subscribe(function(value) {
+				return source.subscribe(function(value) {
 					buffer.push(value);
 
 					if (buffer.length >= n) {
@@ -188,7 +277,7 @@
 			return new this.constructor(function(push) {
 				var value;
 
-				source.subscribe(function() {
+				return source.subscribe(function() {
 					if (value !== arguments[0]) {
 						value = arguments[0];
 						push.apply(null, arguments);
