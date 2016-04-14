@@ -1,7 +1,9 @@
 (function(window) {
+	"use strict";
 
 	// Native
 
+	var O = Object.prototype;
 	var A = Array.prototype;
 	var F = Function.prototype;
 	var N = Number.prototype;
@@ -176,46 +178,150 @@
 		return true;
 	});
 
-	// Generators
 
-	function Generator(next, push) {
-		// Enable calling Generator without the new keyword.
-		if (this === window || this === null) {
-			return new Generator(next, push);
+	// Stream
+
+	function run(fn) { fn(); }
+
+	function notifyObservers(observers, type) {
+		Stream(observers[type]).on(run);
+	}
+
+	function Stream(source, push) {
+		// Enable calling Stream without the new keyword.
+		if (!this || !Stream.prototype.isPrototypeOf(this)) {
+			return new Stream(source, push);
 		}
 
-		this.next = next;
-		if (push) { this.push = push; }
+		var notify = noop;
+		var observers, array;
+
+		if (typeof source === 'function') {
+			this.next = source;
+
+			if (push) {
+				this.push = function fnPush() {
+					push.apply(null, arguments);
+					notify(observers, 'push');
+				};
+			}
+		}
+		else {
+			array = source ? A.slice.apply(source) : [] ;
+
+			this.next = function next() {
+				var value;
+				// Ignore undefined holes in arrays
+				while (array.length && (value = array.shift()) === undefined);
+				return value;
+			};
+
+			this.push = function arrayPush() {
+				A.push.apply(array, arguments);
+				notify(observers, 'push');
+			};
+		}
+
+		// Define .observe(fn)
+		this.observe = function(type, fn) {
+			// Lazily create observers table. We are only going to need it
+			// if this stream becomes pushable.
+			observers = observers || {};
+
+			function observe(type, fn) {
+				observers[type] = observers[type] || [] ;
+				observers[type].push(fn);
+				return this;
+			}
+
+			// Enable .push to notify observers
+			notify = notifyObservers;
+			this.observe = observe;
+			return this.observe(type, fn);
+		};
 	}
 
-	function ArrayGenerator(source) {
-		if (source) { A.slice(source); }
+	Object.assign(Stream.prototype, {
+		push: noop,
+		next: noop,
 
-		var array = source || [] ;
+		create: function(next) {
+			var stream = new this.constructor(next);
+			stream.push = this.push;
+			stream.observe = this.observe;
+			return stream;
+		},
 
-		return new Generator(function next() {
-			var value;
-			// Ignore holes in arrays
-			while (array.length && (value = array.shift()) === undefined);
-			return value;
-		}, function push() {
-			A.push.apply(array, arguments);
-		});
-	}
+		on: function on1(fn) {
+			var next = this.next;
 
-	function MapGenerator(source, transform) {
-		return new Generator(function next() {
-			var value = source.next();
-			return value !== undefined ? transform(value) : undefined ;
-		}, source.push);
-	}
+			function flush() {
+				var value;
+				while ((value = next()) !== undefined) {
+					fn(value);
+				}
+			}
 
-	Object.assign(Generator.prototype, {
+			this.on = function on2(fn2) {
+				var fn1 = fn;
+
+				fn = function distribute() {
+					fn1.apply(null, arguments);
+					fn2.apply(null, arguments);
+				};
+
+				// Return unsubscribe
+				// return function off() { fn2 = noop; };
+
+				// Return source
+				return this;
+			};
+
+			// Flush the source then listen for values
+			flush();
+			this.observe('push', flush);
+			return this;
+		},
+
+		pipe: function(object) {
+			var source = this;
+			var next = object.next;
+			var push = object.push;
+
+			// These only handle streams without .on()s in them, I think...
+			// We shouldnt be changing methods of object... bad...
+			object.next = function() {
+				var value = source.next();
+				if (value === undefined) { return; }
+				// Pull a value though the pipe
+				push(value);
+				return next();
+			};
+
+			object.push = this.push;
+			object.observe = this.observe;
+
+			//this.on(function(value) {
+			//	console.log('ON', value);
+			//	object.push.apply(object, arguments);
+			//});
+
+			return object;
+		},
+
+		map: function(transform) {
+			var source = this;
+			return this.create(function next() {
+				var value = source.next();
+				return value !== undefined ? transform(value) : undefined ;
+			});
+		},
+
 		head: function() {
 			var source = this;
 			var i = 0;
 
-			return new Generator(function next() {
+			return new this.constructor(function next() {
 				return i++ === 0 ? source.next() : undefined ;
 			}, source.push);
 		},
@@ -224,7 +330,7 @@
 			var source = this;
 			var i = 0;
 
-			return new Generator(function tail() {
+			return new this.constructor(function next() {
 				if (i++ === 0) { source.next(); }
 				return source.next();
 			}, source.push);
@@ -244,9 +350,9 @@
 			}, source.push);
 		},
 
-		map: function(fn) {
-			return MapGenerator(this, fn);
-		},
+//		map: function(fn) {
+//			return MapGenerator(this, fn);
+//		},
 
 		find: function(fn) {
 			var source = this;
@@ -414,7 +520,7 @@
 		boolean:     function() { return this.map(Boolean); },
 		stringify:   function() { return this.map(String); },
 		jsonify:     function() { return this.map(JSON.stringify); },
-		parsejson:   function() { return this.map(JSON.parse); },
+		json:        function() { return this.map(JSON.parse); },
 		slugify:     function() { return this.map(slugify); },
 		matches:     function(regexp) { return this.map(match(regexp)); },
 		regex:       function(regexp) { return this.map(regex(regexp)); },
@@ -500,8 +606,8 @@
 		}
 	});
 
-	Generator.prototype.fn = Generator.prototype.toFunction;
-	Generator.prototype.toJSON = Generator.prototype.toArray;
+	Stream.prototype.toJSON = Stream.prototype.toArray;
+
 
 	// Fn
 
@@ -568,10 +674,9 @@
 		not:      not,
 
 		// Generators
-		Generator:      Generator,
-		ArrayGenerator: ArrayGenerator,
-		MapGenerator:   MapGenerator
+		Stream:         Stream
 	});
 
 	window.Fn = Fn;
+	window.Stream = Stream;
 })(this);

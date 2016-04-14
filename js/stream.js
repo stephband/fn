@@ -122,8 +122,16 @@
 		},
 
 		call: function(name) {
-			return this.subscribe(function(object) {
-				return name ? object[name]() : object() ;
+			return this.subscribe(function(fn) {
+				return name ? Fn.get(name, fn)() : fn() ;
+			});
+		},
+
+		// .pipe() accepts any object with a .push() method – like an array, or
+		// a writeable stream.
+		pipe: function(object) {
+			this.subscribe(function() {
+				object.push.apply(object, arguments);
 			});
 		},
 

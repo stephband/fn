@@ -20,7 +20,53 @@
 	<button id="button">Button</button>
 
 	<script src="js/fn.js"></script>
-	<script src="js/stream.js"></script>
-	<script src="js/dom.js"></script>
+	<!--script src="js/stream.js"></script-->
+	<!--script src="js/dom.js"></script-->
+
+	<script>
+		var s = Stream();
+
+		s.observe('push', function() { console.log('push'); });
+		s.push(0, 1);
+
+		var p = Stream().map(Fn.multiply(-1));//.on(function(n){ console.log('n', n); });
+		var a = s.pipe(p).map(Fn.add(-9));
+
+		setTimeout(function() {
+			a.on(function(m) { console.log('m', m); });
+		}, 2000);
+
+		setTimeout(function() {
+			p.push(20,30);
+		}, 3000);
+
+//		console.log('s.toArray()', s.toArray());
+//
+//		//s.on(function(value) { console.log('s.on()', value); })
+//		s.push(0, 1, 2);
+//		//console.log('s.toArray()', s.toArray());
+//
+//		var t = s.map(Fn.add(2));
+//
+//		console.log('t.next()   ', t.next());
+//		console.log('t.toArray()', t.toArray());
+//
+//		t.on(function(value) { console.log('t.on()', value); })
+//
+//		s
+//		.on(function(value) { console.log('1st .on()  ', value); })
+//		.on(function(value) { console.log('2nd .on()  ', value); })
+//		.on(function(value) { console.log('3rd .on()  ', value); });
+//
+//		s
+//		.on(function(value) { console.log('4th .on()  ', value); })
+//		.on(function(value) { console.log('5th .on()  ', value); })
+//		.on(function(value) { console.log('6th .on()  ', value); });
+//
+//		s.push(8, 45, 2);
+//		console.log(s.toArray());
+//
+//		t.push(0, 1);
+	</script>
 </body>
 </html>
