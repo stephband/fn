@@ -165,13 +165,27 @@
 		target.parentNode && target.parentNode.insertBefore(node, target.nextSibling);
 	}
 
-	function query(node, selector) {
-		if (arguments.length === 1 && typeof node === 'string') {
-			selector = node;
-			node = document;
+	function NodeStream(array) {
+		if (!this || !NodeStream.prototype.isPrototypeOf(this)) {
+			return new NodeStream(array);
 		}
 
-		return slice(node.querySelectorAll(selector));
+		ReadStream.call(this, array);
+	}
+
+	setPrototypeOf(assign(NodeStream.prototype, {
+		append: function(collection) {
+			return this.map(dom.append(collection));
+		},
+
+		html: function(string) {
+			return this.map(dom.html(string));
+		},
+	}, Stream.prototype);
+
+	function query(selector, node) {
+		node = node || document;
+		return NodeStream(node.querySelectorAll(selector));
 	}
 
 	function isElementNode(node) {
@@ -195,16 +209,23 @@
 		tag:       tagName,
 		create:    createNode,
 
-		append: function(node1, node2) {
-			if (Node.prototype.isPrototypeOf(node2)) {
-				append(node1, node2);
+		append: Fn.curry(function(children, node) {
+			if (Node.prototype.isPrototypeOf(children)) {
+				node.appendChild(children);
 			}
 			else {
-				Array.prototype.forEach.call(node2, function(node) {
-					append(node1, node);
+				Array.prototype.forEach.call(children, function(child) {
+					node.appendChild(child);
 				});
 			}
-		},
+
+			return node;
+		}),
+
+		html: Fn.curry(function(html, node) {
+			node.innerHTML = html;
+			return node;
+		}),
 
 		after:     insertAfter,
 		before:    insertBefore,
