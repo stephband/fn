@@ -1,6 +1,9 @@
 (function(window) {
 	"use strict";
 
+	var Fn     = window.Fn;
+	var Stream = Fn.Stream;
+	var BufferStream = Fn.BufferStream;
 	var assign = Object.assign;
 	var slice  = Function.prototype.call.bind(Array.prototype.slice);
 	var reduce = Function.prototype.call.bind(Array.prototype.reduce);
@@ -92,28 +95,27 @@
 			0 ;
 	}
 
-	function matches(node, selector) {
+	function matches(selector, node) {
 		return node.matches ? node.matches(selector) :
 			node.matchesSelector ? node.matchesSelector(selector) :
 			node.webkitMatchesSelector ? node.webkitMatchesSelector(selector) :
 			node.mozMatchesSelector ? node.mozMatchesSelector(selector) :
 			node.msMatchesSelector ? node.msMatchesSelector(selector) :
 			node.oMatchesSelector ? node.oMatchesSelector(selector) :
+			// Fall back to simple tag name matching.
 			node.tagName.toLowerCase() === selector ;
 	}
 
-	function closest(node, selector, root) {
-		if (!node || node === root || node === document || node.nodeType === 11) { return; }
+	function closest(selector, node, root) {
+		if (!node || node === document || node === root || node.nodeType === 11) { return; }
 
-		if (node.correspondingUseElement) {
-			// SVG <use> elements store their DOM reference in
-			// .correspondingUseElement.
-			node = node.correspondingUseElement;
-		}
+		// SVG <use> elements store their DOM reference in
+		// .correspondingUseElement.
+		node = node.correspondingUseElement || node ;
 
-		return matches(node, selector) ?
+		return matches(selector, node) ?
 			 node :
-			 closest(node.parentNode, selector, root) ;
+			 closest(selector, node.parentNode, root) ;
 	}
 
 	function tagName(node) {
@@ -215,8 +217,8 @@
 
 			Array.prototype.forEach.call(node, remove);
 		},
-		closest:   closest,
-		matches:   matches,
+		closest:   Fn.curry(closest),
+		matches:   Fn.curry(matches),
 		classes:   getClassList,
 		style:     getStyle,
 		getClass:  getClass,
@@ -316,25 +318,92 @@
 		node.dispatchEvent(createEvent(type));
 	}
 
-	function EventStream() {
-		Stream.apply(this, arguments);
+	function EventStream(node, type, selector) {
+		if (!this || !EventStream.prototype.isPrototypeOf(this)) {
+			return new EventStream(node, type, selector);
+		}
+
+		// This is much shenanigans. Surely it can be simpler? Would help if
+		// it were possible to push withoutexposing .push() method...
+
+		var stream = this;
+		var buffer = [] ;
+
+		function next() {
+			return buffer.shift();
+		}
+
+		Stream.call(this, next, noop);
+
+		var push = this.push;
+		// Make stream non-pushable
+		delete this.push;
+
+		var pushEvent = selector ? function(e) {
+			var delegateTarget = closest(selector, e.target, e.currentTarget);
+			if (!delegateTarget) { return; }
+			e.delegateTarget = delegateTarget;
+			buffer.push(e);
+			push();
+		} : function(e) {
+			buffer.push(e);
+			push();
+		} ;
+
+		node.addEventListener(type, pushEvent);
+
+		this.on('end', function end() {
+			node.removeEventListener(type, pushEvent);
+		});
 	}
 
-	assign(EventStream.prototype, Stream.prototype, {
-		preventDefault: function() {
-			return this.call('preventDefault');
+	Object.setPrototypeOf(assign(EventStream.prototype, {
+		create: function(next) {
+			var stream = Object.create(this);
+			stream.next = next;
+			return stream;
 		},
-	});
 
-	function on(node, type, fn) {
-		return fn ?
-			node.addEventListener(type, fn) :
-			new EventStream(function setup(push) {
-				node.addEventListener(type, push);
-				return function teardown() {
-					node.removeEventListener(type, push);
-				};
+		preventDefault: function() {
+			return this.run('preventDefault');
+		},
+
+		closest: function(selector) {
+			return this.map(function(e) {
+				return closest(selector, e.target);
 			});
+		},
+
+		delegate: function(selector) {
+			return this.filter(function(e) {
+				var node = closest(selector, e.target, e.currentTarget);
+
+				if (!node) { return false; }
+
+				e.delegateTarget = node;
+				return true;
+			});
+		}
+	}), Stream.prototype);
+
+	function on(node, type, selector, fn) {
+		if (typeof arguments[arguments.length - 1] === 'function') {
+			return;
+		}
+
+		// var stream = new EventStream(function setup(push) {
+		// 	node.addEventListener(type, push);
+		// 	return function teardown() {
+		// 		node.removeEventListener(type, push);
+		// 	};
+		// });
+
+		// Return stream
+		var stream = new EventStream();
+		node.addEventListener(type, stream.push);
+		return selector ?
+			stream.delegate(selector) :
+			stream ;
 	}
 
 	function off(node, type, fn) {
@@ -346,7 +415,8 @@
 		off:      off,
 		trigger:  trigger,
 		delegate: delegate,
-		isPrimaryButton: isPrimaryButton
+		isPrimaryButton: isPrimaryButton,
+		EventStream: EventStream
 	});
 
 
