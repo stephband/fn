@@ -331,10 +331,7 @@
 
 			// Flush the source then listen for values
 			flush();
-			this.on('push', function() {
-				flush();
-			});
-			return this;
+			return this.on('push', flush);
 		},
 
 		pipe: function(object) {

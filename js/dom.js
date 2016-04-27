@@ -13,6 +13,7 @@
 
 	// Var
 
+	var A = Array.prototype;
 	var rspaces = /\s+/;
 
 
@@ -559,20 +560,14 @@
 	// DOM
 
 	function DOM(selector, node) {
-		if (!this || !NodeStream.prototype.isPrototypeOf(this)) {
-			return new DOM(selector, node);
-		}
-
 		var nodes = typeof selector === "string" ?
-				find(selector, node || document) :
+				A.slice.call(find(selector, node || document)) :
 			Node.prototype.isPrototypeOf(selector) ?
 				[selector] :
-			selector ;
+			A.slice.call(selector) ;
 
-		ReadStream.call(this, nodes);
+		return new NodeStream(nodes);
 	}
-
-	setPrototypeOf(DOM.prototype, NodeStream.prototype);
 
 	assign(DOM, {
 		// DOM Nodes
@@ -590,6 +585,7 @@
 
 		// DOM Traversal
 		find:           find,
+		findOne:        findOne,
 		matches:        Fn.curry(matches),
 		closest:        Fn.curry(closest),
 
