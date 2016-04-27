@@ -1,17 +1,27 @@
 (function(window) {
 	"use strict";
 
-	var Fn     = window.Fn;
-	var Stream = Fn.Stream;
-	var BufferStream = Fn.BufferStream;
-	var assign = Object.assign;
-	var slice  = Function.prototype.call.bind(Array.prototype.slice);
-	var reduce = Function.prototype.call.bind(Array.prototype.reduce);
-	var dom = {};
+	// Import
+
+	var Fn             = window.Fn;
+	var Node           = window.Node;
+	var SVGElement     = window.SVGElement;
+	var Stream         = Fn.Stream;
+	var ReadStream     = Fn.ReadStream;
+	var BufferStream   = Fn.BufferStream;
+
+
+	// Var
+
 	var rspaces = /\s+/;
-	var Stream = Fn.Stream;
+
 
 	// Utility functions
+
+	var assign         = Object.assign;
+	var setPrototypeOf = Object.setPrototypeOf;
+	var slice  = Function.prototype.call.bind(Array.prototype.slice);
+	var reduce = Function.prototype.call.bind(Array.prototype.reduce);
 
 	function noop() {}
 
@@ -26,7 +36,6 @@
 		};
 	}
 
-	// Selection, traversal and mutation
 
 	// TokenList constructor to emulate classList property. The get fn should
 	// take the arguments (node), and return a string of tokens. The set fn
@@ -68,6 +77,55 @@
 		}
 	};
 
+
+	// DOM Nodes
+
+	function create(name) {
+		// create('comment', 'Text');
+		if (name === 'comment' || name === '!') {
+			return document.createComment(arguments[1] || '');
+		}
+
+		// create('text', 'Text')
+		if (name === 'text') {
+			return document.createTextNode(arguments[1] || '');
+		}
+
+		// create('fragment')
+		if (name === 'fragment') {
+			return document.createDocumentFragment();
+		}
+
+		// create('div', 'HTML')
+		var node = document.createElement(name);
+		if (arguments[1]) { node.innerHTML = arguments[1]; }
+		return node;
+	}
+
+	function isElementNode(node) {
+		return node.nodeType === 1;
+	}
+
+	function isTextNode(node) {
+		return node.nodeType === 3;
+	}
+
+	function isCommentNode(node) {
+		return node.nodeType === 8;
+	}
+
+	function isFragmentNode(node) {
+		return node.nodeType === 11;
+	}
+
+	function tag(node) {
+		return node.tagName.toLowerCase();
+	}
+
+	function getClasses(node) {
+		return node.classList || new TokenList(node, getClass, setClass);
+	}
+
 	function getClass(node) {
 		// node.className is an object in SVG. getAttribute
 		// is more consistent, if a tad slower.
@@ -83,16 +141,20 @@
 		}
 	}
 
-	function getClassList(node) {
-		return node.classList || new TokenList(node, getClass, setClass);
-	}
-
-	function getStyle(node, name) {
+	function getStyle(name, node) {
 		return window.getComputedStyle ?
 			window
 			.getComputedStyle(node, null)
 			.getPropertyValue(name) :
 			0 ;
+	}
+
+
+	// DOM Traversal
+
+	function find(selector, node) {
+		node = node || document;
+		return node.querySelectorAll(selector);
 	}
 
 	function matches(selector, node) {
@@ -118,43 +180,45 @@
 			 closest(selector, node.parentNode, root) ;
 	}
 
-	function tagName(node) {
-		return node.tagName.toLowerCase();
+
+	// DOM Mutation
+
+	function appendNode(child, node) {
+		node.appendChild(child);
 	}
 
-	function createNode(name) {
-		// create('comment', 'Text');
-		if (name === 'comment' || name === '!') {
-			return document.createComment(arguments[1]);
+	function append(child, node) {
+		if (child instanceof Node || child instanceof SVGElement) {
+			appendNode(child, node);
+			return;
 		}
 
-		// create('text', 'Text')
-		if (name === 'text') {
-			return document.createTextNode(arguments[1]);
+		if (child.length) {
+			Array.prototype.forEach.call(child, function(child) {
+				appendNode(child, node);
+			});
 		}
-
-		// create('fragment')
-		if (name === 'fragment') {
-			return document.createDocumentFragment();
-		}
-
-		// create('div', 'HTML')
-		var node = document.createElement(name);
-		node.innerHTML = arguments[1];
-		return node;
 	}
 
-	function append(node1, node2) {
-		node1.appendChild(node2);
-		return node1;
+	function html(html, node) {
+		node.innerHTML = html;
 	}
 
 	function empty(node) {
 		while (node.lastChild) { node.removeChild(node.lastChild); }
 	}
 
-	function remove(node) {
+	function removeNode(node) {
 		node.parentNode && node.parentNode.removeChild(node);
+	}
+
+	function remove(node) {
+		if (node instanceof Node || node instanceof SVGElement) {
+			removeNode(node);
+		}
+		else {
+			A.forEach.call(node, removeNode);
+		}
 	}
 
 	function insertBefore(target, node) {
@@ -165,148 +229,8 @@
 		target.parentNode && target.parentNode.insertBefore(node, target.nextSibling);
 	}
 
-	function NodeStream(array) {
-		if (!this || !NodeStream.prototype.isPrototypeOf(this)) {
-			return new NodeStream(array);
-		}
 
-		ReadStream.call(this, array);
-	}
-
-	setPrototypeOf(assign(NodeStream.prototype, {
-		append: function(collection) {
-			return this.map(dom.append(collection));
-		},
-
-		html: function(string) {
-			return this.map(dom.html(string));
-		},
-	}, Stream.prototype);
-
-	function query(selector, node) {
-		node = node || document;
-		return NodeStream(node.querySelectorAll(selector));
-	}
-
-	function isElementNode(node) {
-		return node.nodeType === 1;
-	}
-
-	function isTextNode(node) {
-		return node.nodeType === 3;
-	}
-
-	function isCommentNode(node) {
-		return node.nodeType === 8;
-	}
-
-	function isFragmentNode(node) {
-		return node.nodeType === 11;
-	}
-
-	assign(dom, {
-		query:     query,
-		tag:       tagName,
-		create:    createNode,
-
-		append: Fn.curry(function(children, node) {
-			if (Node.prototype.isPrototypeOf(children)) {
-				node.appendChild(children);
-			}
-			else {
-				Array.prototype.forEach.call(children, function(child) {
-					node.appendChild(child);
-				});
-			}
-
-			return node;
-		}),
-
-		html: Fn.curry(function(html, node) {
-			node.innerHTML = html;
-			return node;
-		}),
-
-		after:     insertAfter,
-		before:    insertBefore,
-		empty:     empty,
-		remove:    function(node) {
-			if (Node.prototype.isPrototypeOf(node)) {
-				remove(node);
-				return;
-			}
-
-			Array.prototype.forEach.call(node, remove);
-		},
-		closest:   Fn.curry(closest),
-		matches:   Fn.curry(matches),
-		classes:   getClassList,
-		style:     getStyle,
-		getClass:  getClass,
-		setClass:  setClass,
-		isElementNode:  isElementNode,
-		isTextNode:     isTextNode,
-		isCommentNode:  isCommentNode,
-		isFragmentNode: isFragmentNode
-	});
-
-
-	// Templates
-
-	var templates = {};
-
-	function fragmentFromChildren(node) {
-		var children = slice(node.childNodes);
-		var fragment = document.createDocumentFragment();
-		return reduce(children, append, fragment);
-	}
-
-	function fragmentFromContent(node) {
-		// A template tag has a content property that gives us a document
-		// fragment. If that doesn't exist we must make a document fragment.
-		return node.content || fragmentFromChildren(node);
-	}
-
-	function getTemplate(id) {
-		var node = document.getElementById(id);
-		if (!node) { throw new Error('dom: element id="' + id + '" is not in the DOM.') }
-
-		var tag = dom.tag(node);
-		if (tag !== 'template' && tag !== 'script') { return; }
-
-		if (node.content) {
-			return fragmentFromContent(node);
-		}
-		else {
-			// In browsers where templates are not inert, ids used inside them
-			// conflict with ids in any rendered result. To go some way to
-			// tackling this, remove the node from the DOM.
-			remove(node);
-			return fragmentFromContent(node);
-		}
-	}
-
-	function cloneTemplate(id) {
-		var template = templates[id] || (templates[id] = getTemplate(id));
-		return template && template.cloneNode(true);
-	}
-
-	function registerTemplate(id, node) {
-		templates[id] = node;
-	}
-
-	assign(dom, {
-		template: function(id, node) {
-			if (node) { registerTemplate(id, node); }
-			else { return cloneTemplate(id); }
-		},
-
-		fragmentFromTemplate: cloneTemplate,
-		fragmentFromContent: fragmentFromContent
-	});
-
-
-	// Events
+	// DOM Events
 
 	var eventOptions = { bubbles: true };
 
@@ -333,11 +257,212 @@
 		return (e.which === 1 && !e.ctrlKey && !e.altKey);
 	}
 
-	function trigger(node, type) {
+	function trigger(type, node) {
 		// Don't cache events. It prevents you from triggering an an event of a
 		// type given type from inside the handler of another event of that type.
 		node.dispatchEvent(createEvent(type));
 	}
+
+	function on(node, type, selector, fn) {
+		if (typeof arguments[arguments.length - 1] === 'function') {
+			return;
+		}
+
+		// var stream = new EventStream(function setup(push) {
+		// 	node.addEventListener(type, push);
+		// 	return function teardown() {
+		// 		node.removeEventListener(type, push);
+		// 	};
+		// });
+
+		// Return stream
+		var stream = new EventStream();
+		node.addEventListener(type, stream.push);
+		return selector ?
+			stream.delegate(selector) :
+			stream ;
+	}
+
+	function off(node, type, fn) {
+		node.removeEventListener(type, fn);
+	}
+
+
+	// DOM Fragments and Templates
+
+	var templates = {};
+
+	function fragmentFromChildren(node) {
+		var children = slice(node.childNodes);
+		var fragment = create('fragment');
+		return append(children, fragment);
+	}
+
+	function fragmentFromContent(node) {
+		// A template tag has a content property that gives us a document
+		// fragment. If that doesn't exist we must make a document fragment.
+		return node.content || fragmentFromChildren(node);
+	}
+
+	function getTemplate(id) {
+		var node = document.getElementById(id);
+		if (!node) { throw new Error('DOM: element id="' + id + '" is not in the DOM.') }
+
+		var tag = DOM.tag(node);
+		if (tag !== 'template' && tag !== 'script') { return; }
+
+		if (node.content) {
+			return fragmentFromContent(node);
+		}
+		else {
+			// In browsers where templates are not inert, ids used inside them
+			// conflict with ids in any rendered result. To go some way to
+			// tackling this, remove the node from the DOM.
+			remove(node);
+			return fragmentFromContent(node);
+		}
+	}
+
+	function cloneTemplate(id) {
+		var template = templates[id] || (templates[id] = getTemplate(id));
+		return template && template.cloneNode(true);
+	}
+
+	function registerTemplate(id, node) {
+		templates[id] = node;
+	}
+
+
+	// DOM Feature tests
+
+	var testEvent = createEvent('featuretest');
+
+	function testTemplate() {
+		// Older browsers don't know about the content property of templates.
+		return 'content' in document.createElement('template');
+	}
+
+	function testEventDispatchOnDisabled() {
+		// FireFox won't dispatch any events on disabled inputs:
+		// https://bugzilla.mozilla.org/show_bug.cgi?id=329509
+
+		var input = document.createElement('input');
+		var result = false;
+
+		appendNode(input, document.body);
+		input.disabled = true;
+		input.addEventListener('featuretest', function(e) { result = true; });
+		input.dispatchEvent(testEvent);
+		removeNode(input);
+
+		return result;
+	}
+
+
+	// NodeStream
+
+	var findFn = Fn.curry(find);
+
+	function NodeStream(array) {
+		if (!this || !NodeStream.prototype.isPrototypeOf(this)) {
+			return new NodeStream(array);
+		}
+
+		ReadStream.call(this, array);
+	}
+
+	assign(setPrototypeOf(NodeStream.prototype, ReadStream.prototype), {
+		append: function(collection) {
+			return this.tap(DOM.append(collection));
+		},
+
+		clone: function() {
+			return this.map(DOM.clone);
+		},
+
+		closest: function(selector) {
+			return this.map(DOM.closest(selector));
+		},
+
+		empty: function() {
+			return this.tap(DOM.empty);
+		},
+
+		find: function(selector) {
+			// This should return a BufferStream
+			return this.map(findFn(selector));
+		},
+
+		html: function(string) {
+			return this.tap(DOM.html(string));
+		},
+
+		insertAfter: function(node) {
+			return this.tap(DOM.insertAfter(node));
+		},
+
+		insertBefore: function(node) {
+			return this.tap(DOM.insertBefore(node));
+		},
+
+		matches: function(selector) {
+			return this.filter(DOM.matches(selector));
+		},
+
+		remove: function() {
+			return this.tap(DOM.remove);
+		},
+
+		event: function(type, selector) {
+			var source = this;
+			var stream = new Stream(source.next, noop);
+
+			// Transmit push event, but make stream unpushable.
+			this.on('push', stream.push);
+			delete stream.push;
+
+			// Return a stream of event streams
+			return stream
+			.map(function(node) {
+				return new EventStream(node, type, selector);
+			});
+		},
+
+		trigger: function(type) {
+			return this.tap(DOM.trigger(type));
+		},
+
+		addClass: function(classes) {
+			return this.tap(function(node) {
+				getClasses(node).add(classes);
+			});
+		},
+
+		removeClass: function() {
+			return this.tap(function(node) {
+				getClasses(node).remove(classes);
+			});
+		},
+
+		isComment: function() {
+			return this.filter(DOM.isCommentNode);
+		},
+
+		isElement: function() {
+			return this.filter(DOM.isElementNode);
+		},
+
+		isFragment: function() {
+			return this.filter(DOM.isFragmentNode);
+		},
+
+		isText: function() {
+			return this.filter(DOM.isTextNode);
+		}
+	});
+
+
+	// EventStream
 
 	function EventStream(node, type, selector) {
 		if (!this || !EventStream.prototype.isPrototypeOf(this)) {
@@ -378,7 +503,7 @@
 		});
 	}
 
-	Object.setPrototypeOf(assign(EventStream.prototype, {
+	assign(setPrototypeOf(EventStream.prototype, Stream.prototype), {
 		create: function(next) {
 			var stream = Object.create(this);
 			stream.next = next;
@@ -405,73 +530,81 @@
 				return true;
 			});
 		}
-	}), Stream.prototype);
-
-	function on(node, type, selector, fn) {
-		if (typeof arguments[arguments.length - 1] === 'function') {
-			return;
-		}
-
-		// var stream = new EventStream(function setup(push) {
-		// 	node.addEventListener(type, push);
-		// 	return function teardown() {
-		// 		node.removeEventListener(type, push);
-		// 	};
-		// });
-
-		// Return stream
-		var stream = new EventStream();
-		node.addEventListener(type, stream.push);
-		return selector ?
-			stream.delegate(selector) :
-			stream ;
-	}
-
-	function off(node, type, fn) {
-		node.removeEventListener(type, fn);
-	}
-
-	assign(dom, {
-		on:       on,
-		off:      off,
-		trigger:  trigger,
-		delegate: delegate,
-		isPrimaryButton: isPrimaryButton,
-		EventStream: EventStream
 	});
 
 
-	// Feature tests
+	// DOM
 
-	var testEvent = new CustomEvent('featuretest', { bubbles: true });
+	function DOM(selector, node) {
+		if (!this || !NodeStream.prototype.isPrototypeOf(this)) {
+			return new DOM(selector, node);
+		}
 
-	function testTemplate() {
-		// Older browsers don't know about the content property of templates.
-		return 'content' in document.createElement('template');
+		var nodes = typeof selector === "string" ?
+				find(selector, node || document) :
+			Node.prototype.isPrototypeOf(selector) ?
+				[selector] :
+			selector ;
+
+		ReadStream.call(this, nodes);
 	}
 
-	function testEventDispatchOnDisabled() {
-		// FireFox won't dispatch any events on disabled inputs:
-		// https://bugzilla.mozilla.org/show_bug.cgi?id=329509
+	setPrototypeOf(DOM.prototype, NodeStream.prototype);
 
-		var input = document.createElement('input');
-		var result = false;
+	assign(DOM, {
+		// DOM Nodes
+		create:         create,
+		isElementNode:  isElementNode,
+		isTextNode:     isTextNode,
+		isCommentNode:  isCommentNode,
+		isFragmentNode: isFragmentNode,
+		tag:            tag,
+		classes:        getClasses,
+		style:          getStyle,
+		getClass:       getClass,
+		setClass:       setClass,
 
-		append(document.body, input);
-		input.disabled = true;
-		input.addEventListener('featuretest', function(e) { result = true; });
-		input.dispatchEvent(testEvent);
-		dom.remove(input);
+		// DOM Traversal
+		find:           find,
+		matches:        Fn.curry(matches),
+		closest:        Fn.curry(closest),
 
-		return result;
-	}
+		// DOM Mutation
+		append:         Fn.curry(append),
+		html:           Fn.curry(html),
+		insertBefore:   Fn.curry(insertBefore),
+		insertAfter:    Fn.curry(insertAfter),
+		empty:          empty,
+		remove:         remove,
 
-	dom.features = {
-		template: testTemplate(),
-		inputEventsOnDisabled: testEventDispatchOnDisabled()
-	};
+		// DOM Fragments and Templates
+		template: function(id, node) {
+			if (node) { registerTemplate(id, node); }
+			else { return cloneTemplate(id); }
+		},
+
+		fragmentFromTemplate: cloneTemplate,
+		fragmentFromContent: fragmentFromContent,
+
+		// DOM Events
+		on:             on,
+		off:            off,
+		trigger:        Fn.curry(trigger),
+		delegate:       delegate,
+		isPrimaryButton: isPrimaryButton,
+
+		// Streams
+		NodeStream:     NodeStream,
+		EventStream:    EventStream,
+
+		features: {
+			template: testTemplate(),
+			inputEventsOnDisabled: testEventDispatchOnDisabled()
+		}
+	});
 
 
 	// Export
-	window.DOM = dom;
+
+	window.DOM = DOM;
 })(this);

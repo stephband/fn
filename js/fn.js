@@ -226,7 +226,7 @@
 			//if (answer.done) { notify('end') }
 			return answer.value;
 		} : function next() {
-			// Object is and array-like object
+			// Object is an array-like object
 			var value = object.shift();
 			//if (object.length === 0) { notify('end') }
 			return value;
