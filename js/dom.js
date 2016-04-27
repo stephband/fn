@@ -102,6 +102,10 @@
 		return node;
 	}
 
+	function clone(node) {
+		return node.cloneNode(true);
+	}
+
 	function isElementNode(node) {
 		return node.nodeType === 1;
 	}
@@ -157,6 +161,11 @@
 		return node.querySelectorAll(selector);
 	}
 
+	function findOne(selector, node) {
+		node = node || document;
+		return node.querySelector(selector);
+	}
+
 	function matches(selector, node) {
 		return node.matches ? node.matches(selector) :
 			node.matchesSelector ? node.matchesSelector(selector) :
@@ -198,6 +207,10 @@
 				appendNode(child, node);
 			});
 		}
+	}
+
+	function appendTo(node, child) {
+		appendNode(child, node);
 	}
 
 	function html(html, node) {
@@ -374,6 +387,16 @@
 	assign(setPrototypeOf(NodeStream.prototype, ReadStream.prototype), {
 		append: function(collection) {
 			return this.tap(DOM.append(collection));
+		},
+
+		appendTo: function(node) {
+			node = typeof node === 'string' ?
+				findNode(node) :
+				node ;
+
+			return node === undefined ?
+				this :
+				this.tap(DOM.appendTo(node)) ;
 		},
 
 		clone: function() {
@@ -554,15 +577,16 @@
 	assign(DOM, {
 		// DOM Nodes
 		create:         create,
-		isElementNode:  isElementNode,
-		isTextNode:     isTextNode,
-		isCommentNode:  isCommentNode,
-		isFragmentNode: isFragmentNode,
+		clone:          clone,
 		tag:            tag,
 		classes:        getClasses,
 		style:          getStyle,
 		getClass:       getClass,
 		setClass:       setClass,
+		isElementNode:  isElementNode,
+		isTextNode:     isTextNode,
+		isCommentNode:  isCommentNode,
+		isFragmentNode: isFragmentNode,
 
 		// DOM Traversal
 		find:           find,
@@ -571,6 +595,7 @@
 
 		// DOM Mutation
 		append:         Fn.curry(append),
+		appendTo:       Fn.curry(appendTo),
 		html:           Fn.curry(html),
 		insertBefore:   Fn.curry(insertBefore),
 		insertAfter:    Fn.curry(insertAfter),

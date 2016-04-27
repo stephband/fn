@@ -305,6 +305,8 @@
 		},
 
 		pull: function pull1(fn) {
+			fn = fn || Fn.noop;
+
 			var next = this.next;
 
 			function flush() {
