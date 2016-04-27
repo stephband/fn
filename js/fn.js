@@ -40,6 +40,14 @@
 		return value.trim().toLowerCase().replace(/\W/g, '-').replace(/[_]/g, '-');
 	}
 
+	function stringType(string) {
+		// Determine the type of string from its text content. Not to be used
+		// as a definitive typing, but useful nonetheless.
+		return /^(?:\/|https?\:\/\/)(?:[!#$&-;=?-~\[\]\w]|%[0-9a-fA-F]{2})+$/.test(string) ? 'url' :
+			/^(?:null|true|false)|^\{|^\[/.test(string) ? 'json' :
+			'string' ;
+	}
+
 
 	// Get and set
 
@@ -859,6 +867,7 @@
 		match:    match,
 		regexp:   regexp,
 		slugify:  slugify,
+		stringType: stringType,
 
 		// Booleans
 		not:      not
