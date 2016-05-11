@@ -112,7 +112,10 @@
 
 		// Define length so that curried functions accurately show how many
 		// arguments they are yet expecting.
-		return Object.defineProperty(function curried() {
+		// Can't do this on Safari - non configurable :(
+		//Object.defineProperty(fn, 'length', { value: par });
+
+		return function curried() {
 			var args = arguments;
 			return args.length >= par ?
 				// If there are enough arguments, call fn.
@@ -125,7 +128,7 @@
 					A.push.apply(params, arguments);
 					return fn.apply(this, params);
 				}, par - args.length) ;
-		}, 'length', { value: par });
+		};
 	}
 
 
