@@ -133,10 +133,8 @@
 
 
 	// Curried functions
-
-	var get = curry(getPath);
-	var set = curry(setPath);
-
+	var get      = curry(getPath);
+	var set      = curry(setPath);
 	var concat   = curry(function concat(array2, array1) { return A.concat.call(array1, array2); });
 	var each     = curry(function each(fn, array) { return A.forEach.call(array, fn); });
 	var filter   = curry(function filter(fn, array) { return A.filter.call(array, fn); });
@@ -840,11 +838,25 @@
 		slice:    slice,
 		sort:     sort,
 
+		by: curry(function by(property, a, b) {
+			return a[property] === b[property] ? 0 : a[property] > b[property] ? 1 : -1 ;
+		}),
+
+		is: curry(function is(object1, object2) {
+			return object1 === object2;
+		}),
+
+		get: curry(function get(property, object) {
+			return object[property];
+		}),
+
+		set: curry(function to(property, object, value) {
+			return object[property] = value;
+		}),
+
 		// Objects
 		equal:    equal,
 		compare:  compare,
-		get:      get,
-		set:      set,
 		assign:   assign,
 		keys:     keys,
 
