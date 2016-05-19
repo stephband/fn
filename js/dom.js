@@ -1,6 +1,8 @@
 (function(window) {
 	"use strict";
 
+	var debug = true;
+
 	// Import
 
 	var Fn             = window.Fn;
@@ -193,25 +195,24 @@
 
 	// DOM Mutation
 
-	function appendNode(child, node) {
+	function appendChild(node, child) {
 		node.appendChild(child);
 	}
 
-	function append(child, node) {
+	function append(node, child) {
 		if (child instanceof Node || child instanceof SVGElement) {
-			appendNode(child, node);
-			return;
+			return appendChild(node, child);
 		}
 
 		if (child.length) {
 			Array.prototype.forEach.call(child, function(child) {
-				appendNode(child, node);
+				appendChild(node, child);
 			});
 		}
 	}
 
 	function appendTo(node, child) {
-		appendNode(child, node);
+		appendChild(node, child);
 	}
 
 	function html(html, node) {
@@ -256,7 +257,7 @@
 		// Create an event handler that looks up the ancestor tree
 		// to find selector.
 		return function handler(e) {
-			var node = closest(e.target, selector, e.currentTarget);
+			var node = closest(selector, e.target, e.currentTarget);
 
 			if (!node) { return; }
 
@@ -309,7 +310,7 @@
 	function fragmentFromChildren(node) {
 		var children = slice(node.childNodes);
 		var fragment = create('fragment');
-		return append(children, fragment);
+		return append(fragment, children);
 	}
 
 	function fragmentFromContent(node) {
@@ -363,7 +364,7 @@
 		var input = document.createElement('input');
 		var result = false;
 
-		appendNode(input, document.body);
+		appendChild(document.body, input);
 		input.disabled = true;
 		input.addEventListener('featuretest', function(e) { result = true; });
 		input.dispatchEvent(testEvent);
@@ -386,20 +387,6 @@
 	}
 
 	assign(setPrototypeOf(NodeStream.prototype, ReadStream.prototype), {
-		append: function(collection) {
-			return this.tap(DOM.append(collection));
-		},
-
-		appendTo: function(node) {
-			node = typeof node === 'string' ?
-				findNode(node) :
-				node ;
-
-			return node === undefined ?
-				this :
-				this.tap(DOM.appendTo(node)) ;
-		},
-
 		clone: function() {
 			return this.map(DOM.clone);
 		},
@@ -493,8 +480,10 @@
 			return new EventStream(node, type, selector);
 		}
 
+		if (debug) { console.log('EventStream(node:', node, ', type:', type, ', selector:', selector, ');'); }
+
 		// This is much shenanigans. Surely it can be simpler? Would help if
-		// it were possible to push withoutexposing .push() method...
+		// it were possible to push without exposing .push() method...
 
 		var stream = this;
 		var buffer = [] ;
@@ -591,7 +580,6 @@
 
 		// DOM Mutation
 		append:         Fn.curry(append),
-		appendTo:       Fn.curry(appendTo),
 		html:           Fn.curry(html),
 		insertBefore:   Fn.curry(insertBefore),
 		insertAfter:    Fn.curry(insertAfter),
