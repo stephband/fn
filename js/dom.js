@@ -161,7 +161,7 @@
 
 	function find(selector, node) {
 		node = node || document;
-		return node.querySelectorAll(selector);
+		return A.slice.apply(node.querySelectorAll(selector));
 	}
 
 	function findOne(selector, node) {
