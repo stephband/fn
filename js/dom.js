@@ -546,6 +546,45 @@
 	});
 
 
+
+	// Units
+
+	var rem = /(\d*\.?\d+)r?em/;
+	var rpercent = /(\d*\.?\d+)%/;
+
+	var fontSize;
+
+	var valueTypes = {
+		number: function(n) { return n; },
+
+		string: function(string) {
+			var data, n;
+
+			data = rem.exec(string);
+			if (data) {
+				n = parseFloat(data[1]);
+				return getFontSize() * n;
+			}
+
+			data = rpercent.exec(string);
+			if (data) {
+				n = parseFloat(data[1]) / 100;
+				return width * n;
+			}
+
+			throw new Error('[window.breakpoint] \'' + string + '\' cannot be parsed as rem, em or %.');
+		}
+	};
+
+	function valueToPx(value) {
+		return valueTypes[typeof value](value);
+	};
+
+	function getFontSize() {
+		return fontSize ||
+			(fontSize = parseFloat(getStyle("font-size", document.documentElement), 10));
+	}
+
 	// DOM
 
 	function DOM(selector, node) {
@@ -571,6 +610,7 @@
 		isTextNode:     isTextNode,
 		isCommentNode:  isCommentNode,
 		isFragmentNode: isFragmentNode,
+		valueToPx:      valueToPx,
 
 		// DOM Traversal
 		find:           find,
