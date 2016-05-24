@@ -857,7 +857,7 @@
 		// Objects
 		equal:    equal,
 		compare:  compare,
-		assign:   assign,
+		assign: curry(Object.assign),
 		keys:     keys,
 
 		// Functions -
