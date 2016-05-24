@@ -857,7 +857,11 @@
 		// Objects
 		equal:    equal,
 		compare:  compare,
-		assign: curry(Object.assign),
+
+		assign: curry(function(obj1, obj2) {
+			Object.assign(obj1, obj2);
+		}),
+
 		keys:     keys,
 
 		// Functions -
