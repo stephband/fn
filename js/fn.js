@@ -566,7 +566,7 @@
 				fn === undefined ? identity :
 				fn ;
 
-			return new this.constructor(function next() {
+			return new this.create(function next() {
 				var value;
 				while ((value = source.next()) !== undefined && !fn(value));
 				return value;

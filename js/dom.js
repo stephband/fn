@@ -524,7 +524,7 @@
 		},
 
 		preventDefault: function() {
-			return this.run('preventDefault');
+			return this.tap('preventDefault');
 		},
 
 		closest: function(selector) {
