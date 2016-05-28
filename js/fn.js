@@ -854,6 +854,10 @@
 			return object[property] = value;
 		}),
 
+		invoke: curry(function invoke(name, object) {
+			return object[name]();
+		}),
+
 		// Objects
 		equal:    equal,
 		compare:  compare,
