@@ -19,11 +19,6 @@
 		};
 	}
 
-	//if (window.Promise) {
-	//	// Enable use of .map() on promises.
-	//	Promise.prototype.map = Promise.prototype.then;
-	//}
-
 
 	// Utility functions
 
@@ -96,7 +91,7 @@
 
 	// Functional functions
 
-	function identity(n) { return n; }
+	function id(n) { return n; }
 
 	function compose(fn1, fn2) {
 		return function composed(n) { return fn1(fn2(n)); }
@@ -196,98 +191,146 @@
 
 	function run(fn) { fn(); }
 
-	function notifyObservers(observers, type) {
+	var notifyObservers = curry(function(observers, type) {
 		if (!observers[type]) { return; }
 		//(new ReadStream(observers[type])).pull(run);
 		var array = A.slice.apply(observers[type]);
 		array.forEach(run);
-	}
+	});
 
 	function notifyObserversExceptPush(observers, type) {
 		if (type === 'push') { return; }
 		return notifyObservers(observers, type);
 	}
 
-	function BufferStream(values) {
-		if (!this || !BufferStream.prototype.isPrototypeOf(this)) {
-			return new BufferStream(values);
-		}
+//	function BufferStream(values) {
+//		if (!this || !BufferStream.prototype.isPrototypeOf(this)) {
+//			return new BufferStream(values);
+//		}
+//
+//		var buffer = values ? A.slice.apply(values) : [] ;
+//
+//		Stream.call(this, function next() {
+//			return buffer.shift();
+//		}, function push() {
+//			buffer.push.apply(buffer, arguments);
+//		});
+//	}
+//
+//	function ReadStream(object) {
+//		if (!this || !ReadStream.prototype.isPrototypeOf(this)) {
+//			return new ReadStream(object);
+//		}
+//
+//		var stream = this;
+//
+//		object = typeof object === 'string' ?
+//			A.slice.apply(object) : object || [];
+//
+//		Stream.call(this, object.shift ? function next() {
+//			var value = object.shift();
+//
+//			if (object.status === 'done' || object.length === 0) {
+//				stream.status = 'done';
+//			}
+//
+//			return value;
+//		} : function next() {
+//			// Object is an iterator
+//			var answer = object.next();
+//			//if (answer.done) { notify('end') }
+//			return answer.value;
+//		});
+//	}
+//
+//	function MixinPushable(next, push, trigger) {
+//		this.next = Fn.compose(function(value) {
+//			if (value === undefined) {
+//				trigger('next');
+//				return next();
+//			}
+//
+//			return value;
+//		}, next);
+//
+//		this.push = function() {
+//			var values = A.filter.call(arguments, isDefined);
+//			push.apply(null, values);
+//			trigger('push');
+//		};
+//	}
+//
+//	function MixinReadOnly(next, trigger) {
+//		this.next = next;
+//	}
+//
+//	function Stream(next, push) {
+//		// Enable calling Stream without the new keyword.
+//		if (!this || !Stream.prototype.isPrototypeOf(this)) {
+//			return new Stream(next, push);
+//		}
+//
+//		var notify = notifyObservers;
+//		var observers = {};
+//
+//		function trigger(type) {
+//			// Prevent 'push' event calls from within 'next' event calls. This
+//			// is a bit of a clunky workaround to stop greedy processes
+//			// consuming the stream while the next values are being requested.
+//			var _notify = notify;
+//			notify = notifyObserversExceptPush;
+//			_notify(observers, type);
+//			notify = _notify;
+//		}
+//
+//		if (push) {
+//			MixinPushable.call(this, next, push, trigger);
+//		}
+//		else {
+//			MixinReadOnly.call(this, next, trigger);
+//		}
+//
+//		this.on = function on(type, fn) {
+//			// Lazily create observers list
+//			observers[type] = observers[type] || [] ;
+//
+//			// Add observer
+//			observers[type].push(fn);
+//
+//			return this;
+//		};
+//	}
 
-		var buffer = values ? A.slice.apply(values) : [] ;
+	//Stream(function(notify, end){
+	//	var buffer = values ? A.slice.apply(values) : [] ;
+	//
+	//	return {
+	//		next: function(value) {
+	//			buffer.shift(value);
+	//		},
+	//
+	//      push: function(value) {
+	//			buffer.push(value);
+	//			notify('push');
+	//		},
+	//
+	//      teardown: function() {
+	//
+	//      }
+	//  };
+	//});
 
-		Stream.call(this, function next() {
-			return buffer.shift();
-		}, function push() {
-			buffer.push.apply(buffer, arguments);
-		});
-	}
 
-	function ReadStream(object) {
-		if (!this || !ReadStream.prototype.isPrototypeOf(this)) {
-			return new ReadStream(object);
-		}
-
-		object = object || [];
-
-		Stream.call(this, object.next ? function next() {
-			// Object is an iterator
-			var answer = object.next();
-			//if (answer.done) { notify('end') }
-			return answer.value;
-		} : function next() {
-			// Object is an array-like object
-			var value = object.shift();
-			//if (object.length === 0) { notify('end') }
-			return value;
-		});
-	}
-
-	function MixinPushable(next, push, trigger) {
-		this.next = Fn.compose(function(value) {
-			if (value === undefined) {
-				trigger('next');
-				return next();
-			}
-
-			return value;
-		}, next);
-
-		this.push = function() {
-			var values = A.filter.call(arguments, isDefined);
-			push.apply(null, values);
-			trigger('push');
-		};
-	}
-
-	function MixinReadOnly(next, trigger) {
-		this.next = next;
-	}
-
-	function Stream(next, push) {
+	function Stream(setup) {
 		// Enable calling Stream without the new keyword.
 		if (!this || !Stream.prototype.isPrototypeOf(this)) {
-			return new Stream(next, push);
+			return new Stream(setup);
 		}
 
-		var notify = notifyObservers;
 		var observers = {};
+		var notify = notifyObservers(observers);
 
-		function trigger(type) {
-			// Prevent 'push' event calls from within 'next' event calls. This
-			// is a bit of a clunky workaround to stop greedy processes
-			// consuming the stream while the next values are being requested.
-			var _notify = notify;
-			notify = notifyObserversExceptPush;
-			_notify(observers, type);
-			notify = _notify;
-		}
-
-		if (push) {
-			MixinPushable.call(this, next, push, trigger);
-		}
-		else {
-			MixinReadOnly.call(this, next, trigger);
-		}
+		Object.assign(this, setup(trigger));
 
 		this.on = function on(type, fn) {
 			// Lazily create observers list
@@ -298,8 +341,55 @@
 
 			return this;
 		};
+	}
 
+	function BufferStream(object) {
+		if (!this || !BufferStream.prototype.isPrototypeOf(this)) {
+			return new BufferStream(object);
+		}
 
+		Stream.call(this, function setup(notify) {
+			var buffer = typeof object === 'string' ? A.slice.apply(object) : object || [] ;
+
+			return {
+				next: function next() {
+					var value = buffer.shift();
+
+					if (buffer.status === 'done') {
+						this.status = 'done';
+					}
+
+					return value;
+				},
+
+				push: function push() {
+					buffer.push.apply(buffer, arguments);
+					notify('push');
+				}
+			};
+		});
+	}
+
+	function ReadStream(object) {
+		if (!this || !ReadStream.prototype.isPrototypeOf(this)) {
+			return new ReadStream(object);
+		}
+
+		Stream.call(this, function setup(notify) {
+			var buffer = typeof object === 'string' ? A.slice.apply(object) : object || [] ;
+
+			return {
+				next: function() {
+					var value = buffer.shift();
+
+					if (buffer.status === 'done' || buffer.length === 0) {
+						this.status = 'done';
+					}
+
+					return value;
+				}
+			};
+		});
 	}
 
 	Object.assign(Stream.prototype, {
@@ -311,6 +401,10 @@
 
 		push: function(input) {
 			throw new Error('Fn: ' + this.constructor.name + ' is not pushable.');
+		},
+
+		shift: function() {
+			return this.next();
 		},
 
 		pull: function pull1(fn) {
@@ -424,12 +518,40 @@
 			});
 		},
 
+		split: function(match) {
+			var source = this;
+			var buffer = [];
+
+			return this.create(function next() {
+				var value = source.next();
+				var b;
+
+				if (value === undefined) { return; }
+
+				if (value === match) {
+					b = buffer;
+					buffer = [];
+					return b;
+				}
+
+				buffer.push(value);
+
+				if (source.status === 'done') {
+					b = buffer;
+					buffer = [];
+					return b;
+				}
+
+				return next();
+			});
+		},
+
 		group: function(fn, order) {
 			var source = this;
 			var channels = [];
 			var store = {};
 
-			fn = fn || Fn.identity;
+			fn = fn || Fn.id;
 
 			function nextUntilMatchChannel(channelKey) {
 				var value = source.next();
@@ -563,7 +685,7 @@
 
 			// Allow filter to be used without fn, where it filters out undefined
 			fn = typeof fn === 'object' ? compare(fn) :
-				fn === undefined ? identity :
+				fn === undefined ? id :
 				fn ;
 
 			return new this.create(function next() {
@@ -663,24 +785,33 @@
 			return this.map(fn).concatAll();
 		},
 
-		flatten: function(n) {
+		chain: function(n) {
 			var source = this;
 			var buffer = [];
+			var stream = this.create(function next() {
+				var value = buffer.shift() ;
 
-			return this.create(function next() {
-				// Support flattening of generators and arrays
-				var value = buffer.next ? buffer.next() : buffer.shift() ;
-				var b;
-
-				if (value === undefined) {
-					b = source.next();
-					if (b === undefined) { return; }
-					buffer = b;
-					value = buffer.next ? buffer.next() : buffer.shift() ;
+				if (value !== undefined) {
+					return value;
 				}
 
-				return value ;
+				if (source.status === 'done') {
+					this.status = 'done';
+					return;
+				}
+
+				var b = source.next();
+
+				if (b === undefined) {
+					return;
+				}
+
+				buffer = ReadStream(b);
+				return next();
 			});
+
+			stream.status = 'active';
+			return stream;
 		},
 
 		add:         function(n) { return this.map(add(n)); },
@@ -768,9 +899,9 @@
 			});
 		},
 
-		//toString: function() {
-		//	return this.toArray().join('');
-		//},
+		toString: function() {
+			return this.toArray().join('');
+		},
 
 		toFunction: function() {
 			var source = this;
@@ -823,7 +954,7 @@
 		BufferStream: BufferStream,
 
 		noop:     noop,
-		identity: identity,
+		id:       id,
 		curry:    curry,
 		compose:  compose,
 		pipe:     pipe,
@@ -850,12 +981,18 @@
 			return object[property];
 		}),
 
-		set: curry(function to(property, object, value) {
-			return object[property] = value;
+		set: curry(function set(property, value, object) {
+			object[property] = value;
+			return object;
 		}),
 
 		invoke: curry(function invoke(name, object) {
 			return object[name]();
+		}),
+
+		push: curry(function push(stream, object) {
+			(stream.push || A.push).apply(stream, object);
+			return stream;
 		}),
 
 		// Objects
@@ -863,7 +1000,7 @@
 		compare:  compare,
 
 		assign: curry(function(obj1, obj2) {
-			Object.assign(obj1, obj2);
+			return Object.assign(obj1, obj2);
 		}),
 
 		keys:     keys,
