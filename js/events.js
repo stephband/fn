@@ -101,7 +101,7 @@
 		// Callback fn is called with this set to the current object
 		// and the arguments (target, triggerArgs..., onArgs...).
 		on: function(types, fn) {
-			var object = this;
+			var root = this;
 
 			if (arguments.length === 1) {
 				// If types is a string return a stream.
@@ -114,7 +114,7 @@
 							notify('push');
 						}
 
-						object.on(types, push);
+						root.on(types, push);
 
 						return {
 							next: function next() {
@@ -122,7 +122,7 @@
 							},
 
 							end: function end() {
-								object.off(types, push);
+								root.off(types, push);
 							}
 						};
 					});
