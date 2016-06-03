@@ -24,7 +24,7 @@
 
 	function noop() {}
 
-	function isDefined(value) { return value !== undefined; }
+	function isDefined(value) { return value !== undefined && value !== null; }
 
 	function byGreater(a, b) { return a > b ? 1 : -1 ; }
 
@@ -952,6 +952,8 @@
 		Stream:       Stream,
 		ReadStream:   ReadStream,
 		BufferStream: BufferStream,
+
+		isDefined: isDefined,
 
 		noop:     noop,
 		id:       id,
