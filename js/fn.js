@@ -195,6 +195,17 @@
 
 	function run(fn) { fn(); }
 
+	function arrayNext(array) {
+		var value;
+
+		// Shift values out ignoring undefined
+		while (array.length && value === undefined) {
+			value = array.shift();
+		}
+
+		return value;
+	}
+
 	function notifyObservers(observers, type) {
 		if (!observers[type]) { return; }
 		//(new ReadStream(observers[type])).pull(run);
@@ -212,10 +223,13 @@
 			return new BufferStream(values);
 		}
 
+		var stream = this;
 		var buffer = values ? A.slice.apply(values) : [] ;
 
 		Stream.call(this, function next() {
-			return buffer.shift();
+			var value = arrayNext(buffer);
+			if (value === undefined) { stream.status = 'waiting'; }
+			return value;
 		}, function push() {
 			buffer.push.apply(buffer, arguments);
 		});
@@ -226,19 +240,22 @@
 			return new ReadStream(object);
 		}
 
+		var stream = this;
 		object = object || [];
 
 		Stream.call(this, object.next ? function next() {
 			// Object is an iterator
 			var answer = object.next();
-			//if (answer.done) { notify('end') }
+			if (answer.done) { stream.status = 'done'; }
 			return answer.value;
-		} : function next() {
+		} :
+		object.shift ? function next() {
 			// Object is an array-like object
-			var value = object.shift();
-			//if (object.length === 0) { notify('end') }
+			var value = arrayNext(object);
+			if (value === undefined) { stream.status = 'done'; }
 			return value;
-		});
+		} :
+		undefined );
 	}
 
 	function MixinPushable(next, push, trigger) {
@@ -258,7 +275,7 @@
 		};
 	}
 
-	function MixinReadOnly(next, trigger) {
+	function MixinReadable(next, trigger) {
 		this.next = next;
 	}
 
@@ -285,7 +302,7 @@
 			MixinPushable.call(this, next, push, trigger);
 		}
 		else {
-			MixinReadOnly.call(this, next, trigger);
+			MixinReadable.call(this, next, trigger);
 		}
 
 		this.on = function on(type, fn) {
@@ -298,7 +315,7 @@
 			return this;
 		};
 
-
+		this.status = 'ready';
 	}
 
 	Object.assign(Stream.prototype, {
@@ -395,7 +412,10 @@
 			var i = 0;
 
 			return this.create(function next() {
-				return i++ === 0 ? source.next() : undefined ;
+				if (i++ === 0) {
+					this.status = 'done';
+					return source.next();
+				}
 			});
 		},
 
@@ -411,15 +431,17 @@
 
 		slice: function(n, m) {
 			var source = this;
-			var i = 0;
+			var i = -1;
 
 			return this.create(function next() {
-				while (i < n) {
+				while (++i < n) {
 					source.next();
-					++i;
 				}
 
-				return i++ < m ? source.next() : undefined ;
+				if (i < m) {
+					if (i === m - 1) { this.status = 'done'; }
+					return source.next();
+				}
 			});
 		},
 
@@ -572,7 +594,7 @@
 			}, source.push);
 		},
 
-		reduce: function(fn) {
+		scan: function(fn) {
 			var i = 0, t = 0;
 			return this.map(function reduce(value) {
 				return fn(value, t, i++);
@@ -763,7 +785,9 @@
 		toReadStream: function() {
 			var source = this;
 			return new Stream(function next() {
-				return source.next();
+				var value = source.next();
+				if (source.status === 'done') { this.status = 'done'; }
+				return value;
 			});
 		},
 
