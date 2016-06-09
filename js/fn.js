@@ -39,13 +39,17 @@
 
 	function id(n) { return n; }
 
+	function call(fn, value) {
+		return fn(value);
+	}
+
 	function compose(fn1, fn2) {
 		return function composed(n) { return fn1(fn2(n)); }
 	}
 
 	function pipe() {
-		var fns = A.slice.apply(arguments);
-		return function pipe(n) { return fns.reduce(call, n); }
+		var a = arguments;
+		return function pipe(n) { return A.reduce.call(a, call, n); }
 	}
 
 	function curry(fn, parity) {
@@ -58,11 +62,18 @@
 				fn.apply(this, args) :
 				// Otherwise create a new function with parity as the remaining
 				// number of required arguments. And curry that.
-				curry(function() {
+				curry(function partial() {
 					var params = A.slice.apply(args);
 					A.push.apply(params, arguments);
 					return fn.apply(this, params);
 				}, parity - args.length) ;
+		}
+
+		// Make the string representation of this function equivalent to fn
+		if (debug) {
+			curried.toString = function() {
+				return fn.toString();
+			};
 		}
 
 		// Where possible, define length so that curried functions show how
