@@ -1,10 +1,14 @@
 
-console.group('Testing Stream...');
+console.group('test.stream.js ...');
 
-test('.next()', function() {
+test(' next', function() {
 	var i = 0;
-	var s = Fn.Stream(function next() {
-		return ++i < 5 ? i : undefined ;
+	var s = Fn.Stream(function setup() {
+		return {
+			next: function next() {
+				return ++i < 5 ? i : undefined ;
+			}
+		};
 	});
 
 	equals(1, s.next());
@@ -14,7 +18,7 @@ test('.next()', function() {
 	equals(undefined, s.next());
 });
 
-test(' BufferStream.on(\'next\')', function() {
+test(' BufferStream.push()', function() {
 	var s = Fn.BufferStream([1,2,3,4]);
 	var b = [5,6,7];
 
@@ -24,9 +28,7 @@ test(' BufferStream.on(\'next\')', function() {
 	equals(4, s.next());
 	equals(undefined, s.next());
 
-	s.on('next', function() {
-		s.push(b.shift());
-	});
+	s.push.apply(s, b);
 
 	equals(5, s.next());
 	equals(6, s.next());
@@ -34,7 +36,7 @@ test(' BufferStream.on(\'next\')', function() {
 	equals(undefined, s.next());
 });
 
-test(' ReadStream.on(\'next\')', function() {
+test(' ReadStream.push()', function() {
 	var i = 0;
 
 	function noop() {}
@@ -48,9 +50,16 @@ test(' ReadStream.on(\'next\')', function() {
 	equals(4, s.next());
 	equals(undefined, s.next());
 
-	s.on('next', function() {
-		s.push(b.shift());
-	});
+	var error;
+
+	try {
+		s.push.apply(s, b);
+	}
+	catch(e) {
+		error = e;
+	}
+
+	equals(Fn.classOf(error), 'Error');
 
 	equals(undefined, s.next());
 	equals(undefined, s.next());
@@ -71,15 +80,15 @@ test('.map()', function() {
 	equals('1,2,3,4', s2.toArray().join());
 });
 
-test('.pipe()', function() {
-
-	var s1 = Fn([0,1,2,3]);
-	var s2 = s1.pipe();
-	var s3 = s1.pipe().map(Fn.add(2));
-
-	equals('0,1,2,3', s2.toArray().join());
-	equals('2,3,4,5', s3.toArray().join());
-});
+//test('.pipe()', function() {
+//
+//	var s1 = Fn([0,1,2,3]);
+//	var s2 = s1.pipe();
+//	var s3 = s1.pipe().map(Fn.add(2));
+//
+//	equals('0,1,2,3', s2.toArray().join());
+//	equals('2,3,4,5', s3.toArray().join());
+//});
 
 test('.apply()', function() {
 	var s1 = Fn().map(Fn.add(2));
