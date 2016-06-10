@@ -25,10 +25,16 @@
 	// Feature test
 
 	var isFunctionLengthDefineable = (function() {
-		// Can't do this on Safari - non configurable :(
-		//Object.defineProperty(fn, 'length', { value: par });
 		var fn = function() {};
-		Object.defineProperty(fn, 'length', { value: 2 });
+
+		try {
+			// Can't do this on Safari - length non configurable :(
+			Object.defineProperty(fn, 'length', { value: 2 });
+		}
+		catch(e) {
+			return false;
+		}
+
 		return fn.length === 2;
 	})();
 
@@ -37,7 +43,7 @@
 
 	function noop() {}
 
-	function id(n) { return n; }
+	function id(object) { return object; }
 
 	function call(fn, value) {
 		return fn(value);
@@ -70,10 +76,9 @@
 		}
 
 		// Make the string representation of this function equivalent to fn
+		// for sane debugging
 		if (debug) {
-			curried.toString = function() {
-				return fn.toString();
-			};
+			curried.toString = function() { return fn.toString(); };
 		}
 
 		// Where possible, define length so that curried functions show how
@@ -82,12 +87,6 @@
 			Object.defineProperty(curried, 'length', { value: parity }) :
 			curried ;
 	}
-
-
-	// Curried functions
-
-	var call = curry(function call(value, fn) { return fn.call(null, value); });
-	var apply = curry(function apply(array, fn) { return fn.apply(null, array); });
 
 
 	// Get and set paths
@@ -168,11 +167,13 @@
 			return Fn.byGreater(a[property], b[property]);
 		}),
 
-		byGreater: function(a, b) {
+		byGreater: function byGreater(a, b) {
 			return a === b ? 0 : a > b ? 1 : -1 ;
 		},
 
-		byAlphabet: S.localeCompare.call,
+		byAlphabet: function byAlphabet(a, b) {
+			return S.localeCompare.call(a, b);
+		},
 
 		// Functions
 
