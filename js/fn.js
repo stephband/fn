@@ -1,4 +1,12 @@
 (function(window) {
+	if (!window.console || !window.console.log) { return; }
+
+	console.log('Fn');
+	console.log('https://github.com/cruncher/fn');
+	console.log('______________________________');
+})(this);
+
+(function(window) {
 	"use strict";
 
 	var debug = true;
