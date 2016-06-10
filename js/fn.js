@@ -132,16 +132,11 @@
 	}
 
 	Object.assign(Fn, {
-
-		// Functions
-
 		noop:     noop,
 		id:       id,
 		curry:    curry,
 		compose:  compose,
 		pipe:     pipe,
-
-		// Compare
 
 		is: curry(function is(object1, object2) {
 			return object1 === object2;
@@ -175,14 +170,6 @@
 			return S.localeCompare.call(a, b);
 		},
 
-		// Functions
-
-		run: function run(fn) {
-			return fn();
-		},
-
-		// Objects
-
 		assign: curry(function assign(obj2, obj1) {
 			return Object.assign(obj1, obj2);
 		}),
@@ -205,21 +192,23 @@
 			return object[name]();
 		}),
 
-		// Arrays
+		run: function run(fn) {
+			return fn();
+		},
+
 		concat:      curry(function concat(array2, array1) { return A.concat.call(array1, array2); }),
-		each:        curry(function each(fn, array) { return A.forEach.call(array, fn); }),
-		filter:      curry(function filter(fn, array) { return A.filter.call(array, fn); }),
-		map:         curry(function map(fn, array) { return A.map.call(array, fn); }),
-		reduce:      curry(function reduce(fn, n, array) { return A.reduce.call(array, fn, n); }),
-		slice:       curry(function slice(n, m, array) { return A.slice.call(array, n, m); }),
-		sort:        curry(function sort(fn, array) { return A.sort.call(array, fn); }),
+		each:        curry(function each(fn, object) { return A.forEach.call(object, fn); }),
+		filter:      curry(function filter(fn, object) { return A.filter.call(object, fn); }),
+		map:         curry(function map(fn, object) { return A.map.call(object, fn); }),
+		reduce:      curry(function reduce(fn, n, object) { return A.reduce.call(object, fn, n); }),
+		slice:       curry(function slice(n, m, object) { return A.slice.call(object, n, m); }),
+		sort:        curry(function sort(fn, object) { return A.sort.call(object, fn); }),
 
 		push: curry(function push(stream, object) {
 			(stream.push || A.push).apply(stream, object);
 			return stream;
 		}),
 
-		// Numbers
 		add:         curry(function add(a, b) { return b + a; }),
 		multiply:    curry(function multiply(a, b) { return b * a; }),
 		mod:         curry(function mod(a, b) { return b % a; }),
@@ -278,7 +267,7 @@
 	});
 
 
-	// Streams
+	// Stream
 
 	function arrayNext(array) {
 		var value;
