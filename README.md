@@ -1,4 +1,4 @@
-## Fn
+# Fn
 
 A library of functional functions.
 
@@ -44,62 +44,47 @@ A library of functional functions.
 ##### `exec(regex, string)`
 ##### `slugify(string)`
 
-<!--
-## Fn()
 
-Construct a generator with chainable methods. Make a generator from an array:
+## Fn.Stream(setup)
 
-    var f = Fn(array);
+    var f = Fn.Stream(function(notify) {
+        return {
+            next: fn,
+            push: fn,
+            end:  fn
+        };
+    });
 
-Or a generator that transforms another generator:
-
-	var f = Fn(generator, transform);
-
-Or a generator described by next() and push() functions. The push function is optional.
-
-    var f = Fn(next, push);
-
-#### head()
-#### tail()
-#### slice()
-#### map()
-#### find()
-#### filter()
-#### reduce()
-#### sort()
-#### unique()
-#### batch()
-#### group()
-#### flatten()
-#### each()
-#### add()
-#### subtract()
-#### multiply()
-#### divide()
-#### mod()
-#### pow()
-#### log10()
-#### normalise()
-#### denormalise()
-#### rangeLog()
-#### rangeLogInv()
-#### dB()
-#### decimals()
-#### type()
-#### int()
-#### float()
-#### boolean()
-#### stringify()
-#### jsonify()
-#### slugify()
-#### matches()
-#### regex()
-#### get()
-#### set()
-#### assign()
-#### done()
-#### push()
-#### fn()
-#### toFunction()
-#### toArray()
--->
+##### `head()`
+##### `tail()`
+##### `slice(n, m)`
+##### `map(fn)`
+##### `find()`
+##### `filter(fn)`
+##### `reduce(fn, n)`
+##### `sort(fn)`
+##### `unique()`
+##### `batch()`
+##### `split()`
+##### `group()`
+##### `flatten()`
+##### `each(fn)`
+##### `add(n)`
+##### `multiply(n)`
+##### `pow(n)`
+##### `mod(n)`
+##### `normalise(min, max)`
+##### `denormalise(min, max)`
+##### `boolify()`
+##### `stringify()`
+##### `jsonify()`
+##### `slugify()`
+##### `match(regex)`
+##### `exec(regex)`
+##### `get(path)`
+##### `set(path, value)`
+##### `assign(source)`
+##### `done()`
+##### `push(value, ...)`
+##### `toFunction()`
+##### `toArray()`
