@@ -62,17 +62,17 @@
 		parity = parity || fn.length;
 
 		function curried() {
-			var args = arguments;
-			return args.length >= parity ?
+			var a = arguments;
+			return a.length >= parity ?
 				// If there are enough arguments, call fn.
-				fn.apply(this, args) :
-				// Otherwise create a new function with parity as the remaining
+				fn.apply(this, a) :
+				// Otherwise create a new function with parity of the remaining
 				// number of required arguments. And curry that.
 				curry(function partial() {
-					var params = A.slice.apply(args);
+					var params = A.slice.apply(a);
 					A.push.apply(params, arguments);
 					return fn.apply(this, params);
-				}, parity - args.length) ;
+				}, parity - a.length) ;
 		}
 
 		// Make the string representation of this function equivalent to fn
@@ -82,7 +82,7 @@
 		}
 
 		// Where possible, define length so that curried functions show how
-		// many arguments they are yet expecting.
+		// many arguments they are yet expecting
 		return isFunctionLengthDefineable ?
 			Object.defineProperty(curried, 'length', { value: parity }) :
 			curried ;
