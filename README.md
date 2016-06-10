@@ -2,13 +2,15 @@
 
 A library of functional functions.
 
+<hr/>
+
 ##### `noop()`
 ##### `identity(object)`
 ##### `curry(fn)`
 ##### `compose(fn1, fn2)`
 ##### `pipe(fn1, fn2, ...)`
 
-### Curried functions
+<hr/>
 
 ##### `typeOf(object)`
 ##### `classOf(object)`
