@@ -1,7 +1,48 @@
-# Fn
+## Fn
 
 A library of functional functions.
 
+#### `noop()`
+#### `identity(object)`
+#### `curry(fn)`
+#### `compose(fn1, fn2)`
+#### `pipe(fn1, fn2, ...)`
+
+### Curried functions
+
+#### `typeOf(object)`
+#### `classOf(object)`
+#### `is(source, object)`
+#### `isDefined(object)`
+#### `equals(source, object)`
+#### `assign(source, object)`
+#### `get(path, object)`
+#### `set(path, object)`
+#### `invoke(name, object)`
+#### `run(fn)`
+#### `concat(array1, object)`
+#### `each(fn, object)`
+#### `filter(fn, object)`
+#### `map(fn, object)`
+#### `reduce(fn, initial, object)`
+#### `slice(n, m, object)`
+#### `sort(fn, object)`
+#### `by(name, a, b)`
+#### `byGreater(a, b)`
+#### `byAlphabet(a, b)`
+#### `add(n, m)`
+#### `multiply(n, m)`
+#### `pow(n, m)`
+#### `mod(n, m)`
+#### `normalise(min, max, value)`
+#### `denormalise(min, max, value)`
+#### `toFixed(n, value)`
+#### `not(object)`
+#### `match(regex, string)`
+#### `exec(regex, string)`
+#### `slugify(string)`
+
+<!--
 ## Fn()
 
 Construct a generator with chainable methods. Make a generator from an array:
@@ -48,10 +89,7 @@ Or a generator described by next() and push() functions. The push function is op
 #### boolean()
 #### stringify()
 #### jsonify()
-#### parsejson()
 #### slugify()
-#### uppercase()
-#### lowercase()
 #### matches()
 #### regex()
 #### get()
@@ -62,54 +100,4 @@ Or a generator described by next() and push() functions. The push function is op
 #### fn()
 #### toFunction()
 #### toArray()
-
-## Fn
-
-A library of functional and curried functions.
-
-### Functional functions
-
-#### noop()
-#### identity()
-#### curry()
-#### compose()
-#### pipe()
-
-### Curried functions
-
-#### concat()
-#### each()
-#### filter()
-#### indexOf()
-#### map()
-#### reduce()
-#### slice()
-#### sort()
-#### equal()
-#### compare()
-#### get()
-#### set()
-#### assign()
-#### keys()
-#### call()
-#### apply()
-#### add()
-#### subtract()
-#### multiply()
-#### divide()
-#### pow()
-#### normalise()
-#### denormalise()
-#### rangeLog()
-#### rangeLogInv()
-#### toFixed()
-#### match()
-#### regexp()
-#### slugify()
-#### not()
-
-### Constructors
-
-#### Generator()
-#### ArrayGenerator()
-#### MapGenerator()
+-->
