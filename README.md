@@ -2,45 +2,45 @@
 
 A library of functional functions.
 
-#### `noop()`
-#### `identity(object)`
-#### `curry(fn)`
-#### `compose(fn1, fn2)`
-#### `pipe(fn1, fn2, ...)`
+##### `noop()`
+##### `identity(object)`
+##### `curry(fn)`
+##### `compose(fn1, fn2)`
+##### `pipe(fn1, fn2, ...)`
 
 ### Curried functions
 
-#### `typeOf(object)`
-#### `classOf(object)`
-#### `is(source, object)`
-#### `isDefined(object)`
-#### `equals(source, object)`
-#### `assign(source, object)`
-#### `get(path, object)`
-#### `set(path, object)`
-#### `invoke(name, object)`
-#### `run(fn)`
-#### `concat(array1, object)`
-#### `each(fn, object)`
-#### `filter(fn, object)`
-#### `map(fn, object)`
-#### `reduce(fn, initial, object)`
-#### `slice(n, m, object)`
-#### `sort(fn, object)`
-#### `by(name, a, b)`
-#### `byGreater(a, b)`
-#### `byAlphabet(a, b)`
-#### `add(n, m)`
-#### `multiply(n, m)`
-#### `pow(n, m)`
-#### `mod(n, m)`
-#### `normalise(min, max, value)`
-#### `denormalise(min, max, value)`
-#### `toFixed(n, value)`
-#### `not(object)`
-#### `match(regex, string)`
-#### `exec(regex, string)`
-#### `slugify(string)`
+##### `typeOf(object)`
+##### `classOf(object)`
+##### `is(source, object)`
+##### `isDefined(object)`
+##### `equals(source, object)`
+##### `assign(source, object)`
+##### `get(path, object)`
+##### `set(path, object)`
+##### `invoke(name, object)`
+##### `run(fn)`
+##### `concat(array1, object)`
+##### `each(fn, object)`
+##### `filter(fn, object)`
+##### `map(fn, object)`
+##### `reduce(fn, initial, object)`
+##### `slice(n, m, object)`
+##### `sort(fn, object)`
+##### `by(name, a, b)`
+##### `byGreater(a, b)`
+##### `byAlphabet(a, b)`
+##### `add(n, m)`
+##### `multiply(n, m)`
+##### `pow(n, m)`
+##### `mod(n, m)`
+##### `normalise(min, max, value)`
+##### `denormalise(min, max, value)`
+##### `toFixed(n, value)`
+##### `not(object)`
+##### `match(regex, string)`
+##### `exec(regex, string)`
+##### `slugify(string)`
 
 <!--
 ## Fn()
