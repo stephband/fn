@@ -5,17 +5,17 @@ A library of functional functions.
 <hr/>
 
 ##### `noop()`
-##### `identity(object)`
+##### `id(object)`
 ##### `curry(fn)`
 ##### `compose(fn1, fn2)`
 ##### `pipe(fn1, fn2, ...)`
 
 <hr/>
 
+##### `isDefined(object)`
 ##### `typeOf(object)`
 ##### `classOf(object)`
 ##### `is(source, object)`
-##### `isDefined(object)`
 ##### `equals(source, object)`
 ##### `assign(source, object)`
 ##### `get(path, object)`
