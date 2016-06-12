@@ -20,8 +20,10 @@ A library of functional functions.
 ##### `assign(source, object)`
 ##### `get(path, object)`
 ##### `set(path, object)`
+##### `call(fn)`
+##### `apply(arguments, fn)`
 ##### `invoke(name, object)`
-##### `run(fn)`
+##### `throttle([time,] fn)`
 ##### `concat(array1, object)`
 ##### `each(fn, object)`
 ##### `filter(fn, object)`

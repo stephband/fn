@@ -53,8 +53,8 @@
 
 	function id(object) { return object; }
 
-	function call(fn, value) {
-		return fn(value);
+	function call(fn) {
+		return fn();
 	}
 
 	function compose(fn1, fn2) {
@@ -125,6 +125,100 @@
 		return array.length === 0 ?
 			(root[key] = object) :
 			objTo(isObject(root[key]) ? root[key] : (root[key] = {}), array, object) ;
+	}
+
+
+	// Throttle
+
+	var requestAnimationFrame = window.requestAnimationFrame;
+
+	var now = window.performance.now ? function now() {
+			return window.performance.now();
+		} : function now() {
+			return +new Date();
+		} ;
+
+	function createRequestThrottleFrame(time) {
+		var timer = false;
+		var t = 0;
+		var fns = [];
+
+		function cancel() {
+			clearTimeout(timer);
+		}
+
+		function timed() {
+			timer = false;
+			t = now();
+			fns.forEach(Fn.apply([now()]));
+			fns.length = 0;
+		}
+
+		return function requestThrottleFrame(fn) {
+			// Add fn to queue
+			if (timer) {
+				fns.push(fn);
+				return cancel;
+			}
+
+			var n = now();
+
+			// Set the timer
+			if (t + time > n) {
+				fns.push(fn);
+				timer = setTimeout(timed, time + t - n);
+				return cancel;
+			}
+
+			t = n;
+			fn(t);
+			return noop;
+		};
+	}
+
+	function Throttle(fn, request) {
+		request = request || requestAnimationFrame;
+
+		var queued, context, a;
+
+		function update() {
+			queued = false;
+			fn.apply(context, a);
+		}
+
+		function cancel() {
+			// Don't permit further changes to be queued
+			queue = noop;
+
+			// If there is an update queued apply it now
+			if (queued) { update(); }
+
+			// Make the queued update do nothing
+			fn = noop;
+		}
+
+		function queue() {
+			// Don't queue update if it's already queued
+			if (queued) { return; }
+			queued = true;
+
+			// Queue update
+			request(update);
+		}
+
+		function throttle() {
+			// Store the latest context and arguments
+			context = this;
+			a = arguments;
+
+			// Queue the update
+			queue();
+		}
+
+		throttle.cancel = cancel;
+		//update();
+
+		return throttle;
 	}
 
 
@@ -200,6 +294,24 @@
 		invoke: curry(function invoke(name, object) {
 			return object[name]();
 		}),
+
+		apply: curry(function apply(values, fn) {
+			return fn.apply(null, values);
+		}),
+
+		throttle: function(time, fn) {
+			// Overload the call signature to support Fn.throttle(fn)
+			if (fn === undefined && time.apply) {
+				return Throttle(time);
+			}
+
+			function throttle(fn) {
+				return Throttle(fn, createRequestThrottleFrame(time));
+			}
+
+			// Where fn not given return a partially applied throttle
+			return fn ? throttle(fn) : throttle ;
+		},
 
 		concat:      curry(function concat(array2, array1) { return A.concat.call(array1, array2); }),
 		each:        curry(function each(fn, object) { return A.forEach.call(object, fn); }),
