@@ -13,9 +13,6 @@ A library of functional functions.
 <hr/>
 
 ##### `isDefined(object)`
-##### `typeOf(object)`
-##### `classOf(object)`
-##### `stringTypeOf(string)`
 ##### `is(source, object)`
 ##### `equals(source, object)`
 ##### `assign(source, object)`
@@ -46,7 +43,16 @@ A library of functional functions.
 ##### `match(regex, string)`
 ##### `exec(regex, string)`
 ##### `slugify(string)`
+##### `typeOf(object)`
+##### `classOf(object)`
+##### `stringTypeOf(string)`
 
+    Fn.stringTypeOf('http://cruncher.ch');  // 'url'
+    Fn.stringTypeOf('hello@cruncher.ch');   // 'email'
+    Fn.stringTypeOf('42');                  // 'int'
+    Fn.stringTypeOf('41.5');                // 'float'
+    Fn.stringTypeOf('{}');                  // 'json'
+    Fn.stringTypeOf('...');                 // 'string'
 
 ## Fn.Stream(setup)
 
@@ -76,8 +82,6 @@ A library of functional functions.
 ##### `multiply(n)`
 ##### `pow(n)`
 ##### `mod(n)`
-##### `normalise(min, max)`
-##### `denormalise(min, max)`
 ##### `boolify()`
 ##### `stringify()`
 ##### `jsonify()`
