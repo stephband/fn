@@ -331,13 +331,13 @@
 			return fn ? throttle(fn) : throttle ;
 		},
 
-		concat:      curry(function concat(array2, array1) { return A.concat.call(array1, array2); }),
-		each:        curry(function each(fn, object) { return A.forEach.call(object, fn); }),
-		filter:      curry(function filter(fn, object) { return A.filter.call(object, fn); }),
-		map:         curry(function map(fn, object) { return A.map.call(object, fn); }),
-		reduce:      curry(function reduce(fn, n, object) { return A.reduce.call(object, fn, n); }),
-		slice:       curry(function slice(n, m, object) { return A.slice.call(object, n, m); }),
-		sort:        curry(function sort(fn, object) { return A.sort.call(object, fn); }),
+		concat:      curry(function concat(array2, array1) { return array1.concat ? array1.concat(array2) : A.concat.call(array1, array2); }),
+		each:        curry(function each(fn, object) { return object.each ? object.each(fn) : A.forEach.call(object, fn); }),
+		filter:      curry(function filter(fn, object) { return object.filter ? object.filter(fn) : A.filter.call(object, fn); }),
+		map:         curry(function map(fn, object) { return object.map ? object.map(fn) : A.map.call(object, fn); }),
+		reduce:      curry(function reduce(fn, n, object) { return object.reduce ? object.reduce(fn, n) : A.reduce.call(object, fn, n); }),
+		slice:       curry(function slice(n, m, object) { return object.slice ? object.slice(n, m) : A.slice.call(object, n, m); }),
+		sort:        curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
 
 		push: curry(function push(stream, object) {
 			(stream.push || A.push).apply(stream, object);
@@ -959,8 +959,6 @@
 		divide:      function(n) { return this.map(Fn.divide(n)); },
 		mod:         function(n) { return this.map(Fn.mod(n)); },
 		pow:         function(n) { return this.map(Fn.pow(n)); },
-		normalise:   function(min, max) { return this.map(Fn.normalise(min, max)); },
-		denormalise: function(min, max) { return this.map(Fn.denormalise(min, max)); },
 
 		boolify:     function() { return this.map(Boolean); },
 		stringify:   function() { return this.map(String); },
