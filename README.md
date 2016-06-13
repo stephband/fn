@@ -15,6 +15,7 @@ A library of functional functions.
 ##### `isDefined(object)`
 ##### `typeOf(object)`
 ##### `classOf(object)`
+##### `stringTypeOf(string)`
 ##### `is(source, object)`
 ##### `equals(source, object)`
 ##### `assign(source, object)`

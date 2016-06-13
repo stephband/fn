@@ -128,6 +128,25 @@
 	}
 
 
+	// String types
+
+	var regex = {
+		url:       /^(?:\/|https?\:\/\/)(?:[!#$&-;=?-~\[\]\w]|%[0-9a-fA-F]{2})+$/,
+		//url:       /^([a-z][\w\.\-\+]*\:\/\/)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,6}/,
+		email:     /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i,
+		hexColor:  /^(#)?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/,
+		hslColor:  /^(?:(hsl)(\())?\s?(\d{1,3}(?:\.\d+)?)\s?,\s?(\d{1,3}(?:\.\d+)?)%\s?,\s?(\d{1,3}(?:\.\d+)?)%\s?(\))?$/,
+		rgbColor:  /^(?:(rgb)(\())?\s?(\d{1,3})\s?,\s?(\d{1,3})\s?,\s?(\d{1,3})\s?(\))?$/,
+		hslaColor: /^(?:(hsla)(\())?\s?(\d{1,3}(?:\.\d+)?)\s?,\s?(\d{1,3}(?:\.\d+)?)%\s?,\s?(\d{1,3}(?:\.\d+)?)%\s?,\s?([01](?:\.\d+)?)\s?(\))?$/,
+		rgbaColor: /^(?:(rgba)(\())?\s?(\d{1,3})\s?,\s?(\d{1,3})\s?,\s?(\d{1,3})\s?,\s?([01](?:\.\d+)?)\s?(\))?$/,
+		cssValue:  /^(\-?\d+(?:\.\d+)?)(px|%|em|ex|pt|in|cm|mm|pt|pc)?$/,
+		cssAngle:  /^(\-?\d+(?:\.\d+)?)(deg)?$/,
+		image:     /(?:\.png|\.gif|\.jpeg|\.jpg)$/,
+		float:     /^(\-?\d+(?:\.\d+)?)$/,
+		int:       /^(\-?\d+)$/
+	};
+
+
 	// Throttle
 
 	var requestAnimationFrame = window.requestAnimationFrame;
@@ -138,14 +157,10 @@
 			return +new Date();
 		} ;
 
-	function createRequestThrottleFrame(time) {
+	function createRequestTimerFrame(time) {
 		var timer = false;
 		var t = 0;
 		var fns = [];
-
-		function cancel() {
-			clearTimeout(timer);
-		}
 
 		function timed() {
 			timer = false;
@@ -154,11 +169,11 @@
 			fns.length = 0;
 		}
 
-		return function requestThrottleFrame(fn) {
+		return function requestTimerFrame(fn) {
 			// Add fn to queue
 			if (timer) {
 				fns.push(fn);
-				return cancel;
+				return;
 			}
 
 			var n = now();
@@ -167,17 +182,19 @@
 			if (t + time > n) {
 				fns.push(fn);
 				timer = setTimeout(timed, time + t - n);
-				return cancel;
+				return;
 			}
 
 			t = n;
 			fn(t);
-			return noop;
+			return;
 		};
 	}
 
-	function Throttle(fn, request) {
-		request = request || requestAnimationFrame;
+	function Throttle(fn, time) {
+		var request = time ?
+			createRequestTimerFrame(time) :
+			requestAnimationFrame ;
 
 		var queued, context, a;
 
@@ -216,8 +233,6 @@
 		}
 
 		throttle.cancel = cancel;
-		//update();
-
 		return throttle;
 	}
 
@@ -234,6 +249,8 @@
 	}
 
 	Object.assign(Fn, {
+		Throttle: Throttle,
+
 		noop:     noop,
 		id:       id,
 		call:     call,
@@ -302,11 +319,12 @@
 		throttle: function(time, fn) {
 			// Overload the call signature to support Fn.throttle(fn)
 			if (fn === undefined && time.apply) {
-				return Throttle(time);
+				fn = time;
+				time = undefined;
 			}
 
 			function throttle(fn) {
-				return Throttle(fn, createRequestThrottleFrame(time));
+				return Throttle(fn, time);
 			}
 
 			// Where fn not given return a partially applied throttle
@@ -376,13 +394,29 @@
 			return O.toString.apply(object).slice(8, -1);
 		},
 
-		typeOfString: function typeOfString(string) {
-			// Determine the type of string from its text content. Not to be used
-			// as a definitive typing, but useful nonetheless.
-			return /^(?:\/|https?\:\/\/)(?:[!#$&-;=?-~\[\]\w]|%[0-9a-fA-F]{2})+$/.test(string) ? 'url' :
-				/^(?:null|true|false)|^\{|^\[/.test(string) ? 'json' :
-				'string' ;
-		}
+		stringTypeOf: (function(regex, types) {
+			return function stringTypeOf(string) {
+				// Determine the type of string from its text content.
+				var n = -1;
+
+				// Test regexable string types
+				while (++n < types.length) {
+					if(regex[types[n]].test(string)) {
+						return types[n];
+					}
+				}
+
+				// Test for JSON
+				try {
+					JSON.parse(string);
+					return 'json';
+				}
+				catch(e) {}
+
+				// Default to 'string'
+				return 'string';
+			};
+		})(regex, ['url', 'email', 'int', 'float'])
 	});
 
 
