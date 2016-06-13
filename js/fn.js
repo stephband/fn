@@ -348,6 +348,8 @@
 		multiply:    curry(function multiply(a, b) { return b * a; }),
 		mod:         curry(function mod(a, b) { return b % a; }),
 		pow:         curry(function pow(a, b) { return Math.pow(b, a); }),
+		min:         curry(function min(a, b) { return a > b ? b : a ; }),
+		max:         curry(function max(a, b) { return a < b ? b : a ; }),
 		normalise:   curry(function normalise(min, max, value) { return (value - min) / (max - min); }),
 		denormalise: curry(function denormalise(min, max, value) { return value * (max - min) + min; }),
 		toFixed:     curry(function toFixed(n, value) { return N.toFixed.call(value, n); }),
