@@ -44,9 +44,9 @@ A library of functional functions.
 ##### `match(regex, string)`
 ##### `exec(regex, string)`
 ##### `slugify(string)`
-##### `typeOf(object)`
-##### `classOf(object)`
-##### `stringTypeOf(string)`
+##### `toType(object)`
+##### `toClass(object)`
+##### `toStringType(string)`
 
     Fn.stringTypeOf('http://cruncher.ch');  // 'url'
     Fn.stringTypeOf('hello@cruncher.ch');   // 'email'
