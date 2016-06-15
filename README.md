@@ -77,6 +77,7 @@ A library of functional functions.
 ##### `shift()`
 ##### `tap()`
 ##### `toArray()`
+##### `toFunction()`
 
 #### Transform
 
@@ -107,4 +108,3 @@ A library of functional functions.
 ##### `get(path)`
 ##### `set(path, value)`
 ##### `assign(source)`
-##### `toFunction()`
