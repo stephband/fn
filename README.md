@@ -19,13 +19,14 @@ A library of functional functions.
 ##### `get(path, object)`
 ##### `set(path, object)`
 ##### `call(fn)`
+##### `of(value, ...)`
+##### `map(fn, object)`
 ##### `apply(arguments, fn)`
 ##### `invoke(name, object)`
 ##### `throttle([time,] fn)`
 ##### `concat(array1, object)`
 ##### `each(fn, object)`
 ##### `filter(fn, object)`
-##### `map(fn, object)`
 ##### `reduce(fn, initial, object)`
 ##### `slice(n, m, object)`
 ##### `sort(fn, object)`
@@ -64,24 +65,39 @@ A library of functional functions.
         };
     });
 
+#### Input
+
+##### `of(value, ...)`
+##### `push(value, ...)`
+
+#### Output
+
+##### `pull(fn)`
+##### `shift()`
+##### `tap()`
+##### `toArray()`
+
+#### Transform
+
+##### `pipe(stream)`
+##### `filter(fn)`
+##### `map(fn)`
+<!-- ##### `reduce(fn, value)` -->
+##### `scan(fn, value)`
+##### `sort(fn)`
+##### `find(fn)`
 ##### `head()`
 ##### `tail()`
 ##### `slice(n, m)`
-##### `map(fn)`
-##### `find()`
-##### `filter(fn)`
-##### `reduce(fn, n)`
-##### `sort(fn)`
-##### `unique()`
-##### `batch()`
-##### `split()`
-##### `group()`
-##### `flatten()`
-##### `each(fn)`
-##### `add(n)`
-##### `multiply(n)`
-##### `pow(n)`
-##### `mod(n)`
+##### `split(fn)`
+##### `batch(n)`
+##### `group(fn)`
+##### `chain()`
+##### `unique(fn)`
+
+##### `delay(time)`
+##### `throttle(time, fn)`
+
 ##### `boolify()`
 ##### `stringify()`
 ##### `jsonify()`
@@ -91,7 +107,4 @@ A library of functional functions.
 ##### `get(path)`
 ##### `set(path, value)`
 ##### `assign(source)`
-##### `done()`
-##### `push(value, ...)`
 ##### `toFunction()`
-##### `toArray()`

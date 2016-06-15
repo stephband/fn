@@ -12,4 +12,10 @@ test('.toStringType', function() {
 	equals('string', Fn.toStringType('Hello me old peoples.'));
 });
 
+test('.add', function() {
+	var fn = Fn.add(1);
+	equals(1, fn.length);
+	equals(1, fn(0));
+});
+
 console.groupEnd();
