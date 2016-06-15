@@ -12,8 +12,8 @@ A library of functional functions.
 
 <hr/>
 
-##### `isDefined(object)`
 ##### `is(source, object)`
+##### `isDefined(object)`
 ##### `equals(source, object)`
 ##### `assign(source, object)`
 ##### `get(path, object)`
