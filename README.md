@@ -65,21 +65,21 @@ A library of functional functions.
         };
     });
 
-#### Input
+##### Input
 
 ##### `of(value, ...)`
 ##### `push(value, ...)`
 
-#### Output
+##### Output
 
+##### `pipe(stream)`
 ##### `pull(fn)`
 ##### `shift()`
 ##### `tap()`
 ##### `toArray()`
 
-#### Transform
+##### Transform
 
-##### `pipe(stream)`
 ##### `filter(fn)`
 ##### `map(fn)`
 <!-- ##### `reduce(fn, value)` -->
