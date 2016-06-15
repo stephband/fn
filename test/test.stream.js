@@ -59,7 +59,7 @@ test(' ReadStream.push()', function() {
 		error = e;
 	}
 
-	equals(Fn.classOf(error), 'Error');
+	equals(Fn.toClass(error), 'Error');
 
 	equals(undefined, s.next());
 	equals(undefined, s.next());
@@ -100,8 +100,7 @@ test('.apply()', function() {
 
 test('.pull()', function() {
 
-	console.log('unpiped...');
-
+	console.log('pull a stream...');
 	var results1 = [];
 	var s1 = Fn.BufferStream([0,1,2,3]).pull(function(value) {
 		results1.push(value);
@@ -109,38 +108,26 @@ test('.pull()', function() {
 	s1.push(4,5);
 	equals('0,1,2,3,4,5', results1.join());
 
-	console.log('piped...');
-
+	console.log('pull from a piped stream...');
 	var results2 = [];
 	var s2 = Fn.BufferStream([0,1,2,3]);
-	var s3 = s2.pipe().pull(function(value) { results2.push(value); });
+	var s3 = s2.pipe(Fn.BufferStream()).pull(function(value) {
+		results2.push(value);
+	});
 	s2.push(4,5);
 	equals('0,1,2,3,4,5', results2.join());
 });
 
-test('.concatSerial()', function() {
-	var results1 = [];
-	var s = Fn.BufferStream([
-			[0,1,2,3,4],
-			[5],
-			[],
-			[6,7]
-		])
-		.concatSerial();
-
-	equals('0,1,2,3,4,5,6,7', s.toArray().join());
-});
-
 test('.group()', function() {
 	var s = Fn.BufferStream([
-			[0, "note", 60, 0.5],
-			[1, "note", 60, 0.5],
-			[2, "pitch", 1],
-			[3, "note", 60, 0.5],
-			[4, "pitch", 60],
-			[5, "tempo", 120]
-		])
-		.group(Fn.get(1));
+		[0, "note", 60, 0.5],
+		[1, "note", 60, 0.5],
+		[2, "pitch", 1],
+		[3, "note", 60, 0.5],
+		[4, "pitch", 60],
+		[5, "tempo", 120]
+	])
+	.group(Fn.get(1));
 
 	equals('note,note,note', s.next().map(Fn.get(1)).toArray().join());
 	equals('pitch,pitch', s.next().map(Fn.get(1)).toArray().join());
@@ -148,10 +135,28 @@ test('.group()', function() {
 	equals(undefined, s.next());
 });
 
-test('.group().concatSerial()', function() {
+test('.chain()', function() {
+	equals('0,0,1,1,1,2,3,3,3,3,3,4,4', Fn.BufferStream([[0,0,1,1,1],[2,3],[3,3,3,3],[4,4]]).chain().toArray().join());
+
+	equals('note,note,note,pitch,pitch,tempo',
+		Fn.BufferStream([
+			[0, "note", 60, 0.5],
+			[1, "note", 60, 0.5],
+			[2, "pitch", 1],
+			[3, "note", 60, 0.5],
+			[4, "pitch", 60],
+			[5, "tempo", 120]
+		])
+		.group(Fn.get(1))
+		.chain()
+		.map(Fn.get(1))
+		.toArray()
+		.join()
+	);
+
 	var s = Fn.BufferStream([0,0,1,2,3,3,2,3,0])
 		.group()
-		.concatSerial();
+		.chain();
 
 	equals([0,0,0,1,2,2,3,3,3].join(), s.toArray().join());
 
@@ -170,6 +175,10 @@ test('.group().concatSerial()', function() {
 	s.push(7);
 	s.push(8);
 	equals([7,7,8,8].join(), s.toArray().join());
+});
+
+test('.unique()', function() {
+	equals('0,1,2,3,4', Fn.BufferStream([0,0,1,1,1,2,3,3,3,3,3,4,4]).unique().toArray().join());
 });
 
 test('.group().concatParallel()', function() {
@@ -194,6 +203,58 @@ test('.group().concatParallel()', function() {
 
 	s.push(0,1,2,4,4,4,2);
 	equals([0,1,2,4,4,4,2].join(), s.toArray().join());
+});
+
+test('.throttle()', function() {
+	var buffer = Fn.BufferStream([0,1,2,3,4,5]);
+
+	buffer
+	.throttle()
+	.pull(function(n) {
+		equals(5, n);
+	});
+
+	buffer.push(9);
+	buffer.push(19);
+	buffer.push(29);
+	buffer.push(5);
+});
+
+test('.throttle(time)', function() {
+	var buffer = Fn.BufferStream([0,1,2,3,4,5]);
+
+	buffer
+	.throttle(3000)
+	.pull(function(n) {
+		equals(5, n);
+	});
+
+	buffer.push(9);
+	buffer.push(19);
+	buffer.push(29);
+	buffer.push(5);
+});
+
+test('.delay(time)', function() {
+	var buffer = Fn.BufferStream([0,1,2,3,4,5]);
+	var i = 0;
+
+	buffer
+	.delay(1500)
+	.pull(function(n) {
+		equals(i++, n);
+	});
+
+	buffer.push(6);
+	buffer.push(7);
+	buffer.push(8);
+	buffer.push(9);
+
+	equals(6, i);
+
+	setTimeout(function functionName() {
+		equals(10, i);
+	}, 2000);
 });
 
 console.groupEnd();

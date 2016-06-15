@@ -259,6 +259,10 @@
 		compose:  compose,
 		pipe:     pipe,
 
+		of: function of() {
+			return Fn(arguments);
+		},
+
 		is: curry(function is(object1, object2) {
 			return object1 === object2;
 		}),
@@ -317,6 +321,10 @@
 			return fn.apply(null, values);
 		}),
 
+		map: curry(function map(fn, object) {
+			return object.map(fn);
+		}),
+
 		throttle: function(time, fn) {
 			// Overload the call signature to support Fn.throttle(fn)
 			if (fn === undefined && time.apply) {
@@ -335,7 +343,6 @@
 		concat:      curry(function concat(array2, array1) { return array1.concat ? array1.concat(array2) : A.concat.call(array1, array2); }),
 		each:        curry(function each(fn, object) { return object.each ? object.each(fn) : A.forEach.call(object, fn); }),
 		filter:      curry(function filter(fn, object) { return object.filter ? object.filter(fn) : A.filter.call(object, fn); }),
-		map:         curry(function map(fn, object) { return object.map ? object.map(fn) : A.map.call(object, fn); }),
 		reduce:      curry(function reduce(fn, n, object) { return object.reduce ? object.reduce(fn, n) : A.reduce.call(object, fn, n); }),
 		slice:       curry(function slice(n, m, object) { return object.slice ? object.slice(n, m) : A.slice.call(object, n, m); }),
 		sort:        curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
@@ -370,8 +377,9 @@
 		},
 
 		// Strings
-		match: curry(function match(regex, string) { return regex.test(string); }),
-		exec: curry(function parse(regex, string) { return regex.exec(string) || undefined; }),
+		match:      curry(function match(regex, string) { return regex.test(string); }),
+		exec:       curry(function parse(regex, string) { return regex.exec(string) || undefined; }),
+		replace:    curry(function replace(regex, fn, string) { return string.replace(regex, fn); }),
 
 		slugify: function slugify(string) {
 			if (typeof string !== 'string') { return; }
@@ -419,7 +427,12 @@
 				// Default to 'string'
 				return 'string';
 			};
-		})(regex, ['date', 'url', 'email', 'int', 'float'])
+		})(regex, ['date', 'url', 'email', 'int', 'float']),
+
+		log: function(text, object) {
+			console.log(text, object);
+			return x;
+		}
 	});
 
 
@@ -436,18 +449,6 @@
 		return value;
 	}
 
-	var notifyObservers = curry(function(observers, type) {
-		if (!observers[type]) { return; }
-		//(new ReadStream(observers[type])).pull(Fn.run);
-		var array = A.slice.apply(observers[type]);
-		array.forEach(Fn.run);
-	});
-
-	function notifyObserversExceptPush(observers, type) {
-		if (type === 'push') { return; }
-		return notifyObservers(observers, type);
-	}
-
 	function Stream(setup) {
 		// Enable calling Stream without the new keyword.
 		if (!this || !Stream.prototype.isPrototypeOf(this)) {
@@ -455,27 +456,24 @@
 		}
 
 		var observers = {};
-		var notify = notifyObservers(observers);
 
-		function trigger(type) {
-			// Prevent 'push' event calls from within 'next' event calls. This
-			// is a bit of a clunky workaround to stop greedy processes
-			// consuming the stream while the next values are being requested.
-			var _notify = notify;
-			notify = notifyObserversExceptPush;
-			_notify(observers, type);
-			notify = _notify;
+		function notify(type) {
+			if (!observers[type]) { return; }
+			//(new ReadStream(observers[type])).pull(Fn.run);
+			A.slice.apply(observers[type]).forEach(call);
 		}
 
-		Object.assign(this, setup(trigger));
+		Object.assign(this, setup(notify));
+
+		if (!this.hasOwnProperty('next')) {
+			throw new Error('Fn.Stream: setup() did not provide a .next() method.');
+		}
 
 		this.on = function on(type, fn) {
 			// Lazily create observers list
 			observers[type] = observers[type] || [] ;
-
 			// Add observer
 			observers[type].push(fn);
-
 			return this;
 		};
 	}
@@ -485,11 +483,9 @@
 			return new BufferStream(object);
 		}
 
-		// Todo: Is this needed?
-		this.status = 'ready';
-
 		Stream.call(this, function setup(notify) {
 			var buffer = typeof object === 'string' ? A.slice.apply(object) : object || [] ;
+			var pulling = false;
 
 			return {
 				next: function next() {
@@ -498,13 +494,19 @@
 					if (buffer.status === 'done') {
 						this.status = 'done';
 					}
+					else if (value === undefined) {
+						pulling = true;
+						notify('pull');
+						pulling = false;
+						value = buffer.shift();
+					}
 
 					return value;
 				},
 
 				push: function push() {
 					buffer.push.apply(buffer, arguments);
-					notify('push');
+					if (!pulling) { notify('push'); }
 				}
 			};
 		});
@@ -539,42 +541,36 @@
 			return stream;
 		},
 
-		push: function(input) {
+		of: function() {
+			return Fn(arguments);
+		},
+
+		next: function error() {
+			throw new Error('Fn: Stream has been created without a .next() method.');
+		},
+
+		push: function error() {
 			throw new Error('Fn: ' + this.constructor.name + ' is not pushable.');
 		},
 
-		shift: function() {
-			return this.next();
-		},
-
-		pull: function pull1(fn) {
-			fn = fn || Fn.noop;
-
-			var next = this.next;
+		pull: function pull(fn) {
+			var source = this;
 
 			function flush() {
 				var value;
 
-				while ((value = next()) !== undefined) {
+				while ((value = source.next()) !== undefined) {
 					fn(value);
 				}
 			}
 
-			this.pull = function pull2(fn2) {
-				var fn1 = fn;
-
-				fn = function distribute() {
-					fn1.apply(null, arguments);
-					fn2.apply(null, arguments);
-				};
-
-				// Return source
-				return this;
-			};
-
 			// Flush the source then listen for values
 			flush();
 			return this.on('push', flush);
+		},
+
+		shift: function() {
+			return this.next();
 		},
 
 		pipe: function(object) {
@@ -586,24 +582,17 @@
 			var source = this;
 			var stream = object || new BufferStream();
 
-			this.tap(function(value) {
-				stream.push(value);
-			});
-
 			if (stream.on) {
 				// There's something stinky yet elegant about these two.
-				stream
-				.on('next', function() {
-					// Call .next(), which fills all streams with the new value.
-					var v = source.next();
+				stream.on('pull', function() {
+					stream.push(source.shift());
 				});
+			}
 
-				source
-				.on('push', function() {
-					// Notify a push event without actually pushing any values,
-					// because .next() will do that if it's asked for.
-					stream.push();
-				});
+			if (source.on) {
+				// Notify a push without pushing any values -
+				// stream only needs to know values are available.
+				source.on('push', stream.push);
 			}
 
 			return stream;
@@ -617,12 +606,6 @@
 			}, this.next);
 
 			return this;
-		},
-
-		map: function(fn) {
-			return this.create(Fn.compose(function next(value) {
-				return value !== undefined ? fn(value) : undefined ;
-			}, this.next));
 		},
 
 		head: function() {
@@ -647,6 +630,29 @@
 			});
 		},
 
+		map: function(fn) {
+			return this.create(Fn.compose(function next(value) {
+				return value !== undefined ? fn(value) : undefined ;
+			}, this.next));
+		},
+
+		filter: function(fn) {
+			var source = this;
+
+			return this.create(function filter() {
+				var value;
+				while ((value = source.next()) !== undefined && !fn(value));
+				return value;
+			}, source.push);
+		},
+
+		scan: function(fn) {
+			var i = 0, t = 0;
+			return this.map(function scan(value) {
+				return fn(value, t, i++);
+			});
+		},
+
 		slice: function(n, m) {
 			var source = this;
 			var i = -1;
@@ -663,7 +669,7 @@
 			});
 		},
 
-		split: function(match) {
+		split: function(fn) {
 			var source = this;
 			var buffer = [];
 
@@ -673,7 +679,7 @@
 
 				if (value === undefined) { return; }
 
-				if (value === match) {
+				if (fn(value)) {
 					b = buffer;
 					buffer = [];
 					return b;
@@ -691,63 +697,55 @@
 			});
 		},
 
-		group: function(fn, order) {
+		group: function(fn) {
 			var source = this;
-			var channels = [];
-			var store = {};
+			var buffer = [];
+			var streams = {};
 
 			fn = fn || Fn.id;
 
-			function nextUntilMatchChannel(channelKey) {
-				var value = source.next();
-				if (value === undefined) { return; }
-
-				var key = fn(value);
-
-				if (store[key]) {
-					store[key].push(value);
-					if (store[key] === channelKey) { return; }
-				}
-				else {
-					store[key] = create(key);
-					channels.push(store[key]);
-					store[key].push(value);
-				}
-
-				return nextUntilMatchChannel(channelKey);
-			}
-
-			function create(key) {
-				var channel = new BufferStream();
-
-				channel.on('next', function() {
-					nextUntilMatchChannel(key);
+			function create() {
+				var stream = new BufferStream();
+				buffer.push(stream);
+				return stream.on('pull', function() {
+					// Pull until a new value is added to the current stream
+					pullUntil(Fn.is(stream));
 				});
-
-				// source.on('push', channel.push);
-				if (debug) { channel.key = key; }
-				return channel;
 			}
 
-			return this.create(function nextUntilNewChannel() {
-				var channel = channels.shift();
-				if (channel) { return channel; }
-
+			function pullUntil(check) {
 				var value = source.next();
 				if (value === undefined) { return; }
 
 				var key = fn(value);
+				var stream = streams[key] || (streams[key] = create());
+				stream.push(value);
 
-				if (store[key]) {
-					store[key].push(value);
-				}
-				else {
-					store[key] = create(key);
-					store[key].push(value);
-					return store[key];
-				}
+				return check(stream) || pullUntil(check);
+			}
 
-				return nextUntilNewChannel();
+			function isBuffered() {
+				return !!buffer.length;
+			}
+
+			return this.create(function nextStream() {
+				// Pull until a new stream is available
+				pullUntil(isBuffered);
+				return buffer.shift();
+			});
+		},
+
+		chain: function() {
+			var source = this;
+			var buffer = [];
+
+			return this.create(function next() {
+				var value = buffer.shift();
+				if (value !== undefined) { return value; }
+
+				buffer = source.next();
+				if (buffer) { return next(); }
+				buffer = [];
 			});
 		},
 
@@ -780,32 +778,8 @@
 			});
 		},
 
-		concatSerial: function() {
-			var source = this;
-			var object;
-
-			return this.create(function next() {
-				object = object || source.next();
-				if (object === undefined) { return; }
-
-				var value = object.next ? object.next() : object.shift() ;
-
-				if (value === undefined) {
-					object = undefined;
-					return next();
-				}
-
-				return value;
-			});
-		},
-
 		find: function(fn) {
 			var source = this;
-
-			// Allow filter to be used without fn, where it filters out undefined
-			fn = typeof fn === 'object' ? compare(fn) :
-				fn.apply ? fn :
-				Fn.is(fn) ;
 
 			function process() {
 				var value;
@@ -820,27 +794,8 @@
 				return value;
 			}
 
-			return new this.constructor(function next() {
-				return process();
-			}, source.push);
-		},
-
-		filter: function(fn) {
-			var source = this;
-
-			fn = typeof fn === 'object' ? Fn.compare(fn) : fn ;
-
 			return this.create(function next() {
-				var value;
-				while ((value = source.next()) !== undefined && !fn(value));
-				return value;
-			}, source.push);
-		},
-
-		scan: function(fn) {
-			var i = 0, t = 0;
-			return this.map(function scan(value) {
-				return fn(value, t, i++);
+				return process();
 			});
 		},
 
@@ -864,9 +819,8 @@
 			var source = this;
 			var buffer = [];
 
-			return new this.constructor(function unique() {
+			return this.create(function next() {
 				var value = source.next();
-
 				if (value === undefined) { return; }
 
 				if (buffer.indexOf(value) === -1) {
@@ -874,10 +828,8 @@
 					return value;
 				}
 
-				// If we have not already returned carry on looking
-				// for a unique value.
-				return unique();
-			}, source.push);
+				return next();
+			});
 		},
 
 		batch: function(n) {
@@ -910,72 +862,67 @@
 				});
 		},
 
-		concatAll: function() {
+		delay: function(time) {
 			var source = this;
-			var object;
 
-			return this.create(function next() {
-				var value = object.next ? object.next() : object.shift() ;
-				if (value !== undefined) { return value; }
-				object = source.next();
-				if (object === undefined) { return; }
-				return next();
+			return new Stream(function setup(notify) {
+				source.on('push', function() {
+					setTimeout(notify, time, 'push');
+				});
+
+				return {
+					next: function next() {
+						return source.next();
+					},
+
+					stop: function stop() {
+						// Probably should clear timers here.
+					}
+				};
 			});
 		},
 
-		concatMap: function(fn) {
-			return this.map(fn).concatAll();
-		},
-
-		chain: function(n) {
+		throttle: function(time) {
 			var source = this;
-			var buffer = [];
-			var stream = this.create(function next() {
-				var value = buffer.shift() ;
 
-				if (value !== undefined) {
-					return value;
-				}
+			return new Stream(function setup(notify) {
+				var throttle = Fn.Throttle(function() {
+					notify('push');
+				}, time);
 
-				if (source.status === 'done') {
-					this.status = 'done';
-					return;
-				}
+				source.on('push', throttle);
 
-				var b = source.next();
+				return {
+					next: function next() {
+						var value, v;
 
-				if (b === undefined) {
-					return;
-				}
+						while ((v = source.next()) !== undefined) {
+							value = v;
+						}
 
-				buffer = ReadStream(b);
-				return next();
+						if (source.status === "done") { throttle.cancel(); }
+
+						return value;
+					},
+
+					stop: throttle.cancel
+				};
 			});
-
-			stream.status = 'active';
-			return stream;
 		},
-
-		add:         function(n) { return this.map(Fn.add(n)); },
-		subtract:    function(n) { return this.map(Fn.subtract(n)); },
-		multiply:    function(n) { return this.map(Fn.multiply(n)); },
-		divide:      function(n) { return this.map(Fn.divide(n)); },
-		mod:         function(n) { return this.map(Fn.mod(n)); },
-		pow:         function(n) { return this.map(Fn.pow(n)); },
 
 		boolify:     function() { return this.map(Boolean); },
 		stringify:   function() { return this.map(String); },
 		jsonify:     function() { return this.map(JSON.stringify); },
 		slugify:     function() { return this.map(Fn.slugify); },
+
 		match:       function(regex) { return this.map(Fn.match(regex)); },
 		exec:        function(regex) { return this.map(Fn.exec(regex)); },
 
-		get:         function(name) { return this.map(Fn.get(path)); },
-		set:         function(name, value) { return this.map(Fn.set(path, value)); },
 		assign:      function(object) { return this.map(Fn.assign(object)); },
 
-		typeOf: function() { return this.map(Fn.typeOf); },
-		classOf: function() { return this.map(Fn.classOf); },
+		toType:      function() { return this.map(Fn.toType); },
+		toClass:     function() { return this.map(Fn.toClass); },
+		toStringType: function() { return this.map(Fn.toStringType); },
 
 		done: function(fn) {
 			var source = this;
@@ -1041,7 +988,7 @@
 					var value = source.next();
 					if (value !== undefined) { next(value); }
 				})
-				.on('end', reject);
+				.on('stop', reject);
 			});
 		}
 	});
