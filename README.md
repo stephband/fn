@@ -99,7 +99,7 @@ A library of functional functions.
 ##### `delay(time)`
 ##### `throttle(time, fn)`
 
-##### `boolify()`
+<!--##### `boolify()`
 ##### `stringify()`
 ##### `jsonify()`
 ##### `slugify()`
@@ -108,3 +108,4 @@ A library of functional functions.
 ##### `get(path)`
 ##### `set(path, value)`
 ##### `assign(source)`
+-->
