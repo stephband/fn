@@ -65,12 +65,12 @@ A library of functional functions.
         };
     });
 
-##### Input
+#### Input
 
 ##### `of(value, ...)`
 ##### `push(value, ...)`
 
-##### Output
+#### Output
 
 ##### `pipe(stream)`
 ##### `pull(fn)`
@@ -78,7 +78,7 @@ A library of functional functions.
 ##### `tap()`
 ##### `toArray()`
 
-##### Transform
+#### Transform
 
 ##### `filter(fn)`
 ##### `map(fn)`
