@@ -613,6 +613,12 @@
 			});
 		},
 
+		assign:      function(object) { return this.map(Fn.assign(object)); },
+
+		parse:       function() { return this.map(JSON.parse); },
+
+		stringify:     function() { return this.map(JSON.stringify); },
+
 		// Output
 
 		pipe: function(stream) {
@@ -962,20 +968,6 @@
 				};
 			});
 		},
-
-		boolify:     function() { return this.map(Boolean); },
-		stringify:   function() { return this.map(String); },
-		jsonify:     function() { return this.map(JSON.stringify); },
-		slugify:     function() { return this.map(Fn.slugify); },
-
-		match:       function(regex) { return this.map(Fn.match(regex)); },
-		exec:        function(regex) { return this.map(Fn.exec(regex)); },
-
-		assign:      function(object) { return this.map(Fn.assign(object)); },
-
-		toType:      function() { return this.map(Fn.toType); },
-		toClass:     function() { return this.map(Fn.toClass); },
-		toStringType: function() { return this.map(Fn.toStringType); },
 
 		toPromise: function() {
 			var source = this;

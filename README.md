@@ -85,6 +85,10 @@ Functor is a wrapper for a function that returns a value - in other words, it is
 ##### `slice(n, m)`
 ##### `unique(fn)`
 ##### `scan(fn, value)`
+##### `assign(object)`
+##### `parse()`
+##### 'stringify()'
+
 <!--
 ##### `split(fn)`
 ##### `batch(n)`
@@ -105,15 +109,16 @@ Functor is a wrapper for a function that returns a value - in other words, it is
 
 Streams are pushable, observable Functors. Streams inherit all input, transform and output methods from Functor, plus they also get a `.push` method and are observed for `"push"` and `"pull"` events with `.on(type, fn)`.
 
-    var f = Fn.Stream(function setup(notify) {
+    var stream = Fn.Stream(function setup(notify) {
         return {
             next: function() {...},
             push: function() {...}
         };
     });
 
-    f.on('pull', function() {
-        f.push(0);
+    stream.on('pull', function() {
+        // Write to stream
+        stream.push(0);
     });
 
 #### Input
