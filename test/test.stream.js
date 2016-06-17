@@ -1,70 +1,40 @@
 
 console.group('test.stream.js ...');
 
-test(' next', function() {
+test(' shift', function() {
 	var i = 0;
 	var s = Fn.Stream(function setup() {
 		return {
-			next: function next() {
+			shift: function oneToFive() {
 				return ++i < 5 ? i : undefined ;
 			}
 		};
 	});
 
-	equals(1, s.next());
-	equals(2, s.next());
-	equals(3, s.next());
-	equals(4, s.next());
-	equals(undefined, s.next());
+	equals(1, s.shift());
+	equals(2, s.shift());
+	equals(3, s.shift());
+	equals(4, s.shift());
+	equals(undefined, s.shift());
 });
 
 test(' BufferStream.push()', function() {
 	var s = Fn.BufferStream([1,2,3,4]);
 	var b = [5,6,7];
 
-	equals(1, s.next());
-	equals(2, s.next());
-	equals(3, s.next());
-	equals(4, s.next());
-	equals(undefined, s.next());
+	equals(1, s.shift());
+	equals(2, s.shift());
+	equals(3, s.shift());
+	equals(4, s.shift());
+	equals(undefined, s.shift());
 
 	s.push.apply(s, b);
 
-	equals(5, s.next());
-	equals(6, s.next());
-	equals(7, s.next());
-	equals(undefined, s.next());
+	equals(5, s.shift());
+	equals(6, s.shift());
+	equals(7, s.shift());
+	equals(undefined, s.shift());
 });
-
-test(' ReadStream.push()', function() {
-	var i = 0;
-
-	function noop() {}
-
-	var s = Fn.ReadStream([1,2,3,4]);
-	var b = [5,6,7];
-
-	equals(1, s.next());
-	equals(2, s.next());
-	equals(3, s.next());
-	equals(4, s.next());
-	equals(undefined, s.next());
-
-	var error;
-
-	try {
-		s.push.apply(s, b);
-	}
-	catch(e) {
-		error = e;
-	}
-
-	equals(Fn.toClass(error), 'Error');
-
-	equals(undefined, s.next());
-	equals(undefined, s.next());
-});
-
 
 test('.toArray()', function() {
 	var s1 = Fn();
@@ -76,26 +46,16 @@ test('.toArray()', function() {
 
 test('.map()', function() {
 	var s1 = Fn([0,1,2,3]);
-	var s2 = s1.map(function(n) { return n + 1; });
+console.log(s1);
+	var s2 = s1.map(Fn.add(1));
 	equals('1,2,3,4', s2.toArray().join());
 });
 
-//test('.pipe()', function() {
-//
-//	var s1 = Fn([0,1,2,3]);
-//	var s2 = s1.pipe();
-//	var s3 = s1.pipe().map(Fn.add(2));
-//
-//	equals('0,1,2,3', s2.toArray().join());
-//	equals('2,3,4,5', s3.toArray().join());
-//});
+test('.pipe()', function() {
+	var s1 = Fn([0,1,2,3]);
+	var s2 = s1.pipe(Fn.Stream.of());
 
-test('.apply()', function() {
-	var s1 = Fn().map(Fn.add(2));
-	equals(4, s1.apply(null, [2]));
-
-	log('.call()...');
-	equals(12, s1.call(null, 10));
+	equals('0,1,2,3', s2.toArray().join());
 });
 
 test('.pull()', function() {
@@ -129,14 +89,14 @@ test('.group()', function() {
 	])
 	.group(Fn.get(1));
 
-	equals('note,note,note', s.next().map(Fn.get(1)).toArray().join());
-	equals('pitch,pitch', s.next().map(Fn.get(1)).toArray().join());
-	equals('tempo', s.next().map(Fn.get(1)).toArray().join());
-	equals(undefined, s.next());
+	equals('note,note,note', s.shift().map(Fn.get(1)).toArray().join());
+	equals('pitch,pitch', s.shift().map(Fn.get(1)).toArray().join());
+	equals('tempo', s.shift().map(Fn.get(1)).toArray().join());
+	equals(undefined, s.shift());
 });
 
-test('.chain()', function() {
-	equals('0,0,1,1,1,2,3,3,3,3,3,4,4', Fn.BufferStream([[0,0,1,1,1],[2,3],[3,3,3,3],[4,4]]).chain().toArray().join());
+test('.join()', function() {
+	equals('0,0,1,1,1,2,3,3,3,3,3,4,4', Fn.BufferStream([[0,0,1,1,1],[2,3],[3,3,3,3],[4,4]]).join().toArray().join());
 
 	equals('note,note,note,pitch,pitch,tempo',
 		Fn.BufferStream([
@@ -148,7 +108,7 @@ test('.chain()', function() {
 			[5, "tempo", 120]
 		])
 		.group(Fn.get(1))
-		.chain()
+		.join()
 		.map(Fn.get(1))
 		.toArray()
 		.join()
@@ -156,7 +116,7 @@ test('.chain()', function() {
 
 	var s = Fn.BufferStream([0,0,1,2,3,3,2,3,0])
 		.group()
-		.chain();
+		.join();
 
 	equals([0,0,0,1,2,2,3,3,3].join(), s.toArray().join());
 
@@ -164,11 +124,11 @@ test('.chain()', function() {
 	equals([4,4,4].join(), s.toArray().join());
 
 	s.push(0);
-	equals(undefined, s.next());
+	equals(undefined, s.shift());
 	s.push(1);
-	equals(undefined, s.next());
+	equals(undefined, s.shift());
 	s.push(4);
-	equals(undefined, s.next());
+	equals(undefined, s.shift());
 
 	s.push(7);
 	s.push(8);
@@ -189,11 +149,11 @@ test('.group().concatParallel()', function() {
 	equals([0,0,1,2,3,3,2,3,0].join(), s.toArray().join());
 
 	s.push(0);
-	equals(0, s.next());
+	equals(0, s.shift());
 	s.push(1);
-	equals(1, s.next());
+	equals(1, s.shift());
 	s.push(4);
-	equals(4, s.next());
+	equals(4, s.shift());
 
 	s.push(1);
 	s.push(2);

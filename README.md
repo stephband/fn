@@ -55,57 +55,83 @@ A library of functional functions.
     Fn.stringTypeOf('{}');                  // 'json'
     Fn.stringTypeOf('...');                 // 'string'
 
-## Fn.Stream(setup)
+## Functor(fn)
 
-    var f = Fn.Stream(function(notify) {
-        return {
-            next: fn,
-            push: fn,
-            end:  fn
-        };
-    });
+Functor is a wrapper for a function that returns a value - in other words, it is an IO Functor. Functor has fantasy-land compliant methods for Functor, Applicative and Monad. Values can be extracted at the end of the chain with `.shift()`.
 
-#### Input
+    var f = Functor(function() { return 6; })
 
+    f.shift() // 6
+    f.shift() // 6
+    ...
+
+#### Create
+
+##### `Functor(fn)`
+##### `Functor.of(value, ...)`
 ##### `of(value, ...)`
-##### `push(value, ...)`
 
+#### Transform
+
+##### `ap(object)`
+##### `map(fn)`
+##### `filter(fn)`
+##### `join(fn)`
+##### `chain(fn)`
+##### `map(fn)`
+##### `sort(fn)`
+##### `head()`
+##### `tail()`
+##### `slice(n, m)`
+##### `unique(fn)`
+##### `scan(fn, value)`
+<!--
+##### `split(fn)`
+##### `batch(n)`
+##### `group(fn)`
+-->
 #### Output
 
+##### `each(fn)`
+##### `find(fn)`
 ##### `pipe(stream)`
-##### `pull(fn)`
+##### `reduce(fn, value)`
 ##### `shift()`
 ##### `tap()`
 ##### `toArray()`
 ##### `toFunction()`
 
+## Stream(setup)
+
+Streams are pushable, observable Functors. Streams inherit all input, transform and output methods from Functor, plus they also get a `.push` method and are observed for `"push"` and `"pull"` events with `.on(type, fn)`.
+
+    var f = Fn.Stream(function setup(notify) {
+        return {
+            next: function() {...},
+            push: function() {...}
+        };
+    });
+
+    f.on('pull', function() {
+        f.push(0);
+    });
+
+#### Input
+
+##### `Stream(setup)`
+##### `Stream.of(value, ...)`
+##### `of(value, ...)`
+##### `on(type, fn)`
+##### `push(value, ...)`
+
 #### Transform
 
-##### `filter(fn)`
-##### `map(fn)`
-<!-- ##### `reduce(fn, value)` -->
-##### `scan(fn, value)`
-##### `sort(fn)`
-##### `find(fn)`
-##### `head()`
-##### `tail()`
-##### `slice(n, m)`
 ##### `split(fn)`
 ##### `batch(n)`
 ##### `group(fn)`
-##### `chain()`
-##### `unique(fn)`
-
 ##### `delay(time)`
 ##### `throttle(time, fn)`
 
-<!--##### `boolify()`
-##### `stringify()`
-##### `jsonify()`
-##### `slugify()`
-##### `match(regex)`
-##### `exec(regex)`
-##### `get(path)`
-##### `set(path, value)`
-##### `assign(source)`
--->
+#### Output
+
+##### `toPromise()`

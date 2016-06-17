@@ -241,17 +241,25 @@
 	// Fn
 
 	function Fn(object) {
-		    // Object is a function
-		return typeof object === "function" ? new Stream(object) :
-			// Object is an iterator
-			object && object.next ? new ReadStream(object) :
-			// Object could be anything
-			new BufferStream(object) ;
+			// object is not, create an empty stream
+		return object === undefined ? new BufferStream() :
+			// object is a function
+			typeof object === "function" ? new Functor(object) :
+			// object is an Array or Functor
+			object.shift ? new Functor(function shift() {
+				return object.shift();
+			}) :
+			// object is an Iterator
+			object.next ? new Functor(function next() {
+				return object.next().value;
+			}) :
+			// object is a Promise
+			object.then ? PromiseStream(object) :
+			// object is a value
+			Functor.of(object);
 	}
 
 	Object.assign(Fn, {
-		Throttle: Throttle,
-
 		noop:     noop,
 		id:       id,
 		call:     call,
@@ -348,7 +356,7 @@
 		sort:        curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
 
 		push: curry(function push(stream, object) {
-			(stream.push || A.push).apply(stream, object);
+			(stream.push || A.push).call(stream, object);
 			return stream;
 		}),
 
@@ -436,7 +444,242 @@
 	});
 
 
+	// Functor
+
+	function Functor(fn) {
+		if (!this || !Functor.prototype.isPrototypeOf(this)) {
+			return new Functor(fn);
+		}
+
+		this.shift = fn;
+	}
+
+	Object.assign(Functor, {
+		of: function() {
+			var a = arguments;
+			return new this(function of() {
+				var object;
+				while (a.length && object === undefined) {
+					object = A.shift.apply(a);
+				}
+				return object;
+			});
+		}
+	});
+
+	Object.assign(Functor.prototype, {
+		// Input
+
+		create: function(fn) {
+			var functor = Object.create(this);
+			functor.shift = fn;
+			return functor;
+		},
+
+		of: function() {
+			// Delegate to the constructor's .of()
+			return this.constructor.of.apply(this.constructor, arguments);
+		},
+
+		// Transform
+
+		ap: function ap(object) {
+			var fn = this.shift();
+			if (value === undefined) { return; }
+			return object.map(fn);
+		},
+
+		map: function(fn) {
+			return this.create(Fn.compose(function map(object) {
+				return object !== undefined ? fn(object) : undefined ;
+			}, this.shift));
+		},
+
+		filter: function(fn) {
+			var source = this;
+
+			return this.create(function filter() {
+				var value;
+				while ((value = source.shift()) !== undefined && !fn(value));
+				return value;
+			});
+		},
+
+		join: function() {
+			var source = this;
+			var buffer = empty;
+
+			return this.create(function join(object) {
+				var value = buffer.shift();
+				if (value !== undefined) { return value; }
+				buffer = source.shift();
+				if (buffer !== undefined) { return join(); }
+				buffer = empty;
+			});
+		},
+
+		chain: function(fn) {
+			return this.map(fn).join();
+		},
+
+		concat: function(object) {
+			var source = this;
+			return this.create(function concat() {
+				var value = source.shift();
+
+				if (value === undefined) {
+					value = object.shift();
+				};
+
+				return value;
+			});
+		},
+
+		sort: function(fn) {
+			var source = this;
+			var array = empty;
+
+			fn = fn || Fn.byGreater ;
+
+			// Todo: this will fail in a Stream if values are pushed.
+			return this.create(function sort() {
+				if (array.length === 0) {
+					array = source.toArray().sort(fn);
+				}
+
+				return array.shift();
+			});
+		},
+
+		head: function() {
+			var source = this;
+			var i = 0;
+
+			return this.create(function head() {
+				if (i++ === 0) {
+					this.status = 'done';
+					return source.shift();
+				}
+			});
+		},
+
+		tail: function() {
+			var source = this;
+			var i = 0;
+
+			return this.create(function tail() {
+				if (i++ === 0) { source.shift(); }
+				return source.shift();
+			});
+		},
+
+		slice: function(n, m) {
+			var source = this;
+			var i = -1;
+
+			return this.create(function slice() {
+				while (++i < n) {
+					source.shift();
+				}
+
+				if (i < m) {
+					if (i === m - 1) { this.status = 'done'; }
+					return source.shift();
+				}
+			});
+		},
+
+		scan: function(fn) {
+			var i = 0, total = 0;
+			return this.map(function scan(value) {
+				return (total = fn(total, value, i++));
+			});
+		},
+
+		unique: function() {
+			var source = this;
+			var values = [];
+
+			return this.create(function unique() {
+				var value = source.shift();
+				if (value === undefined) { return; }
+
+				if (values.indexOf(value) === -1) {
+					values.push(value);
+					return value;
+				}
+
+				return unique();
+			});
+		},
+
+		// Output
+
+		pipe: function(stream) {
+			if (!stream || !stream.on) {
+				throw new Error('Fn: Functor.pipe(object) object must be a stream. (' + stream + ')');
+			}
+
+			var source = this;
+
+			stream.on('pull', function() {
+				stream.push(source.shift());
+			});
+
+			return stream;
+		},
+
+		tap: function(fn) {
+			// Overwrite next to copy values to tap fn
+			this.shift = Fn.compose(function(value) {
+				if (value !== undefined) { fn(value); }
+				return value;
+			}, this.shift);
+
+			return this;
+		},
+
+		each: function pull(fn) {
+			var value;
+
+			while ((value = this.shift()) !== undefined) {
+				fn(value);
+			}
+		},
+
+		reduce: function(fn, value) {
+			var output = Fn.isDefined(value) ? value : 0 ;
+
+			while ((value = this.shift()) !== undefined) {
+				output = fn(output, value);
+			}
+
+			return output;
+		},
+
+		find: function(fn) {
+			return this.filter(fn).head().shift();
+		},
+
+		toArray: function() {
+			return this.reduce(Fn.push, []);
+		},
+
+		toFunction: function() {
+			var source = this;
+			return function fn() {
+				if (arguments.length) {
+					this.push.apply(this, arguments);
+				}
+				return source.shift();
+			};
+		}
+	});
+
+
 	// Stream
+
+	var empty = [];
 
 	function arrayNext(array) {
 		var value;
@@ -459,14 +702,7 @@
 
 		function notify(type) {
 			if (!observers[type]) { return; }
-			//(new ReadStream(observers[type])).pull(Fn.run);
 			A.slice.apply(observers[type]).forEach(call);
-		}
-
-		Object.assign(this, setup(notify));
-
-		if (!this.hasOwnProperty('next')) {
-			throw new Error('Fn.Stream: setup() did not provide a .next() method.');
 		}
 
 		this.on = function on(type, fn) {
@@ -476,205 +712,90 @@
 			observers[type].push(fn);
 			return this;
 		};
-	}
 
-	function BufferStream(object) {
-		if (!this || !BufferStream.prototype.isPrototypeOf(this)) {
-			return new BufferStream(object);
+		Object.assign(this, setup(notify));
+
+		if (!this.hasOwnProperty('shift')) {
+			throw new Error('Fn.Stream: setup() did not provide a .shift() method.');
 		}
-
-		Stream.call(this, function setup(notify) {
-			var buffer = typeof object === 'string' ? A.slice.apply(object) : object || [] ;
-			var pulling = false;
-
-			return {
-				next: function next() {
-					var value = buffer.shift();
-
-					if (buffer.status === 'done') {
-						this.status = 'done';
-					}
-					else if (value === undefined) {
-						pulling = true;
-						notify('pull');
-						pulling = false;
-						value = buffer.shift();
-					}
-
-					return value;
-				},
-
-				push: function push() {
-					buffer.push.apply(buffer, arguments);
-					if (!pulling) { notify('push'); }
-				}
-			};
-		});
 	}
 
-	function ReadStream(object) {
-		if (!this || !ReadStream.prototype.isPrototypeOf(this)) {
-			return new ReadStream(object);
+	Object.assign(Stream, {
+		of: function() {
+			var a = arguments;
+			return new Stream(function setup(notify) {
+				var pulling = false;
+
+				return {
+					shift: function buffer() {
+						var value = A.shift.apply(a);
+
+						if (value === undefined) {
+							pulling = true;
+							notify('pull');
+							pulling = false;
+							value = A.shift.apply(a);
+						}
+
+						return value;
+					},
+
+					push: function push() {
+						A.push.apply(a, arguments);
+						if (!pulling) { notify('push'); }
+					}
+				};
+			});
 		}
+	});
 
-		Stream.call(this, function setup(notify) {
-			var buffer = typeof object === 'string' ? A.slice.apply(object) : object || [] ;
-
-			return {
-				next: function() {
-					var value = buffer.shift();
-
-					if (buffer.status === 'done' || buffer.length === 0) {
-						this.status = 'done';
-					}
-
-					return value;
-				}
-			};
-		});
-	}
+	Object.setPrototypeOf(Stream.prototype, Functor.prototype);
 
 	Object.assign(Stream.prototype, {
-		create: function(next) {
-			var stream = Object.create(this);
-			stream.next = next;
-			return stream;
-		},
-
-		of: function() {
-			return Fn(arguments);
-		},
-
-		next: function error() {
-			throw new Error('Fn: Stream has been created without a .next() method.');
+		ap: function ap(object) {
+			var source = this;
+			return this.create(function ap() {
+				var fn = source.shift();
+				if (value === undefined) { return; }
+				return object.map(fn);
+			});
 		},
 
 		push: function error() {
 			throw new Error('Fn: ' + this.constructor.name + ' is not pushable.');
 		},
 
+		shift: function error() {
+			throw new Error('Fn: Stream has been created without a .next() method.');
+		},
+
 		pull: function pull(fn) {
 			var source = this;
+			var a = arguments;
 
-			function flush() {
-				var value;
-
-				while ((value = source.next()) !== undefined) {
-					fn(value);
-				}
+			function each() {
+				Functor.prototype.each.apply(source, a);
 			}
 
-			// Flush the source then listen for values
-			flush();
-			return this.on('push', flush);
+			// Flush and observe
+			each();
+			return this.on('push', each);
 		},
 
-		shift: function() {
-			return this.next();
-		},
-
-		pipe: function(object) {
-			// object is either:
-			// array -
-			// stream -
-			// undefined -
-
-			var source = this;
-			var stream = object || new BufferStream();
-
-			if (stream.on) {
-				// There's something stinky yet elegant about these two.
-				stream.on('pull', function() {
-					stream.push(source.shift());
-				});
-			}
-
-			if (source.on) {
-				// Notify a push without pushing any values -
-				// stream only needs to know values are available.
-				source.on('push', stream.push);
-			}
-
+		pipe: function(stream) {
+			Functor.prototype.pipe.apply(this, arguments);
+			// Notify a push without pushing any values -
+			// stream only needs to know values are available.
+			this.on('push', stream.push);
 			return stream;
-		},
-
-		tap: function(fn) {
-			// Overwrite next to copy values to tap fn
-			this.next = Fn.compose(function(value) {
-				if (value !== undefined) { fn(value); }
-				return value;
-			}, this.next);
-
-			return this;
-		},
-
-		head: function() {
-			var source = this;
-			var i = 0;
-
-			return this.create(function next() {
-				if (i++ === 0) {
-					this.status = 'done';
-					return source.next();
-				}
-			});
-		},
-
-		tail: function() {
-			var source = this;
-			var i = 0;
-
-			return this.create(function next() {
-				if (i++ === 0) { source.next(); }
-				return source.next();
-			});
-		},
-
-		map: function(fn) {
-			return this.create(Fn.compose(function next(value) {
-				return value !== undefined ? fn(value) : undefined ;
-			}, this.next));
-		},
-
-		filter: function(fn) {
-			var source = this;
-
-			return this.create(function filter() {
-				var value;
-				while ((value = source.next()) !== undefined && !fn(value));
-				return value;
-			}, source.push);
-		},
-
-		scan: function(fn) {
-			var i = 0, t = 0;
-			return this.map(function scan(value) {
-				return fn(value, t, i++);
-			});
-		},
-
-		slice: function(n, m) {
-			var source = this;
-			var i = -1;
-
-			return this.create(function next() {
-				while (++i < n) {
-					source.next();
-				}
-
-				if (i < m) {
-					if (i === m - 1) { this.status = 'done'; }
-					return source.next();
-				}
-			});
 		},
 
 		split: function(fn) {
 			var source = this;
 			var buffer = [];
 
-			return this.create(function next() {
-				var value = source.next();
+			return this.create(function split() {
+				var value = source.shift();
 				var b;
 
 				if (value === undefined) { return; }
@@ -693,7 +814,7 @@
 					return b;
 				}
 
-				return next();
+				return split();
 			});
 		},
 
@@ -714,7 +835,7 @@
 			}
 
 			function pullUntil(check) {
-				var value = source.next();
+				var value = source.shift();
 				if (value === undefined) { return; }
 
 				var key = fn(value);
@@ -735,20 +856,6 @@
 			});
 		},
 
-		chain: function() {
-			var source = this;
-			var buffer = [];
-
-			return this.create(function next() {
-				var value = buffer.shift();
-				if (value !== undefined) { return value; }
-
-				buffer = source.next();
-				if (buffer) { return next(); }
-				buffer = [];
-			});
-		},
-
 		concatParallel: function() {
 			var source = this;
 			var object;
@@ -764,71 +871,17 @@
 			function shiftNext() {
 				var stream = order.shift();
 				if (stream === undefined) { return; }
-				var value = stream.next();
+				var value = stream.shift();
 				return value === undefined ?
 					shiftNext() :
 					value ;
 			}
 
-			return this.create(function next() {
-				var object = source.next();
+			return this.create(function concatParallel() {
+				var object = source.shift();
 				if (object !== undefined) { bind(object); }
 				var value = shiftNext();
 				return value;
-			});
-		},
-
-		find: function(fn) {
-			var source = this;
-
-			function process() {
-				var value;
-
-				while ((value = source.next()) !== undefined && !fn(value));
-
-				if (value !== undefined) {
-					// Process is a call once kind of thing
-					process = noop;
-				}
-
-				return value;
-			}
-
-			return this.create(function next() {
-				return process();
-			});
-		},
-
-		sort: function(fn) {
-			var source = this;
-			var array = [];
-
-			fn = fn || Fn.byGreater ;
-
-			return new this.constructor(function next() {
-				if (array.length === 0) {
-					array = source.toArray();
-					array.sort(fn);
-				}
-
-				return array.shift();
-			}, source.push);
-		},
-
-		unique: function() {
-			var source = this;
-			var buffer = [];
-
-			return this.create(function next() {
-				var value = source.next();
-				if (value === undefined) { return; }
-
-				if (buffer.indexOf(value) === -1) {
-					buffer.push(value);
-					return value;
-				}
-
-				return next();
 			});
 		},
 
@@ -842,7 +895,7 @@
 					var value;
 
 					while (buffer.length < n) {
-						value = source.next();
+						value = source.shift();
 						if (value === undefined) { return; }
 						buffer.push(value);
 					}
@@ -871,8 +924,8 @@
 				});
 
 				return {
-					next: function next() {
-						return source.next();
+					shift: function delay() {
+						return source.shift();
 					},
 
 					stop: function stop() {
@@ -886,26 +939,26 @@
 			var source = this;
 
 			return new Stream(function setup(notify) {
-				var throttle = Fn.Throttle(function() {
+				var t = Fn.Throttle(function() {
 					notify('push');
 				}, time);
 
-				source.on('push', throttle);
+				source.on('push', t);
 
 				return {
-					next: function next() {
+					shift: function throttle() {
 						var value, v;
 
-						while ((v = source.next()) !== undefined) {
+						while ((v = source.shift()) !== undefined) {
 							value = v;
 						}
 
-						if (source.status === "done") { throttle.cancel(); }
+						if (source.status === "done") { t.cancel(); }
 
 						return value;
 					},
 
-					stop: throttle.cancel
+					stop: t.cancel
 				};
 			});
 		},
@@ -924,69 +977,21 @@
 		toClass:     function() { return this.map(Fn.toClass); },
 		toStringType: function() { return this.map(Fn.toStringType); },
 
-		done: function(fn) {
-			var source = this;
-			var next = this.next;
-
-			this.next = function next() {
-				var value = _next.apply(source);
-				if (value === undefined) { fn(); }
-				return value;
-			};
-
-			return this;
-		},
-
-		apply: function(ignored, values) {
-			this.push.apply(this, values);
-			return this.next();
-		},
-
-		call: function() {
-			var values = A.slice.call(arguments, 1);
-			return this.apply(this, values);
-		},
-
-		toArray: function() {
-			var result = [];
-			var value;
-
-			while ((value = this.next()) !== undefined) {
-				result.push(value);
-			}
-
-			return result;
-		},
-
-		toReadStream: function() {
-			return new ReadStream(this);
-		},
-
-		toString: function() {
-			return this.toArray().join('');
-		},
-
-		toFunction: function() {
-			var source = this;
-			return function fn() {
-				return source.apply(source, arguments);
-			};
-		},
-
 		toPromise: function() {
 			var source = this;
-			var value = this.next();
 
-			return new Promise(function setup(next, reject) {
+			return new Promise(function setup(resolve, reject) {
+				var value = source.shift();
+
 				if (value !== undefined) {
-					next(value);
+					resolve(value);
 					return;
 				}
 
 				source
 				.on('push', function() {
-					var value = source.next();
-					if (value !== undefined) { next(value); }
+					var value = source.shift();
+					if (value !== undefined) { resolve(value); }
 				})
 				.on('stop', reject);
 			});
@@ -995,17 +1000,75 @@
 
 	Stream.prototype.toJSON = Stream.prototype.toArray;
 
-	Object.setPrototypeOf(ReadStream.prototype, Stream.prototype);
-	Object.setPrototypeOf(BufferStream.prototype, Stream.prototype);
 
-	Object.assign(Fn, {
-		Stream:       Stream,
-		ReadStream:   ReadStream,
-		BufferStream: BufferStream
-	});
+	// BufferStream
+
+	function BufferStream(object) {
+		return Stream(function setup(notify) {
+			var source = typeof object === 'string' ? A.slice.apply(object) : object || [] ;
+			var pulling = false;
+
+			return {
+				shift: function buffer() {
+					var value = source.shift();
+
+					if (source.status === 'done') {
+						this.status = 'done';
+					}
+					else if (value === undefined) {
+						pulling = true;
+						notify('pull');
+						pulling = false;
+						value = source.shift();
+					}
+
+					return value;
+				},
+
+				push: function push() {
+					source.push.apply(source, arguments);
+					if (!pulling) { notify('push'); }
+				}
+			};
+		});
+	}
+
+	BufferStream.of = Stream.of;
+
+
+	// PromiseStream
+
+	function PromiseStream(promise) {
+		return new Stream(function setup(notify) {
+			var value;
+
+			promise.then(function(v) {
+				value = v;
+				notify('push');
+			});
+
+			return {
+				next: function promise() {
+					var v = value;
+					value = undefined;
+					return v;
+				}
+			};
+		});
+	}
+
+	PromiseStream.of = Stream.of;
 
 
 	// Export
+
+	Object.assign(Fn, {
+		Throttle:      Throttle,
+		Functor:       Functor,
+		Stream:        Stream,
+		BufferStream:  BufferStream,
+		PromiseStream: PromiseStream
+	});
 
 	window.Fn = Fn;
 
