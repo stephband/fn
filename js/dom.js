@@ -9,7 +9,6 @@
 	var Node           = window.Node;
 	var SVGElement     = window.SVGElement;
 	var Stream         = Fn.Stream;
-	var ReadStream     = Fn.ReadStream;
 	var BufferStream   = Fn.BufferStream;
 
 
@@ -383,10 +382,10 @@
 			return new NodeStream(array);
 		}
 
-		ReadStream.call(this, array);
+		Stream.call(this, array);
 	}
 
-	assign(setPrototypeOf(NodeStream.prototype, ReadStream.prototype), {
+	assign(setPrototypeOf(NodeStream.prototype, Stream.prototype), {
 		clone: function() {
 			return this.map(DOM.clone);
 		},
