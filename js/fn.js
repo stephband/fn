@@ -246,15 +246,21 @@
 			// object is a function
 			typeof object === "function" ? new Functor(object) :
 			// object is an Array or Functor
-			object.shift ? new Functor(function shift() {
+			typeof object.shift === "function" ? new Functor(function shift() {
 				return object.shift();
 			}) :
 			// object is an Iterator
-			object.next ? new Functor(function next() {
+			typeof object.next === "function" ? new Functor(function next() {
 				return object.next().value;
 			}) :
 			// object is a Promise
-			object.then ? PromiseStream(object) :
+			typeof object.then === "function" ? PromiseStream(object) :
+			// object is a map of some sort, get it's iterator
+			typeof object.entries === "function" ? Fn(object.entries()) :
+			// object is a plain object
+			typeof object === "object" ? Fn(Object.keys(object)).map(function() {
+				return [key, object[key]];
+			}) :
 			// object is a value
 			Functor.of(object);
 	}
@@ -307,13 +313,27 @@
 			return Object.assign(obj1, obj2);
 		}),
 
-		get: curry(function get(path, object) {
-			return typeof path === 'number' ? object[path] :
-				path === '' ? object :
-				objFrom(object, splitPath(path));
+		get: curry(function get(key, object) {
+			return typeof object.get === "function" ?
+				object.get(key) :
+				object[key] ;
 		}),
 
-		set: curry(function set(path, value, object) {
+		set: curry(function set(key, value, object) {
+			return typeof object.set === "function" ?
+				object.set(key, value) :
+				(object[key] = value) ;
+		}),
+
+		getPath: curry(function get(path, object) {
+			return object.get ? object.get(path) :
+				typeof path === 'number' ? object[path] :
+				path === '' ? object :
+				objFrom(object, splitPath(path)) ;
+		}),
+
+		setPath: curry(function set(path, value, object) {
+			if (object.set) { object.set(path, value); }
 			if (typeof path === 'number') { return object[path] = value; }
 			var array = splitPath(path);
 			return array.length === 1 ?
@@ -413,6 +433,12 @@
 			return O.toString.apply(object).slice(8, -1);
 		},
 
+		toArray: function(object) {
+			return object.toArray ?
+				object.toArray() :
+				Fn(object).toArray() ;
+		},
+
 		toStringType: (function(regex, types) {
 			return function toStringType(string) {
 				// Determine the type of string from its text content.
@@ -436,6 +462,13 @@
 				return 'string';
 			};
 		})(regex, ['date', 'url', 'email', 'int', 'float']),
+
+		// JSON
+		stringify: function stringify(object) {
+			return JSON.stringify(Fn.toClass(object) === "Map" ?
+				Fn(object) : object
+			);
+		},
 
 		log: function(text, object) {
 			console.log(text, object);
@@ -589,6 +622,137 @@
 			});
 		},
 
+		split: function(fn) {
+			var source = this;
+			var buffer = [];
+
+			return this.create(function split() {
+				var value = source.shift();
+				var b;
+
+				if (value === undefined) { return; }
+
+				if (fn(value)) {
+					b = buffer;
+					buffer = [];
+					return b;
+				}
+
+				buffer.push(value);
+
+				if (source.status === 'done') {
+					b = buffer;
+					buffer = [];
+					return b;
+				}
+
+				return split();
+			});
+		},
+
+		batch: function(n) {
+			var source = this;
+			var buffer = [];
+
+			return this.create(n ?
+				// If n is defined batch into arrays of length n.
+				function nextBatchN() {
+					var value;
+
+					while (buffer.length < n) {
+						value = source.shift();
+						if (value === undefined) { return; }
+						buffer.push(value);
+					}
+
+					if (buffer.length >= n) {
+						var _buffer = buffer;
+						buffer = [];
+						return Functor.of.apply(Functor, _buffer);
+					}
+				} :
+
+				// If n is undefined or 0, batch all values into an array.
+				function nextBatch() {
+					buffer = source.toArray();
+					// An empty array is equivalent to undefined
+					return buffer.length ? buffer : undefined ;
+				});
+		},
+
+		group: function(fn) {
+			var source = this;
+			var buffer = [];
+			var streams = new Map();
+
+			fn = fn || Fn.id;
+
+			function create() {
+				var stream = new BufferStream();
+				buffer.push(stream);
+				return stream.on('pull', function() {
+					// Pull until a new value is added to the current stream
+					pullUntil(Fn.is(stream));
+				});
+			}
+
+			function pullUntil(check) {
+				var value = source.shift();
+				if (value === undefined) { return; }
+				var key = fn(value);
+				var stream = streams.get(key);
+
+				if (stream === undefined) {
+					stream = create();
+					streams.set(key, stream);
+				}
+
+				stream.push(value);
+				return check(stream) || pullUntil(check);
+			}
+
+			function isBuffered() {
+				return !!buffer.length;
+			}
+
+			return this.create(function group() {
+				// Pull until a new stream is available
+				pullUntil(isBuffered);
+				return buffer.shift();
+			});
+		},
+
+		groupTo: function(fn, object) {
+			var source = this;
+
+			function create() {
+				var stream = new BufferStream();
+				return stream.on('pull', pullAll);
+			}
+
+			function pullAll() {
+				var value = source.shift();
+				if (value === undefined) { return; }
+				var key = fn(value);
+				var stream = Fn.get(key, object);
+
+				if (stream === undefined) {
+					stream = create();
+					Fn.set(key, stream, object);
+				}
+
+				stream.push(value);
+				return pullAll();
+			}
+
+			return this.create(function group() {
+				if (source.status === 'done') { return; }
+				source.status = 'done';
+				pullAll();
+				return object;
+			});
+		},
+
 		scan: function(fn) {
 			var i = 0, total = 0;
 			return this.map(function scan(value) {
@@ -613,11 +777,11 @@
 			});
 		},
 
-		assign:      function(object) { return this.map(Fn.assign(object)); },
+		assign: function(object) { return this.map(Fn.assign(object)); },
 
-		parse:       function() { return this.map(JSON.parse); },
+		parse: function() { return this.map(JSON.parse); },
 
-		stringify:     function() { return this.map(JSON.stringify); },
+		stringify: function() { return this.map(Fn.stringify); },
 
 		// Output
 
@@ -682,6 +846,7 @@
 		}
 	});
 
+	Functor.prototype.toJSON = Functor.prototype.toArray;
 
 	// Stream
 
@@ -796,72 +961,6 @@
 			return stream;
 		},
 
-		split: function(fn) {
-			var source = this;
-			var buffer = [];
-
-			return this.create(function split() {
-				var value = source.shift();
-				var b;
-
-				if (value === undefined) { return; }
-
-				if (fn(value)) {
-					b = buffer;
-					buffer = [];
-					return b;
-				}
-
-				buffer.push(value);
-
-				if (source.status === 'done') {
-					b = buffer;
-					buffer = [];
-					return b;
-				}
-
-				return split();
-			});
-		},
-
-		group: function(fn) {
-			var source = this;
-			var buffer = [];
-			var streams = {};
-
-			fn = fn || Fn.id;
-
-			function create() {
-				var stream = new BufferStream();
-				buffer.push(stream);
-				return stream.on('pull', function() {
-					// Pull until a new value is added to the current stream
-					pullUntil(Fn.is(stream));
-				});
-			}
-
-			function pullUntil(check) {
-				var value = source.shift();
-				if (value === undefined) { return; }
-
-				var key = fn(value);
-				var stream = streams[key] || (streams[key] = create());
-				stream.push(value);
-
-				return check(stream) || pullUntil(check);
-			}
-
-			function isBuffered() {
-				return !!buffer.length;
-			}
-
-			return this.create(function nextStream() {
-				// Pull until a new stream is available
-				pullUntil(isBuffered);
-				return buffer.shift();
-			});
-		},
-
 		concatParallel: function() {
 			var source = this;
 			var object;
@@ -889,36 +988,6 @@
 				var value = shiftNext();
 				return value;
 			});
-		},
-
-		batch: function(n) {
-			var source = this;
-			var buffer = [];
-
-			return new this.create(n ?
-				// If n is defined batch into arrays of length n.
-				function nextBatchN() {
-					var value;
-
-					while (buffer.length < n) {
-						value = source.shift();
-						if (value === undefined) { return; }
-						buffer.push(value);
-					}
-
-					if (buffer.length >= n) {
-						var _buffer = buffer;
-						buffer = [];
-						return _buffer;
-					}
-				} :
-
-				// If n is undefined or 0, batch all values into an array.
-				function nextBatch() {
-					buffer = source.toArray();
-					// An empty array is equivalent to undefined
-					return buffer.length ? buffer : undefined ;
-				});
 		},
 
 		delay: function(time) {
@@ -989,8 +1058,6 @@
 			});
 		}
 	});
-
-	Stream.prototype.toJSON = Stream.prototype.toArray;
 
 
 	// BufferStream

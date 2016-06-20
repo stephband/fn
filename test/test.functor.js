@@ -37,7 +37,7 @@ test('.of()', function() {
 	equals(undefined, fr.shift());
 });
 
-test('.map()', function() {
+test('.map(fn)', function() {
 	var fr = Functor(function() { return 6; }).map(Fn.add(2));
 	equals(8, fr.shift());
 	equals(8, fr.shift());
@@ -91,7 +91,7 @@ test('.join()', function() {
 	equals(undefined, fr.shift());
 });
 
-test('.chain()', function() {
+test('.chain(fn)', function() {
 	var n = 0;
 
 	function toJust01() {
@@ -128,7 +128,7 @@ test('.chain()', function() {
 });
 
 
-test('.each()', function() {
+test('.each(fn)', function() {
 	var buffer = [];
 	var fr = Functor.of(1,0,1,0).each(function(value) {
 		buffer.push(value);
@@ -144,17 +144,64 @@ test('.each()', function() {
 	equals('1,0,1,0', buffer.join());
 });
 
-test('.reduce()', function() {
+test('.reduce(fn, value)', function() {
 	var n = Functor.of(1,0,1,0).reduce(Fn.add, 2);
 	equals(4, n);
 });
 
-test('.concat()', function() {
+test('.concat(object)', function() {
 	var n = Functor.of(1,0,1,0).concat([8,9]);
 	equals('1,0,1,0,8,9', n.toArray().join());
 
 	var n = Functor.of(1,0,1,0).concat(Functor.of(8,9));
 	equals('1,0,1,0,8,9', n.toArray().join());
+});
+
+test('.stringify()', function() {
+	var n = Functor.of(1,0,1,{a:7}).stringify();
+	equals('1', n.shift());
+	equals('0', n.shift());
+	equals('1', n.shift());
+	equals('{"a":7}', n.shift());
+});
+
+test('.parse()', function() {
+	var n = Functor.of('{"a":7}').parse();
+	equals(7, n.shift().a);
+	equals(undefined, n.shift());
+});
+
+test('.batch(n)', function() {
+	var f = Functor.of(0,1,2,3,4,5,6,7,8).batch(2);
+	equals('0,1', f.shift().toArray().join());
+	equals('2,3', f.shift().toArray().join());
+	equals('4,5', f.shift().toArray().join());
+	equals('6,7', f.shift().toArray().join());
+	equals(undefined, f.shift());
+});
+
+test('.group(fn)', function() {
+	var f = Functor.of(0,1,'one',true,2,false,true,'two',3,'three').group(Fn.toType);
+	equals('0,1,2,3', f.shift().toArray().join());
+	equals('one,two,three', f.shift().toArray().join());
+	equals('true,false,true', f.shift().toArray().join());
+	equals(undefined, f.shift());
+
+	var f = Functor.of({a:0},{a:0},{a:'0'},{a:'0'},{b:5}).group(Fn.get('a'));
+	equals('[{"a":0},{"a":0}]', JSON.stringify(f.shift()));
+	equals('[{"a":"0"},{"a":"0"}]', JSON.stringify(f.shift()));
+	equals('[{"b":5}]', JSON.stringify(f.shift()));
+	equals(undefined, f.shift());
+});
+
+test('.groupTo(fn, object)', function() {
+	var f = Functor.of(0,1,'one',true).groupTo(Fn.toType, {}).stringify();
+	equals('{"number":[0,1],"string":["one"],"boolean":[true]}', f.shift());
+	equals(undefined, f.shift());
+
+	var f = Functor.of(0,1,'one',true).groupTo(Fn.toType, new Map());
+	equals('one', f.shift().get('string').toArray().join());
+	equals(undefined, f.shift());
 });
 
 
