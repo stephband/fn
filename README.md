@@ -2,7 +2,7 @@
 
 A library of functional functions.
 
-#### Functional functions
+### Functional functions
 
 ##### `noop()`
 ##### `id(object)`
@@ -10,7 +10,7 @@ A library of functional functions.
 ##### `compose(fn1, fn2)`
 ##### `pipe(fn1, fn2, ...)`
 
-#### Curried functions
+### Curried functions
 
 ##### `is(a, b)`
 
