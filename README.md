@@ -14,7 +14,7 @@ A library of functional functions.
 
 All following functions are curried.
 
-##### `is(a, b)`
+###### `is(a, b)`
 
 Test for referential equality.
 
