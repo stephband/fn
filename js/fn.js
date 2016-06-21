@@ -486,7 +486,9 @@
 			return new Functor(fn);
 		}
 
-		this.shift = fn;
+		this.shift = typeof fn === 'function' ?
+			fn :
+			function() { return fn.shift(); };
 	}
 
 	Object.assign(Functor, {
@@ -548,7 +550,7 @@
 				var value = buffer.shift();
 				if (value !== undefined) { return value; }
 				buffer = source.shift();
-				if (buffer !== undefined) { return join(); }
+				if (buffer !== undefined) { return join(object); }
 				buffer = empty;
 			});
 		},
@@ -592,7 +594,7 @@
 
 			return this.create(function head() {
 				if (i++ === 0) {
-					this.status = 'done';
+					source.status = 'done';
 					return source.shift();
 				}
 			});
@@ -845,6 +847,15 @@
 				}
 				return source.shift();
 			};
+		},
+
+		log: function() {
+			var a = arguments;
+
+			return this.tap(function(object) {
+				console.log.apply(console, Fn.push(object, A.slice.apply(a)));
+				console.log(object);
+			});
 		}
 	});
 
