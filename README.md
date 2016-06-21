@@ -12,33 +12,64 @@ A library of functional functions.
 
 <hr/>
 
-##### `is(source, object)`
+All following functions are curried.
+
+##### `is(a, b)`
+
+Test for referential equality.
+
+##### `equals(a, b)`
+
+Test recursively for deep equality.
+
 ##### `isDefined(object)`
-##### `equals(source, object)`
+
+Test returns `false` if `object` is `null` or `undefined`.
+
+##### `get(key, object)`
+
+Gets property `key` of `object`, where `object` is a Map, WeakMap, Array or Object.
+
+##### `set(key, value, object)`
+
+Sets property `key` of `object`, where `object` is a Map, WeakMap, Array or Object.
+
 ##### `assign(source, object)`
-##### `get(path, object)`
-##### `set(path, object)`
+
+Sets keys of `source` on `object`.
+
 ##### `call(fn)`
-##### `of(value, ...)`
-##### `map(fn, object)`
 ##### `apply(arguments, fn)`
+##### `map(fn, object)`
+
+Delegates to `object.map` or applies `Array.prototype.map` to `object`.
+
 ##### `invoke(name, object)`
+
+Invokes method `name` of `object`.
+
 ##### `throttle([time,] fn)`
 ##### `concat(array1, object)`
 ##### `each(fn, object)`
 ##### `filter(fn, object)`
-##### `reduce(fn, initial, object)`
+##### `reduce(fn, value, object)`
 ##### `slice(n, m, object)`
 ##### `sort(fn, object)`
-##### `by(name, a, b)`
+##### `by(key, a, b)`
 ##### `byGreater(a, b)`
 ##### `byAlphabet(a, b)`
-##### `add(n, m)`
-##### `multiply(n, m)`
-##### `pow(n, m)`
-##### `mod(n, m)`
-##### `normalise(min, max, value)`
-##### `denormalise(min, max, value)`
+##### `add(a, b)`
+##### `multiply(a, b)`
+##### `pow(a, b)`
+##### `mod(a, b)`
+##### `normalise(min, max, n)`
+
+Normalises `n` from range `min`-`max` to range 0-1.
+
+##### `denormalise(min, max, n)`
+
+Denormalises `n` from range 0-1 to range `min`-`max`.
+
 ##### `toFixed(n, value)`
 ##### `not(object)`
 ##### `match(regex, string)`
@@ -57,7 +88,10 @@ A library of functional functions.
 
 ## Functor(fn)
 
-Functor is a wrapper for a function that returns a value - in other words, it is an IO Functor. Functor has fantasy-land compliant methods for Functor, Applicative and Monad. Values can be extracted at the end of the chain with `.shift()`.
+Functor is a wrapper for a function that returns a value - in other words,
+it is an IO Functor. Functor has fantasy-land compliant methods for Functor,
+Applicative and Monad. Values can be extracted at the end of the chain
+with `.shift()`.
 
     var f = Functor(function() { return 6; })
 

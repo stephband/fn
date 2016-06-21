@@ -273,23 +273,25 @@
 		compose:  compose,
 		pipe:     pipe,
 
-		of: function of() {
-			return Fn(arguments);
-		},
-
-		is: curry(function is(object1, object2) {
-			return object1 === object2;
+		is: curry(function is(a, b) {
+			return a === b;
 		}),
 
 		equals: curry(function equals(a, b) {
-			// Fast out if references are for the same object
+			// Fast out if references are for the same object.
 			if (a === b) { return true; }
 
-			var keys = Object.keys(a);
-			var n = keys.length;
+			if (typeof a !== 'object') { return false; }
+
+			var akeys = Object.keys(a);
+			var bkeys = Object.keys(b);
+
+			if (akeys.length !== bkeys.length) { return false; }
+
+			var n = akeys.length;
 
 			while (n--) {
-				if (!equals(a[keys[n]], b[keys[n]])) {
+				if (!equals(a[akeys[n]], b[akeys[n]])) {
 					return false;
 				}
 			}
@@ -350,7 +352,7 @@
 		}),
 
 		map: curry(function map(fn, object) {
-			return object.map(fn);
+			return object.map ? object.map(fn) : A.map.call(object, fn);
 		}),
 
 		throttle: function(time, fn) {

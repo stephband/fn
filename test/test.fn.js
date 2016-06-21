@@ -18,4 +18,16 @@ test('.add', function() {
 	equals(1, fn(0));
 });
 
+test('.equals(a, b)', function() {
+	equals(Fn.equals(0, 0), true);
+	equals(Fn.equals(1, 1), true);
+	equals(Fn.equals(false, false), true);
+	equals(Fn.equals('false', 'false'), true);
+	equals(Fn.equals([], []), true);
+	equals(Fn.equals([0.3], [0.3]), true);
+	equals(Fn.equals({a:0,b:1}, {b:1,a:0}), true);
+	equals(Fn.equals({a:0,b:1,c:{d:2}}, {b:1,a:0,c:{d:2}}), true);
+	equals(Fn.equals({a:[{a:6}]}, {a:[{a:6}]}), true);
+});
+
 console.groupEnd();
