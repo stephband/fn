@@ -377,9 +377,9 @@
 		slice:       curry(function slice(n, m, object) { return object.slice ? object.slice(n, m) : A.slice.call(object, n, m); }),
 		sort:        curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
 
-		push: curry(function push(stream, object) {
-			(stream.push || A.push).call(stream, object);
-			return stream;
+		push: curry(function push(value, object) {
+			(object.push || A.push).call(object, value);
+			return object;
 		}),
 
 		add:         curry(function add(a, b) { return b + a; }),
@@ -834,7 +834,10 @@
 		},
 
 		toArray: function() {
-			return this.reduce(Fn.push, []);
+			return this.reduce(function(t, v) {
+				t.push(v);
+				return t;
+			}, []);
 		},
 
 		toFunction: function() {
