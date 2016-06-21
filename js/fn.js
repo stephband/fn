@@ -289,7 +289,7 @@
 			var n = keys.length;
 
 			while (n--) {
-				if (a[keys[n]] !== b[keys[n]]) {
+				if (!equals(a[keys[n]], b[keys[n]])) {
 					return false;
 				}
 			}
