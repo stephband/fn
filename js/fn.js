@@ -486,9 +486,25 @@
 			return new Functor(fn);
 		}
 
-		this.shift = typeof fn === 'function' ?
-			fn :
-			function() { return fn.shift(); };
+		var source = this;
+
+		// fn is an iterable
+		if (fn.values) {
+			var iterator = fn.values();
+			fn = function next() {
+				var result = iterator.next();
+				if (result.done) { source.status = 'done'; }
+				return result.value;
+			};
+		}
+		else if (fn.shift) {
+			var buffer = A.slice.apply(fn);
+			fn = function shift() {
+				return buffer.shift();
+			};
+		}
+
+		this.shift = fn;
 	}
 
 	Object.assign(Functor, {
@@ -857,7 +873,6 @@
 
 			return this.tap(function(object) {
 				console.log.apply(console, Fn.push(object, A.slice.apply(a)));
-				console.log(object);
 			});
 		}
 	});
