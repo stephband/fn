@@ -2,7 +2,7 @@
 
 A library of functional functions.
 
-<hr/>
+#### Functional functions
 
 ##### `noop()`
 ##### `id(object)`
@@ -10,9 +10,7 @@ A library of functional functions.
 ##### `compose(fn1, fn2)`
 ##### `pipe(fn1, fn2, ...)`
 
-<hr/>
-
-All following functions are curried.
+#### Curried functions
 
 ##### `is(a, b)`
 
