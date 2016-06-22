@@ -30,6 +30,13 @@
 	}
 
 
+	// Define
+
+	var empty = Object.freeze(Object.defineProperties([], {
+		shift: { value: noop }
+	}));
+
+
 	// Feature test
 
 	var isFunctionLengthDefineable = (function() {
@@ -266,6 +273,7 @@
 	}
 
 	Object.assign(Fn, {
+		empty:    empty,
 		noop:     noop,
 		id:       id,
 		call:     call,
@@ -880,8 +888,6 @@
 	Functor.prototype.toJSON = Functor.prototype.toArray;
 
 	// Stream
-
-	var empty = [];
 
 	function arrayNext(array) {
 		var value;
