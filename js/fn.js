@@ -496,16 +496,17 @@
 
 		var source = this;
 
-		// fn is an iterable
-		if (fn.values) {
-			var iterator = fn.values();
+		// fn is an iterator
+		if (typeof fn.next === "function") {
 			fn = function next() {
 				var result = iterator.next();
 				if (result.done) { source.status = 'done'; }
 				return result.value;
 			};
 		}
-		else if (fn.shift) {
+
+		// fn is an array
+		else if (typeof fn.shift === "function") {
 			var buffer = A.slice.apply(fn);
 			fn = function shift() {
 				return buffer.shift();
