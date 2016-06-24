@@ -363,6 +363,10 @@
 			return object.map ? object.map(fn) : A.map.call(object, fn);
 		}),
 
+		find: curry(function map(fn, object) {
+			return object.find ? object.find(fn) : A.find.call(object, fn);
+		}),
+
 		throttle: function(time, fn) {
 			// Overload the call signature to support Fn.throttle(fn)
 			if (fn === undefined && time.apply) {
