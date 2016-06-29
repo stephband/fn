@@ -289,7 +289,7 @@
 			// Fast out if references are for the same object.
 			if (a === b) { return true; }
 
-			if (typeof a !== 'object') { return false; }
+			if (typeof a !== 'object' || typeof b !== 'object') { return false; }
 
 			var akeys = Object.keys(a);
 			var bkeys = Object.keys(b);
@@ -453,6 +453,12 @@
 				Fn(object).toArray() ;
 		},
 
+		toInt: function(n) {
+			return parseInt(n, 10);
+		},
+
+		toFloat: parseFloat,
+
 		toStringType: (function(regex, types) {
 			return function toStringType(string) {
 				// Determine the type of string from its text content.
@@ -546,6 +552,7 @@
 			// Delegate to the constructor's .of()
 			return this.constructor.of.apply(this.constructor, arguments);
 		},
+
 
 		// Transform
 
