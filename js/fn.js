@@ -383,15 +383,23 @@
 		},
 
 		entries: function(object){
-			return typeof object.entries === 'function' ? object.entries() : A.entries.apply(object) ;
+			return typeof object.entries === 'function' ?
+				object.entries() :
+				A.entries.apply(object) ;
 		},
 
 		keys: function(object){
-			return typeof object.keys === 'function' ? object.keys() : A.keys.apply(object) ;
+			return typeof object.keys === 'function' ?
+				object.keys() :
+				/* Don't use Object.keys(), it returns an array,
+				   not an iterator. */
+				A.keys.apply(object) ;
 		},
 
 		values: function(object){
-			return typeof object.values === 'function' ? object.values() : A.values.apply(object) ;
+			return typeof object.values === 'function' ?
+				object.values() :
+				A.values.apply(object) ;
 		},
 
 		concat:      curry(function concat(array2, array1) { return array1.concat ? array1.concat(array2) : A.concat.call(array1, array2); }),
@@ -908,6 +916,12 @@
 			});
 		}
 	});
+
+	if (window.Symbol) {
+		Functor[Symbol.iterator] = function() {
+			return Fn.values(this);
+		};
+	}
 
 	Functor.prototype.toJSON = Functor.prototype.toArray;
 
