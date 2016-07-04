@@ -92,7 +92,7 @@
 				if (grain === 'year') { return new Time(date); }
 
 				date.setUTCFullYear(0);
-				if (grain === 'century') { return new Time(date); }
+				return new Time(date);
 			}
 
 			var currentDay = date.getUTCDay();

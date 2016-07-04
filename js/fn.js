@@ -382,6 +382,18 @@
 			return fn ? throttle(fn) : throttle ;
 		},
 
+		entries: function(object){
+			return typeof object.entries === 'function' ? object.entries() : A.entries.apply(object) ;
+		},
+
+		keys: function(object){
+			return typeof object.keys === 'function' ? object.keys() : A.keys.apply(object) ;
+		},
+
+		values: function(object){
+			return typeof object.values === 'function' ? object.values() : A.values.apply(object) ;
+		},
+
 		concat:      curry(function concat(array2, array1) { return array1.concat ? array1.concat(array2) : A.concat.call(array1, array2); }),
 		each:        curry(function each(fn, object) { return object.each ? object.each(fn) : A.forEach.call(object, fn); }),
 		filter:      curry(function filter(fn, object) { return object.filter ? object.filter(fn) : A.filter.call(object, fn); }),
