@@ -22,7 +22,7 @@
 		return array;
 	}
 
-	var locale = {
+	var locales = {
 		'en': {
 			days:     ('Sunday Monday Tuesday Wednesday Thursday Friday Saturday').split(' '),
 			months:   ('January February March April May June July August September October November December').split(' '),
@@ -214,11 +214,11 @@
 			YY:   function(date) { return ('0' + date.getFullYear() % 100).slice(-2); },
 			MM:   function(date) { return ('0' + (date.getMonth() + 1)).slice(-2); },
 			MMM:  function(date) { return this.MMMM(date).slice(0,3); },
-			MMMM: function(date, lang) { return locale[lang || Time.lang].months[date.getMonth()]; },
+			MMMM: function(date, lang) { return locales[lang || Time.lang].months[date.getMonth()]; },
 			D:    function(date) { return '' + date.getDate(); },
 			DD:   function(date) { return ('0' + date.getDate()).slice(-2); },
 			ddd:  function(date) { return this.dddd(date).slice(0,3); },
-			dddd: function(date, lang) { return locale[lang || Time.lang].days[date.getDay()]; },
+			dddd: function(date, lang) { return locales[lang || Time.lang].days[date.getDay()]; },
 			HH:   function(date) { return ('0' + date.getHours()).slice(-2); },
 			hh:   function(date) { return ('0' + date.getHours() % 12).slice(-2); },
 			mm:   function(date) { return ('0' + date.getMinutes()).slice(-2); },
@@ -232,19 +232,19 @@
 				return (date.getTimezoneOffset() < 0 ? '+' : '-') +
 					 ('0' + Math.round(100 * Math.abs(date.getTimezoneOffset()) / 60)).slice(-4) ;
 			},
-			th: function(date, lang) { return locale[lang || Time.lang].ordinals[date.getDate()]; },
+			th: function(date, lang) { return locales[lang || Time.lang].ordinals[date.getDate()]; },
 			n: function(date) { return +date; },
 			ZZ: function(date) { return -date.getTimezoneOffset() * 60; }
 		},
 
-		locale: locale
+		locales: locales
 	});
 
 	// Document language
 	Object.defineProperty(Time, 'lang', {
 		get: function() {
 			var lang = document.documentElement.lang;
-			return lang && Time.locale[lang] ? lang : 'en';
+			return lang && Time.locales[lang] ? lang : 'en';
 		},
 		enumerable: true
 	});
