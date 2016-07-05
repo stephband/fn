@@ -1,12 +1,77 @@
 (function(window) {
+	"use strict";
+
 	var Fn = window.Fn;
 
 	// Be generous with the input we accept.
 	var rdate     = /^(-)?(\d{4})(?:-(\d+))?(?:-(\d+))?$/;
 	var rtime     = /^(-)?(\d+):(\d+)(?::(\d+(?:\.\d+)?))?$/;
 	var rdatetime = /^(-)?(\d+)-(0[0-9]|1[12])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):([0-5][0-9])(?::([0-5][0-9](?:\.\d+)?))?/;
+	var rtimezone = /(?:Z|[+-]\d{2}:\d{2})$/;
+	var rnonzeronumbers = /[1-9]/;
 
 	var days = { mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 0 };
+
+	function createList(ordinals) {
+		var array = [], n = 0;
+
+		while (n++ < 31) {
+			array[n] = ordinals[n] || ordinals.n;
+		}
+
+		return array;
+	}
+
+	var locale = {
+		'en': {
+			days:     ('Sunday Monday Tuesday Wednesday Thursday Friday Saturday').split(' '),
+			months:   ('January February March April May June July August September October November December').split(' '),
+			ordinals: createList({ n: 'th', 1: 'st', 2: 'nd', 3: 'rd', 21: 'st', 22: 'nd', 23: 'rd', 31: 'st' })
+		},
+
+		'fr': {
+			days:     ('dimanche lundi mardi mercredi jeudi vendredi samedi').split(' '),
+			months:   ('janvier février mars avril mai juin juillet août septembre octobre novembre décembre').split(' '),
+			ordinals: createList({ n: "ième", 1: "er" })
+		},
+
+		'de': {
+			days:     ('Sonntag Montag Dienstag Mittwoch Donnerstag Freitag Samstag').split(' '),
+			months:   ('Januar Februar März April Mai Juni Juli Oktober September Oktober November Dezember').split(' '),
+			ordinals: createList({ n: "er" })
+		},
+
+		'it': {
+			days:     ('domenica lunedì martedì mercoledì giovedì venerdì sabato').split(' '),
+			months:   ('gennaio febbraio marzo aprile maggio giugno luglio agosto settembre ottobre novembre dicembre').split(' '),
+			ordinals: createList({ n: "o" })
+		}
+	};
+
+	function createDate(value) {
+		// Test the Date constructor to see if it is parsing date
+		// strings as local dates, as per the ES6 spec, or as GMT, as
+		// per pre ES6 engines.
+		// developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse#ECMAScript_5_ISO-8601_format_support
+		var date = new Date(value);
+		var json = date.toJSON();
+		var gmt =
+			// It's GMT if the string matches the same length of
+			// characters from it's JSONified version...
+			json.slice(0, value.length) === value &&
+
+			// ...and if all remaining numbers are 0.
+			!json.slice(value.length).match(rnonzeronumbers) ;
+
+		return typeof value !== 'string' ? new Date(value) :
+			// If the Date constructor parses to gmt offset the date by
+			// adding the date's offset in milliseconds to get a local
+			// date. getTimezoneOffset returns the offset in minutes.
+			gmt ? new Date(+date + date.getTimezoneOffset() * 60000) :
+
+			// Otherwise use the local date.
+			date ;
+	}
 
 	function addTimeToDate(time, date) {
 		var tokens = rtime.exec(time) ;
@@ -105,7 +170,18 @@
 			if (diff < 0) { diff = diff + 7; }
 
 			return this.add('-0000-00-0' + diff);
-		}
+		},
+
+		render: (function() {
+			var rletter = /(th|ms|[YZMDdHhmsz]{1,4}|[a-zA-Z])/g;
+
+			return function render(string, lang) {
+				var date = this.toDate();
+				return string.replace(rletter, function($0, $1) {
+					return Time.format[$1] ? Time.format[$1](date, lang) : $1 ;
+				});
+			};
+		})()
 	});
 
 	// .toString() enables comparisons of the genre time1 > time2,
@@ -126,12 +202,51 @@
 			},
 			enumerable: true
 		}
-	})
+	});
 
 	Object.assign(Time, {
 		now: function() {
 			return Time(new Date());
-		}
+		},
+
+		format: {
+			YYYY: function(date) { return ('000' + date.getFullYear()).slice(-4); },
+			YY:   function(date) { return ('0' + date.getFullYear() % 100).slice(-2); },
+			MM:   function(date) { return ('0' + (date.getMonth() + 1)).slice(-2); },
+			MMM:  function(date) { return this.MMMM(date).slice(0,3); },
+			MMMM: function(date, lang) { return locale[lang || Time.lang].months[date.getMonth()]; },
+			D:    function(date) { return '' + date.getDate(); },
+			DD:   function(date) { return ('0' + date.getDate()).slice(-2); },
+			ddd:  function(date) { return this.dddd(date).slice(0,3); },
+			dddd: function(date, lang) { return locale[lang || Time.lang].days[date.getDay()]; },
+			HH:   function(date) { return ('0' + date.getHours()).slice(-2); },
+			hh:   function(date) { return ('0' + date.getHours() % 12).slice(-2); },
+			mm:   function(date) { return ('0' + date.getMinutes()).slice(-2); },
+			ss:   function(date) { return ('0' + date.getSeconds()).slice(-2); },
+			sss:  function(date) { return (date.getSeconds() + date.getMilliseconds() / 1000 + '').replace(/^\d\.|^\d$/, function($0){ return '0' + $0; }); },
+			ms:   function(date) { return '' + date.getMilliseconds(); },
+
+			// Experimental
+			am: function(date) { return date.getHours() < 12 ? 'am' : 'pm'; },
+			zz: function(date) {
+				return (date.getTimezoneOffset() < 0 ? '+' : '-') +
+					 ('0' + Math.round(100 * Math.abs(date.getTimezoneOffset()) / 60)).slice(-4) ;
+			},
+			th: function(date, lang) { return locale[lang || Time.lang].ordinals[date.getDate()]; },
+			n: function(date) { return +date; },
+			ZZ: function(date) { return -date.getTimezoneOffset() * 60; }
+		},
+
+		locale: locale
+	});
+
+	// Document language
+	Object.defineProperty(Time, 'lang', {
+		get: function() {
+			var lang = document.documentElement.lang;
+			return lang && Time.locale[lang] ? lang : 'en';
+		},
+		enumerable: true
 	});
 
 	window.Time = Time;
