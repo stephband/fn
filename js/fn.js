@@ -605,6 +605,15 @@
 			});
 		},
 
+		dedup: function() {
+			var value;
+			return this.filter(function(newValue) {
+				var oldValue = value;
+				value = newValue;
+				return oldValue !== newValue;
+			});
+		},
+
 		join: function() {
 			var source = this;
 			var buffer = empty;
@@ -1142,6 +1151,34 @@
 	});
 
 
+	function ValueStream() {
+		return Stream(function setup(notify) {
+			var value;
+			var pulling = false;
+
+			return {
+				shift: function buffer() {
+					if (value === undefined) {
+						pulling = true;
+						notify('pull');
+						pulling = false;
+					}
+					var v = value;
+					value = undefined;
+					return v;
+				},
+
+				push: function push() {
+					// Store last pushed value
+					value = arguments[arguments.length - 1];
+					if (!pulling) { notify('push'); }
+					// Cancel value
+					value = undefined;
+				}
+			};
+		});
+	}
+
 	// BufferStream
 
 	function BufferStream(object) {
@@ -1207,6 +1244,7 @@
 		Throttle:      Throttle,
 		Functor:       Functor,
 		Stream:        Stream,
+		ValueStream:   ValueStream,
 		BufferStream:  BufferStream,
 		PromiseStream: PromiseStream
 	});
