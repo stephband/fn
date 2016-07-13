@@ -885,7 +885,7 @@
 			return this;
 		},
 
-		each: function pull(fn) {
+		each: function(fn) {
 			var value;
 
 			while ((value = this.shift()) !== undefined) {
@@ -1031,7 +1031,7 @@
 			throw new Error('Fn: Stream has been created without a .next() method.');
 		},
 
-		pull: function pull(fn) {
+		each: function(fn) {
 			var source = this;
 			var a = arguments;
 
@@ -1150,6 +1150,10 @@
 		}
 	});
 
+	Stream.prototype.pull = function functionName() {
+		console.warn('stream.pull() deprecated. Use stream.each().');
+		return this.each.apply(this, arguments);
+	};
 
 	function ValueStream() {
 		return Stream(function setup(notify) {
