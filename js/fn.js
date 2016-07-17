@@ -392,7 +392,7 @@
 			return object.map ? object.map(fn) : A.map.call(object, fn);
 		}),
 
-		find: curry(function map(fn, object) {
+		find: curry(function find(fn, object) {
 			return object.find ? object.find(fn) : A.find.call(object, fn);
 		}),
 
