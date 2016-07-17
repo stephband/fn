@@ -107,7 +107,9 @@
 	// Get and set paths
 
 	var rpathtrimmer = /^\[|\]$/g;
-	var rpathsplitter = /\]?\.|\[/g;
+	var rpathsplitter = /\]?(?:\.|\[)/g;
+	var rpropselector = /(\w+)\=(\w+)/;
+	var map = [];
 
 	function isObject(obj) { return obj instanceof Object; }
 
@@ -117,21 +119,48 @@
 			.split(rpathsplitter);
 	}
 
-	function objFrom(object, array) {
-		var key   = array.shift();
-		var value = object[key];
+	function select(object, selector) {
+		var selection = rpropselector.exec(selector);
 
-		return array.length === 0 ? value :
-			value !== undefined ? objFrom(value, array) :
-			undefined ;
+		return selection ?
+			findByProperty(object, selection[1], JSON.parse(selection[2])) :
+			Fn.get(selector, object) ;
 	}
 
-	function objTo(root, array, object) {
-		var key = array.shift();
+	function findByProperty(array, name, value) {
+		// Find first matching object in array
+		var n = -1;
 
-		return array.length === 0 ?
-			(root[key] = object) :
-			objTo(isObject(root[key]) ? root[key] : (root[key] = {}), array, object) ;
+		while (++n < array.length) {
+			if (array[n] && array[n][name] === value) {
+				return array[n];
+			}
+		}
+	}
+
+	function objFrom(object, array) {
+		var key = array.shift();
+		var value = select(object, key);
+
+		return array.length === 0 ? value :
+			Fn.isDefined(value) ? objFrom(value, array) :
+			value ;
+	}
+
+	function objTo(root, array, value) {
+		var key = array.shift();
+		var object;
+
+		if (array.length === 0) {
+			Fn.set(key, value, root);
+			return value;
+		}
+
+		var object = Fn.get(key, root);
+		if (!isObject(object)) { object = {}; }
+
+		Fn.set(key, object, root);
+		return objTo(object, array, value) ;
 	}
 
 
