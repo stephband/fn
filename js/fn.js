@@ -348,7 +348,7 @@
 			return S.localeCompare.call(a, b);
 		}),
 
-		assign: curry(function assign(obj2, obj1) {
+		assign: curry(function assign(obj1, obj2) {
 			return Object.assign(obj1, obj2);
 		}),
 
@@ -380,8 +380,8 @@
 				objTo(object, array, value);
 		}),
 
-		invoke: curry(function invoke(name, object) {
-			return object[name]();
+		invoke: curry(function invoke(name, args, object) {
+			return object[name].apply(object, args);
 		}),
 
 		apply: curry(function apply(values, fn) {
