@@ -515,6 +515,14 @@
 
 		toFloat: parseFloat,
 
+		toPlainText: function toPlainText(string) {
+			return string
+			// Decompose string to normalized version
+			.normalize('NFD')
+			// Remove accents
+			.replace(/[\u0300-\u036f]/g, '');
+		},
+
 		toStringType: (function(regex, types) {
 			return function toStringType(string) {
 				// Determine the type of string from its text content.
