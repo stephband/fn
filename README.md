@@ -84,12 +84,12 @@ Denormalises `n` from range 0-1 to range `min`-`max`.
     Fn.stringTypeOf('{}');                  // 'json'
     Fn.stringTypeOf('...');                 // 'string'
 
-## Functor(fn)
+## Fn(fn)
 
-Functor is a wrapper for a function that returns a value - in other words,
-it is an IO Functor. Functor has fantasy-land compliant methods for Functor,
-Applicative and Monad. Values can be extracted at the end of the chain
-with `.shift()`.
+Fn creates a wrapper for a function that returns a value - in other words,
+it creates an IO Functor. The functor has fantasy-land compliant methods for
+Functor, Applicative and Monad. Values can be extracted from a functor
+with `.shift()`:
 
     var f = Functor(function() { return 6; })
 
@@ -97,10 +97,16 @@ with `.shift()`.
     f.shift() // 6
     ...
 
+A functor is also an iterable:
+
+    f.next().value // 6
+    f.next().done  // undefined
+    ...
+
+Functors also have the methods:
+
 #### Create
 
-##### `Functor(fn)`
-##### `Functor.of(value, ...)`
 ##### `of(value, ...)`
 
 #### Transform
@@ -110,10 +116,12 @@ with `.shift()`.
 ##### `filter(fn)`
 ##### `join(fn)`
 ##### `chain(fn)`
-##### `map(fn)`
 ##### `sort(fn)`
 ##### `head()`
 ##### `tail()`
+##### `concat(object)`
+##### `batch()`
+##### `group(fn)`
 ##### `slice(n, m)`
 ##### `unique(fn)`
 ##### `scan(fn, value)`
@@ -121,11 +129,6 @@ with `.shift()`.
 ##### `parse()`
 ##### 'stringify()'
 
-<!--
-##### `split(fn)`
-##### `batch(n)`
-##### `group(fn)`
--->
 #### Output
 
 ##### `each(fn)`
@@ -139,7 +142,9 @@ with `.shift()`.
 
 ## Stream(setup)
 
-Streams are pushable, observable Functors. Streams inherit all input, transform and output methods from Functor, plus they also get a `.push` method and are observed for `"push"` and `"pull"` events with `.on(type, fn)`.
+Streams are pushable, observable Functors. Streams inherit all input, transform
+and output methods from `Fn.prototype`, plus they also get a `.push` method and
+are observed for `"push"` and `"pull"` events with `.on(type, fn)`.
 
     var stream = Fn.Stream(function setup(notify) {
         return {
@@ -153,10 +158,12 @@ Streams are pushable, observable Functors. Streams inherit all input, transform 
         stream.push(0);
     });
 
+##### `Stream.of(value1, value2, ...)`
+
+Create a buffered stream of values.
+
 #### Input
 
-##### `Stream(setup)`
-##### `Stream.of(value, ...)`
 ##### `of(value, ...)`
 ##### `on(type, fn)`
 ##### `push(value, ...)`

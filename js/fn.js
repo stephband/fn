@@ -14,6 +14,7 @@
 
 	// Import
 
+	var Symbol = window.Symbol;
 	var A = Array.prototype;
 	var F = Function.prototype;
 	var N = Number.prototype;
@@ -202,7 +203,7 @@
 		function timed() {
 			timer = false;
 			t = now();
-			fns.forEach(Fn.apply([now()]));
+			fns.forEach(Fn.run([now()]));
 			fns.length = 0;
 		}
 
@@ -276,334 +277,34 @@
 
 	// Fn
 
-	function Fn(object) {
-			// object is not, create an empty stream
-		return object === undefined ? new BufferStream() :
-			// object is a function
-			typeof object === "function" ? new Functor(object) :
-			// object is an Array or Functor
-			typeof object.shift === "function" ? new Functor(function shift() {
-				return object.shift();
-			}) :
-			// object is an Iterator
-			typeof object.next === "function" ? new Functor(function next() {
-				return object.next().value;
-			}) :
-			// object is a Promise
-			typeof object.then === "function" ? PromiseStream(object) :
-			// object is a map of some sort, get it's iterator
-			typeof object.entries === "function" ? Fn(object.entries()) :
-			// object is a plain object
-			typeof object === "object" ? Fn(Object.keys(object)).map(function() {
-				return [key, object[key]];
-			}) :
-			// object is a value
-			Functor.of(object);
-	}
-
-	Object.assign(Fn, {
-		empty:    empty,
-		noop:     noop,
-		id:       id,
-		call:     call,
-		curry:    curry,
-		compose:  compose,
-		pipe:     pipe,
-
-		is: curry(function is(a, b) {
-			return a === b;
-		}),
-
-		equals: curry(function equals(a, b) {
-			// Fast out if references are for the same object.
-			if (a === b) { return true; }
-
-			if (typeof a !== 'object' || typeof b !== 'object') { return false; }
-
-			var akeys = Object.keys(a);
-			var bkeys = Object.keys(b);
-
-			if (akeys.length !== bkeys.length) { return false; }
-
-			var n = akeys.length;
-
-			while (n--) {
-				if (!equals(a[akeys[n]], b[akeys[n]])) {
-					return false;
-				}
-			}
-
-			return true;
-		}),
-
-		by: curry(function by(property, a, b) {
-			return Fn.byGreater(a[property], b[property]);
-		}),
-
-		byGreater: curry(function byGreater(a, b) {
-			return a === b ? 0 : a > b ? 1 : -1 ;
-		}),
-
-		byAlphabet: curry(function byAlphabet(a, b) {
-			return S.localeCompare.call(a, b);
-		}),
-
-		assign: curry(function assign(obj1, obj2) {
-			return Object.assign(obj1, obj2);
-		}),
-
-		get: curry(function get(key, object) {
-			return typeof object.get === "function" ?
-				object.get(key) :
-				object[key] ;
-		}),
-
-		set: curry(function set(key, value, object) {
-			return typeof object.set === "function" ?
-				object.set(key, value) :
-				(object[key] = value) ;
-		}),
-
-		getPath: curry(function get(path, object) {
-			return object.get ? object.get(path) :
-				typeof path === 'number' ? object[path] :
-				path === '' || path === '.' ? object :
-				objFrom(object, splitPath(path)) ;
-		}),
-
-		setPath: curry(function set(path, value, object) {
-			if (object.set) { object.set(path, value); }
-			if (typeof path === 'number') { return object[path] = value; }
-			var array = splitPath(path);
-			return array.length === 1 ?
-				(object[path] = value) :
-				objTo(object, array, value);
-		}),
-
-		invoke: curry(function invoke(name, args, object) {
-			return object[name].apply(object, args);
-		}),
-
-		apply: curry(function apply(values, fn) {
-			return fn.apply(null, values);
-		}),
-
-		map: curry(function map(fn, object) {
-			return object.map ? object.map(fn) : A.map.call(object, fn);
-		}),
-
-		find: curry(function find(fn, object) {
-			return object.find ? object.find(fn) : A.find.call(object, fn);
-		}),
-
-		throttle: function(time, fn) {
-			// Overload the call signature to support Fn.throttle(fn)
-			if (fn === undefined && time.apply) {
-				fn = time;
-				time = undefined;
-			}
-
-			function throttle(fn) {
-				return Throttle(fn, time);
-			}
-
-			// Where fn not given return a partially applied throttle
-			return fn ? throttle(fn) : throttle ;
-		},
-
-		entries: function(object){
-			return typeof object.entries === 'function' ?
-				object.entries() :
-				A.entries.apply(object) ;
-		},
-
-		keys: function(object){
-			return typeof object.keys === 'function' ?
-				object.keys() :
-				/* Don't use Object.keys(), it returns an array,
-				   not an iterator. */
-				A.keys.apply(object) ;
-		},
-
-		values: function(object){
-			return typeof object.values === 'function' ?
-				object.values() :
-				A.values.apply(object) ;
-		},
-
-		each: curry(function each(fn, object) {
-			return object && (
-				object.each ? object.each(fn) :
-				object.forEach ? object.forEach(function(item) { fn(item); }) :
-				A.forEach.call(object, function(item) { fn(item); })
-			);
-		}),
-
-		concat:      curry(function concat(array2, array1) { return array1.concat ? array1.concat(array2) : A.concat.call(array1, array2); }),
-		filter:      curry(function filter(fn, object) { return object.filter ? object.filter(fn) : A.filter.call(object, fn); }),
-		reduce:      curry(function reduce(fn, n, object) { return object.reduce ? object.reduce(fn, n) : A.reduce.call(object, fn, n); }),
-		slice:       curry(function slice(n, m, object) { return object.slice ? object.slice(n, m) : A.slice.call(object, n, m); }),
-		sort:        curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
-
-		push: curry(function push(value, object) {
-			(object.push || A.push).call(object, value);
-			return object;
-		}),
-
-		add:         curry(function add(a, b) { return b + a; }),
-		multiply:    curry(function multiply(a, b) { return b * a; }),
-		mod:         curry(function mod(a, b) { return b % a; }),
-		pow:         curry(function pow(a, b) { return Math.pow(b, a); }),
-		min:         curry(function min(a, b) { return a > b ? b : a ; }),
-		max:         curry(function max(a, b) { return a < b ? b : a ; }),
-		normalise:   curry(function normalise(min, max, value) { return (value - min) / (max - min); }),
-		denormalise: curry(function denormalise(min, max, value) { return value * (max - min) + min; }),
-		toFixed:     curry(function toFixed(n, value) { return N.toFixed.call(value, n); }),
-
-		rangeLog: curry(function rangeLog(min, max, n) {
-			return Fn.denormalise(min, max, Math.log(value / min) / Math.log(max / min))
-		}),
-
-		rangeLogInv: curry(function rangeLogInv(min, max, n) {
-			return min * Math.pow(max / min, Fn.normalise(min, max, n));
-		}),
-
-		dB: function(n) {
-			return this.map(function(value) {
-				return 20 * Math.log10(value);
-			});
-		},
-
-		// Strings
-		match:      curry(function match(regex, string) { return regex.test(string); }),
-		exec:       curry(function parse(regex, string) { return regex.exec(string) || undefined; }),
-		replace:    curry(function replace(regex, fn, string) { return string.replace(regex, fn); }),
-
-		slugify: function slugify(string) {
-			if (typeof string !== 'string') { return; }
-			return string.trim().toLowerCase().replace(/[\W_]/g, '-');
-		},
-
-		// Booleans
-		not: function not(object) { return !object; },
-
-		// Types
-
-		isDefined: function isDefined(value) {
-			// !!value is a fast out for non-zero numbers, non-empty strings
-			// and other objects, the rest checks for 0, '', etc.
-			return !!value || (value !== undefined && value !== null && !Number.isNaN(value));
-		},
-
-		toType: function typeOf(object) {
-			return typeof object;
-		},
-
-		toClass: function classOf(object) {
-			return O.toString.apply(object).slice(8, -1);
-		},
-
-		toArray: function(object) {
-			return object.toArray ?
-				object.toArray() :
-				Fn(object).toArray() ;
-		},
-
-		toInt: function(n) {
-			return parseInt(n, 10);
-		},
-
-		toFloat: parseFloat,
-
-		toPlainText: function toPlainText(string) {
-			return string
-			// Decompose string to normalized version
-			.normalize('NFD')
-			// Remove accents
-			.replace(/[\u0300-\u036f]/g, '');
-		},
-
-		toStringType: (function(regex, types) {
-			return function toStringType(string) {
-				// Determine the type of string from its text content.
-				var n = -1;
-
-				// Test regexable string types
-				while (++n < types.length) {
-					if(regex[types[n]].test(string)) {
-						return types[n];
-					}
-				}
-
-				// Test for JSON
-				try {
-					JSON.parse(string);
-					return 'json';
-				}
-				catch(e) {}
-
-				// Default to 'string'
-				return 'string';
-			};
-		})(regex, ['date', 'url', 'email', 'int', 'float']),
-
-		// JSON
-		stringify: function stringify(object) {
-			return JSON.stringify(Fn.toClass(object) === "Map" ?
-				Fn(object) : object
-			);
-		},
-
-		log: function(text, object) {
-			console.log(text, object);
-			return x;
-		}
-	});
-
-
-	// Functor
-
-	function Functor(fn) {
-		if (!this || !Functor.prototype.isPrototypeOf(this)) {
-			return new Functor(fn);
+	function Fn(fn) {
+		if (!this || !Fn.prototype.isPrototypeOf(this)) {
+			return new Fn(fn);
 		}
 
 		var source = this;
 
-		// fn is an iterator
-		if (typeof fn.next === "function") {
-			fn = function next() {
-				var result = iterator.next();
-				if (result.done) { source.status = 'done'; }
-				return result.value;
-			};
-		}
-
 		// fn is an array
-		else if (typeof fn.shift === "function") {
+		if (typeof fn.shift === "function") {
 			var buffer = A.slice.apply(fn);
 			fn = function shift() {
 				return buffer.shift();
 			};
 		}
 
+		// fn is an iterator
+		else if (typeof fn.next === "function") {
+			fn = function shift() {
+				var result = iterator.next();
+				if (result.done) { source.status = 'done'; }
+				return result.value;
+			};
+		}
+
 		this.shift = fn;
 	}
 
-	Object.assign(Functor, {
-		of: function() {
-			var a = arguments;
-			return new this(function of() {
-				var object;
-				while (a.length && object === undefined) {
-					object = A.shift.apply(a);
-				}
-				return object;
-			});
-		}
-	});
-
-	Object.assign(Functor.prototype, {
+	Object.assign(Fn.prototype, {
 		// Input
 
 		create: function(fn) {
@@ -781,7 +482,7 @@
 					if (buffer.length >= n) {
 						var _buffer = buffer;
 						buffer = [];
-						return Functor.of.apply(Functor, _buffer);
+						return Fn.of.apply(Fn, _buffer);
 					}
 				} :
 
@@ -896,11 +597,20 @@
 
 		stringify: function() { return this.map(Fn.stringify); },
 
+
 		// Output
+
+		// Fn is an iterator
+		next: function() {
+			return {
+				done: this.status === 'done',
+				value: this.shift()
+			};
+		},
 
 		pipe: function(stream) {
 			if (!stream || !stream.on) {
-				throw new Error('Fn: Functor.pipe(object) object must be a stream. (' + stream + ')');
+				throw new Error('Fn: Fn.pipe(object) object must be a pushable stream. (' + stream + ')');
 			}
 
 			var source = this;
@@ -944,7 +654,7 @@
 			return this.filter(fn).head().shift();
 		},
 
-		toArray: function() {
+		toJSON: function() {
 			return this.reduce(function(t, v) {
 				t.push(v);
 				return t;
@@ -970,13 +680,283 @@
 		}
 	});
 
-	if (window.Symbol) {
-		Functor[Symbol.iterator] = function() {
-			return Fn.values(this);
+	if (Symbol) {
+		Fn.prototype[Symbol.iterator] = function() {
+			return this;
 		};
 	}
 
-	Functor.prototype.toJSON = Functor.prototype.toArray;
+	Fn.prototype.toArray = Fn.prototype.toJSON;
+
+	Object.assign(Fn, {
+		of: function of() {
+			var a = arguments;
+			return new this(function of() {
+				var object;
+				while (a.length && object === undefined) {
+					object = A.shift.apply(a);
+				}
+				return object;
+			});
+		},
+
+		empty:    empty,
+		noop:     noop,
+		id:       id,
+		call:     call,
+		curry:    curry,
+		compose:  compose,
+		pipe:     pipe,
+
+		is: curry(function is(a, b) {
+			return a === b;
+		}),
+
+		equals: curry(function equals(a, b) {
+			// Fast out if references are for the same object.
+			if (a === b) { return true; }
+
+			if (typeof a !== 'object' || typeof b !== 'object') { return false; }
+
+			var akeys = Object.keys(a);
+			var bkeys = Object.keys(b);
+
+			if (akeys.length !== bkeys.length) { return false; }
+
+			var n = akeys.length;
+
+			while (n--) {
+				if (!equals(a[akeys[n]], b[akeys[n]])) {
+					return false;
+				}
+			}
+
+			return true;
+		}),
+
+		by: curry(function by(property, a, b) {
+			return Fn.byGreater(a[property], b[property]);
+		}),
+
+		byGreater: curry(function byGreater(a, b) {
+			return a === b ? 0 : a > b ? 1 : -1 ;
+		}),
+
+		byAlphabet: curry(function byAlphabet(a, b) {
+			return S.localeCompare.call(a, b);
+		}),
+
+		assign: curry(function assign(obj1, obj2) {
+			return Object.assign(obj1, obj2);
+		}),
+
+		get: curry(function get(key, object) {
+			return typeof object.get === "function" ?
+				object.get(key) :
+				object[key] ;
+		}),
+
+		set: curry(function set(key, value, object) {
+			return typeof object.set === "function" ?
+				object.set(key, value) :
+				(object[key] = value) ;
+		}),
+
+		getPath: curry(function get(path, object) {
+			return object.get ? object.get(path) :
+				typeof path === 'number' ? object[path] :
+				path === '' || path === '.' ? object :
+				objFrom(object, splitPath(path)) ;
+		}),
+
+		setPath: curry(function set(path, value, object) {
+			if (object.set) { object.set(path, value); }
+			if (typeof path === 'number') { return object[path] = value; }
+			var array = splitPath(path);
+			return array.length === 1 ?
+				(object[path] = value) :
+				objTo(object, array, value);
+		}),
+
+		invoke: curry(function invoke(name, args, object) {
+			return object[name].apply(object, args);
+		}),
+
+		run: curry(function apply(values, fn) {
+			return fn.apply(null, values);
+		}),
+
+		map: curry(function map(fn, object) {
+			return object.map ? object.map(fn) : A.map.call(object, fn);
+		}),
+
+		find: curry(function find(fn, object) {
+			return object.find ? object.find(fn) : A.find.call(object, fn);
+		}),
+
+		throttle: function(time, fn) {
+			// Overload the call signature to support Fn.throttle(fn)
+			if (fn === undefined && time.apply) {
+				fn = time;
+				time = undefined;
+			}
+
+			function throttle(fn) {
+				return Throttle(fn, time);
+			}
+
+			// Where fn not given return a partially applied throttle
+			return fn ? throttle(fn) : throttle ;
+		},
+
+		entries: function(object){
+			return typeof object.entries === 'function' ?
+				object.entries() :
+				A.entries.apply(object) ;
+		},
+
+		keys: function(object){
+			return typeof object.keys === 'function' ?
+				object.keys() :
+				/* Don't use Object.keys(), it returns an array,
+				   not an iterator. */
+				A.keys.apply(object) ;
+		},
+
+		values: function(object){
+			return typeof object.values === 'function' ?
+				object.values() :
+				A.values.apply(object) ;
+		},
+
+		each: curry(function each(fn, object) {
+			return object && (
+				object.each ? object.each(fn) :
+				object.forEach ? object.forEach(function(item) { fn(item); }) :
+				A.forEach.call(object, function(item) { fn(item); })
+			);
+		}),
+
+		concat:      curry(function concat(array2, array1) { return array1.concat ? array1.concat(array2) : A.concat.call(array1, array2); }),
+		filter:      curry(function filter(fn, object) { return object.filter ? object.filter(fn) : A.filter.call(object, fn); }),
+		reduce:      curry(function reduce(fn, n, object) { return object.reduce ? object.reduce(fn, n) : A.reduce.call(object, fn, n); }),
+		slice:       curry(function slice(n, m, object) { return object.slice ? object.slice(n, m) : A.slice.call(object, n, m); }),
+		sort:        curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
+
+		push: curry(function push(value, object) {
+			(object.push || A.push).call(object, value);
+			return object;
+		}),
+
+		add:         curry(function add(a, b) { return b + a; }),
+		multiply:    curry(function multiply(a, b) { return b * a; }),
+		mod:         curry(function mod(a, b) { return b % a; }),
+		pow:         curry(function pow(a, b) { return Math.pow(b, a); }),
+		min:         curry(function min(a, b) { return a > b ? b : a ; }),
+		max:         curry(function max(a, b) { return a < b ? b : a ; }),
+		normalise:   curry(function normalise(min, max, value) { return (value - min) / (max - min); }),
+		denormalise: curry(function denormalise(min, max, value) { return value * (max - min) + min; }),
+		toFixed:     curry(function toFixed(n, value) { return N.toFixed.call(value, n); }),
+
+		rangeLog: curry(function rangeLog(min, max, n) {
+			return Fn.denormalise(min, max, Math.log(value / min) / Math.log(max / min))
+		}),
+
+		rangeLogInv: curry(function rangeLogInv(min, max, n) {
+			return min * Math.pow(max / min, Fn.normalise(min, max, n));
+		}),
+
+		dB: function(n) {
+			return this.map(function(value) {
+				return 20 * Math.log10(value);
+			});
+		},
+
+		// Strings
+		match:      curry(function match(regex, string) { return regex.test(string); }),
+		exec:       curry(function parse(regex, string) { return regex.exec(string) || undefined; }),
+		replace:    curry(function replace(regex, fn, string) { return string.replace(regex, fn); }),
+
+		slugify: function slugify(string) {
+			if (typeof string !== 'string') { return; }
+			return string.trim().toLowerCase().replace(/[\W_]/g, '-');
+		},
+
+		// Booleans
+		not: function not(object) { return !object; },
+
+		// Types
+
+		isDefined: function isDefined(value) {
+			// !!value is a fast out for non-zero numbers, non-empty strings
+			// and other objects, the rest checks for 0, '', etc.
+			return !!value || (value !== undefined && value !== null && !Number.isNaN(value));
+		},
+
+		toType: function typeOf(object) {
+			return typeof object;
+		},
+
+		toClass: function classOf(object) {
+			return O.toString.apply(object).slice(8, -1);
+		},
+
+		toArray: function(object) {
+			return object.toArray ?
+				object.toArray() :
+				Fn(object).toArray() ;
+		},
+
+		toInt: function(n) {
+			return parseInt(n, 10);
+		},
+
+		toFloat: parseFloat,
+
+		toPlainText: function toPlainText(string) {
+			return string
+			// Decompose string to normalized version
+			.normalize('NFD')
+			// Remove accents
+			.replace(/[\u0300-\u036f]/g, '');
+		},
+
+		toStringType: (function(regex, types) {
+			return function toStringType(string) {
+				// Determine the type of string from its text content.
+				var n = -1;
+
+				// Test regexable string types
+				while (++n < types.length) {
+					if(regex[types[n]].test(string)) {
+						return types[n];
+					}
+				}
+
+				// Test for JSON
+				try {
+					JSON.parse(string);
+					return 'json';
+				}
+				catch(e) {}
+
+				// Default to 'string'
+				return 'string';
+			};
+		})(regex, ['date', 'url', 'email', 'int', 'float']),
+
+		// JSON
+		stringify: function stringify(object) {
+			return JSON.stringify(Fn.toClass(object) === "Map" ?
+				Fn(object) : object
+			);
+		},
+
+		log: function(text, object) {
+			console.log(text, object);
+			return x;
+		}
+	});
 
 	// Stream
 
@@ -1019,36 +999,7 @@
 		}
 	}
 
-	Object.assign(Stream, {
-		of: function() {
-			var a = arguments;
-			return new Stream(function setup(notify) {
-				var pulling = false;
-
-				return {
-					shift: function buffer() {
-						var value = A.shift.apply(a);
-
-						if (value === undefined) {
-							pulling = true;
-							notify('pull');
-							pulling = false;
-							value = A.shift.apply(a);
-						}
-
-						return value;
-					},
-
-					push: function push() {
-						A.push.apply(a, arguments);
-						if (!pulling) { notify('push'); }
-					}
-				};
-			});
-		}
-	});
-
-	Object.setPrototypeOf(Stream.prototype, Functor.prototype);
+	Object.setPrototypeOf(Stream.prototype, Fn.prototype);
 
 	Object.assign(Stream.prototype, {
 		ap: function ap(object) {
@@ -1068,12 +1019,18 @@
 			throw new Error('Fn: Stream has been created without a .next() method.');
 		},
 
+		pull: function pullWarning() {
+			// Legacy warning
+			console.warn('stream.pull() deprecated. Use stream.each().');
+			return this.each.apply(this, arguments);
+		},
+
 		each: function(fn) {
 			var source = this;
 			var a = arguments;
 
 			function each() {
-				Functor.prototype.each.apply(source, a);
+				Fn.prototype.each.apply(source, a);
 			}
 
 			// Flush and observe
@@ -1082,7 +1039,7 @@
 		},
 
 		pipe: function(stream) {
-			Functor.prototype.pipe.apply(this, arguments);
+			Fn.prototype.pipe.apply(this, arguments);
 			// Notify a push without pushing any values -
 			// stream only needs to know values are available.
 			this.on('push', stream.push);
@@ -1187,10 +1144,34 @@
 		}
 	});
 
-	Stream.prototype.pull = function functionName() {
-		console.warn('stream.pull() deprecated. Use stream.each().');
-		return this.each.apply(this, arguments);
-	};
+	Object.assign(Stream, {
+		of: function() {
+			var a = arguments;
+			return new Stream(function setup(notify) {
+				var pulling = false;
+
+				return {
+					shift: function buffer() {
+						var value = A.shift.apply(a);
+
+						if (value === undefined) {
+							pulling = true;
+							notify('pull');
+							pulling = false;
+							value = A.shift.apply(a);
+						}
+
+						return value;
+					},
+
+					push: function push() {
+						A.push.apply(a, arguments);
+						if (!pulling) { notify('push'); }
+					}
+				};
+			});
+		}
+	});
 
 	function ValueStream() {
 		return Stream(function setup(notify) {
@@ -1282,13 +1263,24 @@
 	// Export
 
 	Object.assign(Fn, {
+		Functor: function functorWarning() {
+			// Legacy warning
+			console.warn('Fn: new Fn.Functor() is deprecated. Use new Fn().');
+			return Fn.apply(Fn, arguments);
+		},
+
 		Throttle:      Throttle,
-		Functor:       Functor,
 		Stream:        Stream,
 		ValueStream:   ValueStream,
 		BufferStream:  BufferStream,
 		PromiseStream: PromiseStream
 	});
+
+	Fn.Functor.of = function() {
+		// Legacy warning
+		console.warn('Fn: Fn.Functor.of() is deprecated. Use Fn.of().');
+		return Fn.of.apply(Fn, arguments);
+	};
 
 	window.Fn = Fn;
 
