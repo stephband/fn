@@ -1047,7 +1047,7 @@
 		}
 	}
 
-	Object.setPrototypeOf(Stream.prototype, Fn.prototype);
+	Stream.prototype = Object.create(Fn.prototype);
 
 	Object.assign(Stream.prototype, {
 		ap: function ap(object) {

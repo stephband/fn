@@ -21,7 +21,6 @@
 	// Utility functions
 
 	var assign         = Object.assign;
-	var setPrototypeOf = Object.setPrototypeOf;
 	var slice  = Function.prototype.call.bind(Array.prototype.slice);
 	var reduce = Function.prototype.call.bind(Array.prototype.reduce);
 
@@ -385,7 +384,9 @@
 		Stream.call(this, array);
 	}
 
-	assign(setPrototypeOf(NodeStream.prototype, Stream.prototype), {
+	NodeStream.prototype = Object.create(Stream.prototype);
+
+	assign(NodeStream.prototype, {
 		clone: function() {
 			return this.map(DOM.clone);
 		},
@@ -515,7 +516,9 @@
 		});
 	}
 
-	assign(setPrototypeOf(EventStream.prototype, Stream.prototype), {
+	EventStream.prototype = Object.create(Stream.prototype);
+
+	assign(EventStream.prototype, {
 		create: function(next) {
 			var stream = Object.create(this);
 			stream.next = next;
