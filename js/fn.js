@@ -102,9 +102,9 @@
 			return a.length >= parity ?
 				// If there are enough arguments, call fn.
 				fn.apply(this, a) :
-				// Otherwise create a new function with parity of the remaining
-				// number of required arguments. And curry that.
-				curry(function partial() {
+				// Otherwise create a new function. And curry that. The param is
+				// declared so that partial has length 1.
+				curry(function partial(param) {
 					var params = A.slice.apply(a);
 					A.push.apply(params, arguments);
 					return fn.apply(this, params);
@@ -114,7 +114,7 @@
 		// For debugging
 		// Make the string representation of this function equivalent to fn
 		if (debug) {
-			curried.toString = function() { return fn.toString(); };
+			//curried.toString = function() { return fn.toString(); };
 
 		 	// Where possible, define length so that curried functions show how
 		 	// many arguments they are yet expecting
@@ -331,12 +331,8 @@
 
 		var source = this;
 
-		// fn is an array
-		if (typeof fn.shift === "function") {
-			var buffer = A.slice.apply(fn);
-			fn = function shift() {
-				return buffer.shift();
-			};
+		if (!fn) {
+			fn = noop;
 		}
 
 		// fn is an iterator
@@ -345,6 +341,14 @@
 				var result = iterator.next();
 				if (result.done) { source.status = 'done'; }
 				return result.value;
+			};
+		}
+
+		// fn is an array or array-like object
+		else {
+			var buffer = A.slice.apply(fn);
+			fn = function shift() {
+				return buffer.shift();
 			};
 		}
 
@@ -738,13 +742,7 @@
 	Object.assign(Fn, {
 		of: function of() {
 			var a = arguments;
-			return new this(function of() {
-				var object;
-				while (a.length && object === undefined) {
-					object = A.shift.apply(a);
-				}
-				return object;
-			});
+			return new this(arguments);
 		},
 
 		empty:    empty,
