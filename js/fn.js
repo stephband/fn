@@ -855,6 +855,12 @@
 			return fn ? throttle(fn) : throttle ;
 		},
 
+		requestTick: (function(promise) {
+			return function(fn) {
+				promise.then(fn);
+			};
+		})(Promise.resolve()),
+
 		entries: function(object){
 			return typeof object.entries === 'function' ?
 				object.entries() :
