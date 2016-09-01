@@ -114,7 +114,9 @@
 		// For debugging
 		// Make the string representation of this function equivalent to fn
 		if (debug) {
-			curried.toString = function() { return fn.toString(); };
+			curried.toString = function() {
+				return /function\s*[\w\d]*\s*\([,\w\d\s]*\)/.exec(fn.toString()) + ' { [curried function] }';
+			};
 
 		 	// Where possible, define length so that curried functions show how
 		 	// many arguments they are yet expecting
