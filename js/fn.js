@@ -756,9 +756,7 @@
 		compose:  compose,
 		pipe:     pipe,
 
-		is: curry(function is(a, b) {
-			return a === b;
-		}),
+		is: curry(function is(a, b) { return a === b; }),
 
 		equals: curry(function equals(a, b) {
 			// Fast out if references are for the same object.
@@ -794,9 +792,7 @@
 			return S.localeCompare.call(a, b);
 		}),
 
-		assign: curry(function assign(obj1, obj2) {
-			return Object.assign(obj1, obj2);
-		}),
+		assign: curry(Object.assign(object, props), 2),
 
 		get: curry(function get(key, object) {
 			return typeof object.get === "function" ?
@@ -1254,6 +1250,7 @@
 			};
 		});
 	}
+
 
 	// BufferStream
 
