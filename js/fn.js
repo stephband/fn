@@ -792,7 +792,7 @@
 			return S.localeCompare.call(a, b);
 		}),
 
-		assign: curry(Object.assign(object, props), 2),
+		assign: curry(Object.assign, 2),
 
 		get: curry(function get(key, object) {
 			return typeof object.get === "function" ?
