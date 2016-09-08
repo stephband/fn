@@ -703,7 +703,6 @@
 		empty:    empty,
 		noop:     noop,
 		id:       id,
-		call:     call,
 		curry:    curry,
 		compose:  compose,
 		pipe:     pipe,
