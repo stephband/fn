@@ -74,35 +74,84 @@
 		return function pipe(n) { return A.reduce.call(a, call, n); }
 	}
 
+	function memoize(fn) {
+		var map = new Map();
+
+		return function memoized(object) {
+			if (arguments.length !== 1) {
+				throw new Error('Fn: Memoized function called with ' + arguments.length + ' arguments. Accepts exactly 1.');
+			}
+
+			if (map.has(object)) {
+				return map.get(object);
+			}
+
+			var result = fn(object);
+			map.set(object, result);
+			return result;
+		};
+	}
+
 	function curry(fn, parity) {
 		parity = parity || fn.length;
 
-		function curried() {
+		if (parity < 2) { return fn; }
+
+		var curried = function curried() {
 			var a = arguments;
 			return a.length >= parity ?
 				// If there are enough arguments, call fn.
 				fn.apply(this, a) :
-				// Otherwise create a new function with parity of the remaining
-				// number of required arguments. And curry that.
-				curry(function partial() {
+				// Otherwise create a new function. And curry that. The param is
+				// declared so that partial has length 1.
+				curry(function partial(param) {
 					var params = A.slice.apply(a);
 					A.push.apply(params, arguments);
 					return fn.apply(this, params);
 				}, parity - a.length) ;
-		}
+		};
 
+		// For debugging
 		// Make the string representation of this function equivalent to fn
-		// for sane debugging
 		if (debug) {
-			curried.toString = function() { return fn.toString(); };
+			curried.toString = function() {
+				return /function\s*[\w\d]*\s*\([,\w\d\s]*\)/.exec(fn.toString()) + ' { [curried function] }';
+			};
+
+		 	// Where possible, define length so that curried functions show how
+		 	// many arguments they are yet expecting
+			if (isFunctionLengthDefineable) {
+				Object.defineProperty(curried, 'length', { value: parity });
+			}
 		}
 
-		// Where possible, define length so that curried functions show how
-		// many arguments they are yet expecting
-		return isFunctionLengthDefineable ?
-			Object.defineProperty(curried, 'length', { value: parity }) :
-			curried ;
+		return curried;
 	}
+
+//	function curry(fn, parity) {
+//		// A slightly stricter version of .curry() that caches curried results
+//		parity = parity || fn.length;
+//
+//		if (parity < 2) { return memoize(fn); }
+//
+//		var memo = memoize(function partial(object) {
+//			return curry(function() {
+//				var params = [object];
+//				A.push.apply(params, arguments);
+//				return fn.apply(null, params);
+//			}, parity - 1) ;
+//		});
+//
+//		// For convenience, allow curried functions to be called as:
+//		// fn(a, b, c)
+//		// fn(a)(b)(c)
+//		// fn(a, b)(c)
+//		return function curried() {
+//			return arguments.length > 1 ?
+//				memo(arguments[0]).apply(null, A.slice.call(arguments, 1)) :
+//				memo(arguments[0]) ;
+//		};
+//	}
 
 
 	// Get and set paths
@@ -284,12 +333,8 @@
 
 		var source = this;
 
-		// fn is an array
-		if (typeof fn.shift === "function") {
-			var buffer = A.slice.apply(fn);
-			fn = function shift() {
-				return buffer.shift();
-			};
+		if (!fn) {
+			fn = noop;
 		}
 
 		// fn is an iterator
@@ -298,6 +343,14 @@
 				var result = iterator.next();
 				if (result.done) { source.status = 'done'; }
 				return result.value;
+			};
+		}
+
+		// fn is an array or array-like object
+		else {
+			var buffer = A.slice.apply(fn);
+			fn = function shift() {
+				return buffer.shift();
 			};
 		}
 
@@ -691,25 +744,18 @@
 	Object.assign(Fn, {
 		of: function of() {
 			var a = arguments;
-			return new this(function of() {
-				var object;
-				while (a.length && object === undefined) {
-					object = A.shift.apply(a);
-				}
-				return object;
-			});
+			return new this(arguments);
 		},
 
 		empty:    empty,
 		noop:     noop,
 		id:       id,
+		memoize:  memoize,
 		curry:    curry,
 		compose:  compose,
 		pipe:     pipe,
 
-		is: curry(function is(a, b) {
-			return a === b;
-		}),
+		is: curry(function is(a, b) { return a === b; }),
 
 		equals: curry(function equals(a, b) {
 			// Fast out if references are for the same object.
@@ -745,9 +791,7 @@
 			return S.localeCompare.call(a, b);
 		}),
 
-		assign: curry(function assign(obj1, obj2) {
-			return Object.assign(obj1, obj2);
-		}),
+		assign: curry(Object.assign, 2),
 
 		get: curry(function get(key, object) {
 			return typeof object.get === "function" ?
@@ -807,6 +851,12 @@
 			// Where fn not given return a partially applied throttle
 			return fn ? throttle(fn) : throttle ;
 		},
+
+		requestTick: (function(promise) {
+			return function(fn) {
+				promise.then(fn);
+			};
+		})(Promise.resolve()),
 
 		entries: function(object){
 			return typeof object.entries === 'function' ?
@@ -998,7 +1048,7 @@
 		}
 	}
 
-	Object.setPrototypeOf(Stream.prototype, Fn.prototype);
+	Stream.prototype = Object.create(Fn.prototype);
 
 	Object.assign(Stream.prototype, {
 		ap: function ap(object) {
@@ -1199,6 +1249,7 @@
 			};
 		});
 	}
+
 
 	// BufferStream
 

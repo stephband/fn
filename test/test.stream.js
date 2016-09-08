@@ -58,11 +58,10 @@ test('.pipe()', function() {
 	equals('0,1,2,3', s2.toArray().join());
 });
 
-test('.pull()', function() {
-
+test('.each()', function() {
 	console.log('pull a stream...');
 	var results1 = [];
-	var s1 = Fn.BufferStream([0,1,2,3]).pull(function(value) {
+	var s1 = Fn.BufferStream([0,1,2,3]).each(function(value) {
 		results1.push(value);
 	});
 	s1.push(4,5);
@@ -71,7 +70,7 @@ test('.pull()', function() {
 	console.log('pull from a piped stream...');
 	var results2 = [];
 	var s2 = Fn.BufferStream([0,1,2,3]);
-	var s3 = s2.pipe(Fn.BufferStream()).pull(function(value) {
+	var s3 = s2.pipe(Fn.BufferStream()).each(function(value) {
 		results2.push(value);
 	});
 	s2.push(4,5);
@@ -170,7 +169,7 @@ test('.throttle()', function() {
 
 	buffer
 	.throttle()
-	.pull(function(n) {
+	.each(function(n) {
 		equals(5, n);
 	});
 
@@ -185,7 +184,7 @@ test('.throttle(time)', function() {
 
 	buffer
 	.throttle(3000)
-	.pull(function(n) {
+	.each(function(n) {
 		equals(5, n);
 	});
 
@@ -201,7 +200,7 @@ test('.delay(time)', function() {
 
 	buffer
 	.delay(1500)
-	.pull(function(n) {
+	.each(function(n) {
 		equals(i++, n);
 	});
 
