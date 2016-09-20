@@ -65,13 +65,17 @@
 		return fn();
 	}
 
+	function invoke(n, fn) {
+		return fn(n);
+	}
+
 	function compose(fn1, fn2) {
 		return function composed(n) { return fn1(fn2(n)); }
 	}
 
 	function pipe() {
 		var a = arguments;
-		return function pipe(n) { return A.reduce.call(a, call, n); }
+		return function pipe(n) { return A.reduce.call(a, invoke, n); }
 	}
 
 	function memoize(fn) {
@@ -547,7 +551,7 @@
 				});
 		},
 
-		group: function(fn) {
+		groupBy: function(fn) {
 			var source = this;
 			var buffer = [];
 			var streams = new Map();
