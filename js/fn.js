@@ -132,8 +132,8 @@
 		return curried;
 	}
 
+//	// A slightly stricter version of .curry() that caches curried results
 //	function curry(fn, parity) {
-//		// A slightly stricter version of .curry() that caches curried results
 //		parity = parity || fn.length;
 //
 //		if (parity < 2) { return memoize(fn); }
@@ -963,6 +963,7 @@
 		pow:         curry(function pow(a, b) { return Math.pow(b, a); }),
 		min:         curry(function min(a, b) { return a > b ? b : a ; }),
 		max:         curry(function max(a, b) { return a < b ? b : a ; }),
+		nthRoot:     curry(function nthRoot(n, x) { return Math.pow(x, 1/n); }),
 		normalise:   curry(function normalise(min, max, value) { return (value - min) / (max - min); }),
 		denormalise: curry(function denormalise(min, max, value) { return value * (max - min) + min; }),
 		toFixed:     curry(function toFixed(n, value) { return N.toFixed.call(value, n); }),
