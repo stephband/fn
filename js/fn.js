@@ -380,7 +380,7 @@
 
 		ap: function ap(object) {
 			var fn = this.shift();
-			if (value === undefined) { return; }
+			if (fn === undefined) { return; }
 			return object.map(fn);
 		},
 
@@ -396,6 +396,37 @@
 			return this.create(function filter() {
 				var value;
 				while ((value = source.shift()) !== undefined && !fn(value));
+				return value;
+			});
+		},
+
+		syphon: function(fn) {
+			var source  = this;
+			var shift   = this.shift;
+			var buffer1 = [];
+			var buffer2 = [];
+
+			this.shift = function() {
+				if (buffer1.length) { return buffer1.shift(); }
+
+				var value;
+
+				while ((value = shift()) !== undefined && fn(value)) {
+					buffer2.push(value);
+				};
+
+				return value;
+			};
+
+			return this.create(function filter() {
+				if (buffer2.length) { return buffer2.shift(); }
+
+				var value;
+
+				while ((value = shift()) !== undefined && !fn(value)) {
+					buffer1.push(value);
+				};
+
 				return value;
 			});
 		},
@@ -551,7 +582,7 @@
 				});
 		},
 
-		groupBy: function(fn) {
+		group: function(fn) {
 			var source = this;
 			var buffer = [];
 			var streams = new Map();
@@ -679,8 +710,33 @@
 			return stream;
 		},
 
+		clone: function() {
+			var shift = this.shift;
+			var buffer1 = [];
+			var buffer2 = [];
+
+			function fill() {
+				var value = shift();
+				if (value === undefined) { return; }
+				buffer1.push(value);
+				buffer2.push(value);
+			}
+
+			this.shift = function() {
+				if (!buffer1.length) { fill(); }
+				return buffer1.shift();
+			};
+
+			var source = this;
+
+			return this.create(function clone() {
+				if (!buffer2.length) { fill(); }
+				return buffer2.shift();
+			});
+		},
+
 		tap: function(fn) {
-			// Overwrite next to copy values to tap fn
+			// Overwrite shift to copy values to tap fn
 			this.shift = Fn.compose(function(value) {
 				if (value !== undefined) { fn(value); }
 				return value;
