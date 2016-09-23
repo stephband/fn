@@ -963,6 +963,7 @@
 		pow:         curry(function pow(a, b) { return Math.pow(b, a); }),
 		min:         curry(function min(a, b) { return a > b ? b : a ; }),
 		max:         curry(function max(a, b) { return a < b ? b : a ; }),
+		log:         curry(function log(base, n) { return Math.log(n) / Math.log(base); }),
 		nthRoot:     curry(function nthRoot(n, x) { return Math.pow(x, 1/n); }),
 		normalise:   curry(function normalise(min, max, value) { return (value - min) / (max - min); }),
 		denormalise: curry(function denormalise(min, max, value) { return value * (max - min) + min; }),
