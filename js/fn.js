@@ -16,7 +16,6 @@
 
 	var Symbol = window.Symbol;
 	var A = Array.prototype;
-	var F = Function.prototype;
 	var N = Number.prototype;
 	var O = Object.prototype;
 	var S = String.prototype;
@@ -118,8 +117,8 @@
 				return /function\s*[\w\d]*\s*\([,\w\d\s]*\)/.exec(fn.toString()) + ' { [curried function] }';
 			};
 
-		 	// Where possible, define length so that curried functions show how
-		 	// many arguments they are yet expecting
+			// Where possible, define length so that curried functions show how
+			// many arguments they are yet expecting
 			if (isFunctionLengthDefineable) {
 				Object.defineProperty(curried, 'length', { value: parity });
 			}
@@ -158,8 +157,7 @@
 
 	var rpathtrimmer = /^\[|\]$/g;
 	var rpathsplitter = /\]?(?:\.|\[)/g;
-	var rpropselector = /(\w+)\=(\w+)/;
-	var map = [];
+	var rpropselector = /(\w+)=(\w+)/;
 
 	function isObject(obj) { return obj instanceof Object; }
 
@@ -199,7 +197,6 @@
 
 	function objTo(root, array, value) {
 		var key = array.shift();
-		var object;
 
 		if (array.length === 0) {
 			Fn.set(key, value, root);
@@ -217,7 +214,7 @@
 	// String types
 
 	var regex = {
-		url:       /^(?:\/|https?\:\/\/)(?:[!#$&-;=?-~\[\]\w]|%[0-9a-fA-F]{2})+$/,
+		url:       /^(?:\/|https?:\/\/)(?:[!#$&-;=?-~\[\]\w]|%[0-9a-fA-F]{2})+$/,
 		//url:       /^([a-z][\w\.\-\+]*\:\/\/)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,6}/,
 		email:     /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i,
 		date:      /^\d{4}-(?:0[1-9]|1[012])-(?:0[1-9]|[12][0-9]|3[01])$/,
@@ -283,6 +280,15 @@
 			createRequestTimerFrame(time) :
 			requestAnimationFrame ;
 
+		var queue = function() {
+			// Don't queue update if it's already queued
+			if (queued) { return; }
+			queued = true;
+
+			// Queue update
+			request(update);
+		};
+
 		var queued, context, a;
 
 		function update() {
@@ -299,15 +305,6 @@
 
 			// Make the queued update do nothing
 			fn = noop;
-		}
-
-		function queue() {
-			// Don't queue update if it's already queued
-			if (queued) { return; }
-			queued = true;
-
-			// Queue update
-			request(update);
 		}
 
 		function throttle() {
@@ -332,15 +329,16 @@
 		}
 
 		var source = this;
+		var shift, buffer;
 
 		if (!fn) {
-			fn = noop;
+			shift = noop;
 		}
 
 		// fn is an iterator
 		else if (typeof fn.next === "function") {
-			fn = function shift() {
-				var result = iterator.next();
+			shift = function shift() {
+				var result = fn.next();
 				if (result.done) { source.status = 'done'; }
 				return result.value;
 			};
@@ -348,13 +346,13 @@
 
 		// fn is an array or array-like object
 		else {
-			var buffer = A.slice.apply(fn);
-			fn = function shift() {
+			buffer = A.slice.apply(fn);
+			shift = function shift() {
 				return buffer.shift();
 			};
 		}
 
-		this.shift = fn;
+		this.shift = shift;
 	}
 
 	Object.assign(Fn.prototype, {
@@ -376,7 +374,7 @@
 
 		ap: function ap(object) {
 			var fn = this.shift();
-			if (value === undefined) { return; }
+			if (fn === undefined) { return; }
 			return object.map(fn);
 		},
 
@@ -429,7 +427,7 @@
 
 				if (value === undefined) {
 					value = object.shift();
-				};
+				}
 
 				return value;
 			});
@@ -524,7 +522,7 @@
 			return this.create(n ?
 				// If n is defined batch into arrays of length n.
 				function nextBatchN() {
-					var value;
+					var value, _buffer;
 
 					while (buffer.length < n) {
 						value = source.shift();
@@ -533,7 +531,7 @@
 					}
 
 					if (buffer.length >= n) {
-						var _buffer = buffer;
+						_buffer = buffer;
 						buffer = [];
 						return Fn.of.apply(Fn, _buffer);
 					}
@@ -743,7 +741,6 @@
 
 	Object.assign(Fn, {
 		of: function of() {
-			var a = arguments;
 			return new this(arguments);
 		},
 
@@ -868,6 +865,7 @@
 		keys: function(object){
 			return typeof object.keys === 'function' ?
 				object.keys() :
+
 				/* Don't use Object.keys(), it returns an array,
 				   not an iterator. */
 				A.keys.apply(object) ;
@@ -909,7 +907,7 @@
 		toFixed:     curry(function toFixed(n, value) { return N.toFixed.call(value, n); }),
 
 		rangeLog: curry(function rangeLog(min, max, n) {
-			return Fn.denormalise(min, max, Math.log(value / min) / Math.log(max / min))
+			return Fn.denormalise(min, max, Math.log(n / min) / Math.log(max / min))
 		}),
 
 		rangeLogInv: curry(function rangeLogInv(min, max, n) {
@@ -1002,10 +1000,10 @@
 			);
 		},
 
-		log: function(text, object) {
+		log: curry(function(text, object) {
 			console.log(text, object);
-			return x;
-		}
+			return object;
+		})
 	});
 
 	// Stream
@@ -1056,7 +1054,7 @@
 			var source = this;
 			return this.create(function ap() {
 				var fn = source.shift();
-				if (value === undefined) { return; }
+				if (fn === undefined) { return; }
 				return object.map(fn);
 			});
 		},
@@ -1098,7 +1096,6 @@
 
 		concatParallel: function() {
 			var source = this;
-			var object;
 			var order = [];
 
 			function bind(object) {
