@@ -64,13 +64,17 @@
 		return fn();
 	}
 
+	function invoke(n, fn) {
+		return fn(n);
+	}
+
 	function compose(fn1, fn2) {
 		return function composed(n) { return fn1(fn2(n)); }
 	}
 
 	function pipe() {
 		var a = arguments;
-		return function pipe(n) { return A.reduce.call(a, call, n); }
+		return function pipe(n) { return A.reduce.call(a, invoke, n); }
 	}
 
 	function memoize(fn) {
@@ -127,8 +131,8 @@
 		return curried;
 	}
 
+//	// A slightly stricter version of .curry() that caches curried results
 //	function curry(fn, parity) {
-//		// A slightly stricter version of .curry() that caches curried results
 //		parity = parity || fn.length;
 //
 //		if (parity < 2) { return memoize(fn); }
@@ -390,6 +394,37 @@
 			return this.create(function filter() {
 				var value;
 				while ((value = source.shift()) !== undefined && !fn(value));
+				return value;
+			});
+		},
+
+		syphon: function(fn) {
+			var source  = this;
+			var shift   = this.shift;
+			var buffer1 = [];
+			var buffer2 = [];
+
+			this.shift = function() {
+				if (buffer1.length) { return buffer1.shift(); }
+
+				var value;
+
+				while ((value = shift()) !== undefined && fn(value)) {
+					buffer2.push(value);
+				};
+
+				return value;
+			};
+
+			return this.create(function filter() {
+				if (buffer2.length) { return buffer2.shift(); }
+
+				var value;
+
+				while ((value = shift()) !== undefined && !fn(value)) {
+					buffer1.push(value);
+				};
+
 				return value;
 			});
 		},
@@ -673,8 +708,33 @@
 			return stream;
 		},
 
+		clone: function() {
+			var shift = this.shift;
+			var buffer1 = [];
+			var buffer2 = [];
+
+			function fill() {
+				var value = shift();
+				if (value === undefined) { return; }
+				buffer1.push(value);
+				buffer2.push(value);
+			}
+
+			this.shift = function() {
+				if (!buffer1.length) { fill(); }
+				return buffer1.shift();
+			};
+
+			var source = this;
+
+			return this.create(function clone() {
+				if (!buffer2.length) { fill(); }
+				return buffer2.shift();
+			});
+		},
+
 		tap: function(fn) {
-			// Overwrite next to copy values to tap fn
+			// Overwrite shift to copy values to tap fn
 			this.shift = Fn.compose(function(value) {
 				if (value !== undefined) { fn(value); }
 				return value;
@@ -747,7 +807,6 @@
 		empty:    empty,
 		noop:     noop,
 		id:       id,
-		call:     call,
 		memoize:  memoize,
 		curry:    curry,
 		compose:  compose,
@@ -902,6 +961,8 @@
 		pow:         curry(function pow(a, b) { return Math.pow(b, a); }),
 		min:         curry(function min(a, b) { return a > b ? b : a ; }),
 		max:         curry(function max(a, b) { return a < b ? b : a ; }),
+		log:         curry(function log(base, n) { return Math.log(n) / Math.log(base); }),
+		nthRoot:     curry(function nthRoot(n, x) { return Math.pow(x, 1/n); }),
 		normalise:   curry(function normalise(min, max, value) { return (value - min) / (max - min); }),
 		denormalise: curry(function denormalise(min, max, value) { return value * (max - min) + min; }),
 		toFixed:     curry(function toFixed(n, value) { return N.toFixed.call(value, n); }),
