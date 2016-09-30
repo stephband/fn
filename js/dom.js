@@ -10,7 +10,6 @@
 	var SVGElement     = window.SVGElement;
 	var CustomEvent    = window.CustomEvent;
 	var Stream         = Fn.Stream;
-	var BufferStream   = Fn.BufferStream;
 
 
 	// Var
@@ -21,23 +20,9 @@
 
 	// Utility functions
 
-	var assign         = Object.assign;
+	var assign = Object.assign;
 	var slice  = Function.prototype.call.bind(Array.prototype.slice);
-	var reduce = Function.prototype.call.bind(Array.prototype.reduce);
-
-	function noop() {}
-
-	function isDefined(val) { return val !== undefined && val !== null; }
-
-	function all(fn) {
-		return function(node, collection) {
-			var n = -1;
-			var length = collection.length;
-			while (++n < length) { fn(node, collection[n]); }
-			return node;
-		};
-	}
-
+	var noop   = Fn.noop;
 
 	// TokenList constructor to emulate classList property. The get fn should
 	// take the arguments (node), and return a string of tokens. The set fn
@@ -210,10 +195,6 @@
 		}
 	}
 
-	function appendTo(node, child) {
-		appendChild(node, child);
-	}
-
 	function html(html, node) {
 		node.innerHTML = html;
 	}
@@ -328,13 +309,12 @@
 		if (node.content) {
 			return fragmentFromContent(node);
 		}
-		else {
-			// In browsers where templates are not inert, ids used inside them
-			// conflict with ids in any rendered result. To go some way to
-			// tackling this, remove the node from the DOM.
-			remove(node);
-			return fragmentFromContent(node);
-		}
+			
+		// In browsers where templates are not inert, ids used inside them
+		// conflict with ids in any rendered result. To go some way to
+		// tackling this, remove the node from the DOM.
+		remove(node);
+		return fragmentFromContent(node);
 	}
 
 	function cloneTemplate(id) {
@@ -450,7 +430,7 @@
 			});
 		},
 
-		removeClass: function() {
+		removeClass: function(classes) {
 			return this.tap(function(node) {
 				getClasses(node).remove(classes);
 			});
@@ -486,7 +466,6 @@
 		// This is much shenanigans. Surely it can be simpler? Would help if
 		// it were possible to push without exposing .push() method...
 
-		var stream = this;
 		var buffer = [] ;
 
 		function next() {
@@ -553,7 +532,7 @@
 	// Units
 
 	var rem = /(\d*\.?\d+)r?em/;
-	var rpercent = /(\d*\.?\d+)%/;
+	//var rpercent = /(\d*\.?\d+)%/;
 
 	var fontSize;
 
@@ -569,11 +548,11 @@
 				return getFontSize() * n;
 			}
 
-			data = rpercent.exec(string);
-			if (data) {
-				n = parseFloat(data[1]) / 100;
-				return width * n;
-			}
+			//data = rpercent.exec(string);
+			//if (data) {
+			//	n = parseFloat(data[1]) / 100;
+			//	return width * n;
+			//}
 
 			throw new Error('[window.breakpoint] \'' + string + '\' cannot be parsed as rem, em or %.');
 		}
@@ -581,7 +560,7 @@
 
 	function valueToPx(value) {
 		return valueTypes[typeof value](value);
-	};
+	}
 
 	function getFontSize() {
 		return fontSize ||

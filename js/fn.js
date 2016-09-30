@@ -399,7 +399,6 @@
 		},
 
 		syphon: function(fn) {
-			var source  = this;
 			var shift   = this.shift;
 			var buffer1 = [];
 			var buffer2 = [];
@@ -411,7 +410,7 @@
 
 				while ((value = shift()) !== undefined && fn(value)) {
 					buffer2.push(value);
-				};
+				}
 
 				return value;
 			};
@@ -423,7 +422,7 @@
 
 				while ((value = shift()) !== undefined && !fn(value)) {
 					buffer1.push(value);
-				};
+				}
 
 				return value;
 			});
@@ -724,8 +723,6 @@
 				if (!buffer1.length) { fill(); }
 				return buffer1.shift();
 			};
-
-			var source = this;
 
 			return this.create(function clone() {
 				if (!buffer2.length) { fill(); }
