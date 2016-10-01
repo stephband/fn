@@ -69,12 +69,16 @@
 	}
 
 	function compose(fn1, fn2) {
-		return function composed(n) { return fn1(fn2(n)); }
+		return function composed(n) {
+			return fn1(fn2(n));
+		};
 	}
 
 	function pipe() {
 		var a = arguments;
-		return function pipe(n) { return A.reduce.call(a, invoke, n); }
+		return function piped(n) {
+			return A.reduce.call(a, invoke, n);
+		};
 	}
 
 	function cache(fn) {
@@ -155,6 +159,26 @@
 //				memo(arguments[0]) ;
 //		};
 //	}
+
+
+	// Array functions
+
+	function sortedSplice(array, fn, value) {
+		// Splices value into array at position determined by result of fn,
+		// where result is either in the range [-1, 0, 1] or [true, false]
+		var n = array.length;
+		while (n-- && fn(array[n], value) > 0);
+		array.splice(++n, 0, value);
+	}
+
+	function denseShift(array) {
+		// Shift values, ignoring undefined
+		var value;
+		while (array.length && value === undefined) {
+			value = array.shift();
+		}
+		return value;
+	}
 
 
 	// Get and set paths
@@ -468,18 +492,19 @@
 		},
 
 		sort: function(fn) {
-			var source = this;
-			var array = empty;
-
 			fn = fn || Fn.byGreater ;
 
-			// Todo: this will fail in a Stream if values are pushed.
+			var source = this;
+			var buffer = [];
+
 			return this.create(function sort() {
-				if (array.length === 0) {
-					array = source.toArray().sort(fn);
+				var value;
+
+				while((value = source.shift()) !== undefined) {
+					sortedSplice(buffer, fn, value);
 				}
 
-				return array.shift();
+				return buffer.shift();
 			});
 		},
 
@@ -687,7 +712,6 @@
 
 		// Output
 
-		// Fn is an iterator
 		next: function() {
 			return {
 				done: this.status === 'done',
@@ -1068,17 +1092,6 @@
 	});
 
 	// Stream
-
-	function arrayNext(array) {
-		var value;
-
-		// Shift values out ignoring undefined
-		while (array.length && value === undefined) {
-			value = array.shift();
-		}
-
-		return value;
-	}
 
 	function Stream(setup) {
 		// Enable calling Stream without the new keyword.
