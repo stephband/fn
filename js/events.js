@@ -33,6 +33,8 @@
 (function(window) {
 	"use strict";
 
+	var Fn = window.Fn;
+
 	var mixin = window.mixin || (window.mixin = {});
 	var eventObject = {};
 	var slice = Function.prototype.call.bind(Array.prototype.slice);
@@ -151,7 +153,7 @@
 				return this;
 			}
 
-			while (type = types.shift()) {
+			while (type = types.shift()) { // eslint-disable-line no-cond-assign
 				// If the event has no listener queue, create.
 				if (!events[type]) {
 					events[type] = [];
@@ -168,7 +170,7 @@
 		// with that function. If `callback` is null, removes all callbacks for the
 		// event. If `events` is null, removes all bound callbacks for all events.
 		off: function(types, fn) {
-			var type, calls, list, listeners, n;
+			var type, listeners, n;
 
 			// If no arguments passed in, unbind everything.
 			if (arguments.length === 0) {
@@ -204,7 +206,7 @@
 				types = Object.keys(this.listeners);
 			}
 
-			while (type = types.shift()) {
+			while (type = types.shift()) { // eslint-disable-line no-cond-assign
 				listeners = this.listeners[type];
 
 				if (!listeners) { continue; }
@@ -234,7 +236,7 @@
 			// Copy delegates. We may be about to mutate the delegates list.
 			var delegates = getDelegates(this).slice();
 			var args = slice(arguments);
-			var type, target, i, l, params, result;
+			var type, target, i, l;
 
 			if (typeof e === 'string') {
 				type = e;
