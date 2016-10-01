@@ -6,8 +6,14 @@ A library of functional functions.
 
 ##### `noop()`
 ##### `id(object)`
+##### `cache(fn)`
+
+`var fn2 = cache(fn1);`
+
+Caches the results of calls to `fn2(value)`.
+
 ##### `curry(fn)`
-##### `compose(fn1, fn2)`
+##### `compose(fn2, fn1)`
 ##### `pipe(fn1, fn2, ...)`
 
 ### Curried functions

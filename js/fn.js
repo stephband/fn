@@ -78,12 +78,12 @@
 		return function pipe(n) { return A.reduce.call(a, invoke, n); }
 	}
 
-	function memoize(fn) {
+	function cache(fn) {
 		var map = new Map();
 
-		return function memoized(object) {
+		return function cached(object) {
 			if (arguments.length !== 1) {
-				throw new Error('Fn: Memoized function called with ' + arguments.length + ' arguments. Accepts exactly 1.');
+				throw new Error('Fn: Cached function called with ' + arguments.length + ' arguments. Accepts exactly 1.');
 			}
 
 			if (map.has(object)) {
@@ -136,9 +136,9 @@
 //	function curry(fn, parity) {
 //		parity = parity || fn.length;
 //
-//		if (parity < 2) { return memoize(fn); }
+//		if (parity < 2) { return cache(fn); }
 //
-//		var memo = memoize(function partial(object) {
+//		var memo = cache(function partial(object) {
 //			return curry(function() {
 //				var params = [object];
 //				A.push.apply(params, arguments);
@@ -655,10 +655,12 @@
 			});
 		},
 
-		scan: function(fn) {
-			var i = 0, total = 0;
+		scan: function(fn, seed) {
+			// seed defaults to 0
+			seed = arguments.length > 1 ? seed : 0 ;
+			var i = 0;
 			return this.map(function scan(value) {
-				return (total = fn(total, value, i++));
+				return (seed = fn(seed, value, i++));
 			});
 		},
 
@@ -810,7 +812,7 @@
 		empty:    empty,
 		noop:     noop,
 		id:       id,
-		memoize:  memoize,
+		cache:    cache,
 		curry:    curry,
 		compose:  compose,
 		pipe:     pipe,
