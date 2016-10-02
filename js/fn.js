@@ -9,12 +9,9 @@
 (function(window) {
 	"use strict";
 
-	var debug = true;
-
 
 	// Import
 
-	var Symbol = window.Symbol;
 	var A = Array.prototype;
 	var N = Number.prototype;
 	var O = Object.prototype;
@@ -53,6 +50,19 @@
 		return fn.length === 2;
 	})();
 
+	function setFunctionProperties(string, parity, fn1, fn2) {
+		// Make the string representation of this function equivalent to fn
+		fn2.toString = function() {
+			return /function\s*[\w\d]*\s*\([,\w\d\s]*\)/.exec(fn1.toString()) + ' { [' + string + '] }';
+		};
+
+		// Where possible, define length so that curried functions show how
+		// many arguments they are yet expecting
+		if (isFunctionLengthDefineable) {
+			Object.defineProperty(fn2, 'length', { value: parity });
+		}
+	}
+
 
 	// Functional functions
 
@@ -68,9 +78,9 @@
 		return fn(n);
 	}
 
-	function compose(fn1, fn2) {
+	function compose(fn2, fn1) {
 		return function composed(n) {
-			return fn1(fn2(n));
+			return fn2(fn1(n));
 		};
 	}
 
@@ -84,7 +94,7 @@
 	function cache(fn) {
 		var map = new Map();
 
-		return function cached(object) {
+		function cached(object) {
 			if (arguments.length !== 1) {
 				throw new Error('Fn: Cached function called with ' + arguments.length + ' arguments. Accepts exactly 1.');
 			}
@@ -97,6 +107,12 @@
 			map.set(object, result);
 			return result;
 		};
+
+		if (Fn.debug) {
+			setFunctionProperties('cached function', 1, fn, cached);
+		}
+
+		return cached;
 	}
 
 	function curry(fn, parity) {
@@ -118,47 +134,42 @@
 				}, parity - a.length) ;
 		};
 
-		// For debugging
-		// Make the string representation of this function equivalent to fn
-		if (debug) {
-			curried.toString = function() {
-				return /function\s*[\w\d]*\s*\([,\w\d\s]*\)/.exec(fn.toString()) + ' { [curried function] }';
-			};
-
-			// Where possible, define length so that curried functions show how
-			// many arguments they are yet expecting
-			if (isFunctionLengthDefineable) {
-				Object.defineProperty(curried, 'length', { value: parity });
-			}
+		if (Fn.debug) {
+			setFunctionProperties('curried function', parity, fn, curried);
 		}
 
 		return curried;
 	}
 
-//	// A slightly stricter version of .curry() that caches curried results
-//	function curry(fn, parity) {
-//		parity = parity || fn.length;
-//
-//		if (parity < 2) { return cache(fn); }
-//
-//		var memo = cache(function partial(object) {
-//			return curry(function() {
-//				var params = [object];
-//				A.push.apply(params, arguments);
-//				return fn.apply(null, params);
-//			}, parity - 1) ;
-//		});
-//
-//		// For convenience, allow curried functions to be called as:
-//		// fn(a, b, c)
-//		// fn(a)(b)(c)
-//		// fn(a, b)(c)
-//		return function curried() {
-//			return arguments.length > 1 ?
-//				memo(arguments[0]).apply(null, A.slice.call(arguments, 1)) :
-//				memo(arguments[0]) ;
-//		};
-//	}
+	function cacheCurry(fn, parity) {
+		parity = parity || fn.length;
+
+		if (parity < 2) { return cache(fn); }
+
+		var memo = cache(function partial(object) {
+			return cacheCurry(function() {
+				var params = [object];
+				A.push.apply(params, arguments);
+				return fn.apply(null, params);
+			}, parity - 1) ;
+		});
+
+		// For convenience, allow curried functions to be called as:
+		// fn(a, b, c)
+		// fn(a)(b)(c)
+		// fn(a, b)(c)
+		function curried() {
+			return arguments.length > 1 ?
+				memo(arguments[0]).apply(null, A.slice.call(arguments, 1)) :
+				memo(arguments[0]) ;
+		}
+
+		if (Fn.debug) {
+			setFunctionProperties('cached and curried function', parity, fn, curried);
+		}
+
+		return curried;
+	}
 
 
 	// Array functions
@@ -713,9 +724,10 @@
 		// Output
 
 		next: function() {
+			var value = this.shift();
 			return {
-				done: this.status === 'done',
-				value: this.shift()
+				done: value === undefined,
+				value: value
 			};
 		},
 
@@ -814,26 +826,29 @@
 		}
 	});
 
+	Fn.prototype.toArray = Fn.prototype.toJSON;
+
 	if (Symbol) {
 		Fn.prototype[Symbol.iterator] = function() {
 			return this;
 		};
 	}
 
-	Fn.prototype.toArray = Fn.prototype.toJSON;
-
 	Object.assign(Fn, {
+		debug: false,
+
 		of: function of() {
 			return new this(arguments);
 		},
 
-		empty:    empty,
-		noop:     noop,
-		id:       id,
-		cache:    cache,
-		curry:    curry,
-		compose:  compose,
-		pipe:     pipe,
+		empty:      empty,
+		noop:       noop,
+		id:         id,
+		cache:      cache,
+		curry:      curry,
+		cacheCurry: cacheCurry,
+		compose:    compose,
+		pipe:       pipe,
 
 		is: curry(function is(a, b) { return a === b; }),
 
@@ -972,12 +987,10 @@
 		reduce:      curry(function reduce(fn, n, object) { return object.reduce ? object.reduce(fn, n) : A.reduce.call(object, fn, n); }),
 		slice:       curry(function slice(n, m, object) { return object.slice ? object.slice(n, m) : A.slice.call(object, n, m); }),
 		sort:        curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
-
-		push: curry(function push(value, object) {
+		push:        curry(function push(value, object) {
 			(object.push || A.push).call(object, value);
 			return object;
 		}),
-
 		add:         curry(function add(a, b) { return b + a; }),
 		multiply:    curry(function multiply(a, b) { return b * a; }),
 		mod:         curry(function mod(a, b) { return b % a; }),
@@ -990,11 +1003,9 @@
 		normalise:   curry(function normalise(min, max, value) { return (value - min) / (max - min); }),
 		denormalise: curry(function denormalise(min, max, value) { return value * (max - min) + min; }),
 		toFixed:     curry(function toFixed(n, value) { return N.toFixed.call(value, n); }),
-
-		rangeLog: curry(function rangeLog(min, max, n) {
+		rangeLog:    curry(function rangeLog(min, max, n) {
 			return Fn.denormalise(min, max, Math.log(n / min) / Math.log(max / min))
 		}),
-
 		rangeLogInv: curry(function rangeLogInv(min, max, n) {
 			return min * Math.pow(max / min, Fn.normalise(min, max, n));
 		}),
@@ -1385,12 +1396,6 @@
 	// Export
 
 	Object.assign(Fn, {
-		Functor: function functorWarning() {
-			// Legacy warning
-			console.warn('Fn: new Fn.Functor() is deprecated. Use new Fn().');
-			return Fn.apply(Fn, arguments);
-		},
-
 		Throttle:      Throttle,
 		Stream:        Stream,
 		ValueStream:   ValueStream,
@@ -1398,12 +1403,5 @@
 		PromiseStream: PromiseStream
 	});
 
-	Fn.Functor.of = function() {
-		// Legacy warning
-		console.warn('Fn: Fn.Functor.of() is deprecated. Use Fn.of().');
-		return Fn.of.apply(Fn, arguments);
-	};
-
 	window.Fn = Fn;
-
 })(this);
