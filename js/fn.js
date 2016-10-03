@@ -171,6 +171,29 @@
 		return curried;
 	}
 
+	function pool(Constructor, isInactive) {
+		if (!Constructor.reset) {
+			throw new Error('Fn: Fn.pool(constructor) - constructor must have a .reset() function');
+		}
+
+		var store = [];
+
+		return function Pooled() {
+			var object = store.find(isInactive);
+
+			if (object) {
+				Constructor.reset.apply(object, arguments);
+			}
+			else {
+				object = Object.create(constructor.prototype);
+				Constructor.apply(object, arguments);
+				store.push(object);
+			}
+
+			return object;
+		};
+	}
+
 
 	// Array functions
 
@@ -849,6 +872,7 @@
 		cacheCurry: cacheCurry,
 		compose:    compose,
 		pipe:       pipe,
+		pool:       pool,
 
 		is: curry(function is(a, b) { return a === b; }),
 

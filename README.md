@@ -5,16 +5,56 @@ A library of functional functions.
 ### Functional functions
 
 ##### `noop()`
+
+Returns `undefined`.
+
 ##### `id(object)`
+
+Returns `object`.
+
 ##### `cache(fn)`
 
-`var fn2 = cache(fn1);`
+`var fn2 = Fn.cache(fn);`
 
 Caches the results of calls to `fn2(value)`.
 
 ##### `curry(fn)`
+
+`var fn2 = Fn.curry(fn);`
+
+Curries `fn`. If `fn` normally requires 3 parameters, the curried result can
+take those parameters in any grouping:
+
+    fn2(a, b, c)
+    fn2(a)(b)(c)
+    fn2(a, b)(c)
+
+##### `cacheCurry(fn)`
+
+`var fn2 = Fn.cacheCurry(fn);`
+
+Curries `fn`, caching the results of calls with each consecutive parameter, such
+that `fn` is only ever called once for each unique set of parameters.
+
 ##### `compose(fn2, fn1)`
-##### `pipe(fn1, fn2, ...)`
+
+Composes two functions into a single function, where `fn2` is passed the result
+of `fn1` and the result is returned. Takes 
+
+##### `pipe(fn1, fn2, fn3, ...)`
+
+Composes functions into a pipe function. Takes one parameter. `fn2` is passed
+the result of `fn1`, `fn3` is passed the result of `fn2`, and so on until the
+result of the last function is returned.
+
+##### `pool(Constructor, isActive, options)`
+
+`var Thing = Fn.pool(Constructor, fn);`
+
+Creates an object pool, such that each call to `Thing(...)` returns an inactive
+object from the pool, or if there are none, a newly constructed object. Garbage
+cannot be collected until all references to `Thing` are released.
+
 
 ### Curried functions
 
@@ -24,7 +64,7 @@ Test for referential equality.
 
 ##### `equals(a, b)`
 
-Test recursively for deep equality.
+Test for deep equality.
 
 ##### `isDefined(object)`
 
@@ -32,18 +72,18 @@ Test returns `false` if `object` is `null` or `undefined`.
 
 ##### `get(key, object)`
 
-Gets property `key` of `object`, where `object` is a Map, WeakMap, Array or Object.
+Gets property `key` of `object`, where `object` has a `get` method (eg. Map,
+WeakMap) or where `key` is a property of object.
 
 ##### `set(key, value, object)`
 
-Sets property `key` of `object`, where `object` is a Map, WeakMap, Array or Object.
+Sets property `key` of `object`, where `object` has a `set` method (eg. Map,
+WeakMap) or where object can have `key` set on it.
 
 ##### `assign(source, object)`
 
-Sets keys of `source` on `object`.
+Copies keys of `source` to `object`.
 
-##### `call(fn)`
-##### `apply(arguments, fn)`
 ##### `map(fn, object)`
 
 Delegates to `object.map` or applies `Array.prototype.map` to `object`.
@@ -92,8 +132,7 @@ Denormalises `n` from range 0-1 to range `min`-`max`.
 
 ## Fn(fn)
 
-Fn creates a wrapper for a function that returns a value - in other words,
-it creates an IO Functor. The functor has fantasy-land compliant methods for
+Creates an IO Functor. The functor has fantasy-land compliant methods for
 Functor, Applicative and Monad. Values can be extracted from a functor
 with `.shift()`:
 
@@ -131,7 +170,6 @@ Functors also have the methods:
 ##### `slice(n, m)`
 ##### `unique(fn)`
 ##### `scan(fn, value)`
-##### `assign(object)`
 ##### `parse()`
 ##### 'stringify()'
 
