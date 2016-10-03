@@ -171,29 +171,50 @@
 		return curried;
 	}
 
-	function pool(Constructor, isInactive) {
-		if (!Constructor.reset) {
-			throw new Error('Fn: Fn.pool(constructor) - constructor must have a .reset() function');
+	var pool = (function(loggers) {
+		function pool(Constructor, isActive) {
+			if (!Constructor.reset) {
+				throw new Error('Fn: Fn.pool(constructor) - constructor must have a .reset() function');
+			}
+		
+			var store = [];
+			var isNotActive = Fn.not(isActive);
+		
+			function log() {
+				return {
+					name:   Constructor.name,
+					pool:   store.length,
+					active: store.filter(isActive).length
+				};
+			}
+		
+			// Todo: This is bad! It keeps a reference to the pools hanging around,
+			// accessible from the global scope, so even if the pools are forgotten
+			// they are never garbage collected!
+			loggers.push(log);
+		
+			return function Pooled() {
+				var object = store.find(isNotActive);
+		
+				if (object) {
+					Constructor.reset.apply(object, arguments);
+				}
+				else {
+					object = Object.create(constructor.prototype);
+					Constructor.apply(object, arguments);
+					store.push(object);
+				}
+		
+				return object;
+			};
 		}
 
-		var store = [];
-
-		return function Pooled() {
-			var object = store.find(isInactive);
-
-			if (object) {
-				Constructor.reset.apply(object, arguments);
-			}
-			else {
-				object = Object.create(constructor.prototype);
-				Constructor.apply(object, arguments);
-				store.push(object);
-			}
-
-			return object;
+		pool.snapshot = function() {
+			return Fn(loggers).map(call).toJSON();
 		};
-	}
 
+		return pool;
+	})([]);
 
 	// Array functions
 
