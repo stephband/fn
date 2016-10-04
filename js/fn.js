@@ -66,6 +66,8 @@
 
 	// Functional functions
 
+	var loggers = [];
+
 	function noop() {}
 
 	function id(object) { return object; }
@@ -171,50 +173,90 @@
 		return curried;
 	}
 
-	var pool = (function(loggers) {
-		function pool(Constructor, isActive) {
-			if (!Constructor.reset) {
-				throw new Error('Fn: Fn.pool(constructor) - constructor must have a .reset() function');
-			}
-		
-			var store = [];
-			var isNotActive = Fn.not(isActive);
-		
-			function log() {
-				return {
-					name:   Constructor.name,
-					pool:   store.length,
-					active: store.filter(isActive).length
-				};
-			}
-		
-			// Todo: This is bad! It keeps a reference to the pools hanging around,
-			// accessible from the global scope, so even if the pools are forgotten
-			// they are never garbage collected!
-			loggers.push(log);
-		
-			return function Pooled() {
-				var object = store.find(isNotActive);
-		
-				if (object) {
-					Constructor.reset.apply(object, arguments);
-				}
-				else {
-					object = Object.create(constructor.prototype);
-					Constructor.apply(object, arguments);
-					store.push(object);
-				}
-		
-				return object;
+	function pool(Constructor, isIdle) {
+		if (!Constructor.reset) {
+			throw new Error('Fn: Fn.pool(constructor) - constructor must have a .reset() function');
+		}
+	
+		var store = [];
+
+		function log() {
+			var total = store.length;
+			var idle = store.filter(isIdle).length;
+
+			return {
+				name:   Constructor.name,
+				total:  total,
+				active: total - idle,
+				idle:   idle
 			};
 		}
-
-		pool.snapshot = function() {
-			return Fn(loggers).map(call).toJSON();
+	
+		// Todo: This is bad! It keeps a reference to the pools hanging around,
+		// accessible from the global scope, so even if the pools are forgotten
+		// they are never garbage collected!
+		loggers.push(log);
+	
+		return function Pooled() {
+			var object = store.find(isIdle);
+	
+			if (object) {
+				Constructor.reset.apply(object, arguments);
+			}
+			else {
+				object = Object.create(Constructor.prototype);
+				Constructor.apply(object, arguments);
+				store.push(object);
+			}
+	
+			return object;
 		};
+	}
 
-		return pool;
-	})([]);
+	pool.snapshot = function() {
+		return Fn(loggers).map(call).toJSON();
+	};
+
+	function Pool(options, prototype) {
+		var create = options.create || Fn.noop;
+		var reset  = options.reset  || Fn.noop;
+		var isIdle = options.isIdle;
+		var store = [];
+
+		function log() {
+			var total = store.length;
+			var idle = store.filter(isIdle).length;
+			return {
+				name:   options.name,
+				total:  total,
+				active: total - idle,
+				idle:   idle
+			};
+		}
+	
+		// Todo: This is bad! It keeps a reference to the pools hanging around,
+		// accessible from the global scope, so even if the pools are forgotten
+		// they are never garbage collected!
+		loggers.push(log);
+
+		return function PooledObject() {
+			var object = store.find(isIdle);
+
+			if (!object) {
+				object = Object.create(prototype || null);
+				create.apply(object, arguments);
+				store.push(object);
+			}
+
+			reset.apply(object, arguments);
+			return object;
+		};
+	}
+
+	Pool.snapshot = function() {
+		return Fn(loggers).map(call).toJSON();
+	};
+
 
 	// Array functions
 
@@ -226,7 +268,7 @@
 		array.splice(++n, 0, value);
 	}
 
-	function denseShift(array) {
+	function shiftSparse(array) {
 		// Shift values, ignoring undefined
 		var value;
 		while (array.length && value === undefined) {
@@ -412,30 +454,52 @@
 		}
 
 		var source = this;
-		var shift, buffer;
+		var shift, buffer, n;
 
 		if (!fn) {
-			shift = noop;
+			this.shift = noop;
+			return;
+		}
+
+		if (typeof fn === "function") {
+			this.shift = fn;
+			return;
+		}
+
+		// fn is an object with a shift function
+		if (typeof fn.shift === "function" && fn.length === undefined) {
+			this.shift = function shift() {
+				var value = fn.shift();
+				if (fn.status === "done") { source.status = 'done'; }
+				return value;
+			};
+			return;
 		}
 
 		// fn is an iterator
-		else if (typeof fn.next === "function") {
-			shift = function shift() {
+		if (typeof fn.next === "function") {
+			this.shift = function shift() {
 				var result = fn.next();
 				if (result.done) { source.status = 'done'; }
 				return result.value;
 			};
+			return;
+		}
+
+		// fn is an arguments object, maybe from Fn.of()
+		if (Fn.toClass(fn) === "Arguments") {
+			n = -1;
+			shift = function shift() {
+				return fn[++n];
+			};
+			return;
 		}
 
 		// fn is an array or array-like object
-		else {
-			buffer = A.slice.apply(fn);
-			shift = function shift() {
-				return buffer.shift();
-			};
-		}
-
-		this.shift = shift;
+		buffer = A.slice.apply(fn);
+		this.shift = function shift() {
+			return buffer.shift();
+		};
 	}
 
 	Object.assign(Fn.prototype, {
@@ -894,6 +958,7 @@
 		compose:    compose,
 		pipe:       pipe,
 		pool:       pool,
+		Pool:       Pool,
 
 		is: curry(function is(a, b) { return a === b; }),
 
