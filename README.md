@@ -2,6 +2,7 @@
 
 A library of functional functions.
 
+
 ### Functional functions
 
 ##### `noop()`
@@ -33,8 +34,9 @@ take those parameters in any grouping:
 
 `var fn2 = Fn.cacheCurry(fn);`
 
-Curries `fn`, caching the results of calls with each consecutive parameter, such
-that `fn` is only ever called once for each unique set of parameters.
+Like `Fn.curry()`, only the results of calls with each consecutive parameter
+are also cached such that `fn` is only ever called once for each unique set of
+parameters.
 
 ##### `compose(fn2, fn1)`
 
@@ -43,22 +45,10 @@ of `fn1` and the result is returned. Takes
 
 ##### `pipe(fn1, fn2, fn3, ...)`
 
-Composes functions into a pipe function. Takes one parameter. `fn2` is passed
-the result of `fn1`, `fn3` is passed the result of `fn2`, and so on until the
-result of the last function is returned.
+Composes functions into a pipe function that takes one parameter. `fn2` is
+passed the result of `fn1`, `fn3` is passed the result of `fn2` and so on until
+the result of the last function is returned.
 
-##### `Pool(options, prototype)`
-
-`var Thing = Fn.pool({
-	create: function() { ... },
-	reset:  function() { ... },
-	isIdle: function() { ... }
-});`
-
-Creates an object pool, such that each call to `Thing(...)` returns an idle
-object from the pool, or if there are no idle objects, a newly created
-object. Garbage cannot be collected until all references to `Thing` are
-released.
 
 ### Curried functions
 
@@ -127,12 +117,13 @@ Denormalises `n` from range 0-1 to range `min`-`max`.
 ##### `toClass(object)`
 ##### `toStringType(string)`
 
-    Fn.stringTypeOf('http://cruncher.ch');  // 'url'
-    Fn.stringTypeOf('hello@cruncher.ch');   // 'email'
-    Fn.stringTypeOf('42');                  // 'int'
-    Fn.stringTypeOf('41.5');                // 'float'
-    Fn.stringTypeOf('{}');                  // 'json'
-    Fn.stringTypeOf('...');                 // 'string'
+    Fn.toStringType('http://cruncher.ch');  // 'url'
+    Fn.toStringType('hello@cruncher.ch');   // 'email'
+    Fn.toStringType('42');                  // 'int'
+    Fn.toStringType('41.5');                // 'float'
+    Fn.toStringType('{}');                  // 'json'
+    Fn.toStringType('...');                 // 'string'
+
 
 ## Fn(fn)
 
@@ -227,3 +218,16 @@ Create a buffered stream of values.
 #### Output
 
 ##### `toPromise()`
+
+## `Pool(options, prototype)`
+
+`var Thing = Fn.pool({
+	create: function() { ... },
+	reset:  function() { ... },
+	isIdle: function() { ... }
+});`
+
+Creates an object pool, such that each call to `Thing(...)` returns an idle
+object from the pool, or if there are no idle objects, a newly created
+object. Garbage cannot be collected until all references to `Thing` are
+released.
