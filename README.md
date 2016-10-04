@@ -47,14 +47,18 @@ Composes functions into a pipe function. Takes one parameter. `fn2` is passed
 the result of `fn1`, `fn3` is passed the result of `fn2`, and so on until the
 result of the last function is returned.
 
-##### `pool(Constructor, isActive, options)`
+##### `Pool(options, prototype)`
 
-`var Thing = Fn.pool(Constructor, fn);`
+`var Thing = Fn.pool({
+	create: function() { ... },
+	reset:  function() { ... },
+	isIdle: function() { ... }
+});`
 
-Creates an object pool, such that each call to `Thing(...)` returns an inactive
-object from the pool, or if there are none, a newly constructed object. Garbage
-cannot be collected until all references to `Thing` are released.
-
+Creates an object pool, such that each call to `Thing(...)` returns an idle
+object from the pool, or if there are no idle objects, a newly created
+object. Garbage cannot be collected until all references to `Thing` are
+released.
 
 ### Curried functions
 
