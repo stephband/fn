@@ -936,7 +936,7 @@
 
 	Fn.prototype.toArray = Fn.prototype.toJSON;
 
-	if (Symbol) {
+	if (window.Symbol) {
 		Fn.prototype[Symbol.iterator] = function() {
 			return this;
 		};
