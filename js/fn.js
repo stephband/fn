@@ -108,7 +108,7 @@
 			var result = fn(object);
 			map.set(object, result);
 			return result;
-		};
+		}
 
 		if (Fn.debug) {
 			setFunctionProperties('cached function', 1, fn, cached);
@@ -268,14 +268,14 @@
 		array.splice(++n, 0, value);
 	}
 
-	function shiftSparse(array) {
-		// Shift values, ignoring undefined
-		var value;
-		while (array.length && value === undefined) {
-			value = array.shift();
-		}
-		return value;
-	}
+//	function shiftSparse(array) {
+//		// Shift values, ignoring undefined
+//		var value;
+//		while (array.length && value === undefined) {
+//			value = array.shift();
+//		}
+//		return value;
+//	}
 
 
 	// Get and set paths
@@ -454,7 +454,7 @@
 		}
 
 		var source = this;
-		var shift, buffer, n;
+		var buffer, n;
 
 		if (!fn) {
 			this.shift = noop;

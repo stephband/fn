@@ -48,30 +48,30 @@
 		}
 	};
 
-	function createDate(value) {
-		// Test the Date constructor to see if it is parsing date
-		// strings as local dates, as per the ES6 spec, or as GMT, as
-		// per pre ES6 engines.
-		// developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse#ECMAScript_5_ISO-8601_format_support
-		var date = new Date(value);
-		var json = date.toJSON();
-		var gmt =
-			// It's GMT if the string matches the same length of
-			// characters from it's JSONified version...
-			json.slice(0, value.length) === value &&
-
-			// ...and if all remaining numbers are 0.
-			!json.slice(value.length).match(rnonzeronumbers) ;
-
-		return typeof value !== 'string' ? new Date(value) :
-			// If the Date constructor parses to gmt offset the date by
-			// adding the date's offset in milliseconds to get a local
-			// date. getTimezoneOffset returns the offset in minutes.
-			gmt ? new Date(+date + date.getTimezoneOffset() * 60000) :
-
-			// Otherwise use the local date.
-			date ;
-	}
+//	function createDate(value) {
+//		// Test the Date constructor to see if it is parsing date
+//		// strings as local dates, as per the ES6 spec, or as GMT, as
+//		// per pre ES6 engines.
+//		// developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse#ECMAScript_5_ISO-8601_format_support
+//		var date = new Date(value);
+//		var json = date.toJSON();
+//		var gmt =
+//			// It's GMT if the string matches the same length of
+//			// characters from it's JSONified version...
+//			json.slice(0, value.length) === value &&
+//
+//			// ...and if all remaining numbers are 0.
+//			!json.slice(value.length).match(rnonzeronumbers) ;
+//
+//		return typeof value !== 'string' ? new Date(value) :
+//			// If the Date constructor parses to gmt offset the date by
+//			// adding the date's offset in milliseconds to get a local
+//			// date. getTimezoneOffset returns the offset in minutes.
+//			gmt ? new Date(+date + date.getTimezoneOffset() * 60000) :
+//
+//			// Otherwise use the local date.
+//			date ;
+//	}
 
 	function addTimeToDate(time, date) {
 		var tokens = rtime.exec(time) ;
