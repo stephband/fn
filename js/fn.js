@@ -489,7 +489,7 @@
 		// fn is an arguments object, maybe from Fn.of()
 		if (Fn.toClass(fn) === "Arguments") {
 			n = -1;
-			shift = function shift() {
+			this.shift = function shift() {
 				return fn[++n];
 			};
 			return;
