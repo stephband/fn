@@ -173,6 +173,20 @@
 		return curried;
 	}
 
+	function overloadByLength(map) {
+		return function distribute() {
+			var length = arguments.length;
+			var fn = map[length] || map.default;
+
+			if (fn) {
+				return fn.apply(this, arguments);
+			}
+
+			console.warn('Collection: method is not overloaded to accept ' + length + ' arguments.');
+			return this;
+		}
+	}
+
 	function pool(Constructor, isIdle) {
 		if (!Constructor.reset) {
 			throw new Error('Fn: Fn.pool(constructor) - constructor must have a .reset() function');
