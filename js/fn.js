@@ -1110,6 +1110,24 @@
 		// conflicting properties not allowed in strict mode
 		// log:         curry(function log(base, n) { return Math.log(n) / Math.log(base); }),
 		nthRoot:     curry(function nthRoot(n, x) { return Math.pow(x, 1/n); }),
+
+		gcd: function gcd(a, b) {
+			// Greatest common divider
+			return b ? gcd(b, a % b) : a ;
+		},
+
+		lcm: function lcm(a, b) {
+			// Lowest common multiple.
+			return a * b / Fn.gcd(a, b);
+		},
+
+		factorise: function factorise(n, d) {
+			// Reduce a fraction by finding the Greatest Common Divisor and
+			// dividing by it.
+			var f = gcd(n, d);
+			return [n/f, d/f];
+		},
+
 		normalise:   curry(function normalise(min, max, value) { return (value - min) / (max - min); }),
 		denormalise: curry(function denormalise(min, max, value) { return value * (max - min) + min; }),
 		toFixed:     curry(function toFixed(n, value) { return N.toFixed.call(value, n); }),
