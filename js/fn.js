@@ -173,89 +173,19 @@
 		return curried;
 	}
 
-	function pool(Constructor, isIdle) {
-		if (!Constructor.reset) {
-			throw new Error('Fn: Fn.pool(constructor) - constructor must have a .reset() function');
-		}
-	
-		var store = [];
-
-		function log() {
-			var total = store.length;
-			var idle = store.filter(isIdle).length;
-
-			return {
-				name:   Constructor.name,
-				total:  total,
-				active: total - idle,
-				idle:   idle
-			};
-		}
-	
-		// Todo: This is bad! It keeps a reference to the pools hanging around,
-		// accessible from the global scope, so even if the pools are forgotten
-		// they are never garbage collected!
-		loggers.push(log);
-	
-		return function Pooled() {
-			var object = store.find(isIdle);
-	
-			if (object) {
-				Constructor.reset.apply(object, arguments);
-			}
-			else {
-				object = Object.create(Constructor.prototype);
-				Constructor.apply(object, arguments);
-				store.push(object);
-			}
-	
-			return object;
-		};
-	}
-
-	pool.snapshot = function() {
-		return Fn(loggers).map(call).toJSON();
-	};
-
-	function Pool(options, prototype) {
-		var create = options.create || Fn.noop;
-		var reset  = options.reset  || Fn.noop;
-		var isIdle = options.isIdle;
-		var store = [];
-
-		function log() {
-			var total = store.length;
-			var idle = store.filter(isIdle).length;
-			return {
-				name:   options.name,
-				total:  total,
-				active: total - idle,
-				idle:   idle
-			};
-		}
-	
-		// Todo: This is bad! It keeps a reference to the pools hanging around,
-		// accessible from the global scope, so even if the pools are forgotten
-		// they are never garbage collected!
-		loggers.push(log);
-
-		return function PooledObject() {
-			var object = store.find(isIdle);
-
-			if (!object) {
-				object = Object.create(prototype || null);
-				create.apply(object, arguments);
-				store.push(object);
-			}
-
-			reset.apply(object, arguments);
-			return object;
-		};
-	}
-
-	Pool.snapshot = function() {
-		return Fn(loggers).map(call).toJSON();
-	};
+//	function overloadByLength(object) {
+//		return function distribute() {
+//			var length = arguments.length;
+//			var fn = object[length] || object.default;
+//
+//			if (fn) {
+//				return fn.apply(this, arguments);
+//			}
+//
+//			console.warn('Collection: method is not overloaded to accept ' + length + ' arguments.');
+//			return this;
+//		}
+//	}
 
 
 	// Array functions
@@ -957,8 +887,6 @@
 		cacheCurry: cacheCurry,
 		compose:    compose,
 		pipe:       pipe,
-		pool:       pool,
-		Pool:       Pool,
 
 		is: curry(function is(a, b) { return a === b; }),
 
@@ -1521,9 +1449,97 @@
 	PromiseStream.of = Stream.of;
 
 
+	// Pool
+
+//	function pool(Constructor, isIdle) {
+//		if (!Constructor.reset) {
+//			throw new Error('Fn: Fn.pool(constructor) - constructor must have a .reset() function');
+//		}
+//	
+//		var store = [];
+//
+//		function log() {
+//			var total = store.length;
+//			var idle = store.filter(isIdle).length;
+//
+//			return {
+//				name:   Constructor.name,
+//				total:  total,
+//				active: total - idle,
+//				idle:   idle
+//			};
+//		}
+//	
+//		// Todo: This is bad! It keeps a reference to the pools hanging around,
+//		// accessible from the global scope, so even if the pools are forgotten
+//		// they are never garbage collected!
+//		loggers.push(log);
+//	
+//		return function Pooled() {
+//			var object = store.find(isIdle);
+//	
+//			if (object) {
+//				Constructor.reset.apply(object, arguments);
+//			}
+//			else {
+//				object = Object.create(Constructor.prototype);
+//				Constructor.apply(object, arguments);
+//				store.push(object);
+//			}
+//	
+//			return object;
+//		};
+//	}
+//
+//	pool.snapshot = function() {
+//		return Fn(loggers).map(call).toJSON();
+//	};
+
+	function Pool(options, prototype) {
+		var create = options.create || Fn.noop;
+		var reset  = options.reset  || Fn.noop;
+		var isIdle = options.isIdle;
+		var store = [];
+
+		function log() {
+			var total = store.length;
+			var idle = store.filter(isIdle).length;
+			return {
+				name:   options.name,
+				total:  total,
+				active: total - idle,
+				idle:   idle
+			};
+		}
+	
+		// Todo: This is bad! It keeps a reference to the pools hanging around,
+		// accessible from the global scope, so even if the pools are forgotten
+		// they are never garbage collected!
+		loggers.push(log);
+
+		return function PooledObject() {
+			var object = store.find(isIdle);
+
+			if (!object) {
+				object = Object.create(prototype || null);
+				create.apply(object, arguments);
+				store.push(object);
+			}
+
+			reset.apply(object, arguments);
+			return object;
+		};
+	}
+
+	Pool.snapshot = function() {
+		return Fn(loggers).map(call).toJSON();
+	};
+
+
 	// Export
 
 	Object.assign(Fn, {
+		Pool:          Pool,
 		Throttle:      Throttle,
 		Stream:        Stream,
 		ValueStream:   ValueStream,
