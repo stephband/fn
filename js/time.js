@@ -8,7 +8,7 @@
 	var rtime     = /^(-)?(\d+):(\d+)(?::(\d+(?:\.\d+)?))?$/;
 	//var rdatetime = /^(-)?(\d+)-(0[0-9]|1[12])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):([0-5][0-9])(?::([0-5][0-9](?:\.\d+)?))?/;
 	//var rtimezone = /(?:Z|[+-]\d{2}:\d{2})$/;
-	var rnonzeronumbers = /[1-9]/;
+	//var rnonzeronumbers = /[1-9]/;
 
 	var days = { mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 0 };
 

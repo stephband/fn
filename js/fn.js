@@ -927,9 +927,9 @@
 		assign: curry(Object.assign, 2),
 
 		get: curry(function get(key, object) {
-			return typeof object.get === "function" ?
+			return object && (typeof object.get === "function" ?
 				object.get(key) :
-				object[key] ;
+				object[key]) ;
 		}),
 
 		set: curry(function set(key, value, object) {
@@ -939,10 +939,10 @@
 		}),
 
 		getPath: curry(function get(path, object) {
-			return object.get ? object.get(path) :
+			return object && (object.get ? object.get(path) :
 				typeof path === 'number' ? object[path] :
 				path === '' || path === '.' ? object :
-				objFrom(object, splitPath(path)) ;
+				objFrom(object, splitPath(path))) ;
 		}),
 
 		setPath: curry(function set(path, value, object) {
@@ -1052,7 +1052,7 @@
 		factorise: function factorise(n, d) {
 			// Reduce a fraction by finding the Greatest Common Divisor and
 			// dividing by it.
-			var f = gcd(n, d);
+			var f = Fn.gcd(n, d);
 			return [n/f, d/f];
 		},
 
