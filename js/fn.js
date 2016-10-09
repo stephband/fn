@@ -913,6 +913,8 @@
 			return true;
 		}),
 
+		isGreater: curry(function byGreater(a, b) { return b > a ; }),
+
 		by: curry(function by(property, a, b) {
 			return Fn.byGreater(a[property], b[property]);
 		}),
@@ -1030,6 +1032,73 @@
 			(object.push || A.push).call(object, value);
 			return object;
 		}),
+
+		intersect: curry(function intersect(arr1, arr2) {
+			// A fast intersect that assumes arrays are sorted (ascending) numbers.
+			var l1 = arr1.length, l2 = arr2.length,
+			    i1 = 0, i2 = 0,
+			    arr3 = [];
+		
+			while (i1 < l1 && i2 < l2) {
+				if (arr1[i1] === arr2[i2]) {
+					arr3.push(arr1[i1]);
+					++i1;
+					++i2;
+				}
+				else if (arr2[i2] > arr1[i1]) {
+					++i1;
+				}
+				else {
+					++i2;
+				}
+			}
+		
+			return arr3;
+		}),
+
+		diff: curry(function(arr1, arr2) {
+			// A fast diff that assumes arrays are sorted (ascending) numbers.
+			var l1 = arr1.length, l2 = arr2.length,
+			    i1 = 0, i2 = 0,
+			    arr3 = [], n;
+		
+			while (i1 < l1) {
+				while (i2 < l2 && arr1[i1] > arr2[i2]) {
+					arr3.push(arr2[i2]);
+					++i2;
+				}
+		
+				if (arr1[i1] !== arr2[i2]) {
+					arr3.push(arr1[i1]);
+				}
+		
+				n = arr1[i1];
+				while (n === arr1[i1] && ++i1 < l1);
+				while (n === arr2[i2] && ++i2 < l2);
+			}
+		
+			while (i2 < l2) {
+				arr3.push(arr2[i2]);
+				++i2;
+			}
+		
+			return arr3;
+		}),
+	
+		unite: curry(function unite(arr1, arr2) {
+			return arr1.concat(arr2).filter(unique).sort(greater);
+		}),
+
+		//range: function(arr) {
+		//	return 	Math.max.apply(null, arr) - Math.min.apply(null, arr);
+		//},
+
+		randomGaussian: function randomGaussian(n) {
+			// Returns a random number with a bell curve probability centred
+			// around 0 with limits -n to n.
+			return n * (Math.random() + Math.random() - 1);
+		},
+
 		add:         curry(function add(a, b) { return b + a; }),
 		multiply:    curry(function multiply(a, b) { return b * a; }),
 		mod:         curry(function mod(a, b) { return b % a; }),
