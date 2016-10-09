@@ -601,24 +601,25 @@
 
 			return this.create(function split() {
 				var value = source.shift();
-				var b;
+				var temp;
 
-				if (value === undefined) { return; }
+				if (value === undefined) {
+					if (buffer.length) {
+						temp = buffer;
+						buffer = [];
+						return temp;
+					}
+
+					return;
+				}
 
 				if (fn(value)) {
-					b = buffer;
-					buffer = [];
-					return b;
+					temp = buffer;
+					buffer = [value];
+					return temp.length ? temp : split() ;
 				}
 
 				buffer.push(value);
-
-				if (source.status === 'done') {
-					b = buffer;
-					buffer = [];
-					return b;
-				}
-
 				return split();
 			});
 		},
