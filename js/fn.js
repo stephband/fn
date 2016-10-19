@@ -288,6 +288,8 @@
 
 	// Throttle
 
+	// Returns a function 
+
 	var requestAnimationFrame = window.requestAnimationFrame;
 
 	var now = window.performance.now ? function now() {
@@ -373,6 +375,48 @@
 
 		throttle.cancel = cancel;
 		return throttle;
+	}
+
+
+	// Hold
+
+	// Returns a function that waits for `time` seconds without being called
+	// before calling fn with the latest context and arguments.
+
+	function Hold(fn, time) {
+		var timer;
+
+		var queue = function() {
+			clearTimeout(timer);
+			// Set time in milliseconds
+			timer = setTimeout(update, (time || 0) / 1000);
+		};
+
+		var context, a;
+
+		function update() {
+			fn.apply(context, a);
+		}
+
+		function cancel() {
+			// Don't permit further changes to be queued
+			queue = noop;
+
+			// If there is an update queued apply it now
+			clearTimeout(timer);
+		}
+
+		function hold() {
+			// Store the latest context and arguments
+			context = this;
+			a = arguments;
+
+			// Queue the update
+			queue();
+		}
+
+		hold.cancel = cancel;
+		return hold;
 	}
 
 
@@ -1523,6 +1567,7 @@
 	Object.assign(Fn, {
 		Pool:          Pool,
 		Throttle:      Throttle,
+		Hold:          Hold,
 		Stream:        Stream,
 		ValueStream:   ValueStream,
 		BufferStream:  BufferStream,

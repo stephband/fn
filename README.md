@@ -179,7 +179,7 @@ Functors also have the methods:
 ##### `toArray()`
 ##### `toFunction()`
 
-## Stream(setup)
+## Fn.Stream(setup)
 
 Streams are pushable, observable Functors. Streams inherit all input, transform
 and output methods from `Fn.prototype`, plus they also get a `.push` method and
@@ -231,3 +231,14 @@ Creates an object pool, such that each call to `Thing(...)` returns an idle
 object from the pool, or if there are no idle objects, a newly created
 object. Garbage cannot be collected until all references to `Thing` are
 released.
+
+
+## Fn.Throttle(fn, time)
+
+Returns a function that calls fn immediately and thereafter every `time` seconds
+while it is called again with new context and arguments.
+
+## Fn.Hold(fn, time)
+
+Returns a function that waits for `time` seconds without being called
+before calling fn with the latest context and arguments.
