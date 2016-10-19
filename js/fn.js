@@ -645,24 +645,25 @@
 
 			return this.create(function split() {
 				var value = source.shift();
-				var b;
+				var temp;
 
-				if (value === undefined) { return; }
+				if (value === undefined) {
+					if (buffer.length) {
+						temp = buffer;
+						buffer = [];
+						return temp;
+					}
+
+					return;
+				}
 
 				if (fn(value)) {
-					b = buffer;
-					buffer = [];
-					return b;
+					temp = buffer;
+					buffer = [value];
+					return temp.length ? temp : split() ;
 				}
 
 				buffer.push(value);
-
-				if (source.status === 'done') {
-					b = buffer;
-					buffer = [];
-					return b;
-				}
-
 				return split();
 			});
 		},
@@ -956,6 +957,8 @@
 			return true;
 		}),
 
+		isGreater: curry(function byGreater(a, b) { return b > a ; }),
+
 		by: curry(function by(property, a, b) {
 			return Fn.byGreater(a[property], b[property]);
 		}),
@@ -971,9 +974,9 @@
 		assign: curry(Object.assign, 2),
 
 		get: curry(function get(key, object) {
-			return typeof object.get === "function" ?
+			return object && (typeof object.get === "function" ?
 				object.get(key) :
-				object[key] ;
+				object[key]) ;
 		}),
 
 		set: curry(function set(key, value, object) {
@@ -983,10 +986,10 @@
 		}),
 
 		getPath: curry(function get(path, object) {
-			return object.get ? object.get(path) :
+			return object && (object.get ? object.get(path) :
 				typeof path === 'number' ? object[path] :
 				path === '' || path === '.' ? object :
-				objFrom(object, splitPath(path)) ;
+				objFrom(object, splitPath(path))) ;
 		}),
 
 		setPath: curry(function set(path, value, object) {
@@ -1073,6 +1076,73 @@
 			(object.push || A.push).call(object, value);
 			return object;
 		}),
+
+		intersect: curry(function intersect(arr1, arr2) {
+			// A fast intersect that assumes arrays are sorted (ascending) numbers.
+			var l1 = arr1.length, l2 = arr2.length,
+			    i1 = 0, i2 = 0,
+			    arr3 = [];
+		
+			while (i1 < l1 && i2 < l2) {
+				if (arr1[i1] === arr2[i2]) {
+					arr3.push(arr1[i1]);
+					++i1;
+					++i2;
+				}
+				else if (arr2[i2] > arr1[i1]) {
+					++i1;
+				}
+				else {
+					++i2;
+				}
+			}
+		
+			return arr3;
+		}),
+
+		diff: curry(function(arr1, arr2) {
+			// A fast diff that assumes arrays are sorted (ascending) numbers.
+			var l1 = arr1.length, l2 = arr2.length,
+			    i1 = 0, i2 = 0,
+			    arr3 = [], n;
+		
+			while (i1 < l1) {
+				while (i2 < l2 && arr1[i1] > arr2[i2]) {
+					arr3.push(arr2[i2]);
+					++i2;
+				}
+		
+				if (arr1[i1] !== arr2[i2]) {
+					arr3.push(arr1[i1]);
+				}
+		
+				n = arr1[i1];
+				while (n === arr1[i1] && ++i1 < l1);
+				while (n === arr2[i2] && ++i2 < l2);
+			}
+		
+			while (i2 < l2) {
+				arr3.push(arr2[i2]);
+				++i2;
+			}
+		
+			return arr3;
+		}),
+	
+		unite: curry(function unite(arr1, arr2) {
+			return arr1.concat(arr2).filter(unique).sort(greater);
+		}),
+
+		//range: function(arr) {
+		//	return 	Math.max.apply(null, arr) - Math.min.apply(null, arr);
+		//},
+
+		randomGaussian: function randomGaussian(n) {
+			// Returns a random number with a bell curve probability centred
+			// around 0 with limits -n to n.
+			return n * (Math.random() + Math.random() - 1);
+		},
+
 		add:         curry(function add(a, b) { return b + a; }),
 		multiply:    curry(function multiply(a, b) { return b * a; }),
 		mod:         curry(function mod(a, b) { return b % a; }),
@@ -1082,6 +1152,24 @@
 		// conflicting properties not allowed in strict mode
 		// log:         curry(function log(base, n) { return Math.log(n) / Math.log(base); }),
 		nthRoot:     curry(function nthRoot(n, x) { return Math.pow(x, 1/n); }),
+
+		gcd: function gcd(a, b) {
+			// Greatest common divider
+			return b ? gcd(b, a % b) : a ;
+		},
+
+		lcm: function lcm(a, b) {
+			// Lowest common multiple.
+			return a * b / Fn.gcd(a, b);
+		},
+
+		factorise: function factorise(n, d) {
+			// Reduce a fraction by finding the Greatest Common Divisor and
+			// dividing by it.
+			var f = Fn.gcd(n, d);
+			return [n/f, d/f];
+		},
+
 		normalise:   curry(function normalise(min, max, value) { return (value - min) / (max - min); }),
 		denormalise: curry(function denormalise(min, max, value) { return value * (max - min) + min; }),
 		toFixed:     curry(function toFixed(n, value) { return N.toFixed.call(value, n); }),
