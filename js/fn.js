@@ -334,7 +334,7 @@
 
 	function Throttle(fn, time) {
 		var request = time ?
-			createRequestTimerFrame(time) :
+			createRequestTimerFrame(time * 1000) :
 			requestAnimationFrame ;
 
 		var queue = function() {
@@ -389,7 +389,7 @@
 		var queue = function() {
 			clearTimeout(timer);
 			// Set time in milliseconds
-			timer = setTimeout(update, (time || 0) / 1000);
+			timer = setTimeout(update, (time || 0) * 1000);
 		};
 
 		var context, a;
