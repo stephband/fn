@@ -18,15 +18,6 @@
 	var S = String.prototype;
 
 
-	// Polyfill
-
-	if (!Math.log10) {
-		Math.log10 = function log10(n) {
-			return Math.log(n) / Math.LN10;
-		};
-	}
-
-
 	// Define
 
 	var empty = Object.freeze(Object.defineProperties([], {
