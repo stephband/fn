@@ -933,6 +933,8 @@
 		compose:    compose,
 		pipe:       pipe,
 
+		returnThis: function() { return this; },
+
 		is: curry(function is(a, b) { return a === b; }),
 
 		equals: curry(function equals(a, b) {
