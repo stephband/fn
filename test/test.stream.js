@@ -3,12 +3,8 @@ console.group('test.stream.js ...');
 
 test(' shift', function() {
 	var i = 0;
-	var s = Fn.Stream(function setup() {
-		return {
-			shift: function oneToFive() {
-				return ++i < 5 ? i : undefined ;
-			}
-		};
+	var s = Fn.Stream(function oneToFive() {
+		return ++i < 5 ? i : undefined ;
 	});
 
 	equals(1, s.shift());
@@ -19,7 +15,7 @@ test(' shift', function() {
 });
 
 test(' BufferStream.push()', function() {
-	var s = Fn.BufferStream([1,2,3,4]);
+	var s = Fn.BufferStream([1,2,undefined,3,4]);
 	var b = [5,6,7];
 
 	equals(1, s.shift());

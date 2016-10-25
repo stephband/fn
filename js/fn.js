@@ -189,14 +189,14 @@
 		array.splice(++n, 0, value);
 	}
 
-//	function shiftSparse(array) {
-//		// Shift values, ignoring undefined
-//		var value;
-//		while (array.length && value === undefined) {
-//			value = array.shift();
-//		}
-//		return value;
-//	}
+	function shiftSparse(array) {
+		// Shift values ignoring undefined holes
+		var value;
+		while (array.length) {
+			value = A.shift.apply(array);
+			if (value !== undefined) { return value; }
+		}
+	}
 
 
 	// Get and set paths
@@ -453,9 +453,10 @@
 
 		// fn is an arguments object, maybe from Fn.of()
 		if (Fn.toClass(fn) === "Arguments") {
-			n = -1;
 			this.shift = function shift() {
-				return fn[++n];
+				var result = shiftSparse(fn);
+				if (result === undefined) { source.status = "done"; }
+				return result;
 			};
 			return;
 		}
@@ -481,8 +482,9 @@
 			return this.constructor.of.apply(this.constructor, arguments);
 		},
 
-
 		// Transform
+
+		process: function(fn) { return fn(this); },
 
 		ap: function ap(object) {
 			var fn = this.shift();
@@ -697,12 +699,20 @@
 			fn = fn || Fn.id;
 
 			function create() {
-				var stream = new BufferStream();
-				buffer.push(stream);
-				return stream.on('pull', function() {
-					// Pull until a new value is added to the current stream
-					pullUntil(Fn.is(stream));
+				var array = [];
+				var stream = Stream(function group() {
+					if (!array.length) {
+						// Pull until a new value is added to the current stream
+						pullUntil(Fn.is(stream));
+					}
+
+					return array.shift();
+				}, function push() {
+					array.push.apply(array, arguments);
 				});
+
+				buffer.push(stream);
+				return stream;
 			}
 
 			function pullUntil(check) {
@@ -735,8 +745,16 @@
 			var source = this;
 
 			function create() {
-				var stream = new BufferStream();
-				return stream.on('pull', pullAll);
+				var array = [];
+				return Stream(function group() {
+					if (!array.length) {
+						// Pull until a new value is added to the current stream
+						pullAll();
+					}
+					return array.shift();
+				}, function push() {
+					array.push.apply(array, arguments);
+				});
 			}
 
 			function pullAll() {
@@ -806,11 +824,19 @@
 		},
 
 		pipe: function(stream) {
-			if (!stream || !stream.on) {
+			if (!stream || !stream.push) {
 				throw new Error('Fn: Fn.pipe(object) object must be a pushable stream. (' + stream + ')');
 			}
 
 			var source = this;
+
+			var shift = stream.shift;
+
+			stream.shift = function() {
+				var value = shift.apply(stream);
+				
+				stream.push(source.shift());
+			};
 
 			stream.on('pull', function() {
 				stream.push(source.shift());
@@ -1267,35 +1293,61 @@
 
 	// Stream
 
-	function Stream(setup) {
-		// Enable calling Stream without the new keyword.
-		if (!this || !Stream.prototype.isPrototypeOf(this)) {
-			return new Stream(setup);
-		}
+	function Stream(shift, push) {
 
-		var observers = {};
+//		// Todo: Remove .on, notify, etc.
+//
+//		var observers = {};
+//
+//		function notify(type) {
+//			if (!observers[type]) { return; }
+//			A.slice.apply(observers[type]).forEach(call);
+//		}
+//
+//		this.on = function on(type, fn) {
+//			// Lazily create observers list
+//			observers[type] = observers[type] || [] ;
+//			// Add observer
+//			observers[type].push(fn);
+//			return this;
+//		};
 
-		function notify(type) {
-			if (!observers[type]) { return; }
-			A.slice.apply(observers[type]).forEach(call);
-		}
+		// Setting push sets push on the root of the stream, not the mouth.
+		var stream = Object.create(Stream.prototype, {
+			push: {
+				set: function(fn) { push = fn; },
+				get: function()   { return push; }
+			}
+		});
 
-		this.on = function on(type, fn) {
-			// Lazily create observers list
-			observers[type] = observers[type] || [] ;
-			// Add observer
-			observers[type].push(fn);
-			return this;
-		};
+		stream.shift = shift;
 
-		Object.assign(this, setup(notify));
-
-		if (!this.hasOwnProperty('shift')) {
-			throw new Error('Fn.Stream: setup() did not provide a .shift() method.');
-		}
+		return stream;
 	}
 
 	Stream.prototype = Object.create(Fn.prototype);
+
+	function overridePush(object, fn) {
+		var push = object.push;
+
+		object.push = function() {
+			// Deegate to previous .push()
+			push.apply(object, arguments);
+
+			// Notify 
+			fn();
+		};
+	}
+
+	function latest(source) {
+		var value, v;
+
+		while ((v = source.shift()) !== undefined) {
+			value = v;
+		}
+		
+		return value;
+	}
 
 	Object.assign(Stream.prototype, {
 		ap: function ap(object) {
@@ -1312,7 +1364,7 @@
 		},
 
 		shift: function error() {
-			throw new Error('Fn: Stream has been created without a .next() method.');
+			throw new Error('Fn: Stream has been created without a .shift() method.');
 		},
 
 		pull: function pullWarning() {
@@ -1326,19 +1378,20 @@
 			var a = arguments;
 
 			function each() {
+				// Delegate to Fn.each()
 				Fn.prototype.each.apply(source, a);
 			}
 
 			// Flush and observe
 			each();
-			return this.on('push', each);
+			overridePush(this, each);
+			return this;
 		},
 
 		pipe: function(stream) {
+			// Delegate to Fn.pipe
 			Fn.prototype.pipe.apply(this, arguments);
-			// Notify a push without pushing any values -
-			// stream only needs to know values are available.
-			this.on('push', stream.push);
+			overridePush(this, stream.push);
 			return stream;
 		},
 
@@ -1372,50 +1425,36 @@
 
 		delay: function(time) {
 			var source = this;
+			var push = this.push;
+			var stream = Stream(source.shift, Fn.noop);
 
-			return new Stream(function setup(notify) {
-				source.on('push', function() {
-					setTimeout(notify, time, 'push');
-				});
+			this.push = function() {
+				push.apply(source, arguments);
+				setTimeout(stream.push, time);
+			};
 
-				return {
-					shift: function delay() {
-						return source.shift();
-					},
-
-					stop: function stop() {
-						// Probably should clear timers here.
-					}
-				};
-			});
+			return stream;
 		},
 
 		throttle: function(time) {
-			var source = this;
+			var source   = this;
+			var push     = this.push;
+			var stream   = Stream(function() {
+				var value = latest(source);
+				if (source.status === "done") {
+					throttle.cancel();
+					stream.status = "done";
+				}
+				return value;
+			}, Fn.noop);
+			var throttle = Fn.Throttle(stream.push, time);
 
-			return new Stream(function setup(notify) {
-				var t = Fn.Throttle(function() {
-					notify('push');
-				}, time);
+			this.push = function() {
+				push.apply(source, arguments);
+				throttle();
+			};
 
-				source.on('push', t);
-
-				return {
-					shift: function throttle() {
-						var value, v;
-
-						while ((v = source.shift()) !== undefined) {
-							value = v;
-						}
-
-						if (source.status === "done") { t.cancel(); }
-
-						return value;
-					},
-
-					stop: t.cancel
-				};
-			});
+			return stream;
 		},
 
 		toPromise: function() {
@@ -1442,28 +1481,11 @@
 	Object.assign(Stream, {
 		of: function() {
 			var a = arguments;
-			return new Stream(function setup(notify) {
-				var pulling = false;
 
-				return {
-					shift: function buffer() {
-						var value = A.shift.apply(a);
-
-						if (value === undefined) {
-							pulling = true;
-							notify('pull');
-							pulling = false;
-							value = A.shift.apply(a);
-						}
-
-						return value;
-					},
-
-					push: function push() {
-						A.push.apply(a, arguments);
-						if (!pulling) { notify('push'); }
-					}
-				};
+			return this(function shift() {
+				return shiftSparse(a);
+			}, function push() {
+				A.push.apply(a, arguments);
 			});
 		}
 	});
@@ -1500,32 +1522,14 @@
 	// BufferStream
 
 	function BufferStream(object) {
-		return Stream(function setup(notify) {
-			var source = typeof object === 'string' ? A.slice.apply(object) : object || [] ;
-			var pulling = false;
+		var source = typeof object === 'string' ? A.slice.apply(object) : object || [] ;
 
-			return {
-				shift: function buffer() {
-					var value = source.shift();
-
-					if (source.status === 'done') {
-						this.status = 'done';
-					}
-					else if (value === undefined) {
-						pulling = true;
-						notify('pull');
-						pulling = false;
-						value = source.shift();
-					}
-
-					return value;
-				},
-
-				push: function push() {
-					source.push.apply(source, arguments);
-					if (!pulling) { notify('push'); }
-				}
-			};
+		return Stream(function buffer() {
+			var value = shiftSparse(source);
+			if (source.status === 'done') { this.status = 'done'; }
+			return value;
+		}, function push() {
+			source.push.apply(source, arguments);
 		});
 	}
 
