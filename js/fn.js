@@ -419,7 +419,7 @@
 		}
 
 		var source = this;
-		var buffer, n;
+		var buffer;
 
 		if (!fn) {
 			this.shift = noop;
@@ -829,12 +829,10 @@
 			}
 
 			var source = this;
-
-			var shift = stream.shift;
+			//var shift = stream.shift;
 
 			stream.shift = function() {
-				var value = shift.apply(stream);
-				
+				//var value = shift.apply(stream);
 				stream.push(source.shift());
 			};
 
@@ -1149,7 +1147,7 @@
 		}),
 	
 		unite: curry(function unite(arr1, arr2) {
-			return arr1.concat(arr2).filter(unique).sort(greater);
+			return arr1.concat(arr2).filter(unique).sort(Fn.byGreater);
 		}),
 
 		//range: function(arr) {
