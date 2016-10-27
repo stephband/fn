@@ -1162,12 +1162,15 @@
 			return n * (Math.random() + Math.random() - 1);
 		},
 
-		add:         curry(function add(a, b) { return b + a; }),
-		multiply:    curry(function multiply(a, b) { return b * a; }),
-		mod:         curry(function mod(a, b) { return b % a; }),
-		pow:         curry(function pow(a, b) { return Math.pow(b, a); }),
-		min:         curry(function min(a, b) { return a > b ? b : a ; }),
-		max:         curry(function max(a, b) { return a < b ? b : a ; }),
+		add:      curry(function add(a, b) { return b + a; }),
+		multiply: curry(function multiply(a, b) { return b * a; }),
+		mod:      curry(function mod(a, b) { return b % a; }),
+		pow:      curry(function pow(a, b) { return Math.pow(b, a); }),
+		min:      curry(function min(a, b) { return a > b ? b : a ; }),
+		max:      curry(function max(a, b) { return a < b ? b : a ; }),
+		limit:    curry(function limit(min, max, n) { return n > max ? max : n < min ? min : n ; },
+		wrap:     curry(function wrap(min, max, n) { return (n < min ? max : min) + (n - min) % (max - min); },
+
 		// conflicting properties not allowed in strict mode
 		// log:         curry(function log(base, n) { return Math.log(n) / Math.log(base); }),
 		nthRoot:     curry(function nthRoot(n, x) { return Math.pow(x, 1/n); }),
