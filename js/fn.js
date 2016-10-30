@@ -434,6 +434,7 @@
 		// fn is an object with a shift function
 		if (typeof fn.shift === "function" && fn.length === undefined) {
 			this.shift = function shift() {
+				if (source.status === 'done') { return; }
 				var value = fn.shift();
 				if (fn.status === "done") { source.status = 'done'; }
 				return value;
@@ -444,6 +445,7 @@
 		// fn is an iterator
 		if (typeof fn.next === "function") {
 			this.shift = function shift() {
+				if (source.status === 'done') { return; }
 				var result = fn.next();
 				if (result.done) { source.status = 'done'; }
 				return result.value;
@@ -454,6 +456,7 @@
 		// fn is an arguments object, maybe from Fn.of()
 		if (Fn.toClass(fn) === "Arguments") {
 			this.shift = function shift() {
+				if (source.status === 'done') { return; }
 				var result = shiftSparse(fn);
 				if (result === undefined) { source.status = "done"; }
 				return result;
@@ -464,6 +467,7 @@
 		// fn is an array or array-like object
 		buffer = A.slice.apply(fn);
 		this.shift = function shift() {
+			if (source.status === 'done') { return; }
 			return buffer.shift();
 		};
 	}
@@ -481,6 +485,7 @@
 			// Delegate to the constructor's .of()
 			return this.constructor.of.apply(this.constructor, arguments);
 		},
+
 
 		// Transform
 
@@ -596,13 +601,11 @@
 
 		head: function() {
 			var source = this;
-			var i = 0;
 
 			return this.create(function head() {
-				if (i++ === 0) {
-					source.status = 'done';
-					return source.shift();
-				}
+				if (source.status === 'done') { return; }
+				source.status = 'done';
+				return source.shift();
 			});
 		},
 
@@ -613,6 +616,21 @@
 			return this.create(function tail() {
 				if (i++ === 0) { source.shift(); }
 				return source.shift();
+			});
+		},
+
+		last: function() {
+			var source = this;
+			var i = 0;
+
+			return this.create(function last() {
+				var n;
+
+				source.each(function(value) {
+					if (source.status === "done") { n = value; }
+				});
+
+				return n;
 			});
 		},
 
@@ -829,15 +847,15 @@
 			}
 
 			var source = this;
-			//var shift = stream.shift;
 
-			stream.shift = function() {
-				//var value = shift.apply(stream);
-				stream.push(source.shift());
-			};
+			if (stream.push) {
+				source.on('push', stream.push);
+			}
 
-			stream.on('pull', function() {
-				stream.push(source.shift());
+			stream.on('pull', function pull() {
+				var value = source.shift();
+				if (source.status === 'done') { stream.off('pull', pull); }
+				return value;
 			});
 
 			return stream;
@@ -1166,8 +1184,8 @@
 		pow:      curry(function pow(a, b) { return Math.pow(b, a); }),
 		min:      curry(function min(a, b) { return a > b ? b : a ; }),
 		max:      curry(function max(a, b) { return a < b ? b : a ; }),
-		limit:    curry(function limit(min, max, n) { return n > max ? max : n < min ? min : n ; },
-		wrap:     curry(function wrap(min, max, n) { return (n < min ? max : min) + (n - min) % (max - min); },
+		limit:    curry(function limit(min, max, n) { return n > max ? max : n < min ? min : n ; }),
+		wrap:     curry(function wrap(min, max, n) { return (n < min ? max : min) + (n - min) % (max - min); }),
 
 		// conflicting properties not allowed in strict mode
 		// log:         curry(function log(base, n) { return Math.log(n) / Math.log(base); }),
@@ -1294,6 +1312,8 @@
 
 	// Stream
 
+	var eventsSymbol = Symbol('events');
+
 	function Stream(shift, push) {
 
 //		// Todo: Remove .on, notify, etc.
@@ -1313,7 +1333,7 @@
 //			return this;
 //		};
 
-		// Setting push sets push on the root of the stream, not the mouth.
+		// Setting push sets push on the source of the stream, not the mouth.
 		var stream = Object.create(Stream.prototype, {
 			push: {
 				set: function(fn) { push = fn; },
@@ -1322,6 +1342,7 @@
 		});
 
 		stream.shift = shift;
+		stream[eventsSymbol] = {};
 
 		return stream;
 	}
@@ -1350,7 +1371,23 @@
 		return value;
 	}
 
+	function getEvents(object) {
+		return object[eventsSymbol] || (object[eventsSymbol] = {});
+	}
+
 	Object.assign(Stream.prototype, {
+		on: function(type, fn) {
+			var events = this[eventsSymbol];
+			var listeners = events[type] || (events[type] = []);
+			listeners.push(fn);
+		},
+
+		stop: function() {
+			this.status = "done";
+			var events = this[eventsSymbol];
+			events && events.done && events.done.forEach(call);
+		},
+
 		ap: function ap(object) {
 			var source = this;
 			return this.create(function ap() {
