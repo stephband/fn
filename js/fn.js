@@ -17,12 +17,17 @@
 	var O = Object.prototype;
 	var S = String.prototype;
 
+	var debug = true;
+
 
 	// Define
 
 	var empty = Object.freeze(Object.defineProperties([], {
 		shift: { value: noop }
 	}));
+
+	// Constant for converting radians to degrees
+	var angleFactor = 360 / (Math.PI * 2);
 
 
 	// Feature test
@@ -107,7 +112,7 @@
 			return result;
 		}
 
-		if (Fn.debug) {
+		if (debug) {
 			setFunctionProperties('cached function', 1, fn, cached);
 		}
 
@@ -133,7 +138,7 @@
 				}, parity - a.length) ;
 		};
 
-		if (Fn.debug) {
+		if (debug) {
 			setFunctionProperties('curried function', parity, fn, curried);
 		}
 
@@ -163,7 +168,7 @@
 				memo(arguments[0]) ;
 		}
 
-		if (Fn.debug) {
+		if (debug) {
 			setFunctionProperties('cached and curried function', parity, fn, curried);
 		}
 
@@ -965,8 +970,6 @@
 	}
 
 	Object.assign(Fn, {
-		debug: false,
-
 		of: function of() {
 			return new this(arguments);
 		},
@@ -1123,12 +1126,17 @@
 			);
 		}),
 
-		concat:      curry(function concat(array2, array1) { return array1.concat ? array1.concat(array2) : A.concat.call(array1, array2); }),
-		filter:      curry(function filter(fn, object) { return object.filter ? object.filter(fn) : A.filter.call(object, fn); }),
-		reduce:      curry(function reduce(fn, n, object) { return object.reduce ? object.reduce(fn, n) : A.reduce.call(object, fn, n); }),
-		slice:       curry(function slice(n, m, object) { return object.slice ? object.slice(n, m) : A.slice.call(object, n, m); }),
-		sort:        curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
-		push:        curry(function push(value, object) {
+		concat:   curry(function concat(array2, array1) { return array1.concat ? array1.concat(array2) : A.concat.call(array1, array2); }),
+
+		filter:   curry(function filter(fn, object) { return object.filter ? object.filter(fn) : A.filter.call(object, fn); }),
+
+		reduce:   curry(function reduce(fn, n, object) { return object.reduce ? object.reduce(fn, n) : A.reduce.call(object, fn, n); }),
+
+		slice:    curry(function slice(n, m, object) { return object.slice ? object.slice(n, m) : A.slice.call(object, n, m); }),
+
+		sort:     curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
+
+		push:     curry(function push(value, object) {
 			(object.push || A.push).call(object, value);
 			return object;
 		}),
@@ -1189,10 +1197,6 @@
 			return arr1.concat(arr2).filter(unique).sort(Fn.byGreater);
 		}),
 
-		//range: function(arr) {
-		//	return 	Math.max.apply(null, arr) - Math.min.apply(null, arr);
-		//},
-
 		randomGaussian: function randomGaussian(n) {
 			// Returns a random number with a bell curve probability centred
 			// around 0 with limits -n to n.
@@ -1200,13 +1204,50 @@
 		},
 
 		add:      curry(function add(a, b) { return b + a; }),
+
 		multiply: curry(function multiply(a, b) { return b * a; }),
+
 		mod:      curry(function mod(a, b) { return b % a; }),
+
 		pow:      curry(function pow(a, b) { return Math.pow(b, a); }),
+
 		min:      curry(function min(a, b) { return a > b ? b : a ; }),
+
 		max:      curry(function max(a, b) { return a < b ? b : a ; }),
+
 		limit:    curry(function limit(min, max, n) { return n > max ? max : n < min ? min : n ; }),
+
 		wrap:     curry(function wrap(min, max, n) { return (n < min ? max : min) + (n - min) % (max - min); }),
+
+		degToRad: function toDeg(n) { return n * angleFactor; },
+
+		radToDeg: function toRad(n) { return n / angleFactor; },
+
+		toPolar:  function setPolar(cartesian) {
+			var x = cartesian[0];
+			var y = cartesian[1];
+
+			return [
+				// Distance
+				x === 0 ?
+					Math.abs(y) :
+				y === 0 ?
+					Math.abs(x) :
+					Math.sqrt(x*x + y*y) ,
+				// Angle
+				Math.atan2(x, y)
+			];
+		},
+
+		toCartesian: function setCartesian(polar) {
+			var d = polar[0];
+			var a = polar[1];
+
+			return [
+				Math.sin(a) * d ,
+				Math.cos(a) * d
+			];
+		},
 
 		// conflicting properties not allowed in strict mode
 		// log:         curry(function log(base, n) { return Math.log(n) / Math.log(base); }),
@@ -1230,11 +1271,15 @@
 		},
 
 		normalise:   curry(function normalise(min, max, value) { return (value - min) / (max - min); }),
+
 		denormalise: curry(function denormalise(min, max, value) { return value * (max - min) + min; }),
+
 		toFixed:     curry(function toFixed(n, value) { return N.toFixed.call(value, n); }),
+
 		rangeLog:    curry(function rangeLog(min, max, n) {
 			return Fn.denormalise(min, max, Math.log(n / min) / Math.log(max / min))
 		}),
+
 		rangeLogInv: curry(function rangeLogInv(min, max, n) {
 			return min * Math.pow(max / min, Fn.normalise(min, max, n));
 		}),
@@ -1245,18 +1290,24 @@
 			});
 		},
 
+
 		// Strings
-		match:      curry(function match(regex, string) { return regex.test(string); }),
-		exec:       curry(function parse(regex, string) { return regex.exec(string) || undefined; }),
-		replace:    curry(function replace(regex, fn, string) { return string.replace(regex, fn); }),
+
+		match:       curry(function match(regex, string) { return regex.test(string); }),
+
+		exec:        curry(function parse(regex, string) { return regex.exec(string) || undefined; }),
+
+		replace:     curry(function replace(regex, fn, string) { return string.replace(regex, fn); }),
 
 		slugify: function slugify(string) {
 			if (typeof string !== 'string') { return; }
 			return string.trim().toLowerCase().replace(/[\W_]/g, '-');
 		},
 
+
 		// Booleans
 		not: function not(object) { return !object; },
+
 
 		// Types
 
@@ -1266,11 +1317,11 @@
 			return !!value || (value !== undefined && value !== null && !Number.isNaN(value));
 		},
 
-		toType: function typeOf(object) {
+		toType: function toType(object) {
 			return typeof object;
 		},
 
-		toClass: function classOf(object) {
+		toClass: function toClass(object) {
 			return O.toString.apply(object).slice(8, -1);
 		},
 
@@ -1318,6 +1369,7 @@
 			};
 		})(regex, ['date', 'url', 'email', 'int', 'float']),
 
+
 		// JSON
 		stringify: function stringify(object) {
 			return JSON.stringify(Fn.toClass(object) === "Map" ?
@@ -1336,24 +1388,6 @@
 	var eventsSymbol = Symbol('events');
 
 	function Stream(shift, push) {
-
-//		// Todo: Remove .on, notify, etc.
-//
-//		var observers = {};
-//
-//		function notify(type) {
-//			if (!observers[type]) { return; }
-//			A.slice.apply(observers[type]).forEach(call);
-//		}
-//
-//		this.on = function on(type, fn) {
-//			// Lazily create observers list
-//			observers[type] = observers[type] || [] ;
-//			// Add observer
-//			observers[type].push(fn);
-//			return this;
-//		};
-
 		// Setting push sets push on the source of the stream, not the mouth.
 		var stream = Object.create(Stream.prototype, {
 			push: {
@@ -1364,7 +1398,6 @@
 
 		stream.shift = shift;
 		stream[eventsSymbol] = {};
-
 		return stream;
 	}
 
@@ -1598,22 +1631,9 @@
 	// PromiseStream
 
 	function PromiseStream(promise) {
-		return new Stream(function setup(notify) {
-			var value;
-
-			promise.then(function(v) {
-				value = v;
-				notify('push');
-			});
-
-			return {
-				next: function promise() {
-					var v = value;
-					value = undefined;
-					return v;
-				}
-			};
-		});
+		var stream = new Stream.of();
+		promise.then(stream.push);
+		return stream;
 	}
 
 	PromiseStream.of = Stream.of;
