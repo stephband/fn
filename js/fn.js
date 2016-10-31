@@ -71,6 +71,12 @@
 		return fn(n);
 	}
 
+	function bind(values, fn) {
+		var params = [null];
+		params.push.apply(params, values);
+		return fn.bind.apply(fn, params);
+	}
+
 	function compose(fn2, fn1) {
 		return function composed(n) {
 			return fn2(fn1(n));
@@ -162,6 +168,14 @@
 		}
 
 		return curried;
+	}
+
+	function curryUntil(fn, test) {
+		return function curried() {
+			return test.apply(null, arguments) ?
+				fn.apply(null, arguments) :
+				Fn.bind(arguments, curried) ;
+		};
 	}
 
 //	function overloadByLength(object) {
@@ -963,6 +977,7 @@
 		cache:      cache,
 		curry:      curry,
 		cacheCurry: cacheCurry,
+		curryUntil: curryUntil,
 		compose:    compose,
 		pipe:       pipe,
 
@@ -1011,7 +1026,11 @@
 		get: curry(function get(key, object) {
 			return object && (typeof object.get === "function" ?
 				object.get(key) :
-				object[key]) ;
+				// Coerse null to undefined
+				object[key] === null ?
+					undefined :
+					object[key]
+			);
 		}),
 
 		set: curry(function set(key, value, object) {
@@ -1035,6 +1054,8 @@
 				(object[path] = value) :
 				objTo(object, array, value);
 		}),
+
+		bind: curry(bind),
 
 		invoke: curry(function invoke(name, args, object) {
 			return object[name].apply(object, args);
@@ -1599,50 +1620,6 @@
 
 
 	// Pool
-
-//	function pool(Constructor, isIdle) {
-//		if (!Constructor.reset) {
-//			throw new Error('Fn: Fn.pool(constructor) - constructor must have a .reset() function');
-//		}
-//	
-//		var store = [];
-//
-//		function log() {
-//			var total = store.length;
-//			var idle = store.filter(isIdle).length;
-//
-//			return {
-//				name:   Constructor.name,
-//				total:  total,
-//				active: total - idle,
-//				idle:   idle
-//			};
-//		}
-//	
-//		// Todo: This is bad! It keeps a reference to the pools hanging around,
-//		// accessible from the global scope, so even if the pools are forgotten
-//		// they are never garbage collected!
-//		loggers.push(log);
-//	
-//		return function Pooled() {
-//			var object = store.find(isIdle);
-//	
-//			if (object) {
-//				Constructor.reset.apply(object, arguments);
-//			}
-//			else {
-//				object = Object.create(Constructor.prototype);
-//				Constructor.apply(object, arguments);
-//				store.push(object);
-//			}
-//	
-//			return object;
-//		};
-//	}
-//
-//	pool.snapshot = function() {
-//		return Fn(loggers).map(call).toJSON();
-//	};
 
 	function Pool(options, prototype) {
 		var create = options.create || Fn.noop;
