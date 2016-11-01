@@ -646,7 +646,7 @@
 				var n;
 
 				source.each(function(value) {
-					if (source.status === "done") { n = value; }
+					n = value;
 				});
 
 				return n;
@@ -1219,9 +1219,9 @@
 
 		wrap:     curry(function wrap(min, max, n) { return (n < min ? max : min) + (n - min) % (max - min); }),
 
-		degToRad: function toDeg(n) { return n * angleFactor; },
+		degToRad: function toDeg(n) { return n / angleFactor; },
 
-		radToDeg: function toRad(n) { return n / angleFactor; },
+		radToDeg: function toRad(n) { return n * angleFactor; },
 
 		toPolar:  function setPolar(cartesian) {
 			var x = cartesian[0];
