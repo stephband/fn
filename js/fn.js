@@ -2,8 +2,8 @@
 	if (!window.console || !window.console.log) { return; }
 
 	console.log('Fn');
-	console.log('https://github.com/cruncher/fn');
-	console.log('______________________________');
+	console.log('https://github.com/stephband/fn');
+	console.log('_______________________________');
 })(this);
 
 (function(window) {
@@ -1573,62 +1573,6 @@
 		}
 	});
 
-	function ValueStream() {
-		return Stream(function setup(notify) {
-			var value;
-			var pulling = false;
-
-			return {
-				shift: function buffer() {
-					if (value === undefined) {
-						pulling = true;
-						notify('pull');
-						pulling = false;
-					}
-					var v = value;
-					value = undefined;
-					return v;
-				},
-
-				push: function push() {
-					// Store last pushed value
-					value = arguments[arguments.length - 1];
-					if (!pulling) { notify('push'); }
-					// Cancel value
-					value = undefined;
-				}
-			};
-		});
-	}
-
-
-	// BufferStream
-
-	function BufferStream(object) {
-		var source = typeof object === 'string' ? A.slice.apply(object) : object || [] ;
-
-		return Stream(function buffer() {
-			var value = shiftSparse(source);
-			if (source.status === 'done') { this.status = 'done'; }
-			return value;
-		}, function push() {
-			source.push.apply(source, arguments);
-		});
-	}
-
-	BufferStream.of = Stream.of;
-
-
-	// PromiseStream
-
-	function PromiseStream(promise) {
-		var stream = new Stream.of();
-		promise.then(stream.push);
-		return stream;
-	}
-
-	PromiseStream.of = Stream.of;
-
 
 	// Pool
 
@@ -1679,10 +1623,7 @@
 		Pool:          Pool,
 		Throttle:      Throttle,
 		Hold:          Hold,
-		Stream:        Stream,
-		ValueStream:   ValueStream,
-		BufferStream:  BufferStream,
-		PromiseStream: PromiseStream
+		Stream:        Stream
 	});
 
 	window.Fn = Fn;
