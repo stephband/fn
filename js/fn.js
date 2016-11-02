@@ -175,14 +175,6 @@
 		return curried;
 	}
 
-	function curryUntil(fn, test) {
-		return function curried() {
-			return test.apply(null, arguments) ?
-				fn.apply(null, arguments) :
-				Fn.bind(arguments, curried) ;
-		};
-	}
-
 //	function overloadByLength(object) {
 //		return function distribute() {
 //			var length = arguments.length;
@@ -980,7 +972,6 @@
 		cache:      cache,
 		curry:      curry,
 		cacheCurry: cacheCurry,
-		curryUntil: curryUntil,
 		compose:    compose,
 		pipe:       pipe,
 
