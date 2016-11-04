@@ -175,20 +175,33 @@
 		return curried;
 	}
 
-//	function overloadByLength(object) {
-//		return function distribute() {
-//			var length = arguments.length;
-//			var fn = object[length] || object.default;
-//
-//			if (fn) {
-//				return fn.apply(this, arguments);
-//			}
-//
-//			console.warn('Collection: method is not overloaded to accept ' + length + ' arguments.');
-//			return this;
-//		}
-//	}
+	function overloadLength(object) {
+		return function overload() {
+			var length = arguments.length;
+			var fn = object[length] || object.default;
 
+			if (fn) {
+				return fn.apply(this, arguments);
+			}
+
+			console.warn('Fn: method overload for ' + length + ' arguments not available');
+			return this;
+		}
+	}
+
+	function overloadTypes(map) {
+		return function overload() {
+			var types = Array.prototype.map.call(arguments, toType);
+			var fn = map[types] || map['default'];
+
+			if (!fn) {
+				console.warn('Fn: method overload for type (' + types + ') not available')
+				return;
+			}
+
+			return fn.apply(this, arguments);
+		};
+	}
 
 	// Array functions
 
@@ -962,18 +975,18 @@
 	}
 
 	Object.assign(Fn, {
-		of: function of() {
-			return new this(arguments);
-		},
+		of: function of() { return new this(arguments); },
 
-		empty:      empty,
-		noop:       noop,
-		id:         id,
-		cache:      cache,
-		curry:      curry,
-		cacheCurry: cacheCurry,
-		compose:    compose,
-		pipe:       pipe,
+		empty:          empty,
+		noop:           noop,
+		id:             id,
+		cache:          cache,
+		curry:          curry,
+		cacheCurry:     cacheCurry,
+		compose:        compose,
+		pipe:           pipe,
+		overloadLength: overloadLength,
+		overloadTypes:  overloadTypes,
 
 		returnThis: function() { return this; },
 
