@@ -212,7 +212,7 @@
 
 	// Get and set paths
 
-	var rpathtrimmer = /^\[|\]$/g;
+	var rpathtrimmer  = /^\[|\]$/g;
 	var rpathsplitter = /\]?(?:\.|\[)/g;
 	var rpropselector = /(\w+)=(\w+)/;
 
@@ -1378,8 +1378,9 @@
 
 	var eventsSymbol = Symbol('events');
 
-	function Stream(shift, push) {
-		// Setting push sets push on the source of the stream, not the mouth.
+	function Stream(shift, push, stop) {
+		// Setting push sets push on the source of the stream,
+		// not the mouth. A weird one. Todo: convert back to events.
 		var stream = Object.create(Stream.prototype, {
 			push: {
 				set: function(fn) { push = fn; },
@@ -1387,7 +1388,15 @@
 			}
 		});
 
+		//stream.push = function() {
+		//	push.apply(stream, arguments);
+		//	trigger('push', stream);
+		//};
+
 		stream.shift = shift;
+
+		if (stop) { stream.stop = stop; }
+
 		stream[eventsSymbol] = {};
 		return stream;
 	}
@@ -1420,6 +1429,12 @@
 		return object[eventsSymbol] || (object[eventsSymbol] = {});
 	}
 
+	function trigger(type, object) {
+		var events = object[eventsSymbol];
+		// Todo: make sure Fn(events[type]) is acting on a copy of events[type]
+		events && events[type] && Fn(events[type]).each(call);
+	}
+
 	Object.assign(Stream.prototype, {
 		on: function(type, fn) {
 			var events = this[eventsSymbol];
@@ -1427,10 +1442,19 @@
 			listeners.push(fn);
 		},
 
+		off: function(type, fn) {
+			var events = this[eventsSymbol];
+			var listeners = events[type];
+			if (!listeners) { return; }
+			var n = listeners.length;
+			while (n--) {
+				if (listeners[n] === fn) { listeners.splice(n, 1); }
+			}
+		},
+
 		stop: function() {
 			this.status = "done";
-			var events = this[eventsSymbol];
-			events && events.done && events.done.forEach(call);
+			trigger('done', this);
 		},
 
 		ap: function ap(object) {
@@ -1573,33 +1597,33 @@
 		}
 	});
 
-	function ValueStream() {
-		return Stream(function setup(notify) {
-			var value;
-			var pulling = false;
-
-			return {
-				shift: function buffer() {
-					if (value === undefined) {
-						pulling = true;
-						notify('pull');
-						pulling = false;
-					}
-					var v = value;
-					value = undefined;
-					return v;
-				},
-
-				push: function push() {
-					// Store last pushed value
-					value = arguments[arguments.length - 1];
-					if (!pulling) { notify('push'); }
-					// Cancel value
-					value = undefined;
-				}
-			};
-		});
-	}
+//	function ValueStream() {
+//		return Stream(function setup(notify) {
+//			var value;
+//			var pulling = false;
+//
+//			return {
+//				shift: function buffer() {
+//					if (value === undefined) {
+//						pulling = true;
+//						notify('pull');
+//						pulling = false;
+//					}
+//					var v = value;
+//					value = undefined;
+//					return v;
+//				},
+//
+//				push: function push() {
+//					// Store last pushed value
+//					value = arguments[arguments.length - 1];
+//					if (!pulling) { notify('push'); }
+//					// Cancel value
+//					value = undefined;
+//				}
+//			};
+//		});
+//	}
 
 
 	// BufferStream
@@ -1622,7 +1646,7 @@
 	// PromiseStream
 
 	function PromiseStream(promise) {
-		var stream = new Stream.of();
+		var stream = Stream.of();
 		promise.then(stream.push);
 		return stream;
 	}
@@ -1680,7 +1704,7 @@
 		Throttle:      Throttle,
 		Hold:          Hold,
 		Stream:        Stream,
-		ValueStream:   ValueStream,
+		//ValueStream:   ValueStream,
 		BufferStream:  BufferStream,
 		PromiseStream: PromiseStream
 	});
