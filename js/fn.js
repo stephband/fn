@@ -203,6 +203,7 @@
 		};
 	}
 
+
 	// Array functions
 
 	function sortedSplice(array, fn, value) {
@@ -307,11 +308,11 @@
 
 	var requestAnimationFrame = window.requestAnimationFrame;
 
-	var now = window.performance.now ? function now() {
-			return window.performance.now();
-		} : function now() {
-			return +new Date();
-		} ;
+	var now = window.performance && window.performance.now ? function now() {
+		return window.performance.now();
+	} : function now() {
+		return +new Date();
+	} ;
 
 	function createRequestTimerFrame(time) {
 		var timer = false;
