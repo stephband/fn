@@ -1,9 +1,8 @@
 (function(window) {
 	if (!window.console || !window.console.log) { return; }
 
-	console.log('Fn');
-	console.log('https://github.com/stephband/fn');
-	console.log('_______________________________');
+	console.log('Fn  – https://github.com/stephband/fn');
+	console.log('_____________________________________');
 })(this);
 
 (function(window) {
