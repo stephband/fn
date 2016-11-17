@@ -1661,22 +1661,20 @@
 		var reset  = options.reset  || Fn.noop;
 		var isIdle = options.isIdle;
 		var store = [];
-
-		function log() {
+	
+		// Todo: This is bad! It keeps a reference to the pools hanging around,
+		// accessible from the global scope, so even if the pools are forgotten
+		// they are never garbage collected!
+		loggers.push(function log() {
 			var total = store.length;
-			var idle = store.filter(isIdle).length;
+			var idle  = store.filter(isIdle).length;
 			return {
 				name:   options.name,
 				total:  total,
 				active: total - idle,
 				idle:   idle
 			};
-		}
-	
-		// Todo: This is bad! It keeps a reference to the pools hanging around,
-		// accessible from the global scope, so even if the pools are forgotten
-		// they are never garbage collected!
-		loggers.push(log);
+		});
 
 		return function PooledObject() {
 			var object = store.find(isIdle);
