@@ -1,9 +1,6 @@
 (function(window) {
 	if (!window.console || !window.console.log) { return; }
-
-	console.log('Fn');
-	console.log('https://github.com/cruncher/fn');
-	console.log('______________________________');
+	console.log('Fn    – https://github.com/stephband/fn');
 })(this);
 
 (function(window) {
@@ -175,19 +172,33 @@
 		return curried;
 	}
 
-//	function overloadByLength(object) {
-//		return function distribute() {
-//			var length = arguments.length;
-//			var fn = object[length] || object.default;
-//
-//			if (fn) {
-//				return fn.apply(this, arguments);
-//			}
-//
-//			console.warn('Collection: method is not overloaded to accept ' + length + ' arguments.');
-//			return this;
-//		}
-//	}
+	function overloadLength(object) {
+		return function overload() {
+			var length = arguments.length;
+			var fn = object[length] || object.default;
+
+			if (fn) {
+				return fn.apply(this, arguments);
+			}
+
+			console.warn('Fn: method overload for ' + length + ' arguments not available');
+			return this;
+		}
+	}
+
+	function overloadTypes(map) {
+		return function overload() {
+			var types = Array.prototype.map.call(arguments, toType);
+			var fn = map[types] || map['default'];
+
+			if (!fn) {
+				console.warn('Fn: method overload for type (' + types + ') not available')
+				return;
+			}
+
+			return fn.apply(this, arguments);
+		};
+	}
 
 
 	// Array functions
@@ -294,11 +305,11 @@
 
 	var requestAnimationFrame = window.requestAnimationFrame;
 
-	var now = window.performance.now ? function now() {
-			return window.performance.now();
-		} : function now() {
-			return +new Date();
-		} ;
+	var now = window.performance && window.performance.now ? function now() {
+		return window.performance.now();
+	} : function now() {
+		return +new Date();
+	} ;
 
 	function createRequestTimerFrame(time) {
 		var timer = false;
@@ -962,18 +973,18 @@
 	}
 
 	Object.assign(Fn, {
-		of: function of() {
-			return new this(arguments);
-		},
+		of: function of() { return new this(arguments); },
 
-		empty:      empty,
-		noop:       noop,
-		id:         id,
-		cache:      cache,
-		curry:      curry,
-		cacheCurry: cacheCurry,
-		compose:    compose,
-		pipe:       pipe,
+		empty:          empty,
+		noop:           noop,
+		id:             id,
+		cache:          cache,
+		curry:          curry,
+		cacheCurry:     cacheCurry,
+		compose:        compose,
+		pipe:           pipe,
+		overloadLength: overloadLength,
+		overloadTypes:  overloadTypes,
 
 		returnThis: function() { return this; },
 
@@ -1597,62 +1608,6 @@
 		}
 	});
 
-//	function ValueStream() {
-//		return Stream(function setup(notify) {
-//			var value;
-//			var pulling = false;
-//
-//			return {
-//				shift: function buffer() {
-//					if (value === undefined) {
-//						pulling = true;
-//						notify('pull');
-//						pulling = false;
-//					}
-//					var v = value;
-//					value = undefined;
-//					return v;
-//				},
-//
-//				push: function push() {
-//					// Store last pushed value
-//					value = arguments[arguments.length - 1];
-//					if (!pulling) { notify('push'); }
-//					// Cancel value
-//					value = undefined;
-//				}
-//			};
-//		});
-//	}
-
-
-	// BufferStream
-
-	function BufferStream(object) {
-		var source = typeof object === 'string' ? A.slice.apply(object) : object || [] ;
-
-		return Stream(function buffer() {
-			var value = shiftSparse(source);
-			if (source.status === 'done') { this.status = 'done'; }
-			return value;
-		}, function push() {
-			source.push.apply(source, arguments);
-		});
-	}
-
-	BufferStream.of = Stream.of;
-
-
-	// PromiseStream
-
-	function PromiseStream(promise) {
-		var stream = Stream.of();
-		promise.then(stream.push);
-		return stream;
-	}
-
-	PromiseStream.of = Stream.of;
-
 
 	// Pool
 
@@ -1701,10 +1656,7 @@
 		Pool:          Pool,
 		Throttle:      Throttle,
 		Hold:          Hold,
-		Stream:        Stream,
-		//ValueStream:   ValueStream,
-		BufferStream:  BufferStream,
-		PromiseStream: PromiseStream
+		Stream:        Stream
 	});
 
 	window.Fn = Fn;
