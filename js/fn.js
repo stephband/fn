@@ -494,14 +494,14 @@
 		};
 	}
 
+	function create(object, fn) {
+		var functor = Object.create(object);
+		functor.shift = fn;
+		return functor;
+	}
+
 	Object.assign(Fn.prototype, {
 		// Input
-
-		create: function(fn) {
-			var functor = Object.create(this);
-			functor.shift = fn;
-			return functor;
-		},
 
 		of: function() {
 			// Delegate to the constructor's .of()
@@ -520,15 +520,15 @@
 		},
 
 		map: function(fn) {
-			return this.create(Fn.compose(function map(object) {
-				return object !== undefined ? fn(object) : undefined ;
+			return create(this, Fn.compose(function map(object) {
+				return object === undefined ? undefined : fn(object) ;
 			}, this.shift));
 		},
 
 		filter: function(fn) {
 			var source = this;
 
-			return this.create(function filter() {
+			return create(this, function filter() {
 				var value;
 				while ((value = source.shift()) !== undefined && !fn(value));
 				return value;
@@ -552,7 +552,7 @@
 				return value;
 			};
 
-			return this.create(function filter() {
+			return create(this, function filter() {
 				if (buffer2.length) { return buffer2.shift(); }
 
 				var value;
@@ -578,7 +578,7 @@
 			var source = this;
 			var buffer = empty;
 
-			return this.create(function join(object) {
+			return create(this, function join(object) {
 				var value = buffer.shift();
 				if (value !== undefined) { return value; }
 				buffer = source.shift();
@@ -593,7 +593,7 @@
 
 		concat: function(object) {
 			var source = this;
-			return this.create(function concat() {
+			return create(this, function concat() {
 				var value = source.shift();
 
 				if (value === undefined) {
@@ -610,7 +610,7 @@
 			var source = this;
 			var buffer = [];
 
-			return this.create(function sort() {
+			return create(this, function sort() {
 				var value;
 
 				while((value = source.shift()) !== undefined) {
@@ -624,7 +624,7 @@
 		head: function() {
 			var source = this;
 
-			return this.create(function head() {
+			return create(this, function head() {
 				if (source.status === 'done') { return; }
 				source.status = 'done';
 				return source.shift();
@@ -635,7 +635,7 @@
 			var source = this;
 			var i = 0;
 
-			return this.create(function tail() {
+			return create(this, function tail() {
 				if (i++ === 0) { source.shift(); }
 				return source.shift();
 			});
@@ -645,7 +645,7 @@
 			var source = this;
 			var i = 0;
 
-			return this.create(function last() {
+			return create(this, function last() {
 				var n;
 
 				source.each(function(value) {
@@ -660,7 +660,7 @@
 			var source = this;
 			var i = -1;
 
-			return this.create(function slice() {
+			return create(this, function slice() {
 				while (++i < n) {
 					source.shift();
 				}
@@ -676,7 +676,7 @@
 			var source = this;
 			var buffer = [];
 
-			return this.create(function split() {
+			return create(this, function split() {
 				var value = source.shift();
 				var temp;
 
@@ -705,7 +705,7 @@
 			var source = this;
 			var buffer = [];
 
-			return this.create(n ?
+			return create(this, n ?
 				// If n is defined batch into arrays of length n.
 				function nextBatchN() {
 					var value, _buffer;
@@ -774,7 +774,7 @@
 				return !!buffer.length;
 			}
 
-			return this.create(function group() {
+			return create(this, function group() {
 				// Pull until a new stream is available
 				pullUntil(isBuffered);
 				return buffer.shift();
@@ -812,7 +812,7 @@
 				return pullAll();
 			}
 
-			return this.create(function group() {
+			return create(this, function group() {
 				if (source.status === 'done') { return; }
 				source.status = 'done';
 				pullAll();
@@ -833,7 +833,7 @@
 			var source = this;
 			var values = [];
 
-			return this.create(function unique() {
+			return create(this, function unique() {
 				var value = source.shift();
 				if (value === undefined) { return; }
 
@@ -900,7 +900,7 @@
 				return buffer1.shift();
 			};
 
-			return this.create(function clone() {
+			return create(this, function clone() {
 				if (!buffer2.length) { fill(); }
 				return buffer2.shift();
 			});
@@ -1385,6 +1385,7 @@
 		})
 	});
 
+
 	// Stream
 
 	var eventsSymbol = Symbol('events');
@@ -1470,7 +1471,7 @@
 
 		ap: function ap(object) {
 			var source = this;
-			return this.create(function ap() {
+			return create(this, function ap() {
 				var fn = source.shift();
 				if (fn === undefined) { return; }
 				return object.map(fn);
@@ -1533,7 +1534,7 @@
 					value ;
 			}
 
-			return this.create(function concatParallel() {
+			return create(this, function concatParallel() {
 				var object = source.shift();
 				if (object !== undefined) { bind(object); }
 				var value = shiftNext();
