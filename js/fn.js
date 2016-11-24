@@ -738,7 +738,7 @@
 
 			fn = fn || Fn.id;
 
-			function create() {
+			function group() {
 				var array = [];
 				var stream = Stream(function group() {
 					if (!array.length) {
@@ -762,7 +762,7 @@
 				var stream = streams.get(key);
 
 				if (stream === undefined) {
-					stream = create();
+					stream = group();
 					streams.set(key, stream);
 				}
 
@@ -781,44 +781,44 @@
 			});
 		},
 
-		groupTo: function(fn, object) {
-			var source = this;
-
-			function create() {
-				var array = [];
-				return Stream(function group() {
-					if (!array.length) {
-						// Pull until a new value is added to the current stream
-						pullAll();
-					}
-					return array.shift();
-				}, function push() {
-					array.push.apply(array, arguments);
-				});
-			}
-
-			function pullAll() {
-				var value = source.shift();
-				if (value === undefined) { return; }
-				var key = fn(value);
-				var stream = Fn.get(key, object);
-
-				if (stream === undefined) {
-					stream = create();
-					Fn.set(key, stream, object);
-				}
-
-				stream.push(value);
-				return pullAll();
-			}
-
-			return create(this, function group() {
-				if (source.status === 'done') { return; }
-				source.status = 'done';
-				pullAll();
-				return object;
-			});
-		},
+		//groupTo: function(fn, object) {
+		//	var source = this;
+		//
+		//	function group() {
+		//		var array = [];
+		//		return Stream(function group() {
+		//			if (!array.length) {
+		//				// Pull until a new value is added to the current stream
+		//				pullAll();
+		//			}
+		//			return array.shift();
+		//		}, function push() {
+		//			array.push.apply(array, arguments);
+		//		});
+		//	}
+		//
+		//	function pullAll() {
+		//		var value = source.shift();
+		//		if (value === undefined) { return; }
+		//		var key = fn(value);
+		//		var stream = Fn.get(key, object);
+		//
+		//		if (stream === undefined) {
+		//			stream = group();
+		//			Fn.set(key, stream, object);
+		//		}
+		//
+		//		stream.push(value);
+		//		return pullAll();
+		//	}
+		//
+		//	return create(this, function group() {
+		//		if (source.status === 'done') { return; }
+		//		source.status = 'done';
+		//		pullAll();
+		//		return object;
+		//	});
+		//},
 
 		scan: function(fn, seed) {
 			// seed defaults to 0
@@ -922,6 +922,8 @@
 			while ((value = this.shift()) !== undefined) {
 				fn(value);
 			}
+
+			return this;
 		},
 
 		reduce: function(fn, value) {
