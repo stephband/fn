@@ -220,6 +220,10 @@
 		}
 	}
 
+	function byGreater(a, b) {
+		return a === b ? 0 : a > b ? 1 : -1 ;
+	}
+
 
 	// Get and set paths
 
@@ -1017,12 +1021,10 @@
 		isGreater: curry(function byGreater(a, b) { return b > a ; }),
 
 		by: curry(function by(property, a, b) {
-			return Fn.byGreater(a[property], b[property]);
+			return byGreater(a[property], b[property]);
 		}),
 
-		byGreater: curry(function byGreater(a, b) {
-			return a === b ? 0 : a > b ? 1 : -1 ;
-		}),
+		byGreater: curry(byGreater),
 
 		byAlphabet: curry(function byAlphabet(a, b) {
 			return S.localeCompare.call(a, b);
