@@ -180,11 +180,15 @@
 					return Time.format[$1] ? Time.format[$1](date, lang) : $1 ;
 				});
 			};
-		})()
+		})(),
+
+		toTimestamp: function() {
+			return +this.toDate() / 1000;
+		}
 	});
 
 	// .toString() enables comparisons of the genre time1 > time2,
-	// but not equality checking, which does not coerce to string.
+	// but not equality checking (which does not coerce to string).
 	Time.prototype.toString = Time.prototype.toJSON;
 
 	Object.defineProperties(Time.prototype, {
@@ -200,10 +204,6 @@
 				return this.toJSON().slice(11, -1);
 			},
 			enumerable: true
-		},
-
-		toTimestamp: function() {
-			return +this.toDate() / 1000;
 		}
 	});
 
@@ -236,19 +236,19 @@
 					 ('0' + Math.round(100 * Math.abs(date.getTimezoneOffset()) / 60)).slice(-4) ;
 			},
 			th: function(date, lang) { return locales[lang || Time.lang].ordinals[date.getDate()]; },
-			n: function(date) { return +date; },
+			n:  function(date) { return +date; },
 			ZZ: function(date) { return -date.getTimezoneOffset() * 60; }
 		},
 
 		locales: locales
 	});
 
-	// Document language
 	Object.defineProperty(Time, 'lang', {
 		get: function() {
 			var lang = document.documentElement.lang;
 			return lang && Time.locales[lang] ? lang : 'en';
 		},
+
 		enumerable: true
 	});
 
