@@ -149,6 +149,10 @@
 				date.setUTCHours(0);
 				if (grain === 'day') { return new Time(date); }
 
+				// Todo: .floor('week')
+				//date.setUTCHours(0);
+				//if (grain === 'week') { return new Time(date); }
+
 				date.setUTCDate(1);
 				if (grain === 'month') { return new Time(date); }
 
