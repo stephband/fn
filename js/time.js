@@ -200,6 +200,10 @@
 				return this.toJSON().slice(11, -1);
 			},
 			enumerable: true
+		},
+
+		toTimestamp: function() {
+			return +this.toDate() / 1000;
 		}
 	});
 
