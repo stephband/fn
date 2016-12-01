@@ -1,14 +1,12 @@
 
 console.group('test.stream.js ...');
 
+var Stream = Fn.Stream;
+
 test(' shift', function() {
 	var i = 0;
-	var s = Fn.Stream(function setup() {
-		return {
-			shift: function oneToFive() {
-				return ++i < 5 ? i : undefined ;
-			}
-		};
+	var s = Fn.Stream(function oneToFive() {
+		return ++i < 5 ? i : undefined ;
 	});
 
 	equals(1, s.shift());
@@ -18,23 +16,23 @@ test(' shift', function() {
 	equals(undefined, s.shift());
 });
 
-test(' BufferStream.push()', function() {
-	var s = Fn.BufferStream([1,2,3,4]);
-	var b = [5,6,7];
-
-	equals(1, s.shift());
-	equals(2, s.shift());
-	equals(3, s.shift());
-	equals(4, s.shift());
-	equals(undefined, s.shift());
-
-	s.push.apply(s, b);
-
-	equals(5, s.shift());
-	equals(6, s.shift());
-	equals(7, s.shift());
-	equals(undefined, s.shift());
-});
+//test(' Stream.push()', function() {
+//	var s = Stream.of([1,2,undefined,3,4]);
+//	var b = [5,6,7];
+//
+//	equals(1, s.shift());
+//	equals(2, s.shift());
+//	equals(3, s.shift());
+//	equals(4, s.shift());
+//	equals(undefined, s.shift());
+//
+//	s.push.apply(s, b);
+//
+//	equals(5, s.shift());
+//	equals(6, s.shift());
+//	equals(7, s.shift());
+//	equals(undefined, s.shift());
+//});
 
 test('.toArray()', function() {
 	var s1 = Fn();
@@ -46,14 +44,13 @@ test('.toArray()', function() {
 
 test('.map()', function() {
 	var s1 = Fn([0,1,2,3]);
-console.log(s1);
 	var s2 = s1.map(Fn.add(1));
 	equals('1,2,3,4', s2.toArray().join());
 });
 
 test('.pipe()', function() {
 	var s1 = Fn([0,1,2,3]);
-	var s2 = s1.pipe(Fn.Stream.of());
+	var s2 = s1.pipe(Stream.of());
 
 	equals('0,1,2,3', s2.toArray().join());
 });
@@ -61,7 +58,7 @@ test('.pipe()', function() {
 test('.each()', function() {
 	console.log('pull a stream...');
 	var results1 = [];
-	var s1 = Fn.BufferStream([0,1,2,3]).each(function(value) {
+	var s1 = Stream.of(0,1,2,3).each(function(value) {
 		results1.push(value);
 	});
 	s1.push(4,5);
@@ -69,8 +66,8 @@ test('.each()', function() {
 
 	console.log('pull from a piped stream...');
 	var results2 = [];
-	var s2 = Fn.BufferStream([0,1,2,3]);
-	var s3 = s2.pipe(Fn.BufferStream()).each(function(value) {
+	var s2 = Stream.of(0,1,2,3);
+	var s3 = s2.pipe(Stream.of()).each(function(value) {
 		results2.push(value);
 	});
 	s2.push(4,5);
@@ -78,14 +75,14 @@ test('.each()', function() {
 });
 
 test('.group()', function() {
-	var s = Fn.BufferStream([
+	var s = Stream.of(
 		[0, "note", 60, 0.5],
 		[1, "note", 60, 0.5],
 		[2, "pitch", 1],
 		[3, "note", 60, 0.5],
 		[4, "pitch", 60],
 		[5, "tempo", 120]
-	])
+	)
 	.group(Fn.get(1));
 
 	equals('note,note,note', s.shift().map(Fn.get(1)).toArray().join());
@@ -95,17 +92,17 @@ test('.group()', function() {
 });
 
 test('.join()', function() {
-	equals('0,0,1,1,1,2,3,3,3,3,3,4,4', Fn.BufferStream([[0,0,1,1,1],[2,3],[3,3,3,3],[4,4]]).join().toArray().join());
+	equals('0,0,1,1,1,2,3,3,3,3,3,4,4', Stream.of([0,0,1,1,1],[2,3],[3,3,3,3],[4,4]).join().toArray().join());
 
 	equals('note,note,note,pitch,pitch,tempo',
-		Fn.BufferStream([
+		Stream.of(
 			[0, "note", 60, 0.5],
 			[1, "note", 60, 0.5],
 			[2, "pitch", 1],
 			[3, "note", 60, 0.5],
 			[4, "pitch", 60],
 			[5, "tempo", 120]
-		])
+		)
 		.group(Fn.get(1))
 		.join()
 		.map(Fn.get(1))
@@ -113,7 +110,7 @@ test('.join()', function() {
 		.join()
 	);
 
-	var s = Fn.BufferStream([0,0,1,2,3,3,2,3,0])
+	var s = Stream.of(0,0,1,2,3,3,2,3,0)
 		.group()
 		.join();
 
@@ -137,11 +134,11 @@ test('.join()', function() {
 });
 
 test('.unique()', function() {
-	equals('0,1,2,3,4', Fn.BufferStream([0,0,1,1,1,2,3,3,3,3,3,4,4]).unique().toArray().join());
+	equals('0,1,2,3,4', Stream.of(0,0,1,1,1,2,3,3,3,3,3,4,4).unique().toArray().join());
 });
 
 test('.group().concatParallel()', function() {
-	var s = Fn.BufferStream([0,0,1,2,3,3,2,3,0])
+	var s = Stream.of(0,0,1,2,3,3,2,3,0)
 		.group()
 		.concatParallel();
 
@@ -165,7 +162,7 @@ test('.group().concatParallel()', function() {
 });
 
 test('.throttle()', function() {
-	var buffer = Fn.BufferStream([0,1,2,3,4,5]);
+	var buffer = Stream.of(0,1,2,3,4,5);
 
 	buffer
 	.throttle()
@@ -180,7 +177,7 @@ test('.throttle()', function() {
 });
 
 test('.throttle(time)', function() {
-	var buffer = Fn.BufferStream([0,1,2,3,4,5]);
+	var buffer = Stream.of(0,1,2,3,4,5);
 
 	buffer
 	.throttle(3000)
@@ -195,7 +192,7 @@ test('.throttle(time)', function() {
 });
 
 test('.delay(time)', function() {
-	var buffer = Fn.BufferStream([0,1,2,3,4,5]);
+	var buffer = Stream.of(0,1,2,3,4,5);
 	var i = 0;
 
 	buffer

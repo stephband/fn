@@ -1,9 +1,6 @@
 (function(window) {
 	if (!window.console || !window.console.log) { return; }
-
-	console.log('Fn');
-	console.log('https://github.com/cruncher/fn');
-	console.log('______________________________');
+	console.log('Fn     – https://github.com/stephband/fn');
 })(this);
 
 (function(window) {
@@ -17,14 +14,7 @@
 	var O = Object.prototype;
 	var S = String.prototype;
 
-
-	// Polyfill
-
-	if (!Math.log10) {
-		Math.log10 = function log10(n) {
-			return Math.log(n) / Math.LN10;
-		};
-	}
+	var debug = true;
 
 
 	// Define
@@ -32,6 +22,9 @@
 	var empty = Object.freeze(Object.defineProperties([], {
 		shift: { value: noop }
 	}));
+
+	// Constant for converting radians to degrees
+	var angleFactor = 360 / (Math.PI * 2);
 
 
 	// Feature test
@@ -80,6 +73,12 @@
 		return fn(n);
 	}
 
+	function bind(values, fn) {
+		var params = [null];
+		params.push.apply(params, values);
+		return fn.bind.apply(fn, params);
+	}
+
 	function compose(fn2, fn1) {
 		return function composed(n) {
 			return fn2(fn1(n));
@@ -110,7 +109,7 @@
 			return result;
 		}
 
-		if (Fn.debug) {
+		if (debug) {
 			setFunctionProperties('cached function', 1, fn, cached);
 		}
 
@@ -136,7 +135,7 @@
 				}, parity - a.length) ;
 		};
 
-		if (Fn.debug) {
+		if (debug) {
 			setFunctionProperties('curried function', parity, fn, curried);
 		}
 
@@ -166,26 +165,40 @@
 				memo(arguments[0]) ;
 		}
 
-		if (Fn.debug) {
+		if (debug) {
 			setFunctionProperties('cached and curried function', parity, fn, curried);
 		}
 
 		return curried;
 	}
 
-//	function overloadByLength(object) {
-//		return function distribute() {
-//			var length = arguments.length;
-//			var fn = object[length] || object.default;
-//
-//			if (fn) {
-//				return fn.apply(this, arguments);
-//			}
-//
-//			console.warn('Collection: method is not overloaded to accept ' + length + ' arguments.');
-//			return this;
-//		}
-//	}
+	function overloadLength(object) {
+		return function overload() {
+			var length = arguments.length;
+			var fn = object[length] || object.default;
+
+			if (fn) {
+				return fn.apply(this, arguments);
+			}
+
+			console.warn('Fn: method overload for ' + length + ' arguments not available');
+			return this;
+		}
+	}
+
+	function overloadTypes(map) {
+		return function overload() {
+			var types = Array.prototype.map.call(arguments, toType);
+			var fn = map[types] || map['default'];
+
+			if (!fn) {
+				console.warn('Fn: method overload for type (' + types + ') not available')
+				return;
+			}
+
+			return fn.apply(this, arguments);
+		};
+	}
 
 
 	// Array functions
@@ -198,19 +211,23 @@
 		array.splice(++n, 0, value);
 	}
 
-//	function shiftSparse(array) {
-//		// Shift values, ignoring undefined
-//		var value;
-//		while (array.length && value === undefined) {
-//			value = array.shift();
-//		}
-//		return value;
-//	}
+	function shiftSparse(array) {
+		// Shift values ignoring undefined holes
+		var value;
+		while (array.length) {
+			value = A.shift.apply(array);
+			if (value !== undefined) { return value; }
+		}
+	}
+
+	function byGreater(a, b) {
+		return a === b ? 0 : a > b ? 1 : -1 ;
+	}
 
 
 	// Get and set paths
 
-	var rpathtrimmer = /^\[|\]$/g;
+	var rpathtrimmer  = /^\[|\]$/g;
 	var rpathsplitter = /\]?(?:\.|\[)/g;
 	var rpropselector = /(\w+)=(\w+)/;
 
@@ -292,11 +309,11 @@
 
 	var requestAnimationFrame = window.requestAnimationFrame;
 
-	var now = window.performance.now ? function now() {
-			return window.performance.now();
-		} : function now() {
-			return +new Date();
-		} ;
+	var now = window.performance && window.performance.now ? function now() {
+		return window.performance.now();
+	} : function now() {
+		return +new Date();
+	} ;
 
 	function createRequestTimerFrame(time) {
 		var timer = false;
@@ -428,7 +445,7 @@
 		}
 
 		var source = this;
-		var buffer, n;
+		var buffer;
 
 		if (!fn) {
 			this.shift = noop;
@@ -443,6 +460,7 @@
 		// fn is an object with a shift function
 		if (typeof fn.shift === "function" && fn.length === undefined) {
 			this.shift = function shift() {
+				if (source.status === 'done') { return; }
 				var value = fn.shift();
 				if (fn.status === "done") { source.status = 'done'; }
 				return value;
@@ -453,6 +471,7 @@
 		// fn is an iterator
 		if (typeof fn.next === "function") {
 			this.shift = function shift() {
+				if (source.status === 'done') { return; }
 				var result = fn.next();
 				if (result.done) { source.status = 'done'; }
 				return result.value;
@@ -462,9 +481,11 @@
 
 		// fn is an arguments object, maybe from Fn.of()
 		if (Fn.toClass(fn) === "Arguments") {
-			n = -1;
 			this.shift = function shift() {
-				return fn[++n];
+				if (source.status === 'done') { return; }
+				var result = shiftSparse(fn);
+				if (result === undefined) { source.status = "done"; }
+				return result;
 			};
 			return;
 		}
@@ -472,18 +493,19 @@
 		// fn is an array or array-like object
 		buffer = A.slice.apply(fn);
 		this.shift = function shift() {
+			if (source.status === 'done') { return; }
 			return buffer.shift();
 		};
 	}
 
+	function create(object, fn) {
+		var functor = Object.create(object);
+		functor.shift = fn;
+		return functor;
+	}
+
 	Object.assign(Fn.prototype, {
 		// Input
-
-		create: function(fn) {
-			var functor = Object.create(this);
-			functor.shift = fn;
-			return functor;
-		},
 
 		of: function() {
 			// Delegate to the constructor's .of()
@@ -493,6 +515,8 @@
 
 		// Transform
 
+		process: function(fn) { return fn(this); },
+
 		ap: function ap(object) {
 			var fn = this.shift();
 			if (fn === undefined) { return; }
@@ -500,15 +524,15 @@
 		},
 
 		map: function(fn) {
-			return this.create(Fn.compose(function map(object) {
-				return object !== undefined ? fn(object) : undefined ;
+			return create(this, Fn.compose(function map(object) {
+				return object === undefined ? undefined : fn(object) ;
 			}, this.shift));
 		},
 
 		filter: function(fn) {
 			var source = this;
 
-			return this.create(function filter() {
+			return create(this, function filter() {
 				var value;
 				while ((value = source.shift()) !== undefined && !fn(value));
 				return value;
@@ -532,7 +556,7 @@
 				return value;
 			};
 
-			return this.create(function filter() {
+			return create(this, function filter() {
 				if (buffer2.length) { return buffer2.shift(); }
 
 				var value;
@@ -558,7 +582,7 @@
 			var source = this;
 			var buffer = empty;
 
-			return this.create(function join(object) {
+			return create(this, function join(object) {
 				var value = buffer.shift();
 				if (value !== undefined) { return value; }
 				buffer = source.shift();
@@ -573,7 +597,7 @@
 
 		concat: function(object) {
 			var source = this;
-			return this.create(function concat() {
+			return create(this, function concat() {
 				var value = source.shift();
 
 				if (value === undefined) {
@@ -590,7 +614,7 @@
 			var source = this;
 			var buffer = [];
 
-			return this.create(function sort() {
+			return create(this, function sort() {
 				var value;
 
 				while((value = source.shift()) !== undefined) {
@@ -603,13 +627,11 @@
 
 		head: function() {
 			var source = this;
-			var i = 0;
 
-			return this.create(function head() {
-				if (i++ === 0) {
-					source.status = 'done';
-					return source.shift();
-				}
+			return create(this, function head() {
+				if (source.status === 'done') { return; }
+				source.status = 'done';
+				return source.shift();
 			});
 		},
 
@@ -617,9 +639,24 @@
 			var source = this;
 			var i = 0;
 
-			return this.create(function tail() {
+			return create(this, function tail() {
 				if (i++ === 0) { source.shift(); }
 				return source.shift();
+			});
+		},
+
+		last: function() {
+			var source = this;
+			var i = 0;
+
+			return create(this, function last() {
+				var n;
+
+				source.each(function(value) {
+					n = value;
+				});
+
+				return n;
 			});
 		},
 
@@ -627,7 +664,7 @@
 			var source = this;
 			var i = -1;
 
-			return this.create(function slice() {
+			return create(this, function slice() {
 				while (++i < n) {
 					source.shift();
 				}
@@ -643,7 +680,7 @@
 			var source = this;
 			var buffer = [];
 
-			return this.create(function split() {
+			return create(this, function split() {
 				var value = source.shift();
 				var temp;
 
@@ -672,7 +709,7 @@
 			var source = this;
 			var buffer = [];
 
-			return this.create(n ?
+			return create(this, n ?
 				// If n is defined batch into arrays of length n.
 				function nextBatchN() {
 					var value, _buffer;
@@ -705,13 +742,21 @@
 
 			fn = fn || Fn.id;
 
-			function create() {
-				var stream = new BufferStream();
-				buffer.push(stream);
-				return stream.on('pull', function() {
-					// Pull until a new value is added to the current stream
-					pullUntil(Fn.is(stream));
+			function group() {
+				var array = [];
+				var stream = Stream(function group() {
+					if (!array.length) {
+						// Pull until a new value is added to the current stream
+						pullUntil(Fn.is(stream));
+					}
+
+					return array.shift();
+				}, function push() {
+					array.push.apply(array, arguments);
 				});
+
+				buffer.push(stream);
+				return stream;
 			}
 
 			function pullUntil(check) {
@@ -721,7 +766,7 @@
 				var stream = streams.get(key);
 
 				if (stream === undefined) {
-					stream = create();
+					stream = group();
 					streams.set(key, stream);
 				}
 
@@ -733,43 +778,51 @@
 				return !!buffer.length;
 			}
 
-			return this.create(function group() {
+			return create(this, function group() {
 				// Pull until a new stream is available
 				pullUntil(isBuffered);
 				return buffer.shift();
 			});
 		},
 
-		groupTo: function(fn, object) {
-			var source = this;
-
-			function create() {
-				var stream = new BufferStream();
-				return stream.on('pull', pullAll);
-			}
-
-			function pullAll() {
-				var value = source.shift();
-				if (value === undefined) { return; }
-				var key = fn(value);
-				var stream = Fn.get(key, object);
-
-				if (stream === undefined) {
-					stream = create();
-					Fn.set(key, stream, object);
-				}
-
-				stream.push(value);
-				return pullAll();
-			}
-
-			return this.create(function group() {
-				if (source.status === 'done') { return; }
-				source.status = 'done';
-				pullAll();
-				return object;
-			});
-		},
+		//groupTo: function(fn, object) {
+		//	var source = this;
+		//
+		//	function group() {
+		//		var array = [];
+		//		return Stream(function group() {
+		//			if (!array.length) {
+		//				// Pull until a new value is added to the current stream
+		//				pullAll();
+		//			}
+		//			return array.shift();
+		//		}, function push() {
+		//			array.push.apply(array, arguments);
+		//		});
+		//	}
+		//
+		//	function pullAll() {
+		//		var value = source.shift();
+		//		if (value === undefined) { return; }
+		//		var key = fn(value);
+		//		var stream = Fn.get(key, object);
+		//
+		//		if (stream === undefined) {
+		//			stream = group();
+		//			Fn.set(key, stream, object);
+		//		}
+		//
+		//		stream.push(value);
+		//		return pullAll();
+		//	}
+		//
+		//	return create(this, function group() {
+		//		if (source.status === 'done') { return; }
+		//		source.status = 'done';
+		//		pullAll();
+		//		return object;
+		//	});
+		//},
 
 		scan: function(fn, seed) {
 			// seed defaults to 0
@@ -784,7 +837,7 @@
 			var source = this;
 			var values = [];
 
-			return this.create(function unique() {
+			return create(this, function unique() {
 				var value = source.shift();
 				if (value === undefined) { return; }
 
@@ -815,14 +868,20 @@
 		},
 
 		pipe: function(stream) {
-			if (!stream || !stream.on) {
+			if (!stream || !stream.push) {
 				throw new Error('Fn: Fn.pipe(object) object must be a pushable stream. (' + stream + ')');
 			}
 
 			var source = this;
 
-			stream.on('pull', function() {
-				stream.push(source.shift());
+			if (stream.push) {
+				source.on('push', stream.push);
+			}
+
+			stream.on('pull', function pull() {
+				var value = source.shift();
+				if (source.status === 'done') { stream.off('pull', pull); }
+				return value;
 			});
 
 			return stream;
@@ -845,7 +904,7 @@
 				return buffer1.shift();
 			};
 
-			return this.create(function clone() {
+			return create(this, function clone() {
 				if (!buffer2.length) { fill(); }
 				return buffer2.shift();
 			});
@@ -867,6 +926,8 @@
 			while ((value = this.shift()) !== undefined) {
 				fn(value);
 			}
+
+			return this;
 		},
 
 		reduce: function(fn, value) {
@@ -918,20 +979,20 @@
 	}
 
 	Object.assign(Fn, {
-		debug: false,
+		of: function of() { return new this(arguments); },
 
-		of: function of() {
-			return new this(arguments);
-		},
+		empty:          empty,
+		noop:           noop,
+		id:             id,
+		cache:          cache,
+		curry:          curry,
+		cacheCurry:     cacheCurry,
+		compose:        compose,
+		pipe:           pipe,
+		overloadLength: overloadLength,
+		overloadTypes:  overloadTypes,
 
-		empty:      empty,
-		noop:       noop,
-		id:         id,
-		cache:      cache,
-		curry:      curry,
-		cacheCurry: cacheCurry,
-		compose:    compose,
-		pipe:       pipe,
+		returnThis: function() { return this; },
 
 		is: curry(function is(a, b) { return a === b; }),
 
@@ -960,12 +1021,10 @@
 		isGreater: curry(function byGreater(a, b) { return b > a ; }),
 
 		by: curry(function by(property, a, b) {
-			return Fn.byGreater(a[property], b[property]);
+			return byGreater(a[property], b[property]);
 		}),
 
-		byGreater: curry(function byGreater(a, b) {
-			return a === b ? 0 : a > b ? 1 : -1 ;
-		}),
+		byGreater: curry(byGreater),
 
 		byAlphabet: curry(function byAlphabet(a, b) {
 			return S.localeCompare.call(a, b);
@@ -976,7 +1035,11 @@
 		get: curry(function get(key, object) {
 			return object && (typeof object.get === "function" ?
 				object.get(key) :
-				object[key]) ;
+				// Coerse null to undefined
+				object[key] === null ?
+					undefined :
+					object[key]
+			);
 		}),
 
 		set: curry(function set(key, value, object) {
@@ -1000,6 +1063,8 @@
 				(object[path] = value) :
 				objTo(object, array, value);
 		}),
+
+		bind: curry(bind),
 
 		invoke: curry(function invoke(name, args, object) {
 			return object[name].apply(object, args);
@@ -1067,12 +1132,17 @@
 			);
 		}),
 
-		concat:      curry(function concat(array2, array1) { return array1.concat ? array1.concat(array2) : A.concat.call(array1, array2); }),
-		filter:      curry(function filter(fn, object) { return object.filter ? object.filter(fn) : A.filter.call(object, fn); }),
-		reduce:      curry(function reduce(fn, n, object) { return object.reduce ? object.reduce(fn, n) : A.reduce.call(object, fn, n); }),
-		slice:       curry(function slice(n, m, object) { return object.slice ? object.slice(n, m) : A.slice.call(object, n, m); }),
-		sort:        curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
-		push:        curry(function push(value, object) {
+		concat:   curry(function concat(array2, array1) { return array1.concat ? array1.concat(array2) : A.concat.call(array1, array2); }),
+
+		filter:   curry(function filter(fn, object) { return object.filter ? object.filter(fn) : A.filter.call(object, fn); }),
+
+		reduce:   curry(function reduce(fn, n, object) { return object.reduce ? object.reduce(fn, n) : A.reduce.call(object, fn, n); }),
+
+		slice:    curry(function slice(n, m, object) { return object.slice ? object.slice(n, m) : A.slice.call(object, n, m); }),
+
+		sort:     curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
+
+		push:     curry(function push(value, object) {
 			(object.push || A.push).call(object, value);
 			return object;
 		}),
@@ -1130,12 +1200,8 @@
 		}),
 	
 		unite: curry(function unite(arr1, arr2) {
-			return arr1.concat(arr2).filter(unique).sort(greater);
+			return arr1.concat(arr2).filter(unique).sort(Fn.byGreater);
 		}),
-
-		//range: function(arr) {
-		//	return 	Math.max.apply(null, arr) - Math.min.apply(null, arr);
-		//},
 
 		randomGaussian: function randomGaussian(n) {
 			// Returns a random number with a bell curve probability centred
@@ -1143,12 +1209,52 @@
 			return n * (Math.random() + Math.random() - 1);
 		},
 
-		add:         curry(function add(a, b) { return b + a; }),
-		multiply:    curry(function multiply(a, b) { return b * a; }),
-		mod:         curry(function mod(a, b) { return b % a; }),
-		pow:         curry(function pow(a, b) { return Math.pow(b, a); }),
-		min:         curry(function min(a, b) { return a > b ? b : a ; }),
-		max:         curry(function max(a, b) { return a < b ? b : a ; }),
+		add:      curry(function add(a, b) { return b + a; }),
+
+		multiply: curry(function multiply(a, b) { return b * a; }),
+
+		mod:      curry(function mod(a, b) { return b % a; }),
+
+		pow:      curry(function pow(a, b) { return Math.pow(b, a); }),
+
+		min:      curry(function min(a, b) { return a > b ? b : a ; }),
+
+		max:      curry(function max(a, b) { return a < b ? b : a ; }),
+
+		limit:    curry(function limit(min, max, n) { return n > max ? max : n < min ? min : n ; }),
+
+		wrap:     curry(function wrap(min, max, n) { return (n < min ? max : min) + (n - min) % (max - min); }),
+
+		degToRad: function toDeg(n) { return n / angleFactor; },
+
+		radToDeg: function toRad(n) { return n * angleFactor; },
+
+		toPolar:  function setPolar(cartesian) {
+			var x = cartesian[0];
+			var y = cartesian[1];
+
+			return [
+				// Distance
+				x === 0 ?
+					Math.abs(y) :
+				y === 0 ?
+					Math.abs(x) :
+					Math.sqrt(x*x + y*y) ,
+				// Angle
+				Math.atan2(x, y)
+			];
+		},
+
+		toCartesian: function setCartesian(polar) {
+			var d = polar[0];
+			var a = polar[1];
+
+			return [
+				Math.sin(a) * d ,
+				Math.cos(a) * d
+			];
+		},
+
 		// conflicting properties not allowed in strict mode
 		// log:         curry(function log(base, n) { return Math.log(n) / Math.log(base); }),
 		nthRoot:     curry(function nthRoot(n, x) { return Math.pow(x, 1/n); }),
@@ -1171,11 +1277,15 @@
 		},
 
 		normalise:   curry(function normalise(min, max, value) { return (value - min) / (max - min); }),
+
 		denormalise: curry(function denormalise(min, max, value) { return value * (max - min) + min; }),
+
 		toFixed:     curry(function toFixed(n, value) { return N.toFixed.call(value, n); }),
+
 		rangeLog:    curry(function rangeLog(min, max, n) {
 			return Fn.denormalise(min, max, Math.log(n / min) / Math.log(max / min))
 		}),
+
 		rangeLogInv: curry(function rangeLogInv(min, max, n) {
 			return min * Math.pow(max / min, Fn.normalise(min, max, n));
 		}),
@@ -1186,18 +1296,24 @@
 			});
 		},
 
+
 		// Strings
-		match:      curry(function match(regex, string) { return regex.test(string); }),
-		exec:       curry(function parse(regex, string) { return regex.exec(string) || undefined; }),
-		replace:    curry(function replace(regex, fn, string) { return string.replace(regex, fn); }),
+
+		match:       curry(function match(regex, string) { return regex.test(string); }),
+
+		exec:        curry(function parse(regex, string) { return regex.exec(string) || undefined; }),
+
+		replace:     curry(function replace(regex, fn, string) { return string.replace(regex, fn); }),
 
 		slugify: function slugify(string) {
 			if (typeof string !== 'string') { return; }
 			return string.trim().toLowerCase().replace(/[\W_]/g, '-');
 		},
 
+
 		// Booleans
 		not: function not(object) { return !object; },
+
 
 		// Types
 
@@ -1207,11 +1323,11 @@
 			return !!value || (value !== undefined && value !== null && !Number.isNaN(value));
 		},
 
-		toType: function typeOf(object) {
+		toType: function toType(object) {
 			return typeof object;
 		},
 
-		toClass: function classOf(object) {
+		toClass: function toClass(object) {
 			return O.toString.apply(object).slice(8, -1);
 		},
 
@@ -1259,6 +1375,7 @@
 			};
 		})(regex, ['date', 'url', 'email', 'int', 'float']),
 
+
 		// JSON
 		stringify: function stringify(object) {
 			return JSON.stringify(Fn.toClass(object) === "Map" ?
@@ -1272,42 +1389,93 @@
 		})
 	});
 
+
 	// Stream
 
-	function Stream(setup) {
-		// Enable calling Stream without the new keyword.
-		if (!this || !Stream.prototype.isPrototypeOf(this)) {
-			return new Stream(setup);
-		}
+	var eventsSymbol = Symbol('events');
 
-		var observers = {};
+	function Stream(shift, push, stop) {
+		// Setting push sets push on the source of the stream,
+		// not the mouth. A weird one. Todo: convert back to events.
+		var stream = Object.create(Stream.prototype, {
+			push: {
+				set: function(fn) { push = fn; },
+				get: function()   { return push; }
+			}
+		});
 
-		function notify(type) {
-			if (!observers[type]) { return; }
-			A.slice.apply(observers[type]).forEach(call);
-		}
+		//stream.push = function() {
+		//	push.apply(stream, arguments);
+		//	trigger('push', stream);
+		//};
 
-		this.on = function on(type, fn) {
-			// Lazily create observers list
-			observers[type] = observers[type] || [] ;
-			// Add observer
-			observers[type].push(fn);
-			return this;
-		};
+		stream.shift = shift;
 
-		Object.assign(this, setup(notify));
+		if (stop) { stream.stop = stop; }
 
-		if (!this.hasOwnProperty('shift')) {
-			throw new Error('Fn.Stream: setup() did not provide a .shift() method.');
-		}
+		stream[eventsSymbol] = {};
+		return stream;
 	}
 
 	Stream.prototype = Object.create(Fn.prototype);
 
+	function overridePush(object, fn) {
+		var push = object.push;
+
+		object.push = function() {
+			// Deegate to previous .push()
+			push.apply(object, arguments);
+
+			// Notify 
+			fn();
+		};
+	}
+
+	function latest(source) {
+		var value, v;
+
+		while ((v = source.shift()) !== undefined) {
+			value = v;
+		}
+		
+		return value;
+	}
+
+	function getEvents(object) {
+		return object[eventsSymbol] || (object[eventsSymbol] = {});
+	}
+
+	function trigger(type, object) {
+		var events = object[eventsSymbol];
+		// Todo: make sure Fn(events[type]) is acting on a copy of events[type]
+		events && events[type] && Fn(events[type]).each(call);
+	}
+
 	Object.assign(Stream.prototype, {
+		on: function(type, fn) {
+			var events = this[eventsSymbol];
+			var listeners = events[type] || (events[type] = []);
+			listeners.push(fn);
+		},
+
+		off: function(type, fn) {
+			var events = this[eventsSymbol];
+			var listeners = events[type];
+			if (!listeners) { return; }
+			var n = listeners.length;
+			while (n--) {
+				if (listeners[n] === fn) { listeners.splice(n, 1); }
+			}
+		},
+
+		stop: function() {
+			this.status = "done";
+			trigger('done', this);
+		},
+
 		ap: function ap(object) {
 			var source = this;
-			return this.create(function ap() {
+			return create(this, function ap() {
 				var fn = source.shift();
 				if (fn === undefined) { return; }
 				return object.map(fn);
@@ -1319,7 +1487,7 @@
 		},
 
 		shift: function error() {
-			throw new Error('Fn: Stream has been created without a .next() method.');
+			throw new Error('Fn: Stream has been created without a .shift() method.');
 		},
 
 		pull: function pullWarning() {
@@ -1333,19 +1501,20 @@
 			var a = arguments;
 
 			function each() {
+				// Delegate to Fn.each()
 				Fn.prototype.each.apply(source, a);
 			}
 
 			// Flush and observe
 			each();
-			return this.on('push', each);
+			overridePush(this, each);
+			return this;
 		},
 
 		pipe: function(stream) {
+			// Delegate to Fn.pipe
 			Fn.prototype.pipe.apply(this, arguments);
-			// Notify a push without pushing any values -
-			// stream only needs to know values are available.
-			this.on('push', stream.push);
+			overridePush(this, stream.push);
 			return stream;
 		},
 
@@ -1369,7 +1538,7 @@
 					value ;
 			}
 
-			return this.create(function concatParallel() {
+			return create(this, function concatParallel() {
 				var object = source.shift();
 				if (object !== undefined) { bind(object); }
 				var value = shiftNext();
@@ -1379,50 +1548,36 @@
 
 		delay: function(time) {
 			var source = this;
+			var push = this.push;
+			var stream = Stream(source.shift, Fn.noop);
 
-			return new Stream(function setup(notify) {
-				source.on('push', function() {
-					setTimeout(notify, time, 'push');
-				});
+			this.push = function() {
+				push.apply(source, arguments);
+				setTimeout(stream.push, time);
+			};
 
-				return {
-					shift: function delay() {
-						return source.shift();
-					},
-
-					stop: function stop() {
-						// Probably should clear timers here.
-					}
-				};
-			});
+			return stream;
 		},
 
 		throttle: function(time) {
-			var source = this;
+			var source   = this;
+			var push     = this.push;
+			var stream   = Stream(function() {
+				var value = latest(source);
+				if (source.status === "done") {
+					throttle.cancel();
+					stream.status = "done";
+				}
+				return value;
+			}, Fn.noop);
+			var throttle = Fn.Throttle(stream.push, time);
 
-			return new Stream(function setup(notify) {
-				var t = Fn.Throttle(function() {
-					notify('push');
-				}, time);
+			this.push = function() {
+				push.apply(source, arguments);
+				throttle();
+			};
 
-				source.on('push', t);
-
-				return {
-					shift: function throttle() {
-						var value, v;
-
-						while ((v = source.shift()) !== undefined) {
-							value = v;
-						}
-
-						if (source.status === "done") { t.cancel(); }
-
-						return value;
-					},
-
-					stop: t.cancel
-				};
-			});
+			return stream;
 		},
 
 		toPromise: function() {
@@ -1449,187 +1604,37 @@
 	Object.assign(Stream, {
 		of: function() {
 			var a = arguments;
-			return new Stream(function setup(notify) {
-				var pulling = false;
 
-				return {
-					shift: function buffer() {
-						var value = A.shift.apply(a);
-
-						if (value === undefined) {
-							pulling = true;
-							notify('pull');
-							pulling = false;
-							value = A.shift.apply(a);
-						}
-
-						return value;
-					},
-
-					push: function push() {
-						A.push.apply(a, arguments);
-						if (!pulling) { notify('push'); }
-					}
-				};
+			return this(function shift() {
+				return shiftSparse(a);
+			}, function push() {
+				A.push.apply(a, arguments);
 			});
 		}
 	});
 
-	function ValueStream() {
-		return Stream(function setup(notify) {
-			var value;
-			var pulling = false;
-
-			return {
-				shift: function buffer() {
-					if (value === undefined) {
-						pulling = true;
-						notify('pull');
-						pulling = false;
-					}
-					var v = value;
-					value = undefined;
-					return v;
-				},
-
-				push: function push() {
-					// Store last pushed value
-					value = arguments[arguments.length - 1];
-					if (!pulling) { notify('push'); }
-					// Cancel value
-					value = undefined;
-				}
-			};
-		});
-	}
-
-
-	// BufferStream
-
-	function BufferStream(object) {
-		return Stream(function setup(notify) {
-			var source = typeof object === 'string' ? A.slice.apply(object) : object || [] ;
-			var pulling = false;
-
-			return {
-				shift: function buffer() {
-					var value = source.shift();
-
-					if (source.status === 'done') {
-						this.status = 'done';
-					}
-					else if (value === undefined) {
-						pulling = true;
-						notify('pull');
-						pulling = false;
-						value = source.shift();
-					}
-
-					return value;
-				},
-
-				push: function push() {
-					source.push.apply(source, arguments);
-					if (!pulling) { notify('push'); }
-				}
-			};
-		});
-	}
-
-	BufferStream.of = Stream.of;
-
-
-	// PromiseStream
-
-	function PromiseStream(promise) {
-		return new Stream(function setup(notify) {
-			var value;
-
-			promise.then(function(v) {
-				value = v;
-				notify('push');
-			});
-
-			return {
-				next: function promise() {
-					var v = value;
-					value = undefined;
-					return v;
-				}
-			};
-		});
-	}
-
-	PromiseStream.of = Stream.of;
-
 
 	// Pool
-
-//	function pool(Constructor, isIdle) {
-//		if (!Constructor.reset) {
-//			throw new Error('Fn: Fn.pool(constructor) - constructor must have a .reset() function');
-//		}
-//	
-//		var store = [];
-//
-//		function log() {
-//			var total = store.length;
-//			var idle = store.filter(isIdle).length;
-//
-//			return {
-//				name:   Constructor.name,
-//				total:  total,
-//				active: total - idle,
-//				idle:   idle
-//			};
-//		}
-//	
-//		// Todo: This is bad! It keeps a reference to the pools hanging around,
-//		// accessible from the global scope, so even if the pools are forgotten
-//		// they are never garbage collected!
-//		loggers.push(log);
-//	
-//		return function Pooled() {
-//			var object = store.find(isIdle);
-//	
-//			if (object) {
-//				Constructor.reset.apply(object, arguments);
-//			}
-//			else {
-//				object = Object.create(Constructor.prototype);
-//				Constructor.apply(object, arguments);
-//				store.push(object);
-//			}
-//	
-//			return object;
-//		};
-//	}
-//
-//	pool.snapshot = function() {
-//		return Fn(loggers).map(call).toJSON();
-//	};
 
 	function Pool(options, prototype) {
 		var create = options.create || Fn.noop;
 		var reset  = options.reset  || Fn.noop;
 		var isIdle = options.isIdle;
 		var store = [];
-
-		function log() {
+	
+		// Todo: This is bad! It keeps a reference to the pools hanging around,
+		// accessible from the global scope, so even if the pools are forgotten
+		// they are never garbage collected!
+		loggers.push(function log() {
 			var total = store.length;
-			var idle = store.filter(isIdle).length;
+			var idle  = store.filter(isIdle).length;
 			return {
 				name:   options.name,
 				total:  total,
 				active: total - idle,
 				idle:   idle
 			};
-		}
-	
-		// Todo: This is bad! It keeps a reference to the pools hanging around,
-		// accessible from the global scope, so even if the pools are forgotten
-		// they are never garbage collected!
-		loggers.push(log);
+		});
 
 		return function PooledObject() {
 			var object = store.find(isIdle);
@@ -1656,10 +1661,7 @@
 		Pool:          Pool,
 		Throttle:      Throttle,
 		Hold:          Hold,
-		Stream:        Stream,
-		ValueStream:   ValueStream,
-		BufferStream:  BufferStream,
-		PromiseStream: PromiseStream
+		Stream:        Stream
 	});
 
 	window.Fn = Fn;

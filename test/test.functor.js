@@ -194,15 +194,15 @@ test('.group(fn)', function() {
 	equals(undefined, f.shift());
 });
 
-test('.groupTo(fn, object)', function() {
-	var f = Fn.of(0,1,'one',true).groupTo(Fn.toType, {}).stringify();
-	equals('{"number":[0,1],"string":["one"],"boolean":[true]}', f.shift());
-	equals(undefined, f.shift());
-
-	var f = Fn.of(0,1,'one',true).groupTo(Fn.toType, new Map());
-	equals('one', f.shift().get('string').toArray().join());
-	equals(undefined, f.shift());
-});
+//test('.groupTo(fn, object)', function() {
+//	var f = Fn.of(0,1,'one',true).groupTo(Fn.toType, {}).stringify();
+//	equals('{"number":[0,1],"string":["one"],"boolean":[true]}', f.shift());
+//	equals(undefined, f.shift());
+//
+//	var f = Fn.of(0,1,'one',true).groupTo(Fn.toType, new Map());
+//	equals('one', f.shift().get('string').toArray().join());
+//	equals(undefined, f.shift());
+//});
 
 
 console.groupEnd();
