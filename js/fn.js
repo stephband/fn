@@ -608,6 +608,62 @@
 			});
 		},
 
+		// Todo: Perhaps CueTimer should become part of Fn?
+		cue: function(request, cancel, cuetime, test) {
+			var source    = this;
+			var cuestream = Stream.of();
+			var startTime = -Infinity;
+			var stopTime  = Infinity;
+			var t1        = startTime;
+			var value;
+
+			function cue(time) {
+				var t2 = time >= stopTime ? stopTime : time ;
+
+				if (value === undefined || test(t1, t2, value)) {
+					if (value !== undefined) {
+						cuestream.push(value);
+					}
+
+					while ((value = source.shift()) !== undefined && test(t1, t2, value)) {
+						cuestream.push(value);
+						value = undefined;
+					}
+				}
+
+				if (source.status === 'done') { return; }
+				if (time === stopTime) { return; }
+
+				t1 = startTime > time ? startTime : time ;
+				request(cue);
+			}
+
+			cuestream.stop = function stop(time) {
+				stopTime = time;
+				if (stopTime <= t1) { cancel(cue); }
+				return this;
+			};
+
+			cuestream.start = function start(time) {
+				startTime = time;
+				t1 = startTime;
+
+				if (startTime >= cuetime()) {
+					// This is ok even when cuetime() is -Infinity, because the
+					// first request() goes through the timer synchronously, ie
+					// immediately
+					request(cue);
+				}
+				else {
+					cue(cuetime());
+				}
+
+				return this;
+			};
+
+			return cuestream;
+		},
+
 		sort: function(fn) {
 			fn = fn || Fn.byGreater ;
 
@@ -874,7 +930,7 @@
 
 			var source = this;
 
-			if (stream.push) {
+			if (stream.push && source.on) {
 				source.on('push', stream.push);
 			}
 
@@ -1395,41 +1451,28 @@
 	var eventsSymbol = Symbol('events');
 
 	function Stream(shift, push, stop) {
-		// Setting push sets push on the source of the stream,
-		// not the mouth. A weird one. Todo: convert back to events.
-		var stream = Object.create(Stream.prototype, {
-			push: {
-				set: function(fn) { push = fn; },
-				get: function()   { return push; }
-			}
-		});
+		// Enable construction without the `new` keyword
+		if (!Stream.prototype.isPrototypeOf(this)) {
+			return new Stream(shift, push, stop);
+		}
 
-		//stream.push = function() {
-		//	push.apply(stream, arguments);
-		//	trigger('push', stream);
-		//};
+		var stream = this;
 
-		stream.shift = shift;
+		this.shift = shift;
+
+		if (push) {
+			this.push = function() {
+				push.apply(stream, arguments);
+				trigger('push', stream);
+			};
+		}
 
 		if (stop) { stream.stop = stop; }
 
 		stream[eventsSymbol] = {};
-		return stream;
 	}
 
 	Stream.prototype = Object.create(Fn.prototype);
-
-	function overridePush(object, fn) {
-		var push = object.push;
-
-		object.push = function() {
-			// Deegate to previous .push()
-			push.apply(object, arguments);
-
-			// Notify 
-			fn();
-		};
-	}
 
 	function latest(source) {
 		var value, v;
@@ -1447,8 +1490,8 @@
 
 	function trigger(type, object) {
 		var events = object[eventsSymbol];
-		// Todo: make sure Fn(events[type]) is acting on a copy of events[type]
-		events && events[type] && Fn(events[type]).each(call);
+		// Todo: make sure forEach is acting on a copy of events[type] ?
+		events && events[type] && events[type].forEach(call);
 	}
 
 	Object.assign(Stream.prototype, {
@@ -1456,6 +1499,7 @@
 			var events = this[eventsSymbol];
 			var listeners = events[type] || (events[type] = []);
 			listeners.push(fn);
+			return this;
 		},
 
 		off: function(type, fn) {
@@ -1466,6 +1510,7 @@
 			while (n--) {
 				if (listeners[n] === fn) { listeners.splice(n, 1); }
 			}
+			return this;
 		},
 
 		stop: function() {
@@ -1486,16 +1531,6 @@
 			throw new Error('Fn: ' + this.constructor.name + ' is not pushable.');
 		},
 
-		shift: function error() {
-			throw new Error('Fn: Stream has been created without a .shift() method.');
-		},
-
-		pull: function pullWarning() {
-			// Legacy warning
-			console.warn('stream.pull() deprecated. Use stream.each().');
-			return this.each.apply(this, arguments);
-		},
-
 		each: function(fn) {
 			var source = this;
 			var a = arguments;
@@ -1507,14 +1542,13 @@
 
 			// Flush and observe
 			each();
-			overridePush(this, each);
-			return this;
+			return this.on('push', each);
 		},
 
 		pipe: function(stream) {
 			// Delegate to Fn.pipe
 			Fn.prototype.pipe.apply(this, arguments);
-			overridePush(this, stream.push);
+			this('push', stream.push);
 			return stream;
 		},
 
@@ -1605,7 +1639,7 @@
 		of: function() {
 			var a = arguments;
 
-			return this(function shift() {
+			return new Stream(function shift() {
 				return shiftSparse(a);
 			}, function push() {
 				A.push.apply(a, arguments);

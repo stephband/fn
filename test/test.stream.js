@@ -48,12 +48,12 @@ test('.map()', function() {
 	equals('1,2,3,4', s2.toArray().join());
 });
 
-test('.pipe()', function() {
-	var s1 = Fn([0,1,2,3]);
-	var s2 = s1.pipe(Stream.of());
-
-	equals('0,1,2,3', s2.toArray().join());
-});
+//test('.pipe()', function() {
+//	var s1 = Fn([0,1,2,3]);
+//	var s2 = s1.pipe(Stream.of());
+//
+//	equals('0,1,2,3', s2.toArray().join());
+//});
 
 test('.each()', function() {
 	console.log('pull a stream...');
@@ -64,14 +64,14 @@ test('.each()', function() {
 	s1.push(4,5);
 	equals('0,1,2,3,4,5', results1.join());
 
-	console.log('pull from a piped stream...');
-	var results2 = [];
-	var s2 = Stream.of(0,1,2,3);
-	var s3 = s2.pipe(Stream.of()).each(function(value) {
-		results2.push(value);
-	});
-	s2.push(4,5);
-	equals('0,1,2,3,4,5', results2.join());
+//	console.log('pull from a piped stream...');
+//	var results2 = [];
+//	var s2 = Stream.of(0,1,2,3);
+//	var s3 = s2.pipe(Stream.of()).each(function(value) {
+//		results2.push(value);
+//	});
+//	s2.push(4,5);
+//	equals('0,1,2,3,4,5', results2.join());
 });
 
 test('.group()', function() {
