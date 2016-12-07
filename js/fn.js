@@ -609,25 +609,33 @@
 		},
 
 		// Todo: Perhaps CueTimer should become part of Fn?
-		cue: function(request, cancel, cuetime, test) {
+		cue: function(request, cancel, cuetime, map, test) {
 			var source    = this;
 			var cuestream = Stream.of();
 			var startTime = -Infinity;
 			var stopTime  = Infinity;
 			var t1        = startTime;
-			var value;
+			var value, mappedValue;
 
 			function cue(time) {
 				var t2 = time >= stopTime ? stopTime : time ;
 
-				if (value === undefined || test(t1, t2, value)) {
-					if (value !== undefined) {
-						cuestream.push(value);
-					}
-
-					while ((value = source.shift()) !== undefined && test(t1, t2, value)) {
-						cuestream.push(value);
+				if (value === undefined) {
+					while ((value = source.shift()) !== undefined && (mappedValue = map(value)) !== undefined && test(t1, t2, mappedValue)) {
+						cuestream.push(mappedValue);
 						value = undefined;
+					}
+				}
+				else {
+					mappedValue = map(value);
+
+					if (mappedValue !== undefined && test(t1, t2, mappedValue)) {
+						cuestream.push(mappedValue);
+
+						while ((value = source.shift()) !== undefined && (mappedValue = map(value)) !== undefined && test(t1, t2, mappedValue)) {
+							cuestream.push(mappedValue);
+							value = undefined;
+						}
 					}
 				}
 
