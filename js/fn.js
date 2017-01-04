@@ -305,7 +305,9 @@
 
 	// Throttle
 
-	// Returns a function 
+	// Returns a function that calls `fn` immediately the first time it is
+	// called, and thereafter once every `time` seconds during which function is
+	// called, with the last context and arguments.
 
 	var requestAnimationFrame = window.requestAnimationFrame;
 
@@ -395,12 +397,12 @@
 	}
 
 
-	// Hold
+	// Wait
 
 	// Returns a function that waits for `time` seconds without being called
-	// before calling fn with the latest context and arguments.
+	// before calling `fn` with the last context and arguments passed to function.
 
-	function Hold(fn, time) {
+	function Wait(fn, time) {
 		var timer;
 
 		var queue = function() {
@@ -1060,6 +1062,10 @@
 
 		is: curry(function is(a, b) { return a === b; }),
 
+		and: curry(function and(a, b) {
+			return !!(a && b);
+		}),
+
 		equals: curry(function equals(a, b) {
 			// Fast out if references are for the same object.
 			if (a === b) { return true; }
@@ -1189,8 +1195,10 @@
 		},
 
 		each: curry(function each(fn, object) {
+			// A stricter version of .forEach, where the callback fn
+			// gets only one argument.
 			return object && (
-				object.each ? object.each(fn) :
+				typeof object.each === 'function' ? object.each(fn) :
 				object.forEach ? object.forEach(function(item) { fn(item); }) :
 				A.forEach.call(object, function(item) { fn(item); })
 			);
@@ -1702,7 +1710,7 @@
 	Object.assign(Fn, {
 		Pool:          Pool,
 		Throttle:      Throttle,
-		Hold:          Hold,
+		Wait:          Wait,
 		Stream:        Stream
 	});
 
