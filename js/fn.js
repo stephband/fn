@@ -1384,6 +1384,10 @@
 
 
 		// Booleans
+		or: curry(function or(a, b) { return a || b; }),
+
+		xor: curry(function or(a, b) { return (a || b) && (!!a !== !!b); }),
+
 		not: function not(object) { return !object; },
 
 
