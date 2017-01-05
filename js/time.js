@@ -1,8 +1,6 @@
 (function(window) {
 	"use strict";
 
-	var Fn = window.Fn;
-
 	// Be generous with the input we accept.
 	var rdate     = /^(-)?(\d{4})(?:-(\d+))?(?:-(\d+))?$/;
 	var rtime     = /^(-)?(\d+):(\d+)(?::(\d+(?:\.\d+)?))?$/;
@@ -48,6 +46,14 @@
 		}
 	};
 
+	var timeSymbol = Symbol('ms');
+
+	function isDefined(value) {
+		// !!value is a fast out for non-zero numbers, non-empty strings
+		// and other objects, the rest checks for 0, '', etc.
+		return !!value || (value !== undefined && value !== null && !Number.isNaN(value));
+	}
+
 //	function createDate(value) {
 //		// Test the Date constructor to see if it is parsing date
 //		// strings as local dates, as per the ES6 spec, or as GMT, as
@@ -80,9 +86,9 @@
 
 		var sign = tokens[1] ? -1 : 1 ;
 
-		if (Fn.isDefined(tokens[4])) { date.setUTCMilliseconds(date.getUTCMilliseconds() + sign * parseFloat(tokens[4]) * 1000); }
-		if (Fn.isDefined(tokens[3])) { date.setUTCMinutes(date.getUTCMinutes() + sign * parseInt(tokens[3], 10)); }
-		if (Fn.isDefined(tokens[2])) { date.setUTCHours(date.getUTCHours() + sign * parseInt(tokens[2], 10)); }
+		if (isDefined(tokens[4])) { date.setUTCMilliseconds(date.getUTCMilliseconds() + sign * parseFloat(tokens[4]) * 1000); }
+		if (isDefined(tokens[3])) { date.setUTCMinutes(date.getUTCMinutes() + sign * parseInt(tokens[3], 10)); }
+		if (isDefined(tokens[2])) { date.setUTCHours(date.getUTCHours() + sign * parseInt(tokens[2], 10)); }
 
 		return date;
 	}
@@ -94,9 +100,9 @@
 
 		var sign = tokens[1] ? -1 : 1 ;
 
-		if (Fn.isDefined(tokens[4])) { date.setUTCDate(date.getUTCDate() + sign * parseInt(tokens[4], 10)); }
-		if (Fn.isDefined(tokens[3])) { date.setUTCMonth(date.getUTCMonth() + sign * parseInt(tokens[3], 10)); }
-		if (Fn.isDefined(tokens[2])) { date.setUTCFullYear(date.getUTCFullYear() + sign * parseInt(tokens[2], 10)); }
+		if (isDefined(tokens[4])) { date.setUTCDate(date.getUTCDate() + sign * parseInt(tokens[4], 10)); }
+		if (isDefined(tokens[3])) { date.setUTCMonth(date.getUTCMonth() + sign * parseInt(tokens[3], 10)); }
+		if (isDefined(tokens[2])) { date.setUTCFullYear(date.getUTCFullYear() + sign * parseInt(tokens[2], 10)); }
 
 		return date;
 	}
@@ -106,25 +112,30 @@
 			return new Time(time);
 		}
 
-		var date = time === undefined ? new Date(0) :
-			time instanceof Date ? time :
-			rtime.test(time) ? addTimeToDate(time, new Date(0)) :
-			new Date(time) ;
-
-		this.toDate = function() { return date; }
+		this[timeSymbol] = time === undefined ? 0 :
+			// Accept time in seconds
+			typeof time === 'number' ? time * 1000 :
+			// Accept date objects.
+			time instanceof Date ? +time :
+			// Accept time strings
+			rtime.test(time) ? +addTimeToDate(time, new Date(0)) :
+			// Accept date strings
+			+new Date(time) ;
 	}
 
 	Object.assign(Time.prototype, {
 		toJSON: function() {
-			return this.toDate().toJSON();
+			return new Date(this[timeSymbol]).toJSON();
 		},
 
 		add: function(time) {
-			var date  = new Date(this.toDate());
-
-			return new Time(rdate.test(time) ?
-				addDateToDate(time, date) :
-				addTimeToDate(time, date)
+			return new Time(
+				// Accept time in seconds
+				typeof time === "number" ? time + this[timeSymbol] / 1000 :
+				// Accept date string
+				rdate.test(time) ? addDateToDate(time, new Date(this[timeSymbol])) :
+				// Accept time string
+				addTimeToDate(time, new Date(this[timeSymbol]))
 			);
 		},
 
@@ -134,9 +145,9 @@
 				grain :
 				days[grain] ;
 
-			var date = new Date(this.toDate());
+			var date = new Date(this[timeSymbol]);
 
-			if (!Fn.isDefined(day)) {
+			if (!isDefined(day)) {
 				date.setUTCMilliseconds(0);
 				if (grain === 'second') { return new Time(date); }
 
@@ -179,7 +190,7 @@
 			var rletter = /(th|ms|[YZMDdHhmsz]{1,4}|[a-zA-Z])/g;
 
 			return function render(string, lang) {
-				var date = this.toDate();
+				var date = new Date(this[timeSymbol]);
 				return string.replace(rletter, function($0, $1) {
 					return Time.format[$1] ? Time.format[$1](date, lang) : $1 ;
 				});
@@ -187,13 +198,9 @@
 		})(),
 
 		toTimestamp: function() {
-			return +this.toDate() / 1000;
+			return this[timeSymbol] / 1000;
 		}
 	});
-
-	// .toString() enables comparisons of the genre time1 > time2,
-	// but not equality checking (which does not coerce to string).
-	Time.prototype.toString = Time.prototype.toJSON;
 
 	Object.defineProperties(Time.prototype, {
 		date: {
@@ -210,6 +217,18 @@
 			enumerable: true
 		}
 	});
+
+	// .toString() enables comparisons of the genre time1 > time2,
+	// but not equality checking (which does not coerce to string).
+	Time.prototype.toString = Time.prototype.toJSON;
+
+	if (Symbol.toPrimitive) {
+		Time.prototype[Symbol.toPrimitive] = function(hint) {
+			return hint === 'number' ?
+				this.toTimestamp() :
+				this.toJSON() ;
+		};
+	}
 
 	Object.assign(Time, {
 		now: function() {
