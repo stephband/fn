@@ -46,7 +46,7 @@
 		}
 	};
 
-	var timeSymbol = Symbol('ms');
+	var timeSymbol = Symbol('seconds');
 
 	function isDefined(value) {
 		// !!value is a fast out for non-zero numbers, non-empty strings
@@ -114,28 +114,28 @@
 
 		this[timeSymbol] = time === undefined ? 0 :
 			// Accept time in seconds
-			typeof time === 'number' ? time * 1000 :
+			typeof time === 'number' ? time :
 			// Accept date objects.
-			time instanceof Date ? +time :
+			time instanceof Date ? +time / 1000 :
 			// Accept time strings
-			rtime.test(time) ? +addTimeToDate(time, new Date(0)) :
+			rtime.test(time) ? +addTimeToDate(time, new Date(0)) / 1000 :
 			// Accept date strings
-			+new Date(time) ;
+			+new Date(time) / 1000 ;
 	}
 
 	Object.assign(Time.prototype, {
 		toJSON: function() {
-			return new Date(this[timeSymbol]).toJSON();
+			return new Date(this[timeSymbol] * 1000).toJSON();
 		},
 
 		add: function(time) {
 			return new Time(
 				// Accept time in seconds
-				typeof time === "number" ? time + this[timeSymbol] / 1000 :
+				typeof time === "number" ? time + this[timeSymbol] :
 				// Accept date string
-				rdate.test(time) ? addDateToDate(time, new Date(this[timeSymbol])) :
+				rdate.test(time) ? addDateToDate(time, new Date(this[timeSymbol] * 1000)) :
 				// Accept time string
-				addTimeToDate(time, new Date(this[timeSymbol]))
+				addTimeToDate(time, new Date(this[timeSymbol] * 1000))
 			);
 		},
 
@@ -145,7 +145,7 @@
 				grain :
 				days[grain] ;
 
-			var date = new Date(this[timeSymbol]);
+			var date = new Date(this[timeSymbol] * 1000);
 
 			if (!isDefined(day)) {
 				date.setUTCMilliseconds(0);
@@ -190,7 +190,7 @@
 			var rletter = /(th|ms|[YZMDdHhmsz]{1,4}|[a-zA-Z])/g;
 
 			return function render(string, lang) {
-				var date = new Date(this[timeSymbol]);
+				var date = new Date(this[timeSymbol] * 1000);
 				return string.replace(rletter, function($0, $1) {
 					return Time.format[$1] ? Time.format[$1](date, lang) : $1 ;
 				});
@@ -198,7 +198,7 @@
 		})(),
 
 		toTimestamp: function() {
-			return this[timeSymbol] / 1000;
+			return this[timeSymbol];
 		}
 	});
 
@@ -236,21 +236,21 @@
 		},
 
 		format: {
-			YYYY: function(date) { return ('000' + date.getFullYear()).slice(-4); },
-			YY:   function(date) { return ('0' + date.getFullYear() % 100).slice(-2); },
-			MM:   function(date) { return ('0' + (date.getMonth() + 1)).slice(-2); },
-			MMM:  function(date) { return this.MMMM(date).slice(0,3); },
+			YYYY: function(date)       { return ('000' + date.getFullYear()).slice(-4); },
+			YY:   function(date)       { return ('0' + date.getFullYear() % 100).slice(-2); },
+			MM:   function(date)       { return ('0' + (date.getMonth() + 1)).slice(-2); },
+			MMM:  function(date)       { return this.MMMM(date).slice(0,3); },
 			MMMM: function(date, lang) { return locales[lang || Time.lang].months[date.getMonth()]; },
-			D:    function(date) { return '' + date.getDate(); },
-			DD:   function(date) { return ('0' + date.getDate()).slice(-2); },
-			ddd:  function(date) { return this.dddd(date).slice(0,3); },
+			D:    function(date)       { return '' + date.getDate(); },
+			DD:   function(date)       { return ('0' + date.getDate()).slice(-2); },
+			ddd:  function(date)       { return this.dddd(date).slice(0,3); },
 			dddd: function(date, lang) { return locales[lang || Time.lang].days[date.getDay()]; },
-			HH:   function(date) { return ('0' + date.getHours()).slice(-2); },
-			hh:   function(date) { return ('0' + date.getHours() % 12).slice(-2); },
-			mm:   function(date) { return ('0' + date.getMinutes()).slice(-2); },
-			ss:   function(date) { return ('0' + date.getSeconds()).slice(-2); },
-			sss:  function(date) { return (date.getSeconds() + date.getMilliseconds() / 1000 + '').replace(/^\d\.|^\d$/, function($0){ return '0' + $0; }); },
-			ms:   function(date) { return '' + date.getMilliseconds(); },
+			HH:   function(date)       { return ('0' + date.getHours()).slice(-2); },
+			hh:   function(date)       { return ('0' + date.getHours() % 12).slice(-2); },
+			mm:   function(date)       { return ('0' + date.getMinutes()).slice(-2); },
+			ss:   function(date)       { return ('0' + date.getSeconds()).slice(-2); },
+			sss:  function(date)       { return (date.getSeconds() + date.getMilliseconds() / 1000 + '').replace(/^\d\.|^\d$/, function($0){ return '0' + $0; }); },
+			ms:   function(date)       { return '' + date.getMilliseconds(); },
 
 			// Experimental
 			am: function(date) { return date.getHours() < 12 ? 'am' : 'pm'; },
