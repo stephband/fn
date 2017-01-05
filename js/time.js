@@ -125,7 +125,7 @@
 
 	Object.assign(Time.prototype, {
 		toJSON: function() {
-			return new Date(this[timeSymbol] * 1000).toJSON();
+			return this.toDate().toJSON();
 		},
 
 		add: function(time) {
@@ -133,9 +133,9 @@
 				// Accept time in seconds
 				typeof time === "number" ? time + this[timeSymbol] :
 				// Accept date string
-				rdate.test(time) ? addDateToDate(time, new Date(this[timeSymbol] * 1000)) :
+				rdate.test(time) ? addDateToDate(time, this.toDate()) :
 				// Accept time string
-				addTimeToDate(time, new Date(this[timeSymbol] * 1000))
+				addTimeToDate(time, this.toDate())
 			);
 		},
 
@@ -145,7 +145,7 @@
 				grain :
 				days[grain] ;
 
-			var date = new Date(this[timeSymbol] * 1000);
+			var date = this.toDate();
 
 			if (!isDefined(day)) {
 				date.setUTCMilliseconds(0);
@@ -190,12 +190,16 @@
 			var rletter = /(th|ms|[YZMDdHhmsz]{1,4}|[a-zA-Z])/g;
 
 			return function render(string, lang) {
-				var date = new Date(this[timeSymbol] * 1000);
+				var date = this.toDate();
 				return string.replace(rletter, function($0, $1) {
 					return Time.format[$1] ? Time.format[$1](date, lang) : $1 ;
 				});
 			};
 		})(),
+
+		toDate: function() {
+			return new Date(this[timeSymbol] * 1000);
+		},
 
 		toTimestamp: function() {
 			return this[timeSymbol];
