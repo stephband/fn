@@ -10,7 +10,10 @@
 
 	var days = { mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 0 };
 
-	function createList(ordinals) {
+	// Duration of year, in seconds
+	var year = 31557600;
+
+	function createOrdinals(ordinals) {
 		var array = [], n = 0;
 
 		while (n++ < 31) {
@@ -24,29 +27,27 @@
 		'en': {
 			days:     ('Sunday Monday Tuesday Wednesday Thursday Friday Saturday').split(' '),
 			months:   ('January February March April May June July August September October November December').split(' '),
-			ordinals: createList({ n: 'th', 1: 'st', 2: 'nd', 3: 'rd', 21: 'st', 22: 'nd', 23: 'rd', 31: 'st' })
+			ordinals: createOrdinals({ n: 'th', 1: 'st', 2: 'nd', 3: 'rd', 21: 'st', 22: 'nd', 23: 'rd', 31: 'st' })
 		},
 
 		'fr': {
 			days:     ('dimanche lundi mardi mercredi jeudi vendredi samedi').split(' '),
 			months:   ('janvier février mars avril mai juin juillet août septembre octobre novembre décembre').split(' '),
-			ordinals: createList({ n: "ième", 1: "er" })
+			ordinals: createOrdinals({ n: "ième", 1: "er" })
 		},
 
 		'de': {
 			days:     ('Sonntag Montag Dienstag Mittwoch Donnerstag Freitag Samstag').split(' '),
 			months:   ('Januar Februar März April Mai Juni Juli Oktober September Oktober November Dezember').split(' '),
-			ordinals: createList({ n: "er" })
+			ordinals: createOrdinals({ n: "er" })
 		},
 
 		'it': {
 			days:     ('domenica lunedì martedì mercoledì giovedì venerdì sabato').split(' '),
 			months:   ('gennaio febbraio marzo aprile maggio giugno luglio agosto settembre ottobre novembre dicembre').split(' '),
-			ordinals: createList({ n: "o" })
+			ordinals: createOrdinals({ n: "o" })
 		}
 	};
-
-	var timeSymbol = Symbol('seconds');
 
 	function isDefined(value) {
 		// !!value is a fast out for non-zero numbers, non-empty strings
@@ -108,34 +109,53 @@
 	}
 
 	function Time(time) {
+		// If time is a time object, don't make a new one, return it
+		if (time instanceof Time) { return time; }
+
+		// Time has not been called with `new` do that now
 		if (!Time.prototype.isPrototypeOf(this)) {
 			return new Time(time);
 		}
 
-		this[timeSymbol] = time === undefined ? 0 :
-			// Accept time in seconds
-			typeof time === 'number' ? time :
-			// Accept date objects.
-			time instanceof Date ? +time / 1000 :
-			// Accept time strings
-			rtime.test(time) ? +addTimeToDate(time, new Date(0)) / 1000 :
-			// Accept date strings
-			+new Date(time) / 1000 ;
+		Object.defineProperty(this, 'timestamp', {
+			enumerable: true,
+
+			value: time === undefined ? 0 :
+				// Accept time in seconds
+				typeof time === 'number' ? time :
+				// Accept date objects.
+				time instanceof Date ? +time / 1000 :
+				// Accept time strings
+				rtime.test(time) ? +addTimeToDate(time, new Date(0)) / 1000 :
+				// Accept date strings
+				+new Date(time) / 1000
+		});
+
+		// Check now for invalid times
+		if (Number.isNaN(this.timestamp)) {
+			throw new Error('Time: Invalid argument: ' + typeof time + ' ' + time);
+		}
+	}
+
+	function create(seconds) {
+		// A fast way of creating times without all the bothersome type checking
+		return Object.create(Time.prototype, {
+			timestamp: {
+				enumerable: true,
+				value: seconds
+			}
+		});
 	}
 
 	Object.assign(Time.prototype, {
-		toJSON: function() {
-			return this.toDate().toJSON();
-		},
-
 		add: function(time) {
-			return new Time(
+			return create(
 				// Accept time in seconds
-				typeof time === "number" ? time + this[timeSymbol] :
+				typeof time === "number" ? time + this.timestamp :
 				// Accept date string
-				rdate.test(time) ? addDateToDate(time, this.toDate()) :
+				rdate.test(time) ? +addDateToDate(time, this.toDate()) / 1000 :
 				// Accept time string
-				addTimeToDate(time, this.toDate())
+				+addTimeToDate(time, this.toDate()) / 1000
 			);
 		},
 
@@ -187,6 +207,7 @@
 		},
 
 		render: (function() {
+			// Todo: this regex should be stricter
 			var rletter = /(th|ms|[YZMDdHhmsz]{1,4}|[a-zA-Z])/g;
 
 			return function render(string, lang) {
@@ -197,12 +218,33 @@
 			};
 		})(),
 
-		toDate: function() {
-			return new Date(this[timeSymbol] * 1000);
+		valueOf: function() {
+			return this.timestamp;
 		},
 
-		toTimestamp: function() {
-			return this[timeSymbol];
+		toDate: function() {
+			return new Date(this.valueOf() * 1000);
+		},
+
+		toString: function() {
+			return this.valueOf() + '';
+		},
+
+		toJSON: function() {
+			return this.toDate().toJSON();
+		},
+
+		to: function(unit) {
+			return unit === 'ms' ? Time.secToMs(this.timestamp) :
+				unit === 'months' ? Time.secToMonths(this.timestamp) :
+				// Accept string starting with...
+				unit[0] === 's' ? this.timestamp :
+				unit[0] === 'm' ? Time.secToMins(this.timestamp) :
+				unit[0] === 'h' ? Time.secToHours(this.timestamp) :
+				unit[0] === 'd' ? Time.secToDays(this.timestamp) :
+				unit[0] === 'w' ? Time.secToWeeks(this.timestamp) :
+				unit[0] === 'y' ? Time.secToYears(this.timestamp) :
+				undefined ;
 		}
 	});
 
@@ -210,29 +252,37 @@
 		date: {
 			get: function() {
 				return this.toJSON().slice(0, 10);
-			},
-			enumerable: true
+			}
 		},
 
 		time: {
 			get: function() {
 				return this.toJSON().slice(11, -1);
-			},
-			enumerable: true
+			}
 		}
 	});
 
-	// .toString() enables comparisons of the genre time1 > time2,
-	// but not equality checking (which does not coerce to string).
-	Time.prototype.toString = Time.prototype.toJSON;
-
-	if (Symbol.toPrimitive) {
-		Time.prototype[Symbol.toPrimitive] = function(hint) {
-			return hint === 'number' ?
-				this.toTimestamp() :
-				this.toJSON() ;
-		};
-	}
+	// Here are the types requested for certain operations, and
+	// the methods they fall back to when Symbol.toPrimitive does
+	// not exist. For consistency, it's probably best not to change
+	// the results of these operations with Symbol.toPrimitive after
+	// all.
+	// 
+	// +Time()          type: "number"   method: valueOf
+	// Time() * 4       type: "number"   method: valueOf
+	// Time() + 4       type: "default"  method: valueOf
+	// Time() < 0       type: "number"   method: valueOf
+	// [Time()].join()  type: "string"   method: toString
+	// Time() + ''      type: "default"  method: valueOf
+	// new Date(Time()) type: "default"  method: valueOf
+	//
+	// if (Symbol.toPrimitive) {
+	//	Time.prototype[Symbol.toPrimitive] = function(type) {
+	//		return type === 'number' ?
+	//			this.timestamp :
+	//			this.toJSON() ;
+	//	};
+	// }
 
 	Object.assign(Time, {
 		now: function() {
@@ -257,17 +307,33 @@
 			ms:   function(date)       { return '' + date.getMilliseconds(); },
 
 			// Experimental
-			am: function(date) { return date.getHours() < 12 ? 'am' : 'pm'; },
-			zz: function(date) {
+			am:   function(date) { return date.getHours() < 12 ? 'am' : 'pm'; },
+			zz:   function(date) {
 				return (date.getTimezoneOffset() < 0 ? '+' : '-') +
 					 ('0' + Math.round(100 * Math.abs(date.getTimezoneOffset()) / 60)).slice(-4) ;
 			},
-			th: function(date, lang) { return locales[lang || Time.lang].ordinals[date.getDate()]; },
-			n:  function(date) { return +date; },
-			ZZ: function(date) { return -date.getTimezoneOffset() * 60; }
+			th:   function(date, lang) { return locales[lang || Time.lang].ordinals[date.getDate()]; },
+			n:    function(date) { return +date; },
+			ZZ:   function(date) { return -date.getTimezoneOffset() * 60; }
 		},
 
-		locales: locales
+		locales: locales,
+
+		secToMs:     function(n) { return n * 1000; },
+		secToMins:   function(n) { return n / 60; },
+		secToHours:  function(n) { return n / 3600; },
+		secToDays:   function(n) { return n / 86400; },
+		secToWeeks:  function(n) { return n / 604800; },
+		secToMonths: function(n) { return n / (year / 12); },
+		secToYears:  function(n) { return n / year; },
+
+		msToSec:     function(n) { return n / 1000; },
+		minsToSec:   function(n) { return n * 60; },
+		hoursToSec:  function(n) { return n * 3600; },
+		daysToSec:   function(n) { return n * 86400; },
+		weeksToSec:  function(n) { return n * 604800; },
+		monthsToSec: function(n) { return n * (year / 12); },
+		yearsToSec:  function(n) { return n * year; }
 	});
 
 	Object.defineProperty(Time, 'lang', {
