@@ -73,10 +73,10 @@
 		return fn(n);
 	}
 
-	function bind(values, fn) {
-		var params = [null];
-		params.push.apply(params, values);
-		return fn.bind.apply(fn, params);
+	function bind(params, fn) {
+		return function() {
+			fn.apply(this, params);
+		};
 	}
 
 	function compose(fn2, fn1) {
@@ -170,6 +170,16 @@
 		}
 
 		return curried;
+	}
+
+	function curryUntil(fn, test) {
+		// Returns partially applied functions until some condition `test`
+		// is met, when `fn` is called
+		return function curried() {
+			return test.apply(null, arguments) ?
+				fn.apply(null, arguments) :
+				bind(arguments, curried) ;
+		};
 	}
 
 	function overloadLength(object) {

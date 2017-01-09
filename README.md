@@ -52,6 +52,14 @@ the result of the last function is returned.
 
 ### Curried functions
 
+##### `bind(params, fn)`
+
+`var fn = Fn.bind([0,1,2,3], function() {...})`
+
+Returns a function that applies `params` to `fn` when called, with the `this`
+context inside `fn` being the same. It is less complex than JavaScript's native
+`fn.bind(...)` and should be cheaper.
+
 ##### `is(a, b)`
 
 Test for referential equality.
