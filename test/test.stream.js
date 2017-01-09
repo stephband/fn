@@ -1,9 +1,44 @@
 
-console.group('test.stream.js ...');
+console.group('test.stream.js');
 
 var Stream = Fn.Stream;
 
-test(' shift', function() {
+test(' Stream(fn)', function() {
+	var i = 0;
+	var s = Stream(function oneToFive() {
+		return ++i < 5 ? i : undefined ;
+	});
+
+	equals(1, s.shift());
+	equals(2, s.shift());
+	equals(3, s.shift());
+	equals(4, s.shift());
+	equals(undefined, s.shift());
+});
+
+test(' Stream(array)', function() {
+	var i = 0;
+	var s = Stream([1,2,3,4]);
+
+	equals(1, s.shift());
+	equals(2, s.shift());
+	equals(3, s.shift());
+	equals(4, s.shift());
+	equals(undefined, s.shift());
+});
+
+test(' Stream.of(...)', function() {
+	var i = 0;
+	var s = Stream.of(1,2,3,4);
+
+	equals(1, s.shift());
+	equals(2, s.shift());
+	equals(3, s.shift());
+	equals(4, s.shift());
+	equals(undefined, s.shift());
+});
+
+test('.shift()', function() {
 	var i = 0;
 	var s = Fn.Stream(function oneToFive() {
 		return ++i < 5 ? i : undefined ;
@@ -48,12 +83,12 @@ test('.map()', function() {
 	equals('1,2,3,4', s2.toArray().join());
 });
 
-//test('.pipe()', function() {
-//	var s1 = Fn([0,1,2,3]);
-//	var s2 = s1.pipe(Stream.of());
-//
-//	equals('0,1,2,3', s2.toArray().join());
-//});
+test('.pipe()', function() {
+	var s1 = Fn([0,1,2,3]);
+	var s2 = s1.pipe(Stream.of());
+
+	equals('0,1,2,3', s2.toArray().join());
+});
 
 test('.each()', function() {
 	console.log('pull a stream...');
