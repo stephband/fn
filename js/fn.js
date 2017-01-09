@@ -857,45 +857,6 @@
 			});
 		},
 
-		//groupTo: function(fn, object) {
-		//	var source = this;
-		//
-		//	function group() {
-		//		var array = [];
-		//		return Stream(function group() {
-		//			if (!array.length) {
-		//				// Pull until a new value is added to the current stream
-		//				pullAll();
-		//			}
-		//			return array.shift();
-		//		}, function push() {
-		//			array.push.apply(array, arguments);
-		//		});
-		//	}
-		//
-		//	function pullAll() {
-		//		var value = source.shift();
-		//		if (value === undefined) { return; }
-		//		var key = fn(value);
-		//		var stream = Fn.get(key, object);
-		//
-		//		if (stream === undefined) {
-		//			stream = group();
-		//			Fn.set(key, stream, object);
-		//		}
-		//
-		//		stream.push(value);
-		//		return pullAll();
-		//	}
-		//
-		//	return create(this, function group() {
-		//		if (source.status === 'done') { return; }
-		//		source.status = 'done';
-		//		pullAll();
-		//		return object;
-		//	});
-		//},
-
 		scan: function(fn, seed) {
 			// seed defaults to 0
 			seed = arguments.length > 1 ? seed : 0 ;
@@ -1489,10 +1450,28 @@
 
 	// Stream
 
-	var eventsSymbol = Symbol('events');
-
 	var defaults = {
 		stop: function stop() { this.status = "done"; }
+	};
+
+	var eventsSymbol = Symbol('events');
+
+	function getEvents(object) {
+		return object[eventsSymbol] || (object[eventsSymbol] = {});
+	}
+
+	function notify(object, type) {
+		var events = object[eventsSymbol];
+		// Todo: make sure forEach is acting on a copy of events[type] ?
+		events && events[type] && events[type].forEach(call);
+	}
+
+	function Context(stream) {
+		this.stream = stream;
+	}
+
+	Context.prototype.notify = function(type) {
+		notify(this.stream, type);
 	};
 
 	function Stream(shift, push, stop) {
@@ -1501,8 +1480,11 @@
 			return new Stream(shift, push, stop);
 		}
 
+		if (!shift) {
+			throw new TypeError('Stream constructor requires at least 1 parameter');
+		}
+
 		var stream = this;
-		var notify = createNotify(this);
 		var buffer;
 
 		stop = stop || defaults.stop;
@@ -1514,9 +1496,7 @@
 		if (typeof shift === 'function') {
 			// To avoid exposing notify() create a child of this to
 			// use as a proxy and attach .notify()
-			var context = Object.create(this);
-			context.notify = notify;
-
+			var context = new Context(this, notify);
 			this.shift = shift;
 
 			if (push) {
@@ -1534,7 +1514,7 @@
 
 			this.push = function push() {
 				A.push.apply(buffer, arguments);
-				notify('push');
+				notify(stream, 'push');
 			};
 		}
 
@@ -1542,26 +1522,6 @@
 	}
 
 	Stream.prototype = Object.create(Fn.prototype);
-
-	function latest(source) {
-		var value, v;
-
-		while ((v = source.shift()) !== undefined) {
-			value = v;
-		}
-		
-		return value;
-	}
-
-	function getEvents(object) {
-		return object[eventsSymbol] || (object[eventsSymbol] = {});
-	}
-
-	var createNotify = Fn.curry(function notify(object, type) {
-		var events = object[eventsSymbol];
-		// Todo: make sure forEach is acting on a copy of events[type] ?
-		events && events[type] && events[type].forEach(call);
-	});
 
 	Object.assign(Stream.prototype, {
 		on: function(type, fn) {
