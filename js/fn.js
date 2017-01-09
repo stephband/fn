@@ -75,7 +75,7 @@
 
 	function bind(params, fn) {
 		return function() {
-			fn.apply(this, params);
+			fn.apply(this, Fn.concat(arguments, params));
 		};
 	}
 
@@ -210,9 +210,31 @@
 		};
 	}
 
+	
+	// Type functions
+
 	function toType(object) {
 		return typeof object;
 	}
+
+	function toClass(object) {
+		return O.toString.apply(object).slice(8, -1);
+	}
+
+	function toArray(object) {
+		return object.toArray ? object.toArray() :
+			typeof object.length === "number" ? A.slice.apply(object) :
+			[] ;
+	}
+
+	function toInt(object) {
+		return parseInt(object, 10);
+	}
+
+	function toString(object) {
+		return object.toString();
+	}
+
 
 	// Array functions
 
@@ -1188,7 +1210,23 @@
 			);
 		}),
 
-		concat:   curry(function concat(array2, array1) { return array1.concat ? array1.concat(array2) : A.concat.call(array1, array2); }),
+		concat:   curry(function concat(array2, array1) {
+			// A.concat only works with arrays - it does not flatten array-like
+			// objects. We need a robust concat that will glue any old thing
+			// together.
+			return Array.isArray(array1) ?
+				// Both are arrays. Easy.
+				Array.isArray(array2) ? array1.concat(array2) :
+				// 1 is an array. Convert 2 to an array
+				array1.concat(Fn.toArray(array2)) :
+			// It's not an array but it has it's own concat method. Lets assume
+			// it's robust.
+			array1.concat ? array1.concat(array2) :
+			// 1 is not an array, but 2 is
+			Array.isArray(array2) ? toArray(array1).concat(array2) :
+			// Neither are arrays
+			toArray(array1).concat(toArray(array2)) ;
+		}),
 
 		filter:   curry(function filter(fn, object) { return object.filter ? object.filter(fn) : A.filter.call(object, fn); }),
 
@@ -1383,23 +1421,12 @@
 			return !!value || (value !== undefined && value !== null && !Number.isNaN(value));
 		},
 
-		toType: toType,
-
-		toClass: function toClass(object) {
-			return O.toString.apply(object).slice(8, -1);
-		},
-
-		toArray: function(object) {
-			return object.toArray ?
-				object.toArray() :
-				Fn(object).toArray() ;
-		},
-
-		toInt: function(n) {
-			return parseInt(n, 10);
-		},
-
-		toFloat: parseFloat,
+		toType:   toType,
+		toClass:  toClass,
+		toArray:  toArray,
+		toString: toString,
+		toInt:    toInt,
+		toFloat:  parseFloat,
 
 		toPlainText: function toPlainText(string) {
 			return string
