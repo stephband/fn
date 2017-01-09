@@ -4,7 +4,7 @@
 	var Fn = window.Fn;
 	var Stream = Fn.Stream;
 
-	Fn.observe = function(name, object) {
+	Stream.observe = function(name, object) {
 		var stream = Stream.of();
 
 		// AudioParams objects must be polled, as they cannot be reconfigured

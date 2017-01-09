@@ -90,6 +90,11 @@ Copies keys of `source` to `object`.
 
 Delegates to `object.map` or applies `Array.prototype.map` to `object`.
 
+##### `concat(list2, list1)`
+
+Concatenates `list2` to `list1`. More robust than Array#concat as it handles
+arrays, array-like objects, functors and streams.
+
 ##### `invoke(name, object)`
 
 Invokes method `name` of `object`.
@@ -123,6 +128,9 @@ Denormalises `n` from range 0-1 to range `min`-`max`.
 ##### `slugify(string)`
 ##### `toType(object)`
 ##### `toClass(object)`
+##### `toInt(object)`
+##### `toString(object)`
+##### `toArray(object)`
 ##### `toStringType(string)`
 
     Fn.toStringType('http://cruncher.ch');  // 'url'
@@ -155,7 +163,9 @@ Functors also have the methods:
 
 #### Create
 
-##### `of(value, ...)`
+##### `Fn.of(value, ...)`
+
+Create a functor of values.
 
 #### Transform
 
@@ -187,32 +197,47 @@ Functors also have the methods:
 ##### `toArray()`
 ##### `toFunction()`
 
-## Fn.Stream(setup)
+## Fn.Stream(shift, push, stop)
 
 Streams are pushable, observable Functors. Streams inherit all input, transform
 and output methods from `Fn.prototype`, plus they also get a `.push` method and
-are observed for `"push"` and `"pull"` events with `.on(type, fn)`.
+are observed for `"push"` and events with `.on(type, fn)`.
 
-    var stream = Fn.Stream(function setup(notify) {
-        return {
-            next: function() {...},
-            push: function() {...}
-        };
+	var i = 0;
+    var stream = Fn.Stream(function shift() {
+		return ++i;
     });
 
-    stream.on('pull', function() {
-        // Write to stream
-        stream.push(0);
+    stream.each(function(value) {
+        if (value > 50) { stream.stop(); }
+        ...
     });
 
 ##### `Stream.of(value1, value2, ...)`
 
 Create a buffered stream of values.
 
+##### `Stream.observe(property, object)`
+
+Create a stream of changes to the value of an object property.
+
+##### `Stream.choke(duration)`
+
+Create a stream that throttles the flow of values to flow one per frame, where
+a frame is `duration` seconds long.
+
+##### `Stream.throttle(duration)`
+
+Create a stream that throttles the flow of values to flow one per frame, where
+a frame is `duration` seconds long. All but the last pushed value before each
+frame is thrown away.
+
+##### `Stream.delay(duration)`
+
+Create a stream that delays the flow of pushed values by `duration` seconds.
+
 #### Input
 
-##### `of(value, ...)`
-##### `on(type, fn)`
 ##### `push(value, ...)`
 
 #### Transform
@@ -246,7 +271,7 @@ released.
 Returns a function that calls fn immediately and thereafter every `time` seconds
 while it is called again with new context and arguments.
 
-## Fn.Hold(fn, time)
+## Fn.Wait(fn, time)
 
 Returns a function that waits for `time` seconds without being called
 before calling fn with the latest context and arguments.
