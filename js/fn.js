@@ -1451,14 +1451,13 @@
 	// Stream
 
 	var defaults = {
-		stop: function stop() { this.status = "done"; }
+		stop: function stop() {
+			this.stream.status = "done";
+			this.notify = Fn.noop;
+		}
 	};
 
 	var eventsSymbol = Symbol('events');
-
-	function getEvents(object) {
-		return object[eventsSymbol] || (object[eventsSymbol] = {});
-	}
 
 	function notify(object, type) {
 		var events = object[eventsSymbol];
@@ -1474,48 +1473,56 @@
 		notify(this.stream, type);
 	};
 
+	function mixinFnStream(shift, push, stop) {
+		var stream = this;
+		
+		// Avoid exposing notify() by creating a lifecycle control object
+		// and use it as context for shift, push and stop.
+		var context = new Context(this);
+		this.shift  = shift.bind(context);
+		this.stop   = stop ? stop.bind(context) : defaults.stop.bind(context);
+		this.push   = push ? push.bind(context) : Fn.noop ;
+	}
+
+	function mixinBufferStream(array) {
+		var stream = this;
+		var buffer = A.slice.apply(array);
+
+		this.shift = function shift() {
+			return stream.status === "done" ?
+				undefined :
+				sparseShift(buffer);
+		};
+
+		this.push = function push() {
+			if (stream.status === "done") { return; }
+			A.push.apply(buffer, arguments);
+			notify(stream, 'push');
+		};
+
+		this.stop = function() {
+			this.status = "done";
+		};
+	}
+
 	function Stream(shift, push, stop) {
 		// Enable construction without the `new` keyword
 		if (!Stream.prototype.isPrototypeOf(this)) {
 			return new Stream(shift, push, stop);
 		}
 
+		// Require at least one parameter
 		if (!shift) {
 			throw new TypeError('Stream constructor requires at least 1 parameter');
 		}
 
 		var stream = this;
-		var buffer;
-
-		stop = stop || defaults.stop;
-
-		this.stop = function() {
-			stop.apply(stream, arguments);
-		};
 
 		if (typeof shift === 'function') {
-			// To avoid exposing notify() create a child of this to
-			// use as a proxy and attach .notify()
-			var context = new Context(this, notify);
-			this.shift = shift;
-
-			if (push) {
-				this.push = push.bind(context);
-			}
+			mixinFnStream.call(this, shift, push, stop);
 		}
 		else if (typeof shift.length === "number") {
-			buffer = A.slice.apply(shift);
-
-			this.shift = function shift() {
-				return stream.status === "done" ?
-					undefined :
-					sparseShift(buffer);
-			};
-
-			this.push = function push() {
-				A.push.apply(buffer, arguments);
-				notify(stream, 'push');
-			};
+			mixinBufferStream.call(this, shift);
 		}
 
 		this[eventsSymbol] = {};
