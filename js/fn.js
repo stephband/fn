@@ -824,6 +824,7 @@
 					return array.shift();
 				}, function push() {
 					array.push.apply(array, arguments);
+					this.notify('push');
 				});
 
 				buffer.push(stream);
@@ -1501,6 +1502,7 @@
 		}
 
 		var stream = this;
+		var notify = createNotify(this);
 		var buffer;
 
 		stop = stop || defaults.stop;
@@ -1510,13 +1512,15 @@
 		};
 
 		if (typeof shift === 'function') {
+			// To avoid exposing notify() create a child of this to
+			// use as a proxy and attach .notify()
+			var context = Object.create(this);
+			context.notify = notify;
+
 			this.shift = shift;
 
 			if (push) {
-				this.push = function() {
-					push.apply(stream, arguments);
-					//trigger('push', stream);
-				};
+				this.push = push.bind(context);
 			}
 		}
 		else if (typeof shift.length === "number") {
@@ -1530,7 +1534,7 @@
 
 			this.push = function push() {
 				A.push.apply(buffer, arguments);
-				trigger('push', stream);
+				notify('push');
 			};
 		}
 
@@ -1553,11 +1557,11 @@
 		return object[eventsSymbol] || (object[eventsSymbol] = {});
 	}
 
-	function trigger(type, object) {
+	var createNotify = Fn.curry(function notify(object, type) {
 		var events = object[eventsSymbol];
 		// Todo: make sure forEach is acting on a copy of events[type] ?
 		events && events[type] && events[type].forEach(call);
-	}
+	});
 
 	Object.assign(Stream.prototype, {
 		on: function(type, fn) {
@@ -1667,7 +1671,7 @@
 			var throttle = Throttle(function push() {
 				// Maintain buffer with length 1, containing last pushed value
 				buffer[0] = arguments[arguments.length - 1];
-				trigger('push', this);
+				this.notify('push');
 			}, duration);
 
 			return Stream(shift, throttle, function stop() {
@@ -1703,7 +1707,7 @@
 				}
 
 				buffer2.push(buffer1.shift());
-				trigger('push', stream);
+				stream.notify('push');
 				timer = request(function() { push(stream); });
 			}
 
@@ -1731,7 +1735,7 @@
 				// Careful! We're assuming that timers fire in the order they
 				// were declared, which may not be the case in JS.
 				buffer.push.apply(buffer, values);
-				trigger('push', stream);
+				stream.notify('push');
 				clearTimeout(timers.shift());
 			}
 
