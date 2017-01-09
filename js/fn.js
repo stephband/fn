@@ -172,15 +172,15 @@
 		return curried;
 	}
 
-	function curryUntil(fn, test) {
-		// Returns partially applied functions until some condition `test`
-		// is met, when `fn` is called
-		return function curried() {
-			return test.apply(null, arguments) ?
-				fn.apply(null, arguments) :
-				bind(arguments, curried) ;
-		};
-	}
+	//function curryUntil(fn, test) {
+	//	// Returns partially applied functions until some condition `test`
+	//	// is met, when `fn` is called
+	//	return function curried() {
+	//		return test.apply(null, arguments) ?
+	//			fn.apply(null, arguments) :
+	//			bind(arguments, curried) ;
+	//	};
+	//}
 
 	function overloadLength(object) {
 		return function overload() {
@@ -191,7 +191,7 @@
 				return fn.apply(this, arguments);
 			}
 
-			console.warn('Fn: method overload for ' + length + ' arguments not available');
+			if (debug) { console.warn('Fn: method overload for ' + length + ' arguments not available'); }
 			return this;
 		}
 	}
@@ -210,6 +210,9 @@
 		};
 	}
 
+	function toType(object) {
+		return typeof object;
+	}
 
 	// Array functions
 
@@ -239,6 +242,10 @@
 		return a === b ? 0 : a > b ? 1 : -1 ;
 	}
 
+	function unique(array, value) {
+		if (array.indexOf(value) === -1) { array.push(value); }
+		return array; 
+	}
 
 	// Get and set paths
 
@@ -303,18 +310,18 @@
 	var regex = {
 		url:       /^(?:\/|https?:\/\/)(?:[!#$&-;=?-~\[\]\w]|%[0-9a-fA-F]{2})+$/,
 		//url:       /^([a-z][\w\.\-\+]*\:\/\/)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,6}/,
-		email:     /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i,
+		email:     /^((([a-z]|\d|[!#$%&'*+\-\/=?^_`{|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#$%&'*+\-\/=?^_`{|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i,
 		date:      /^\d{4}-(?:0[1-9]|1[012])-(?:0[1-9]|[12][0-9]|3[01])$/,
 		hexColor:  /^(#)?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/,
 		hslColor:  /^(?:(hsl)(\())?\s?(\d{1,3}(?:\.\d+)?)\s?,\s?(\d{1,3}(?:\.\d+)?)%\s?,\s?(\d{1,3}(?:\.\d+)?)%\s?(\))?$/,
 		rgbColor:  /^(?:(rgb)(\())?\s?(\d{1,3})\s?,\s?(\d{1,3})\s?,\s?(\d{1,3})\s?(\))?$/,
 		hslaColor: /^(?:(hsla)(\())?\s?(\d{1,3}(?:\.\d+)?)\s?,\s?(\d{1,3}(?:\.\d+)?)%\s?,\s?(\d{1,3}(?:\.\d+)?)%\s?,\s?([01](?:\.\d+)?)\s?(\))?$/,
 		rgbaColor: /^(?:(rgba)(\())?\s?(\d{1,3})\s?,\s?(\d{1,3})\s?,\s?(\d{1,3})\s?,\s?([01](?:\.\d+)?)\s?(\))?$/,
-		cssValue:  /^(\-?\d+(?:\.\d+)?)(px|%|em|ex|pt|in|cm|mm|pt|pc)?$/,
-		cssAngle:  /^(\-?\d+(?:\.\d+)?)(deg)?$/,
+		cssValue:  /^(-?\d+(?:\.\d+)?)(px|%|em|ex|pt|in|cm|mm|pt|pc)?$/,
+		cssAngle:  /^(-?\d+(?:\.\d+)?)(deg)?$/,
 		image:     /(?:\.png|\.gif|\.jpeg|\.jpg)$/,
-		float:     /^(\-?\d+(?:\.\d+)?)$/,
-		int:       /^(\-?\d+)$/
+		float:     /^(-?\d+(?:\.\d+)?)$/,
+		int:       /^(-?\d+)$/
 	};
 
 
@@ -728,16 +735,9 @@
 
 		last: function() {
 			var source = this;
-			var i = 0;
 
-			return create(this, function last() {
-				var n;
-
-				source.each(function(value) {
-					n = value;
-				});
-
-				return n;
+			return create(this, function() {
+				return last(source.shift);
 			});
 		},
 
@@ -1256,7 +1256,7 @@
 		}),
 	
 		unite: curry(function unite(arr1, arr2) {
-			return arr1.concat(arr2).filter(unique).sort(Fn.byGreater);
+			return arr1.concat(arr2).reduce(unique, []).sort(Fn.byGreater);
 		}),
 
 		randomGaussian: function randomGaussian(n) {
@@ -1383,9 +1383,7 @@
 			return !!value || (value !== undefined && value !== null && !Number.isNaN(value));
 		},
 
-		toType: function toType(object) {
-			return typeof object;
-		},
+		toType: toType,
 
 		toClass: function toClass(object) {
 			return O.toString.apply(object).slice(8, -1);
@@ -1484,8 +1482,6 @@
 	};
 
 	function mixinFnStream(shift, push, stop) {
-		var stream = this;
-		
 		// Avoid exposing notify() by creating a lifecycle control object
 		// and use it as context for shift, push and stop.
 		var context = new Context(this);
@@ -1525,8 +1521,6 @@
 		if (!shift) {
 			throw new TypeError('Stream constructor requires at least 1 parameter');
 		}
-
-		var stream = this;
 
 		if (typeof shift === 'function') {
 			mixinFnStream.call(this, shift, push, stop);
@@ -1643,7 +1637,7 @@
 
 			function shift() {
 				return buffer.shift();
-			};
+			}
 
 			var throttle = Throttle(function push() {
 				// Maintain buffer with length 1, containing last pushed value
@@ -1706,7 +1700,7 @@
 
 			function shift() {
 				return buffer.shift();
-			};
+			}
 
 			function push(stream, values) {
 				// Careful! We're assuming that timers fire in the order they
