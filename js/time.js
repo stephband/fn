@@ -11,7 +11,7 @@
 	var days = { mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 0 };
 
 	// Duration of year, in seconds
-	var year = 31557600;
+	var year = 365.25 * 24 * 60 * 60;
 
 	function createOrdinals(ordinals) {
 		var array = [], n = 0;
