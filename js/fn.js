@@ -947,10 +947,6 @@
 
 		assign: function(object) { return this.map(Fn.assign(object)); },
 
-		parse: function() { return this.map(JSON.parse); },
-
-		stringify: function() { return this.map(Fn.stringify); },
-
 
 		// Timed
 

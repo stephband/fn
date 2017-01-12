@@ -157,20 +157,6 @@ test('.concat(object)', function() {
 	equals('1,0,1,0,8,9', n.toArray().join());
 });
 
-test('.stringify()', function() {
-	var n = Fn.of(1,0,1,{a:7}).stringify();
-	equals('1', n.shift());
-	equals('0', n.shift());
-	equals('1', n.shift());
-	equals('{"a":7}', n.shift());
-});
-
-test('.parse()', function() {
-	var n = Fn.of('{"a":7}').parse();
-	equals(7, n.shift().a);
-	equals(undefined, n.shift());
-});
-
 test('.batch(n)', function() {
 	var f = Fn.of(0,1,2,3,4,5,6,7,8).batch(2);
 	equals('0,1', f.shift().toArray().join());
