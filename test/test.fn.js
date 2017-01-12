@@ -145,7 +145,7 @@ test('.each(fn)', function() {
 });
 
 test('.reduce(fn, value)', function() {
-	var n = Fn.of(1,0,1,0).reduce(Fn.add, 2);
+	var n = Fn.of(1,0,1,0).reduce(Fn.add, 2).shift();
 	equals(4, n);
 });
 

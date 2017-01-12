@@ -231,7 +231,7 @@ test('.delay(time)', function() {
 	var i = 0;
 
 	buffer
-	.delay(1500)
+	.delay(1)
 	.each(function(n) {
 		equals(i++, n);
 	});
@@ -241,7 +241,7 @@ test('.delay(time)', function() {
 	buffer.push(8);
 	buffer.push(9);
 
-	equals(6, i);
+	equals(0, i);
 
 	setTimeout(function functionName() {
 		equals(10, i);

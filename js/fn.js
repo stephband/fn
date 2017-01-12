@@ -213,6 +213,12 @@
 	
 	// Type functions
 
+	function isDefined(value) {
+		// !!value is a fast out for non-zero numbers, non-empty strings
+		// and other objects, the rest checks for 0, '', etc.
+		return !!value || (value !== undefined && value !== null && !Number.isNaN(value));
+	}
+
 	function toType(object) {
 		return typeof object;
 	}
@@ -269,6 +275,11 @@
 		return array; 
 	}
 
+	function arrayReducer(array, value) {
+		array.push(value);
+		return array;
+	}
+
 	// Get and set paths
 
 	var rpathtrimmer  = /^\[|\]$/g;
@@ -307,7 +318,7 @@
 		var value = select(object, key);
 
 		return array.length === 0 ? value :
-			Fn.isDefined(value) ? objFrom(value, array) :
+			isDefined(value) ? objFrom(value, array) :
 			value ;
 	}
 
@@ -547,6 +558,7 @@
 	function create(object, fn) {
 		var functor = Object.create(object);
 		functor.shift = fn;
+		functor.unshift = function(object) {};
 		return functor;
 	}
 
@@ -569,12 +581,6 @@
 			return object.map(fn);
 		},
 
-		map: function(fn) {
-			return create(this, Fn.compose(function map(object) {
-				return object === undefined ? undefined : fn(object) ;
-			}, this.shift));
-		},
-
 		filter: function(fn) {
 			var source = this;
 
@@ -582,6 +588,30 @@
 				var value;
 				while ((value = source.shift()) !== undefined && !fn(value));
 				return value;
+			});
+		},
+
+		map: function(fn) {
+			return create(this, compose(function map(object) {
+				return object === undefined ? undefined : fn(object) ;
+			}, this.shift));
+		},
+
+		reduce: function(fn, seed) {
+			var output = isDefined(seed) ? seed : 0 ;
+			var shift  = this.shift;
+
+			// Todo: Is this the right way to detect the end? Really? When there
+			// are no more defined values, rather than when status === "done"?
+			return create(this, function reduce() {
+				var value = shift();
+
+				while (value !== undefined) {
+					output = fn(output, value);
+					value = shift();
+				}
+
+				return output;
 			});
 		},
 
@@ -1002,35 +1032,17 @@
 			return this;
 		},
 
-		reduce: function(fn, value) {
-			var output = Fn.isDefined(value) ? value : 0 ;
-
-			while ((value = this.shift()) !== undefined) {
-				output = fn(output, value);
-			}
-
-			return output;
-		},
-
 		find: function(fn) {
-			return this.filter(fn).head().shift();
+			return this
+			.filter(fn)
+			.head()
+			.shift();
 		},
 
 		toJSON: function() {
-			return this.reduce(function(t, v) {
-				t.push(v);
-				return t;
-			}, []);
-		},
-
-		toFunction: function() {
-			var source = this;
-			return function fn() {
-				if (arguments.length) {
-					this.push.apply(this, arguments);
-				}
-				return source.shift();
-			};
+			return this
+			.reduce(arrayReducer, [])
+			.shift();
 		},
 
 		log: function() {
@@ -1415,12 +1427,7 @@
 
 		// Types
 
-		isDefined: function isDefined(value) {
-			// !!value is a fast out for non-zero numbers, non-empty strings
-			// and other objects, the rest checks for 0, '', etc.
-			return !!value || (value !== undefined && value !== null && !Number.isNaN(value));
-		},
-
+		isDefined: isDefined,
 		toType:   toType,
 		toClass:  toClass,
 		toArray:  toArray,
@@ -1591,6 +1598,31 @@
 
 		push: function error() {
 			throw new Error('Fn: ' + this.constructor.name + ' is not pushable.');
+		},
+
+		unshift: function(object) {
+			
+		},
+
+		reduce: function(fn, seed) {
+			var output = isDefined(seed) ? seed : 0 ;
+			var shift  = this.shift;
+
+			// Todo: fix this. You can't know when to reduce...
+			// when status === "done", or when there are no more defined values?
+
+			return create(this, function reduce() {
+				var value = shift();
+
+				if (value === undefined) { return; }
+
+				while (value !== undefined) {
+					output = fn(output, value);
+					value = shift();
+				}
+
+				return output;
+			});
 		},
 
 		each: function(fn) {

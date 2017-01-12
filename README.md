@@ -195,7 +195,6 @@ Create a functor of values.
 ##### `shift()`
 ##### `tap()`
 ##### `toArray()`
-##### `toFunction()`
 
 ## Fn.Stream(shift, push, stop)
 
