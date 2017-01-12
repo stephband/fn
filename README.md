@@ -172,6 +172,7 @@ Create a functor of values.
 ##### `ap(object)`
 ##### `map(fn)`
 ##### `filter(fn)`
+##### `reduce(fn, seed)`
 ##### `join(fn)`
 ##### `chain(fn)`
 ##### `sort(fn)`
@@ -183,15 +184,12 @@ Create a functor of values.
 ##### `slice(n, m)`
 ##### `unique(fn)`
 ##### `scan(fn, value)`
-##### `parse()`
-##### 'stringify()'
 
 #### Output
 
 ##### `each(fn)`
 ##### `find(fn)`
 ##### `pipe(stream)`
-##### `reduce(fn, value)`
 ##### `shift()`
 ##### `tap()`
 ##### `toArray()`

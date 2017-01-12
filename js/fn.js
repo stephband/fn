@@ -945,23 +945,21 @@
 			});
 		},
 
-		assign: function(object) { return this.map(Fn.assign(object)); },
-
 
 		// Timed
 
 		delay: function(time) {
-			var stream = Stream.delay(time);
+			var stream = Stream.Delay(time);
 			return this.pipe(stream);
 		},
 
 		choke: function(time) {
-			var stream = Stream.choke(time);
+			var stream = Stream.Choke(time);
 			return this.pipe(stream);
 		},
 
 		throttle: function(time) {
-			var stream = Stream.throttle(time);
+			var stream = Stream.Throttle(time);
 			return this.pipe(stream);
 		},
 
@@ -1039,14 +1037,6 @@
 			return this
 			.reduce(arrayReducer, [])
 			.shift();
-		},
-
-		log: function() {
-			var a = arguments;
-
-			return this.tap(function(object) {
-				console.log.apply(console, Fn.push(object, A.slice.apply(a)));
-			});
 		}
 	});
 
@@ -1687,7 +1677,7 @@
 	Object.assign(Stream, {
 		of: Fn.of,
 
-		throttle: function ThrottleStream(duration) {
+		Throttle: function ThrottleStream(duration) {
 			var buffer = [];
 
 			function shift() {
@@ -1707,7 +1697,7 @@
 			});
 		},
 
-		choke: function ChokeStream(duration) {
+		Choke: function ChokeStream(duration) {
 			var buffer1 = [];
 			var buffer2 = [];
 			var timer;
@@ -1749,7 +1739,7 @@
 			});
 		},
 
-		delay: function DelayStream(duration) {
+		Delay: function DelayStream(duration) {
 			var buffer = [];
 			var timers = [];
 
@@ -1775,10 +1765,6 @@
 				timers.forEach(clearTimeout);
 				this.status = "done";
 			});
-		},
-
-		cue: function() {
-			
 		}
 	});
 
