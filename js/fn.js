@@ -597,6 +597,15 @@
 			}, this.shift));
 		},
 
+		scan: function(fn, seed) {
+			// seed defaults to 0
+			seed = arguments.length > 1 ? seed : 0 ;
+			var i = 0;
+			return this.map(function scan(value) {
+				return (seed = fn(seed, value, i++));
+			});
+		},
+
 		reduce: function(fn, seed) {
 			var output = isDefined(seed) ? seed : 0 ;
 			var shift  = this.shift;
@@ -682,70 +691,6 @@
 
 				return value;
 			});
-		},
-
-		// Todo: Perhaps CueTimer should become part of Fn?
-		cue: function(request, cancel, cuetime, map, test) {
-			var source    = this;
-			var cuestream = Stream.of();
-			var startTime = -Infinity;
-			var stopTime  = Infinity;
-			var t1        = startTime;
-			var value, mappedValue;
-
-			function cue(time) {
-				var t2 = time >= stopTime ? stopTime : time ;
-
-				if (value === undefined) {
-					while ((value = source.shift()) !== undefined && (mappedValue = map(value)) !== undefined && test(t1, t2, mappedValue)) {
-						cuestream.push(mappedValue);
-						value = undefined;
-					}
-				}
-				else {
-					mappedValue = map(value);
-
-					if (mappedValue !== undefined && test(t1, t2, mappedValue)) {
-						cuestream.push(mappedValue);
-
-						while ((value = source.shift()) !== undefined && (mappedValue = map(value)) !== undefined && test(t1, t2, mappedValue)) {
-							cuestream.push(mappedValue);
-							value = undefined;
-						}
-					}
-				}
-
-				if (source.status === 'done') { return; }
-				if (time === stopTime) { return; }
-
-				t1 = startTime > time ? startTime : time ;
-				request(cue);
-			}
-
-			cuestream.stop = function stop(time) {
-				stopTime = time;
-				if (stopTime <= t1) { cancel(cue); }
-				return this;
-			};
-
-			cuestream.start = function start(time) {
-				startTime = time;
-				t1 = startTime;
-
-				if (startTime >= cuetime()) {
-					// This is ok even when cuetime() is -Infinity, because the
-					// first request() goes through the timer synchronously, ie
-					// immediately
-					request(cue);
-				}
-				else {
-					cue(cuetime());
-				}
-
-				return this;
-			};
-
-			return cuestream;
 		},
 
 		sort: function(fn) {
@@ -919,15 +864,6 @@
 			});
 		},
 
-		scan: function(fn, seed) {
-			// seed defaults to 0
-			seed = arguments.length > 1 ? seed : 0 ;
-			var i = 0;
-			return this.map(function scan(value) {
-				return (seed = fn(seed, value, i++));
-			});
-		},
-
 		unique: function() {
 			var source = this;
 			var values = [];
@@ -963,6 +899,70 @@
 			return this.pipe(stream);
 		},
 
+		// Todo: Perhaps CueTimer should become part of Fn?
+		cue: function(request, cancel, cuetime, map, test) {
+			var source    = this;
+			var cuestream = Stream.of();
+			var startTime = -Infinity;
+			var stopTime  = Infinity;
+			var t1        = startTime;
+			var value, mappedValue;
+
+			function cue(time) {
+				var t2 = time >= stopTime ? stopTime : time ;
+
+				if (value === undefined) {
+					while ((value = source.shift()) !== undefined && (mappedValue = map(value)) !== undefined && test(t1, t2, mappedValue)) {
+						cuestream.push(mappedValue);
+						value = undefined;
+					}
+				}
+				else {
+					mappedValue = map(value);
+
+					if (mappedValue !== undefined && test(t1, t2, mappedValue)) {
+						cuestream.push(mappedValue);
+
+						while ((value = source.shift()) !== undefined && (mappedValue = map(value)) !== undefined && test(t1, t2, mappedValue)) {
+							cuestream.push(mappedValue);
+							value = undefined;
+						}
+					}
+				}
+
+				if (source.status === 'done') { return; }
+				if (time === stopTime) { return; }
+
+				t1 = startTime > time ? startTime : time ;
+				request(cue);
+			}
+
+			cuestream.stop = function stop(time) {
+				stopTime = time;
+				if (stopTime <= t1) { cancel(cue); }
+				return this;
+			};
+
+			cuestream.start = function start(time) {
+				startTime = time;
+				t1 = startTime;
+
+				if (startTime >= cuetime()) {
+					// This is ok even when cuetime() is -Infinity, because the
+					// first request() goes through the timer synchronously, ie
+					// immediately
+					request(cue);
+				}
+				else {
+					cue(cuetime());
+				}
+
+				return this;
+			};
+
+			return cuestream;
+		},
+
 
 		// Output
 
@@ -975,12 +975,13 @@
 		},
 
 		pipe: function(stream) {
-			if (!stream || !stream.push) {
-				throw new Error('Fn: Fn.pipe(object) object must be a pushable stream. (' + stream + ')');
+			// Target must be evented
+			if (!stream || !stream.on) {
+				throw new Error('Fn: Fn.pipe(object) object must be a stream. (' + stream + ')');
 			}
 
-			this.each(stream.push);
-			return stream;
+			// Readable -> Writeable
+			return stream.on('pull', this.shift);
 		},
 
 		clone: function() {
@@ -1017,10 +1018,11 @@
 		},
 
 		each: function(fn) {
-			var value;
+			var value = this.shift();
 
-			while ((value = this.shift()) !== undefined) {
+			while (value !== undefined) {
 				fn(value);
+				value = this.shift();
 			}
 
 			return this;
@@ -1034,9 +1036,15 @@
 		},
 
 		toJSON: function() {
-			return this
-			.reduce(arrayReducer, [])
-			.shift();
+			var array = [];
+			var value = this.shift();
+
+			while (value !== undefined) {
+				array.push(value);
+				value = this.shift();
+			}
+
+			return array;
 		}
 	});
 
@@ -1490,7 +1498,20 @@
 	function notify(object, type) {
 		var events = object[eventsSymbol];
 		// Todo: make sure forEach is acting on a copy of events[type] ?
-		events && events[type] && events[type].forEach(call);
+		//events && events[type] && events[type].forEach(call);
+		
+		if (!events[type]) { return; }
+
+		var n = -1;
+		var l = events[type].length;
+		var value;
+
+		while (++n < l) {
+			value = events[type][n]();
+			if (value !== undefined) {
+				return value;
+			}
+		}
 	}
 
 	function Context(stream) {
@@ -1515,9 +1536,15 @@
 		var buffer = A.slice.apply(array);
 
 		this.shift = function shift() {
-			return stream.status === "done" ?
-				undefined :
-				sparseShift(buffer);
+			if (stream.status === "done") { return; }
+
+			var value = sparseShift(buffer);
+
+			if (value === undefined) {
+				value = notify(stream, 'pull');
+			}
+
+			return value;
 		};
 
 		this.push = function push() {
@@ -1582,6 +1609,19 @@
 			});
 		},
 
+		pipe: function(stream) {
+			// Target must be writable
+			if (!stream || !stream.push) {
+				throw new Error('Fn: Fn.pipe(object) object must be a pushable stream. (' + stream + ')');
+			}
+
+			this.on('push', function() {
+				notify(stream, 'push');
+			});
+			
+			return Fn.prototype.pipe.apply(this, arguments);
+		},
+
 		push: function error() {
 			throw new Error('Fn: ' + this.constructor.name + ' is not pushable.');
 		},
@@ -1594,12 +1634,10 @@
 			var output = isDefined(seed) ? seed : 0 ;
 			var shift  = this.shift;
 
-			// Todo: fix this. You can't know when to reduce...
-			// when status === "done", or when there are no more defined values?
-
 			return create(this, function reduce() {
 				var value = shift();
 
+				// If there are no new values to reduce, return
 				if (value === undefined) { return; }
 
 				while (value !== undefined) {

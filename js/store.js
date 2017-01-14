@@ -68,7 +68,7 @@
 	}
 
 	function Store(reducer, data) {
-		return assign(Stream.of(), methods).reduce(reducer, data);
+		return assign(Stream.of(), methods).scan(reducer, data);
 	}
 
 	window.Store          = Store;

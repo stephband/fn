@@ -84,7 +84,7 @@ test('.map()', function() {
 });
 
 test('.pipe()', function() {
-	var s1 = Fn([0,1,2,3]);
+	var s1 = Stream.of(0,1,2,3);
 	var s2 = s1.pipe(Stream.of());
 
 	equals('0,1,2,3', s2.toArray().join());
@@ -243,7 +243,7 @@ test('.delay(time)', function() {
 
 	equals(0, i);
 
-	setTimeout(function functionName() {
+	setTimeout(function() {
 		equals(10, i);
 	}, 2000);
 });

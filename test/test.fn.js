@@ -2,6 +2,7 @@
 console.group('test.fn.js');
 
 var Fn = Fn;
+var Stream = Fn.Stream;
 
 test(' Fn(fn)', function() {
 	var fr = Fn(function() { return 6; });
@@ -35,6 +36,13 @@ test('.of()', function() {
 	equals(true, fr.shift());
 	equals(false, fr.shift());
 	equals(undefined, fr.shift());
+});
+
+test('.pipe()', function() {
+	var s1 = Fn([0,1,2,3]);
+	var s2 = s1.pipe(Stream.of());
+
+	equals('0,1,2,3', s2.toArray().join());
 });
 
 test('.map(fn)', function() {
