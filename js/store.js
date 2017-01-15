@@ -47,7 +47,7 @@
 		// Return a new reducer
 		return function reducer(data, action) {
 			// To make this reducer immutable, set next to empty object {}.
-			var next = {};
+			var next = data;//{};
 			var n = keys.length;
 			var key, fn, state;
 
@@ -58,9 +58,9 @@
 				state = fn(data[key], action);
 
 				// If new state has changed since old state set it on data
-				if (state !== data[key]) {
-					next[key] = state;
-				}
+				//if (state !== data[key]) {
+					//next[key] = state;
+				//}
 			}
 
 			return next;

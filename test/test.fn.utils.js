@@ -1,5 +1,5 @@
 
-console.group('test.fn.utils.js');
+console.group('Fn');
 
 test('.toStringType', function() {
 	equals('url',    Fn.toStringType('http://cruncher.ch/example.html?q=78'));

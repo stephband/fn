@@ -1,5 +1,5 @@
 
-console.group('test.fn.js');
+console.group('Fn()');
 
 var Fn = Fn;
 var Stream = Fn.Stream;
@@ -43,6 +43,54 @@ test('.pipe()', function() {
 	var s2 = s1.pipe(Stream.of());
 
 	equals('0,1,2,3', s2.toArray().join());
+});
+
+test('.pipe() multiple', function() {
+	var s1 = Fn.of(1,2);
+	var s2 = Fn.of(3);
+	var s3 = Stream.of(0);
+
+	s3.name = 's3';
+
+	var results = [];
+
+	s1.pipe(s3);
+	s2.pipe(s3);
+
+	s3.each(function(value) {
+		results.push(value);
+	});
+
+	equals('0,1,2,3', results.join());
+});
+
+test('.pipe() .stop()', function() {
+	var s1 = Stream.of(1,2);
+	var s2 = Stream.of(3);
+	var s3 = Stream.of(0);
+
+	s3.name = 's3';
+
+	var results = [];
+
+	s1.pipe(s3);
+	s2.pipe(s3);
+
+	s3.each(function(value) {
+		results.push(value);
+	});
+
+	equals('0,1,2,3', results.join());
+
+	results = [];
+
+	s1.push(0);
+	s1.push(1);
+	s1.stop();
+	s1.push(2);
+	s1.push(3);
+
+	equals('0,1', results.join());
 });
 
 test('.map(fn)', function() {

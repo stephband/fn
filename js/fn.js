@@ -19,12 +19,13 @@
 
 	// Define
 
-	var empty = Object.freeze(Object.defineProperties([], {
+	var empty  = Object.freeze(Object.defineProperties([], {
 		shift: { value: noop }
 	}));
 
+
 	// Constant for converting radians to degrees
-	var angleFactor = 360 / (Math.PI * 2);
+	var angleFactor = 180 / Math.PI;
 
 
 	// Feature test
@@ -44,7 +45,7 @@
 	})();
 
 	function setFunctionProperties(string, parity, fn1, fn2) {
-		// Make the string representation of this function equivalent to fn
+		// Make the string representation of fn2 display parameters of fn1
 		fn2.toString = function() {
 			return /function\s*[\w\d]*\s*\([,\w\d\s]*\)/.exec(fn1.toString()) + ' { [' + string + '] }';
 		};
@@ -59,11 +60,11 @@
 
 	// Functional functions
 
-	var loggers = [];
-
 	function noop() {}
 
 	function id(object) { return object; }
+
+	function self() { return this; }
 
 	function call(fn) {
 		return fn();
@@ -213,6 +214,23 @@
 	
 	// Type functions
 
+	var regex = {
+		url:       /^(?:\/|https?:\/\/)(?:[!#$&-;=?-~\[\]\w]|%[0-9a-fA-F]{2})+$/,
+		//url:       /^([a-z][\w\.\-\+]*\:\/\/)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,6}/,
+		email:     /^((([a-z]|\d|[!#$%&'*+\-\/=?^_`{|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#$%&'*+\-\/=?^_`{|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i,
+		date:      /^\d{4}-(?:0[1-9]|1[012])-(?:0[1-9]|[12][0-9]|3[01])$/,
+		hexColor:  /^(#)?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/,
+		hslColor:  /^(?:(hsl)(\())?\s?(\d{1,3}(?:\.\d+)?)\s?,\s?(\d{1,3}(?:\.\d+)?)%\s?,\s?(\d{1,3}(?:\.\d+)?)%\s?(\))?$/,
+		rgbColor:  /^(?:(rgb)(\())?\s?(\d{1,3})\s?,\s?(\d{1,3})\s?,\s?(\d{1,3})\s?(\))?$/,
+		hslaColor: /^(?:(hsla)(\())?\s?(\d{1,3}(?:\.\d+)?)\s?,\s?(\d{1,3}(?:\.\d+)?)%\s?,\s?(\d{1,3}(?:\.\d+)?)%\s?,\s?([01](?:\.\d+)?)\s?(\))?$/,
+		rgbaColor: /^(?:(rgba)(\())?\s?(\d{1,3})\s?,\s?(\d{1,3})\s?,\s?(\d{1,3})\s?,\s?([01](?:\.\d+)?)\s?(\))?$/,
+		cssValue:  /^(-?\d+(?:\.\d+)?)(px|%|em|ex|pt|in|cm|mm|pt|pc)?$/,
+		cssAngle:  /^(-?\d+(?:\.\d+)?)(deg)?$/,
+		image:     /(?:\.png|\.gif|\.jpeg|\.jpg)$/,
+		float:     /^(-?\d+(?:\.\d+)?)$/,
+		int:       /^(-?\d+)$/
+	};
+
 	function isDefined(value) {
 		// !!value is a fast out for non-zero numbers, non-empty strings
 		// and other objects, the rest checks for 0, '', etc.
@@ -280,7 +298,8 @@
 		return array;
 	}
 
-	// Get and set paths
+
+	// Paths
 
 	var rpathtrimmer  = /^\[|\]$/g;
 	var rpathsplitter = /\]?(?:\.|\[)/g;
@@ -336,26 +355,6 @@
 		Fn.set(key, object, root);
 		return objTo(object, array, value) ;
 	}
-
-
-	// String types
-
-	var regex = {
-		url:       /^(?:\/|https?:\/\/)(?:[!#$&-;=?-~\[\]\w]|%[0-9a-fA-F]{2})+$/,
-		//url:       /^([a-z][\w\.\-\+]*\:\/\/)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,6}/,
-		email:     /^((([a-z]|\d|[!#$%&'*+\-\/=?^_`{|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#$%&'*+\-\/=?^_`{|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i,
-		date:      /^\d{4}-(?:0[1-9]|1[012])-(?:0[1-9]|[12][0-9]|3[01])$/,
-		hexColor:  /^(#)?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/,
-		hslColor:  /^(?:(hsl)(\())?\s?(\d{1,3}(?:\.\d+)?)\s?,\s?(\d{1,3}(?:\.\d+)?)%\s?,\s?(\d{1,3}(?:\.\d+)?)%\s?(\))?$/,
-		rgbColor:  /^(?:(rgb)(\())?\s?(\d{1,3})\s?,\s?(\d{1,3})\s?,\s?(\d{1,3})\s?(\))?$/,
-		hslaColor: /^(?:(hsla)(\())?\s?(\d{1,3}(?:\.\d+)?)\s?,\s?(\d{1,3}(?:\.\d+)?)%\s?,\s?(\d{1,3}(?:\.\d+)?)%\s?,\s?([01](?:\.\d+)?)\s?(\))?$/,
-		rgbaColor: /^(?:(rgba)(\())?\s?(\d{1,3})\s?,\s?(\d{1,3})\s?,\s?(\d{1,3})\s?,\s?([01](?:\.\d+)?)\s?(\))?$/,
-		cssValue:  /^(-?\d+(?:\.\d+)?)(px|%|em|ex|pt|in|cm|mm|pt|pc)?$/,
-		cssAngle:  /^(-?\d+(?:\.\d+)?)(deg)?$/,
-		image:     /(?:\.png|\.gif|\.jpeg|\.jpg)$/,
-		float:     /^(-?\d+(?:\.\d+)?)$/,
-		int:       /^(-?\d+)$/
-	};
 
 
 	// Throttle
@@ -455,7 +454,8 @@
 	// Wait
 
 	// Returns a function that waits for `time` seconds without being called
-	// before calling `fn` with the last context and arguments passed to function.
+	// before calling `fn` with the last context and arguments passed to
+	// function.
 
 	function Wait(fn, time) {
 		var timer;
@@ -981,7 +981,9 @@
 			}
 
 			// Readable -> Writeable
-			return stream.on('pull', this.shift);
+			return stream
+			.on('pull', this.shift)
+			.push();
 		},
 
 		clone: function() {
@@ -1488,8 +1490,11 @@
 
 	var defaults = {
 		stop: function stop() {
+			// Get rid of all event handlers in one fell swoop
 			this.stream.status = "done";
-			this.notify = Fn.noop;
+			notify(this.stream, 'stop');
+			delete this.stream[eventsSymbol];
+			return this;
 		}
 	};
 
@@ -1497,6 +1502,9 @@
 
 	function notify(object, type) {
 		var events = object[eventsSymbol];
+
+		if (!events) { return; }
+
 		// Todo: make sure forEach is acting on a copy of events[type] ?
 		//events && events[type] && events[type].forEach(call);
 		
@@ -1519,16 +1527,26 @@
 	}
 
 	Context.prototype.notify = function(type) {
-		notify(this.stream, type);
+		return notify(this.stream, type);
 	};
 
 	function mixinFnStream(shift, push, stop) {
 		// Avoid exposing notify() by creating a lifecycle control object
 		// and use it as context for shift, push and stop.
 		var context = new Context(this);
-		this.shift  = shift.bind(context);
-		this.stop   = stop ? stop.bind(context) : defaults.stop.bind(context);
-		this.push   = push ? push.bind(context) : Fn.noop ;
+
+		this.shift = shift.bind(context);
+
+		this.push = function() {
+			push && push.apply(context, arguments);
+			// Todo: May not return the object we're expecting, when push is detached from this!!
+			return this;
+		};
+
+		this.stop = function() {
+			stop && stop.apply(context, arguments);
+			return this;
+		};
 	}
 
 	function mixinBufferStream(array) {
@@ -1551,10 +1569,12 @@
 			if (stream.status === "done") { return; }
 			A.push.apply(buffer, arguments);
 			notify(stream, 'push');
+			return this;
 		};
 
 		this.stop = function() {
-			this.status = "done";
+			stream.status = "done";
+			return this;
 		};
 	}
 
@@ -1570,7 +1590,7 @@
 		}
 
 		if (typeof shift === 'function') {
-			mixinFnStream.call(this, shift, push, stop);
+			mixinFnStream.call(this, shift, push, stop || defaults.stop);
 		}
 		else if (typeof shift.length === "number") {
 			mixinBufferStream.call(this, shift);
@@ -1582,28 +1602,48 @@
 	Stream.prototype = Object.create(Fn.prototype);
 
 	Object.assign(Stream.prototype, {
-		on: function(type, fn) {
+		on: function on(type, fn) {
 			var events = this[eventsSymbol];
+			if (!events) { return this; }
+
 			var listeners = events[type] || (events[type] = []);
 			listeners.push(fn);
 			return this;
 		},
 
-		off: function(type, fn) {
+		off: function off(type, fn) {
 			var events = this[eventsSymbol];
+			if (!events) { return this; }
+
+			// Remove all handlers for all types
+			if (arguments.length === 0) {
+				Object.keys(events).forEach(off, this);
+				return this;
+			}
+
 			var listeners = events[type];
 			if (!listeners) { return; }
+
+			// Remove all handlers for type
+			if (!fn) {
+				delete events[type];
+				return this;
+			}
+
+			// Remove handler fn for type
 			var n = listeners.length;
 			while (n--) {
 				if (listeners[n] === fn) { listeners.splice(n, 1); }
 			}
+
 			return this;
 		},
 
 		ap: function ap(object) {
-			var source = this;
+			var shift = this.shift;
+
 			return create(this, function ap() {
-				var fn = source.shift();
+				var fn = shift();
 				if (fn === undefined) { return; }
 				return object.map(fn);
 			});
@@ -1615,10 +1655,20 @@
 				throw new Error('Fn: Fn.pipe(object) object must be a pushable stream. (' + stream + ')');
 			}
 
-			this.on('push', function() {
-				notify(stream, 'push');
+			// As a rule, notify should never be called from outside
+			// stream methods...
+			//
+			//this.on('push', function() {
+			//	return notify(stream, 'push');
+			//});
+
+			var source = this.on('push', stream.push);
+
+			stream.on('stop', function() {
+				source.off('push', stream.push);
 			});
-			
+
+			// Delegate to Fn pipe()
 			return Fn.prototype.pipe.apply(this, arguments);
 		},
 
@@ -1651,11 +1701,12 @@
 
 		each: function(fn) {
 			var source = this;
-			var a = arguments;
+			var args = arguments;
 
 			function each() {
-				// Delegate to Fn.each()
-				Fn.prototype.each.apply(source, a);
+				// Delegate to Fn.each(), which returns self, telling the
+				// notifier that this event has been handled.
+				return Fn.prototype.each.apply(source, args);
 			}
 
 			// Flush and observe
@@ -1664,14 +1715,19 @@
 		},
 
 		concatParallel: function() {
-			var source = this;
+			var shift = this.shift;
 			var order = [];
 
 			function bind(object) {
-				object.on('push', function() {
-					order.push(object);
-				});
 				order.push(object);
+
+				if (!object.on) { return; }
+
+				object.on('push', function() {
+					// Return a value to indicate this event has been handled.
+					// For convenience, lets use the return of array.push().
+					return order.push(object);
+				});
 			}
 
 			function shiftNext() {
@@ -1684,7 +1740,7 @@
 			}
 
 			return create(this, function concatParallel() {
-				var object = source.shift();
+				var object = shift();
 				if (object !== undefined) { bind(object); }
 				var value = shiftNext();
 				return value;
@@ -1703,9 +1759,16 @@
 				}
 
 				source
-				.on('push', function() {
+				.on('push', function push() {
 					var value = source.shift();
-					if (value !== undefined) { resolve(value); }
+					if (value === undefined) { return; }
+
+					resolve(value);
+					source.off('push', push);
+
+					// Return a value to indicate this push event
+					// has been handled
+					return true;
 				})
 				.on('stop', reject);
 			});
@@ -1785,17 +1848,28 @@
 				return buffer.shift();
 			}
 
-			function push(stream, values) {
+			function push(context, values) {
 				// Careful! We're assuming that timers fire in the order they
 				// were declared, which may not be the case in JS.
-				buffer.push.apply(buffer, values);
-				stream.notify('push');
+				var value;
+
+				if (values.length) {
+					buffer.push.apply(buffer, values);
+				}
+				else {
+					value = context.notify('pull');
+					if (value === undefined) { return; }
+					buffer.push(value);
+				}
+
+				context.notify('push');
 				clearTimeout(timers.shift());
 			}
 
 			function delay() {
-				var timer = setTimeout(push, duration * 1000, this, arguments);
-				timers.push(timer);
+				timers.push(
+					setTimeout(push, duration * 1000, this, arguments)
+				);
 			}
 
 			return Stream(shift, delay, function stop() {
@@ -1808,6 +1882,8 @@
 
 
 	// Pool
+
+	var loggers = [];
 
 	function Pool(options, prototype) {
 		var create = options.create || Fn.noop;

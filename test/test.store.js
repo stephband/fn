@@ -1,5 +1,5 @@
 
-console.group('test.store.js');
+console.group('Store()');
 
 var assign = Object.assign;
 var Store  = window.Store;
@@ -25,16 +25,22 @@ test('Store(reducer, data)', function() {
 		}		
 	});
 
-	var store = Store(reducer, {
-		status: 'logged out'
+	var red = Store.reducersReducer({
+		user: reducer
+	});
+
+	var store = Store(red, {
+		user: {
+			status: 'logged out'
+		}
 	});
 
 	// Render changes
 	store.each(function(state) {
 		++i;
-		console.log('emits new state...');
-		equals("logged in", state.status);
-		equals("stephband", state.value);
+		console.log('emits new state...', state);
+		equals("logged in", state.user.status);
+		equals("stephband", state.user.value);
 	});
 
 	// To login

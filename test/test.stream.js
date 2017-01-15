@@ -1,5 +1,5 @@
 
-console.group('test.stream.js');
+console.group('Stream()');
 
 var Stream = Fn.Stream;
 
@@ -88,6 +88,102 @@ test('.pipe()', function() {
 	var s2 = s1.pipe(Stream.of());
 
 	equals('0,1,2,3', s2.toArray().join());
+});
+
+test('.pipe() multiple', function() {
+	var s1 = Stream.of(1,2);
+	var s2 = Stream.of(3);
+	var s3 = Stream.of(0);
+
+	s3.name = 's3';
+
+	var results = [];
+
+	s1.pipe(s3);
+	s2.pipe(s3);
+
+	s3.each(function(value) {
+		results.push(value);
+	});
+
+	equals('0,1,2,3', results.join());
+
+	results = [];
+
+	s1.push(0);
+	s1.push(1);
+	s1.push(2);
+	s1.push(3);
+
+	equals('0,1,2,3', results.join());
+
+	results = [];
+
+	s2.push(0);
+	s2.push(1);
+	s2.push(2);
+	s2.push(3);
+
+	equals('0,1,2,3', results.join());
+
+	results = [];
+
+	s2.push(0);
+	s2.push(1);
+	s1.push(2);
+	s1.push(3);
+
+	equals('0,1,2,3', results.join());
+
+	results = [];
+
+	s2.push(0);
+	s1.push(1);
+	s2.push(2);
+	s1.push(3);
+
+	equals('0,1,2,3', results.join());
+
+	results = [];
+
+	var s4 = Stream.of(0,1);
+	s4.pipe(s3);
+
+	s1.push(2);
+	s4.push(3);
+	s2.push(4);
+	s4.push(5);
+
+	equals('0,1,2,3,4,5', results.join());
+});
+
+test('.pipe() .stop()', function() {
+	var s1 = Stream.of(1,2);
+	var s2 = Stream.of(3);
+	var s3 = Stream.of(0);
+
+	s3.name = 's3';
+
+	var results = [];
+
+	s1.pipe(s3);
+	s2.pipe(s3);
+
+	s3.each(function(value) {
+		results.push(value);
+	});
+
+	equals('0,1,2,3', results.join());
+
+	results = [];
+
+	s1.push(0);
+	s1.push(1);
+	s1.stop();
+	s1.push(2);
+	s1.push(3);
+
+	equals('0,1', results.join());
 });
 
 test('.each()', function() {
@@ -229,11 +325,12 @@ test('.throttle(time)', function() {
 test('.delay(time)', function() {
 	var buffer = Stream.of(0,1,2,3,4,5);
 	var i = 0;
+	var results = [];
 
 	buffer
 	.delay(1)
 	.each(function(n) {
-		equals(i++, n);
+		results.push(n);
 	});
 
 	buffer.push(6);
@@ -244,7 +341,7 @@ test('.delay(time)', function() {
 	equals(0, i);
 
 	setTimeout(function() {
-		equals(10, i);
+		equals('0,1,2,3,4,5,6,7,8,9', results.join());
 	}, 2000);
 });
 
