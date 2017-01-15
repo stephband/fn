@@ -44,27 +44,44 @@
 			});
 		}
 
-		// Return a new reducer
+		// Return a new reducer - mutable version
+
 		return function reducer(data, action) {
 			// To make this reducer immutable, set next to empty object {}.
-			var next = data;//{};
 			var n = keys.length;
 			var key, fn, state;
 
 			while (n--) {
-				// Get new state
+				// Update data with new state
 				key   = keys[n];
 				fn    = reducers[key];
-				state = fn(data[key], action);
-
-				// If new state has changed since old state set it on data
-				//if (state !== data[key]) {
-					//next[key] = state;
-				//}
+				fn(data[key], action);
 			}
 
-			return next;
+			return data;
 		};
+
+		// Return a new reducer - immutable version
+
+		//return function reducer(data, action) {
+		//	var next = {};
+		//	var n = keys.length;
+		//	var key, fn, state;
+		//
+		//	while (n--) {
+		//		// Get new state
+		//		key   = keys[n];
+		//		fn    = reducers[key];
+		//		state = fn(data[key], action);
+		//
+		//		// If new state has changed since old state set it on next
+		//		if (state !== data[key]) {
+		//			next[key] = state;
+		//		}
+		//	}
+		//
+		//	return next;
+		//};
 	}
 
 	function Store(reducer, data) {
