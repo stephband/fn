@@ -197,10 +197,14 @@
 		}
 	}
 
-	function overloadTypes(map) {
+	function typeReducer(types, arg) {
+		return types + ' ' + typeof arg;
+	}
+
+	function overloadTypes(object) {
 		return function overload() {
-			var types = Array.prototype.map.call(arguments, toType);
-			var fn = map[types] || map['default'];
+			var types = A.reduce.call(arguments, typeReducer, '');
+			var fn = object[types] || object.default;
 
 			if (!fn) {
 				console.warn('Fn: method overload for type (' + types + ') not available')
