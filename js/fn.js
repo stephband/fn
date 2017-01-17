@@ -197,13 +197,9 @@
 		}
 	}
 
-	function typeReducer(types, arg) {
-		return types + ' ' + typeof arg;
-	}
-
 	function overloadTypes(object) {
 		return function overload() {
-			var types = A.reduce.call(arguments, typeReducer, '');
+			var types = A.map.call(arguments, toType).join(' ');
 			var fn = object[types] || object.default;
 
 			if (!fn) {
