@@ -16,18 +16,18 @@ if (!window.Symbol) {
 			this._symbol = symbol;
 
 			// Set up Object prototype to handle setting this symbol
-			defineProperty(O, symbol, {
-				enumerable: false,
-				configurable: false,
-				set: function (value) {
-					defineProperty(this, symbol, {
-						enumerable: false,
-						configurable: false,
-						writable: true,
-						value: value
-					});
-				}
-	        });
+			//defineProperty(O, symbol, {
+			//	enumerable: false,
+			//	configurable: false,
+			//	set: function (value) {
+			//		defineProperty(this, symbol, {
+			//			enumerable: false,
+			//			configurable: false,
+			//			writable: true,
+			//			value: value
+			//		});
+			//	}
+	        //});
 		}
 
 		defineProperty(Symbol.prototype, 'toString', {
