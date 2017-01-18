@@ -10,8 +10,9 @@ if (!window.Symbol) {
 		var id = 0;
 
 	    function Symbol(description) {
-	    	var symbol = prefix + id++;
+		    if (!(this instanceof Symbol)) { return new Symbol(description); }
 
+	    	var symbol = prefix + id++;
 			this._symbol = symbol;
 
 			// Set up Object prototype to handle setting this symbol
