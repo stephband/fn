@@ -22,7 +22,7 @@ if (!window.Symbol) {
 				set: function (value) {
 					defineProperty(this, symbol, {
 						enumerable: false,
-						configurable: true,
+						configurable: false,
 						writable: true,
 						value: value
 					});
