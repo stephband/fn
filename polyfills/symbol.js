@@ -1,10 +1,11 @@
-// (C) WebReflection Mit Style License
+// Super simple Symbol polyfill that replaces symbols with strings which is all
+// we need for what we are doing in Fn.
 
 if (!window.Symbol) {
 	(function(window){
 		"use strict";
 
-		var O = Object.prototype;
+		//var O = Object.prototype;
 		var defineProperty = Object.defineProperty;
 		var prefix = '__symbol-' + Math.ceil(Math.random() * 1000000000) + '-';
 		var id = 0;
