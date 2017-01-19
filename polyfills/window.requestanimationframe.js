@@ -1,6 +1,8 @@
 // window.requestAnimationFrame polyfill
 
 (function(window) {
+	"use strict";
+
 	var frameDuration = 40;
 	var vendors = ['ms', 'moz', 'webkit', 'o'];
 	var n = vendors.length;
@@ -26,4 +28,42 @@
 			clearTimeout(id);
 		};
 	}
-})(window);
+
+	// Now, Internet Explorer...
+	//
+	// IE suffers terrible performance when requestAnimationFrame is called
+	// multiple times for a frame. So it makes sense store all frame functions
+	// in a list and call them from one single request. Just in IE, though.
+
+	var isIE =
+		// IE < 10
+		(document.all && document.querySelector) ||
+		// IE 11
+		('-ms-scroll-limit' in document.documentElement.style && '-ms-ime-align' in document.documentElement.style) ;
+
+	if (!isIE) { return; }
+
+	var raf = window.requestAnimationFrame;
+	var caf = window.cancelAnimationFrame;
+	var frameQueue;
+
+	function trigger() {
+		var queue = frameQueue;
+		var n = -1;
+		var l = queue.length;
+
+		frameQueue = undefined;
+
+		while (++n < l) { queue[n](); }
+	}
+
+	window.requestAnimationFrame = function(fn) {
+		if (frameQueue) {
+			frameQueue.push(fn);
+			return;
+		}
+
+		frameQueue = [fn];
+		raf(trigger);
+	};
+})(this);
