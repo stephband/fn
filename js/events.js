@@ -48,7 +48,7 @@
 	}
 
 	function getDelegates(object) {
-		return object[delegatesSym] || (object[delegatesSym] = Object.create(null));
+		return object[delegatesSym] || (object[delegatesSym] = []);
 	}
 
 	function setupPropagation(object1, object2) {
