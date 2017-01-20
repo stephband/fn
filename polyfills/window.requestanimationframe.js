@@ -45,6 +45,7 @@
 
 	var raf = window.requestAnimationFrame;
 	var caf = window.cancelAnimationFrame;
+	var i   = 0;
 	var frameQueue;
 
 	function trigger() {
@@ -60,10 +61,20 @@
 	window.requestAnimationFrame = function(fn) {
 		if (frameQueue) {
 			frameQueue.push(fn);
-			return;
+		}
+		else {
+			frameQueue = [fn];
+			raf(trigger);
 		}
 
-		frameQueue = [fn];
-		raf(trigger);
+		// Return fn as the reference. This is not 100% robust, but it'll do.
+		return fn;
+	};
+
+	window.cancelAnimationFrame = function(reference) {
+		var i = frameQueue.indexOf(reference);
+		if (i > -1) {
+			frameQueue.splice(i, 1);
+		}
 	};
 })(this);
