@@ -36,27 +36,19 @@
 	var Fn = window.Fn;
 
 	var mixin = window.mixin || (window.mixin = {});
-	var eventObject = {};
 	var slice = Function.prototype.call.bind(Array.prototype.slice);
+	var listenersSym = Symbol('listeners');
+	var delegatesSym = Symbol('delegates');
+
+	// An object used internally for event delegation
+	var eventObject = {};
 
 	function getListeners(object) {
-		if (!object.listeners) {
-			Object.defineProperty(object, 'listeners', {
-				value: {}
-			});
-		}
-
-		return object.listeners;
+		return object[listenersSym] || (object[listenersSym] = Object.create(null));
 	}
 
 	function getDelegates(object) {
-		if (!object.delegates) {
-			Object.defineProperty(object, 'delegates', {
-				value: []
-			});
-		}
-
-		return object.delegates;
+		return object[delegatesSym] || (object[delegatesSym] = Object.create(null));
 	}
 
 	function setupPropagation(object1, object2) {
