@@ -183,6 +183,12 @@
 	//	};
 	//}
 
+	function flip(fn) {
+		return function(a, b) {
+			return fn(b, a);
+		};
+	}
+
 	function overloadLength(object) {
 		return function overload() {
 			var length = arguments.length;
@@ -262,6 +268,8 @@
 
 	// Array functions
 
+	var pull = flip(push);
+
 	function sortedSplice(array, fn, value) {
 		// Splices value into array at position determined by result of fn,
 		// where result is either in the range [-1, 0, 1] or [true, false]
@@ -293,11 +301,20 @@
 		return array; 
 	}
 
-	function arrayReducer(array, value) {
-		array.push(value);
-		return array;
+	function push(value, object) {
+		object.push ?
+			object.push(value) :
+			A.push.call(object, value);
+		return object;
 	}
 
+	// String functions
+
+	var prepend = flip(append);
+
+	function append(string1, string2) {
+		return string2 + string1;
+	}
 
 	// Paths
 
@@ -1037,16 +1054,12 @@
 			.shift();
 		},
 
+		toString: function() {
+			return this.reduce(prepend, '').shift();
+		},
+
 		toJSON: function() {
-			var array = [];
-			var value = this.shift();
-
-			while (value !== undefined) {
-				array.push(value);
-				value = this.shift();
-			}
-
-			return array;
+			return this.reduce(pull, []).shift();
 		}
 	});
 
@@ -1068,6 +1081,7 @@
 		curry:          curry,
 		cacheCurry:     cacheCurry,
 		compose:        compose,
+		flip:           flip,
 		pipe:           pipe,
 		overloadLength: overloadLength,
 		overloadTypes:  overloadTypes,
@@ -1226,7 +1240,7 @@
 				// Both are arrays. Easy.
 				Array.isArray(array2) ? array1.concat(array2) :
 				// 1 is an array. Convert 2 to an array
-				array1.concat(Fn.toArray(array2)) :
+				array1.concat(toArray(array2)) :
 			// It's not an array but it has it's own concat method. Lets assume
 			// it's robust.
 			array1.concat ? array1.concat(array2) :
@@ -1244,10 +1258,7 @@
 
 		sort:     curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
 
-		push:     curry(function push(value, object) {
-			(object.push || A.push).call(object, value);
-			return object;
-		}),
+		push:     curry(push),
 
 		intersect: curry(function intersect(arr1, arr2) {
 			// A fast intersect that assumes arrays are sorted (ascending) numbers.
@@ -1401,6 +1412,9 @@
 
 		// Strings
 
+		append:      curry(append),
+		prepend:     curry(prepend),
+
 		match:       curry(function match(regex, string) { return regex.test(string); }),
 
 		exec:        curry(function parse(regex, string) { return regex.exec(string) || undefined; }),
@@ -1424,12 +1438,12 @@
 		// Types
 
 		isDefined: isDefined,
-		toType:   toType,
-		toClass:  toClass,
-		toArray:  toArray,
-		toString: toString,
-		toInt:    toInt,
-		toFloat:  parseFloat,
+		toType:    toType,
+		toClass:   toClass,
+		toArray:   toArray,
+		toString:  toString,
+		toInt:     toInt,
+		toFloat:   parseFloat,
 
 		toPlainText: function toPlainText(string) {
 			return string

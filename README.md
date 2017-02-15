@@ -43,6 +43,10 @@ parameters.
 Composes two functions into a single function, where `fn2` is passed the result
 of `fn1` and the result is returned. Takes 
 
+##### `flip(fn)`
+
+Returns a function that calls `fn`, but with parameters in reverse order.
+
 ##### `pipe(fn1, fn2, fn3, ...)`
 
 Composes functions into a pipe function that takes one parameter. `fn2` is
