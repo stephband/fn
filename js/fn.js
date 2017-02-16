@@ -217,7 +217,7 @@
 		};
 	}
 
-	
+
 	// Type functions
 
 	var regex = {
@@ -298,7 +298,7 @@
 
 	function unique(array, value) {
 		if (array.indexOf(value) === -1) { array.push(value); }
-		return array; 
+		return array;
 	}
 
 	function push(value, object) {
@@ -1260,58 +1260,77 @@
 
 		push:     curry(push),
 
-		intersect: curry(function intersect(arr1, arr2) {
-			// A fast intersect that assumes arrays are sorted (ascending) numbers.
-			var l1 = arr1.length, l2 = arr2.length,
-			    i1 = 0, i2 = 0,
-			    arr3 = [];
-		
-			while (i1 < l1 && i2 < l2) {
-				if (arr1[i1] === arr2[i2]) {
-					arr3.push(arr1[i1]);
-					++i1;
-					++i2;
+		// intersect: curry(function intersect(arr1, arr2) {
+		// 	// A fast intersect that assumes arrays are sorted (ascending) numbers.
+		// 	var l1 = arr1.length, l2 = arr2.length,
+		// 	    i1 = 0, i2 = 0,
+		// 	    arr3 = [];
+
+		// 	while (i1 < l1 && i2 < l2) {
+		// 		if (arr1[i1] === arr2[i2]) {
+		// 			arr3.push(arr1[i1]);
+		// 			++i1;
+		// 			++i2;
+		// 		}
+		// 		else if (arr2[i2] > arr1[i1]) {
+		// 			++i1;
+		// 		}
+		// 		else {
+		// 			++i2;
+		// 		}
+		// 	}
+
+		// 	return arr3;
+		// }),
+
+		intersect: function intersect(arr1, arr2) {
+			var ret = [], i, v;
+			if (arr1.length >= arr2.length) {
+				for (i = 0; i < arr2.length; i++) {
+					v = arr2[i];
+					if(arr1.indexOf(v) > -1) {
+						if(ret.indexOf(v) === -1) {
+							ret.push(v)
+						}
+					}
 				}
-				else if (arr2[i2] > arr1[i1]) {
-					++i1;
-				}
-				else {
-					++i2;
-				}
+
+				return ret;
 			}
-		
-			return arr3;
-		}),
+
+			return intersect(arr2, arr1);
+
+		},
 
 		diff: curry(function(arr1, arr2) {
 			// A fast diff that assumes arrays are sorted (ascending) numbers.
 			var l1 = arr1.length, l2 = arr2.length,
 			    i1 = 0, i2 = 0,
 			    arr3 = [], n;
-		
+
 			while (i1 < l1) {
 				while (i2 < l2 && arr1[i1] > arr2[i2]) {
 					arr3.push(arr2[i2]);
 					++i2;
 				}
-		
+
 				if (arr1[i1] !== arr2[i2]) {
 					arr3.push(arr1[i1]);
 				}
-		
+
 				n = arr1[i1];
 				while (n === arr1[i1] && ++i1 < l1);
 				while (n === arr2[i2] && ++i2 < l2);
 			}
-		
+
 			while (i2 < l2) {
 				arr3.push(arr2[i2]);
 				++i2;
 			}
-		
+
 			return arr3;
 		}),
-	
+
 		unite: curry(function unite(arr1, arr2) {
 			return arr1.concat(arr2).reduce(unique, []).sort(Fn.byGreater);
 		}),
@@ -1521,7 +1540,7 @@
 
 		// Todo: make sure forEach is acting on a copy of events[type] ?
 		//events && events[type] && events[type].forEach(call);
-		
+
 		if (!events[type]) { return; }
 
 		var n = -1;
@@ -1691,7 +1710,7 @@
 		},
 
 		unshift: function(object) {
-			
+
 		},
 
 		reduce: function(fn, seed) {
@@ -1904,7 +1923,7 @@
 		var reset  = options.reset  || Fn.noop;
 		var isIdle = options.isIdle;
 		var store = [];
-	
+
 		// Todo: This is bad! It keeps a reference to the pools hanging around,
 		// accessible from the global scope, so even if the pools are forgotten
 		// they are never garbage collected!
