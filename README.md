@@ -64,17 +64,22 @@ Returns a function that applies `params` to `fn` when called, with the `this`
 context inside `fn` being the same. It is less complex than JavaScript's native
 `fn.bind(...)` and should be cheaper.
 
-##### `is(a, b)`
-
-Test for referential equality.
-
 ##### `equals(a, b)`
 
 Test for deep equality.
 
+##### `is(a, b)`
+
+Test for referential equality.
+
+##### `isIn(array, object)`
 ##### `isDefined(object)`
 
 Test returns `false` if `object` is `null` or `undefined`.
+
+##### `assign(source, object)`
+
+Copies keys of `source` to `object`.
 
 ##### `get(key, object)`
 
@@ -86,30 +91,31 @@ WeakMap) or where `key` is a property of object.
 Sets property `key` of `object`, where `object` has a `set` method (eg. Map,
 WeakMap) or where object can have `key` set on it.
 
-##### `assign(source, object)`
+#### Arrays and collections
 
-Copies keys of `source` to `object`.
+##### `concat(array2, array1)`
 
+Concatenates `list2` to `list1`. More robust than Array#concat as it handles
+arrays, array-like objects, functors and streams.
+
+##### `diff(array1, array2)`
+##### `each(fn, object)`
+##### `filter(fn, object)`
+##### `intersect(array1, array2)`
 ##### `map(fn, object)`
 
 Delegates to `object.map` or applies `Array.prototype.map` to `object`.
 
-##### `concat(list2, list1)`
-
-Concatenates `list2` to `list1`. More robust than Array#concat as it handles
-arrays, array-like objects, functors and streams.
+##### `reduce(fn, value, object)`
+##### `sort(fn, object)`
+##### `unite(array1, array2)`
+##### `unique(array)`
 
 ##### `invoke(name, object)`
 
 Invokes method `name` of `object`.
 
 ##### `throttle([time,] fn)`
-##### `concat(array1, object)`
-##### `each(fn, object)`
-##### `filter(fn, object)`
-##### `reduce(fn, value, object)`
-##### `slice(n, m, object)`
-##### `sort(fn, object)`
 ##### `by(key, a, b)`
 ##### `byGreater(a, b)`
 ##### `byAlphabet(a, b)`
