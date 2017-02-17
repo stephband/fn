@@ -68,14 +68,6 @@ The `this` context inside `fn` is unchanged.
 ##### `toArray(object)`
 ##### `toInt(object)`
 ##### `toString(object)`
-##### `toStringType(string)`
-
-    Fn.toStringType('http://cruncher.ch');  // 'url'
-    Fn.toStringType('hello@cruncher.ch');   // 'email'
-    Fn.toStringType('42');                  // 'int'
-    Fn.toStringType('41.5');                // 'float'
-    Fn.toStringType('{}');                  // 'json'
-    Fn.toStringType('...');                 // 'string'
 
 
 ### Objects
@@ -162,6 +154,14 @@ Denormalises `n` from range 0-1 to range `min`-`max`.
 ### Strings
 
 ##### `slugify(string)`
+##### `toStringType(string)`
+
+    Fn.toStringType('http://cruncher.ch');  // 'url'
+    Fn.toStringType('hello@cruncher.ch');   // 'email'
+    Fn.toStringType('42');                  // 'int'
+    Fn.toStringType('41.5');                // 'float'
+    Fn.toStringType('{}');                  // 'json'
+    Fn.toStringType('...');                 // 'string'
 
 
 ## Fn(fn)
@@ -273,7 +273,7 @@ Create a stream that delays the flow of pushed values by `duration` seconds.
 
 ##### `toPromise()`
 
-## `Pool(options, prototype)`
+## Fn.Pool(options, prototype)
 
     var Thing = Fn.pool({
 	    create: function() { ... },
