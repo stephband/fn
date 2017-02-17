@@ -296,3 +296,19 @@ while it is called again with new context and arguments.
 
 Returns a function that waits for `time` seconds without being called
 before calling fn with the latest context and arguments.
+
+
+<table>
+	<thead>
+		<tr>
+			<td>Hello</td>
+			<td>Brilliant acting</td>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Hello</td>
+			<td>Brilliant acting</td>
+		</tr>
+	</tbody>
+</table>
