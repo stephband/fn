@@ -308,7 +308,7 @@ before calling fn with the latest context and arguments.
 	<tbody>
 		<tr>
 			<td>Hello</td>
-			<td>Brilliant acting</td>
+			<td>`Brilliant acting`</td>
 		</tr>
 	</tbody>
 </table>
