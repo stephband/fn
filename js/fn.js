@@ -73,7 +73,7 @@
 
 	function bind(params, fn) {
 		return function() {
-			fn.apply(this, Fn.concat(arguments, params));
+			fn.apply(this, concat(arguments, params));
 		};
 	}
 
@@ -312,6 +312,24 @@
 
 
 	// Arrays and collections
+
+	function concat(array2, array1) {
+		// A.concat only works with arrays - it does not flatten array-like
+		// objects. We need a robust concat that will glue any old thing
+		// together.
+		return Array.isArray(array1) ?
+			// Both are arrays. Easy.
+			Array.isArray(array2) ? array1.concat(array2) :
+			// 1 is an array. Convert 2 to an array
+			array1.concat(toArray(array2)) :
+		// It's not an array but it has it's own concat method. Lets assume
+		// it's robust.
+		array1.concat ? array1.concat(array2) :
+		// 1 is not an array, but 2 is
+		Array.isArray(array2) ? toArray(array1).concat(array2) :
+		// Neither are arrays
+		toArray(array1).concat(toArray(array2)) ;
+	}
 
 	function contains(value, object) {
 		return object.includes ?
@@ -1318,23 +1336,7 @@
 			.concat(values);
 		}),
 
-		concat: curry(function concat(array2, array1) {
-			// A.concat only works with arrays - it does not flatten array-like
-			// objects. We need a robust concat that will glue any old thing
-			// together.
-			return Array.isArray(array1) ?
-				// Both are arrays. Easy.
-				Array.isArray(array2) ? array1.concat(array2) :
-				// 1 is an array. Convert 2 to an array
-				array1.concat(toArray(array2)) :
-			// It's not an array but it has it's own concat method. Lets assume
-			// it's robust.
-			array1.concat ? array1.concat(array2) :
-			// 1 is not an array, but 2 is
-			Array.isArray(array2) ? toArray(array1).concat(array2) :
-			// Neither are arrays
-			toArray(array1).concat(toArray(array2)) ;
-		}),
+		concat: curry(concat),
 
 		contains: curry(contains),
 
