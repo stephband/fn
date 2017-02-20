@@ -19,10 +19,9 @@
 
 	// Define
 
-	var empty  = Object.freeze(Object.defineProperties([], {
+	var empty = Object.freeze(Object.defineProperties([], {
 		shift: { value: noop }
 	}));
-
 
 	// Constant for converting radians to degrees
 	var angleFactor = 180 / Math.PI;
@@ -64,8 +63,6 @@
 
 	function id(object) { return object; }
 
-	function self() { return this; }
-
 	function call(fn) {
 		return fn();
 	}
@@ -76,7 +73,7 @@
 
 	function bind(params, fn) {
 		return function() {
-			fn.apply(this, Fn.concat(arguments, params));
+			fn.apply(this, concat(arguments, params));
 		};
 	}
 
@@ -217,8 +214,8 @@
 		};
 	}
 
-	
-	// Type functions
+
+	// Types
 
 	var regex = {
 		url:       /^(?:\/|https?:\/\/)(?:[!#$&-;=?-~\[\]\w]|%[0-9a-fA-F]{2})+$/,
@@ -266,9 +263,7 @@
 	}
 
 
-	// Array functions
-
-	var pull = flip(push);
+	// Arrays
 
 	function sortedSplice(array, fn, value) {
 		// Splices value into array at position determined by result of fn,
@@ -287,6 +282,25 @@
 		}
 	}
 
+	function uniqueReducer(array, value) {
+		if (array.indexOf(value) === -1) { array.push(value); }
+		return array;
+	}
+
+	function pushReducer(array, value) {
+		array.push(value);
+		return array;
+	}
+
+	function whileArray(fn, array) {
+		var values = [];
+		var n = -1;
+		while (++n < array.length && fn(array[n])) {
+			values.push(object[n]);
+		}
+		return values;
+	}
+
 	function last(fn, value) {
 		var v = fn();
 		return v === undefined ? value : last(fn, v) ;
@@ -296,43 +310,117 @@
 		return a === b ? 0 : a > b ? 1 : -1 ;
 	}
 
-	function unique(array, value) {
-		if (array.indexOf(value) === -1) { array.push(value); }
-		return array; 
+
+	// Arrays and collections
+
+	function concat(array2, array1) {
+		// A.concat only works with arrays - it does not flatten array-like
+		// objects. We need a robust concat that will glue any old thing
+		// together.
+		return Array.isArray(array1) ?
+			// Both are arrays. Easy.
+			Array.isArray(array2) ? array1.concat(array2) :
+			// 1 is an array. Convert 2 to an array
+			array1.concat(toArray(array2)) :
+		// It's not an array but it has it's own concat method. Lets assume
+		// it's robust.
+		array1.concat ? array1.concat(array2) :
+		// 1 is not an array, but 2 is
+		Array.isArray(array2) ? toArray(array1).concat(array2) :
+		// Neither are arrays
+		toArray(array1).concat(toArray(array2)) ;
 	}
 
-	function push(value, object) {
-		object.push ?
-			object.push(value) :
-			A.push.call(object, value);
-		return object;
+	function contains(value, object) {
+		return object.includes ?
+			object.includes(value) :
+		object.contains ?
+			object.contains(value) :
+		A.includes ?
+			A.includes.call(object, value) :
+			A.indexOf.call(object, value) !== -1 ;
 	}
 
+	var isIn = flip(contains);
 
-	// String functions
-
-	function prepend(string1, string2) {
-		return string1 + string2;
+	function map(fn, object) {
+		return object.map ?
+			object.map(fn) :
+			A.map.call(object, fn) ;
 	}
 
-	function append(string1, string2) {
-		return string2 + string1;
+	function filter(fn, object) {
+		return object.filter ?
+			object.filter(fn) :
+			A.filter.call(object, fn) ;
 	}
+
+	function reduce(fn, n, object) {
+		return object.reduce ?
+			object.reduce(fn, n) :
+			A.reduce.call(object, fn, n);
+	}
+
+	function find(fn, object) {
+		return object.find ? object.find(fn) : A.find.call(object, fn);
+	}
+
+	//function intersectScales(arr1, arr2) {
+	//	// A fast intersect that assumes arrays are sorted (ascending) numbers.
+	//	var l1 = arr1.length, l2 = arr2.length;
+	//	var i1 = 0, i2 = 0;
+	//	var arr3 = [];
+	//
+	//	while (i1 < l1 && i2 < l2) {
+	//		if (arr1[i1] === arr2[i2]) {
+	//			arr3.push(arr1[i1]);
+	//			++i1;
+	//			++i2;
+	//		}
+	//		else if (arr2[i2] > arr1[i1]) { ++i1; }
+	//		else { ++i2; }
+	//	}
+	//
+	//	return arr3;
+	//}
+
+	//function diffScales(arr1, arr2) {
+	//	// A fast diff that assumes arrays are sorted (ascending) numbers.
+	//	var l1 = arr1.length, l2 = arr2.length,
+	//	    i1 = 0, i2 = 0,
+	//	    arr3 = [], n;
+	//
+	//	while (i1 < l1) {
+	//		while (i2 < l2 && arr1[i1] > arr2[i2]) {
+	//			arr3.push(arr2[i2]);
+	//			++i2;
+	//		}
+	//
+	//		if (arr1[i1] !== arr2[i2]) {
+	//			arr3.push(arr1[i1]);
+	//		}
+	//
+	//		n = arr1[i1];
+	//		while (n === arr1[i1] && ++i1 < l1);
+	//		while (n === arr2[i2] && ++i2 < l2);
+	//	}
+	//
+	//	while (i2 < l2) {
+	//		arr3.push(arr2[i2]);
+	//		++i2;
+	//	}
+	//
+	//	return arr3;
+	//}
 
 
 	// Object functions
 
 	var rpathtrimmer  = /^\[|\]$/g;
 	var rpathsplitter = /\]?(?:\.|\[)/g;
-	var rpropselector = /(\w+)=(\w+)/;
+	var rpropselector = /(\w+)=(['"]?\w+['"]?)/;
 
 	function isObject(obj) { return obj instanceof Object; }
-
-	function splitPath(path) {
-		return path
-			.replace(rpathtrimmer, '')
-			.split(rpathsplitter);
-	}
 
 	function get(key, object) {
 		return object && (typeof object.get === "function" ?
@@ -356,6 +444,12 @@
 		return selection ?
 			findByProperty(selection[1], object, JSON.parse(selection[2])) :
 			get(selector, object) ;
+	}
+
+	function splitPath(path) {
+		return path
+			.replace(rpathtrimmer, '')
+			.split(rpathsplitter);
 	}
 
 	function findByProperty(name, array, value) {
@@ -391,6 +485,17 @@
 
 		set(key, object, root);
 		return objTo(object, array, value) ;
+	}
+
+
+	// Strings
+
+	function prepend(string1, string2) {
+		return string1 + string2;
+	}
+
+	function append(string1, string2) {
+		return string2 + string1;
 	}
 
 
@@ -1079,7 +1184,7 @@
 		},
 
 		toJSON: function() {
-			return this.reduce(pull, []).shift();
+			return this.reduce(pushReducer, []).shift();
 		}
 	});
 
@@ -1095,6 +1200,10 @@
 		of: function() { return new this(arguments); },
 
 		empty:          empty,
+
+
+		// Functional
+
 		noop:           noop,
 		id:             id,
 		cache:          cache,
@@ -1106,13 +1215,32 @@
 		overloadLength: overloadLength,
 		overloadTypes:  overloadTypes,
 
-		returnThis: function() { return this; },
+		bind: curry(bind),
 
-		is: curry(function is(a, b) { return a === b; }),
-
-		and: curry(function and(a, b) {
-			return !!(a && b);
+		run: curry(function apply(values, fn) {
+			return fn.apply(null, values);
 		}),
+
+		returnThis: function self() {
+			console.warn('Fn.returnThis() has been renamed Fn.self()');
+			return this;
+		},
+
+		self: function self() { return this; },
+
+
+		// Logical
+
+		and: curry(function and(a, b) { return !!(a && b); }),
+
+		not: function not(a) { return !a; },
+
+		or: curry(function or(a, b) { return a || b; }),
+
+		xor: curry(function or(a, b) { return (a || b) && (!!a !== !!b); }),
+
+
+		// Comparison
 
 		equals: curry(function equals(a, b) {
 			// Fast out if references are for the same object.
@@ -1136,6 +1264,10 @@
 			return true;
 		}),
 
+		is: curry(function is(a, b) { return a === b; }),
+
+		isIn: curry(isIn),
+
 		isGreater: curry(function byGreater(a, b) { return b > a ; }),
 
 		by: curry(function by(property, a, b) {
@@ -1148,65 +1280,130 @@
 			return S.localeCompare.call(a, b);
 		}),
 
-		assign: curry(Object.assign, 2),
 
-		get: curry(get),
-		set: curry(set),
+		// Types
 
-		getPath: curry(function get(path, object) {
-			return object && (object.get ? object.get(path) :
-				typeof path === 'number' ? object[path] :
-				path === '' || path === '.' ? object :
-				objFrom(object, splitPath(path))) ;
-		}),
+		isDefined: isDefined,
+		toType:    toType,
+		toClass:   toClass,
+		toArray:   toArray,
+		toString:  toString,
+		toInt:     toInt,
+		toFloat:   parseFloat,
 
-		setPath: curry(function set(path, value, object) {
-			if (object.set) { object.set(path, value); }
-			if (typeof path === 'number') { return object[path] = value; }
-			var array = splitPath(path);
-			return array.length === 1 ?
-				(object[path] = value) :
-				objTo(object, array, value);
-		}),
-
-		bind: curry(bind),
-
-		invoke: curry(function invoke(name, args, object) {
-			return object[name].apply(object, args);
-		}),
-
-		run: curry(function apply(values, fn) {
-			return fn.apply(null, values);
-		}),
-
-		map: curry(function map(fn, object) {
-			return object.map ? object.map(fn) : A.map.call(object, fn);
-		}),
-
-		find: curry(function find(fn, object) {
-			return object.find ? object.find(fn) : A.find.call(object, fn);
-		}),
-
-		throttle: function(time, fn) {
-			// Overload the call signature to support Fn.throttle(fn)
-			if (fn === undefined && time.apply) {
-				fn = time;
-				time = undefined;
-			}
-
-			function throttle(fn) {
-				return Throttle(fn, time);
-			}
-
-			// Where fn not given return a partially applied throttle
-			return fn ? throttle(fn) : throttle ;
+		toPlainText: function toPlainText(string) {
+			return string
+			// Decompose string to normalized version
+			.normalize('NFD')
+			// Remove accents
+			.replace(/[\u0300-\u036f]/g, '');
 		},
 
-		requestTick: (function(promise) {
-			return function(fn) {
-				promise.then(fn);
+		toStringType: (function(regex, types) {
+			return function toStringType(string) {
+				// Determine the type of string from its text content.
+				var n = -1;
+
+				// Test regexable string types
+				while (++n < types.length) {
+					if(regex[types[n]].test(string)) {
+						return types[n];
+					}
+				}
+
+				// Test for JSON
+				try {
+					JSON.parse(string);
+					return 'json';
+				}
+				catch(e) {}
+
+				// Default to 'string'
+				return 'string';
 			};
-		})(Promise.resolve()),
+		})(regex, ['date', 'url', 'email', 'int', 'float']),
+
+
+		// Collections
+
+		diff: curry(function diff(array, object) {
+			var values = toArray(array);
+
+			return filter(function(value) {
+				var i = values.indexOf(value);
+				if (i === -1) { return true; }
+				values.splice(i, 1);
+				return false;
+			}, object)
+			.concat(values);
+		}),
+
+		concat: curry(concat),
+
+		contains: curry(contains),
+
+		each: curry(function each(fn, object) {
+			// A stricter version of .forEach, where the callback fn
+			// gets only one argument.
+			return object && (
+				typeof object.each === 'function' ? object.each(fn) :
+				object.forEach ? object.forEach(function(item) { fn(item); }) :
+				A.forEach.call(object, function(item) { fn(item); })
+			);
+		}),
+
+		filter: curry(filter),
+
+		find: curry(find),
+
+		intersect: curry(function intersect(array, object) {
+			var values = toArray(array);
+
+			return filter(function(value) {
+				var i = values.indexOf(value);
+				if (i === -1) { return false; }
+				values.splice(i, 1);
+				return true;
+			}, object);
+		}),
+
+		map: curry(map),
+
+		//push: curry(push),
+
+		reduce: curry(reduce),
+
+		slice: curry(function slice(n, m, object) { return object.slice ? object.slice(n, m) : A.slice.call(object, n, m); }),
+
+		sort: curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
+
+		unite: curry(function unite(array, object) {
+			var values = toArray(array);
+
+			return map(function(value) {
+				var i = values.indexOf(value);
+				if (i > -1) { values.splice(i, 1); }
+				return value;
+			}, object)
+			.concat(values);
+		}),
+
+		unique: function unique(object) {
+			return object.unique ?
+				object.unique() :
+				reduce(uniqueReducer, [], object) ;
+		},
+
+		while: curry(function(fn, object) {
+			return object.while ?
+				object.while(fn) :
+				whileArray(fn, object) ;
+		}),
+
+
+		// Objects
+
+		assign: curry(Object.assign, 2),
 
 		entries: function(object){
 			return typeof object.entries === 'function' ?
@@ -1229,99 +1426,55 @@
 				A.values.apply(object) ;
 		},
 
-		each: curry(function each(fn, object) {
-			// A stricter version of .forEach, where the callback fn
-			// gets only one argument.
-			return object && (
-				typeof object.each === 'function' ? object.each(fn) :
-				object.forEach ? object.forEach(function(item) { fn(item); }) :
-				A.forEach.call(object, function(item) { fn(item); })
-			);
+		get: curry(get),
+		set: curry(set),
+
+		getPath: curry(function get(path, object) {
+			return object && (object.get ? object.get(path) :
+				typeof path === 'number' ? object[path] :
+				path === '' || path === '.' ? object :
+				objFrom(object, splitPath(path))) ;
 		}),
 
-		concat:   curry(function concat(array2, array1) {
-			// A.concat only works with arrays - it does not flatten array-like
-			// objects. We need a robust concat that will glue any old thing
-			// together.
-			return Array.isArray(array1) ?
-				// Both are arrays. Easy.
-				Array.isArray(array2) ? array1.concat(array2) :
-				// 1 is an array. Convert 2 to an array
-				array1.concat(toArray(array2)) :
-			// It's not an array but it has it's own concat method. Lets assume
-			// it's robust.
-			array1.concat ? array1.concat(array2) :
-			// 1 is not an array, but 2 is
-			Array.isArray(array2) ? toArray(array1).concat(array2) :
-			// Neither are arrays
-			toArray(array1).concat(toArray(array2)) ;
+		setPath: curry(function set(path, value, object) {
+			if (object.set) { object.set(path, value); }
+			if (typeof path === 'number') { return object[path] = value; }
+			var array = splitPath(path);
+			return array.length === 1 ?
+				(object[path] = value) :
+				objTo(object, array, value);
 		}),
 
-		filter:   curry(function filter(fn, object) { return object.filter ? object.filter(fn) : A.filter.call(object, fn); }),
+		invoke: curry(function invoke(name, args, object) {
+			return object[name].apply(object, args);
+		}),
 
-		reduce:   curry(function reduce(fn, n, object) { return object.reduce ? object.reduce(fn, n) : A.reduce.call(object, fn, n); }),
 
-		slice:    curry(function slice(n, m, object) { return object.slice ? object.slice(n, m) : A.slice.call(object, n, m); }),
+		// Time
 
-		sort:     curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
-
-		push:     curry(push),
-
-		intersect: curry(function intersect(arr1, arr2) {
-			// A fast intersect that assumes arrays are sorted (ascending) numbers.
-			var l1 = arr1.length, l2 = arr2.length,
-			    i1 = 0, i2 = 0,
-			    arr3 = [];
-		
-			while (i1 < l1 && i2 < l2) {
-				if (arr1[i1] === arr2[i2]) {
-					arr3.push(arr1[i1]);
-					++i1;
-					++i2;
-				}
-				else if (arr2[i2] > arr1[i1]) {
-					++i1;
-				}
-				else {
-					++i2;
-				}
+		throttle: function(time, fn) {
+			// Overload the call signature to support Fn.throttle(fn)
+			if (fn === undefined && time.apply) {
+				fn = time;
+				time = undefined;
 			}
-		
-			return arr3;
-		}),
 
-		diff: curry(function(arr1, arr2) {
-			// A fast diff that assumes arrays are sorted (ascending) numbers.
-			var l1 = arr1.length, l2 = arr2.length,
-			    i1 = 0, i2 = 0,
-			    arr3 = [], n;
-		
-			while (i1 < l1) {
-				while (i2 < l2 && arr1[i1] > arr2[i2]) {
-					arr3.push(arr2[i2]);
-					++i2;
-				}
-		
-				if (arr1[i1] !== arr2[i2]) {
-					arr3.push(arr1[i1]);
-				}
-		
-				n = arr1[i1];
-				while (n === arr1[i1] && ++i1 < l1);
-				while (n === arr2[i2] && ++i2 < l2);
+			function throttle(fn) {
+				return Throttle(fn, time);
 			}
-		
-			while (i2 < l2) {
-				arr3.push(arr2[i2]);
-				++i2;
-			}
-		
-			return arr3;
-		}),
-	
-		unite: curry(function unite(arr1, arr2) {
-			return arr1.concat(arr2).reduce(unique, []).sort(Fn.byGreater);
-		}),
+
+			// Where fn not given return a partially applied throttle
+			return fn ? throttle(fn) : throttle ;
+		},
+
+		requestTick: (function(promise) {
+			return function(fn) {
+				promise.then(fn);
+			};
+		})(Promise.resolve()),
+
+
+		// Numbers
 
 		randomGaussian: function randomGaussian(n) {
 			// Returns a random number with a bell curve probability centred
@@ -1434,63 +1587,17 @@
 		},
 
 
-		// Booleans
-		or: curry(function or(a, b) { return a || b; }),
-
-		xor: curry(function or(a, b) { return (a || b) && (!!a !== !!b); }),
-
-		not: function not(object) { return !object; },
-
-
-		// Types
-
-		isDefined: isDefined,
-		toType:    toType,
-		toClass:   toClass,
-		toArray:   toArray,
-		toString:  toString,
-		toInt:     toInt,
-		toFloat:   parseFloat,
-
-		toPlainText: function toPlainText(string) {
-			return string
-			// Decompose string to normalized version
-			.normalize('NFD')
-			// Remove accents
-			.replace(/[\u0300-\u036f]/g, '');
-		},
-
-		toStringType: (function(regex, types) {
-			return function toStringType(string) {
-				// Determine the type of string from its text content.
-				var n = -1;
-
-				// Test regexable string types
-				while (++n < types.length) {
-					if(regex[types[n]].test(string)) {
-						return types[n];
-					}
-				}
-
-				// Test for JSON
-				try {
-					JSON.parse(string);
-					return 'json';
-				}
-				catch(e) {}
-
-				// Default to 'string'
-				return 'string';
-			};
-		})(regex, ['date', 'url', 'email', 'int', 'float']),
-
-
 		// JSON
+
 		stringify: function stringify(object) {
 			return JSON.stringify(Fn.toClass(object) === "Map" ?
-				Fn(object) : object
+				Fn(object) :
+				object
 			);
 		},
+
+
+		// Debugging
 
 		log: curry(function(text, object) {
 			console.log(text, object);
@@ -1528,7 +1635,7 @@
 
 		// Todo: make sure forEach is acting on a copy of events[type] ?
 		//events && events[type] && events[type].forEach(call);
-		
+
 		if (!events[type]) { return; }
 
 		var n = -1;
@@ -1698,7 +1805,7 @@
 		},
 
 		unshift: function(object) {
-			
+
 		},
 
 		reduce: function(fn, seed) {
@@ -1911,7 +2018,7 @@
 		var reset  = options.reset  || Fn.noop;
 		var isIdle = options.isIdle;
 		var store = [];
-	
+
 		// Todo: This is bad! It keeps a reference to the pools hanging around,
 		// accessible from the global scope, so even if the pools are forgotten
 		// they are never garbage collected!

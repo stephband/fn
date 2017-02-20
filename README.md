@@ -15,13 +15,13 @@ Returns `object`.
 
 ##### `cache(fn)`
 
-`var fn2 = Fn.cache(fn);`
+    var fn2 = Fn.cache(fn);
 
 Caches the results of calls to `fn2(value)`.
 
 ##### `curry(fn)`
 
-`var fn2 = Fn.curry(fn);`
+    var fn2 = Fn.curry(fn);
 
 Curries `fn`. If `fn` normally requires 3 parameters, the curried result can
 take those parameters in any grouping:
@@ -32,7 +32,7 @@ take those parameters in any grouping:
 
 ##### `cacheCurry(fn)`
 
-`var fn2 = Fn.cacheCurry(fn);`
+    var fn2 = Fn.cacheCurry(fn);
 
 Like `Fn.curry()`, only the results of calls with each consecutive parameter
 are also cached such that `fn` is only ever called once for each unique set of
@@ -49,32 +49,50 @@ Returns a function that calls `fn` with it's parameters in reverse order.
 
 ##### `pipe(fn1, fn2, fn3, ...)`
 
-Composes functions into a pipe that takes one parameter. `fn2` is passed the
-result of `fn1`, `fn3` is passed the result of `fn2` and so on until the
-result of the last function is returned.
-
-
-### Curried functions
+Composes functions into a pipe.
+`fn2` is passed the result of `fn1`, `fn3` is passed the result of `fn2` and
+so on until the result of the last function is returned.
 
 ##### `bind(params, fn)`
 
-`var fn = Fn.bind([0,1,2,3], function() {...})`
+    var fn = Fn.bind([0,1,2,3], function() {...})
 
-Returns a function that applies `params` to `fn` when called, with the `this`
-context inside `fn` being the same. It is less complex than JavaScript's native
-`fn.bind(...)` and should be cheaper.
+Returns a function that applies `params` to `fn` when called.
+The `this` context inside `fn` is unchanged.
 
-##### `is(a, b)`
 
-Test for referential equality.
+### Types
+
+##### `toType(object)`
+##### `toClass(object)`
+##### `toArray(object)`
+##### `toInt(object)`
+##### `toString(object)`
+
+
+### Objects
 
 ##### `equals(a, b)`
 
 Test for deep equality.
 
+##### `is(a, b)`
+
+Test for referential equality.
+
 ##### `isDefined(object)`
 
-Test returns `false` if `object` is `null` or `undefined`.
+Test returns `false` if `object` is `null` or `undefined` or `NaN`.
+
+##### `isIn(array, object)`
+
+Test for presence of `object` in `array`.
+
+##### `not(object)`
+
+##### `assign(source, object)`
+
+Copies keys of `source` to `object`.
 
 ##### `get(key, object)`
 
@@ -86,33 +104,38 @@ WeakMap) or where `key` is a property of object.
 Sets property `key` of `object`, where `object` has a `set` method (eg. Map,
 WeakMap) or where object can have `key` set on it.
 
-##### `assign(source, object)`
 
-Copies keys of `source` to `object`.
+### Arrays and collections
 
+##### `concat(array2, array1)`
+
+Concatenates `list2` to `list1`. More robust than Array#concat as it handles
+arrays, array-like objects, functors and streams.
+
+##### `diff(array1, array2)`
+##### `each(fn, object)`
+##### `filter(fn, object)`
+##### `intersect(array1, array2)`
 ##### `map(fn, object)`
 
 Delegates to `object.map` or applies `Array.prototype.map` to `object`.
 
-##### `concat(list2, list1)`
-
-Concatenates `list2` to `list1`. More robust than Array#concat as it handles
-arrays, array-like objects, functors and streams.
+##### `reduce(fn, value, object)`
+##### `sort(fn, object)`
+##### `unite(array1, array2)`
+##### `unique(array)`
 
 ##### `invoke(name, object)`
 
 Invokes method `name` of `object`.
 
 ##### `throttle([time,] fn)`
-##### `concat(array1, object)`
-##### `each(fn, object)`
-##### `filter(fn, object)`
-##### `reduce(fn, value, object)`
-##### `slice(n, m, object)`
-##### `sort(fn, object)`
 ##### `by(key, a, b)`
 ##### `byGreater(a, b)`
 ##### `byAlphabet(a, b)`
+
+### Numbers
+
 ##### `add(a, b)`
 ##### `multiply(a, b)`
 ##### `pow(a, b)`
@@ -126,15 +149,11 @@ Normalises `n` from range `min`-`max` to range 0-1.
 Denormalises `n` from range 0-1 to range `min`-`max`.
 
 ##### `toFixed(n, value)`
-##### `not(object)`
-##### `match(regex, string)`
-##### `exec(regex, string)`
+
+
+### Strings
+
 ##### `slugify(string)`
-##### `toType(object)`
-##### `toClass(object)`
-##### `toInt(object)`
-##### `toString(object)`
-##### `toArray(object)`
 ##### `toStringType(string)`
 
     Fn.toStringType('http://cruncher.ch');  // 'url'
@@ -254,13 +273,13 @@ Create a stream that delays the flow of pushed values by `duration` seconds.
 
 ##### `toPromise()`
 
-## `Pool(options, prototype)`
+## Fn.Pool(options, prototype)
 
-`var Thing = Fn.pool({
-	create: function() { ... },
-	reset:  function() { ... },
-	isIdle: function() { ... }
-});`
+    var Thing = Fn.pool({
+	    create: function() { ... },
+        reset:  function() { ... },
+        isIdle: function() { ... }
+    });
 
 Creates an object pool, such that each call to `Thing(...)` returns an idle
 object from the pool, or if there are no idle objects, a newly created
@@ -277,3 +296,19 @@ while it is called again with new context and arguments.
 
 Returns a function that waits for `time` seconds without being called
 before calling fn with the latest context and arguments.
+
+
+<table>
+	<thead>
+		<tr>
+			<td>Hello</td>
+			<td>Brilliant acting</td>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Hello</td>
+			<td>`Brilliant acting`</td>
+		</tr>
+	</tbody>
+</table>
