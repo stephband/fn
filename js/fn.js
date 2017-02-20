@@ -308,15 +308,19 @@
 		return object;
 	}
 
+
 	// String functions
 
-	var prepend = flip(append);
+	function prepend(string1, string2) {
+		return string1 + string2;
+	}
 
 	function append(string1, string2) {
 		return string2 + string1;
 	}
 
-	// Paths
+
+	// Object functions
 
 	var rpathtrimmer  = /^\[|\]$/g;
 	var rpathsplitter = /\]?(?:\.|\[)/g;
@@ -330,15 +334,31 @@
 			.split(rpathsplitter);
 	}
 
+	function get(key, object) {
+		return object && (typeof object.get === "function" ?
+			object.get(key) :
+			// Coerse null to undefined
+			object[key] === null ?
+				undefined :
+				object[key]
+		);
+	}
+
+	function set(key, object, value) {
+		return typeof object.set === "function" ?
+			object.set(key, value) :
+			(object[key] = value) ;
+	}
+
 	function select(object, selector) {
 		var selection = rpropselector.exec(selector);
 
 		return selection ?
-			findByProperty(object, selection[1], JSON.parse(selection[2])) :
-			Fn.get(selector, object) ;
+			findByProperty(selection[1], object, JSON.parse(selection[2])) :
+			get(selector, object) ;
 	}
 
-	function findByProperty(array, name, value) {
+	function findByProperty(name, array, value) {
 		// Find first matching object in array
 		var n = -1;
 
@@ -362,14 +382,14 @@
 		var key = array.shift();
 
 		if (array.length === 0) {
-			Fn.set(key, value, root);
+			set(key, value, root);
 			return value;
 		}
 
-		var object = Fn.get(key, root);
+		var object = get(key, root);
 		if (!isObject(object)) { object = {}; }
 
-		Fn.set(key, object, root);
+		set(key, object, root);
 		return objTo(object, array, value) ;
 	}
 
@@ -1130,21 +1150,8 @@
 
 		assign: curry(Object.assign, 2),
 
-		get: curry(function get(key, object) {
-			return object && (typeof object.get === "function" ?
-				object.get(key) :
-				// Coerse null to undefined
-				object[key] === null ?
-					undefined :
-					object[key]
-			);
-		}),
-
-		set: curry(function set(key, value, object) {
-			return typeof object.set === "function" ?
-				object.set(key, value) :
-				(object[key] = value) ;
-		}),
+		get: curry(get),
+		set: curry(set),
 
 		getPath: curry(function get(path, object) {
 			return object && (object.get ? object.get(path) :

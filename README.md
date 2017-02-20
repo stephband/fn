@@ -81,7 +81,7 @@ Test returns `false` if `object` is `null` or `undefined`.
 Gets property `key` of `object`, where `object` has a `get` method (eg. Map,
 WeakMap) or where `key` is a property of object.
 
-##### `set(key, value, object)`
+##### `set(key, object, value)`
 
 Sets property `key` of `object`, where `object` has a `set` method (eg. Map,
 WeakMap) or where object can have `key` set on it.
