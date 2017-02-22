@@ -170,6 +170,14 @@
 		return curried;
 	}
 
+	function once(fn) {
+		var n = 0;
+		var value;
+		return function() {
+			return n++ ? value : (value = fn.apply(this, arguments)) ;
+		};
+	}
+
 	//function curryUntil(fn, test) {
 	//	// Returns partially applied functions until some condition `test`
 	//	// is met, when `fn` is called
@@ -1206,6 +1214,7 @@
 
 		noop:           noop,
 		id:             id,
+		once:           once,
 		cache:          cache,
 		curry:          curry,
 		cacheCurry:     cacheCurry,

@@ -47,6 +47,13 @@ of `fn1` and the result is returned.
 
 Returns a function that calls `fn` with it's parameters in reverse order.
 
+##### `once(fn)`
+
+    var fn2 = Fn.once(fn1);
+
+Calls `fn1` once, the first time `fn2` is called.
+Subsequent calls to `fn2` return the value from the first run.
+
 ##### `pipe(fn1, fn2, fn3, ...)`
 
 Composes functions into a pipe.
