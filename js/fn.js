@@ -67,6 +67,10 @@
 		return fn();
 	}
 
+	function apply(args, fn) {
+		fn.apply(null, args);
+	}
+
 	function invoke(n, fn) {
 		return fn(n);
 	}
@@ -171,10 +175,10 @@
 	}
 
 	function once(fn) {
-		var n = 0;
-		var value;
-		return function() {
-			return n++ ? value : (value = fn.apply(this, arguments)) ;
+		return function once() {
+			var value = fn.apply(this, arguments);
+			fn = noop;
+			return value;
 		};
 	}
 
@@ -507,96 +511,95 @@
 	}
 
 
-	// Throttle
-
-	// Returns a function that calls `fn` immediately the first time it is
-	// called, and thereafter once every `time` seconds during which function is
-	// called, with the last context and arguments.
+	// Time
 
 	var requestAnimationFrame = window.requestAnimationFrame;
 
 	var now = window.performance && window.performance.now ? function now() {
-		return window.performance.now();
+		// Return time in seconds
+		return window.performance.now() / 1000;
 	} : function now() {
-		return +new Date();
+		// Return time in seconds
+		return +new Date() / 1000;
 	} ;
 
-	function createRequestTimerFrame(time) {
+	var resolved = Promise.resolve();
+
+	function requestTick(fn) {
+		resolved.then(fn);
+		return true;
+	}
+
+	function Timer(time) {
+		// Optional second argument is a function that returns
+		// time (in seconds)
+		var getTime = arguments[1] || now;
+		var fns = [];
 		var timer = false;
 		var t = 0;
-		var fns = [];
 
-		function timed() {
+		function update() {
+			var fn;
 			timer = false;
-			t = now();
-			fns.forEach(Fn.run([now()]));
-			fns.length = 0;
+			t     = getTime();
+			while (fn = fns.shift()) {
+				fn(t);
+			}
 		}
 
-		return function requestTimerFrame(fn) {
-			// Add fn to queue
-			if (timer) {
+		return {
+			request: function requestTimerFrame(fn) {
+				// Add fn to queue
 				fns.push(fn);
-				return;
-			}
+				
+				// If the timer is cued do nothing
+				if (timer) { return; }
+				
+				// Set the timer
+				var n = getTime();
+				timer = t + time > n ?
+					setTimeout(update, (time + t - n) * 1000) :
+					requestTick(update) ;
+			},
 
-			var n = now();
-
-			// Set the timer
-			if (t + time > n) {
-				fns.push(fn);
-				timer = setTimeout(timed, time + t - n);
-				return;
-			}
-
-			t = n;
-			fn(t);
-			return;
+			cancel: noop
 		};
 	}
 
-	function Throttle(fn, time) {
-		var request = time ?
-			createRequestTimerFrame(time * 1000) :
-			requestAnimationFrame ;
+	function Throttle(fn, request) {
+		request = request || requestAnimationFrame;
 
-		var queue = function() {
-			// Don't queue update if it's already queued
-			if (queued) { return; }
-			queued = true;
+		var queue = schedule;
+		var context, args;
 
-			// Queue update
+		function schedule() {
+			queue = noop;
 			request(update);
-		};
-
-		var queued, context, a;
-
-		function update() {
-			queued = false;
-			fn.apply(context, a);
 		}
 
-		function cancel() {
+		function update() {
+			queue = schedule;
+			fn.apply(context, args);
+		}
+
+		function stop(callLast) {
+			// If there is an update queued apply it now
+			if (callLast !== false && queue === noop) { update(); }
+
 			// Don't permit further changes to be queued
 			queue = noop;
-
-			// If there is an update queued apply it now
-			if (queued) { update(); }
-
-			// Make the queued update do nothing
-			fn = noop;
 		}
 
 		function throttle() {
 			// Store the latest context and arguments
 			context = this;
-			a = arguments;
+			args = arguments;
 
 			// Queue the update
 			queue();
 		}
 
-		throttle.cancel = cancel;
+		throttle.cancel = stop;
 		return throttle;
 	}
 
@@ -757,21 +760,16 @@
 		},
 
 		reduce: function(fn, seed) {
-			var output = isDefined(seed) ? seed : 0 ;
-			var shift  = this.shift;
+			var shift = this.shift;
 
-			// Todo: Is this the right way to detect the end? Really? When there
-			// are no more defined values, rather than when status === "done"?
-			return create(this, function reduce() {
+			function reduce(seed) {
 				var value = shift();
+				return value === undefined ? seed : reduce(fn(seed, value)) ;
+			}
 
-				while (value !== undefined) {
-					output = fn(output, value);
-					value = shift();
-				}
-
-				return output;
-			});
+			return create(this, once(function() {
+				return reduce(isDefined(seed) ? seed : 0);
+			}));
 		},
 
 		syphon: function(fn) {
@@ -1035,18 +1033,15 @@
 		// Timed
 
 		delay: function(time) {
-			var stream = Stream.Delay(time);
-			return this.pipe(stream);
+			return this.pipe(Stream.Delay(time));
 		},
 
 		choke: function(time) {
-			var stream = Stream.Choke(time);
-			return this.pipe(stream);
+			return this.pipe(Stream.Choke(time));
 		},
 
 		throttle: function(time) {
-			var stream = Stream.Throttle(time);
-			return this.pipe(stream);
+			return this.pipe(Stream.Throttle(time));
 		},
 
 		// Todo: Perhaps CueTimer should become part of Fn?
@@ -1130,10 +1125,7 @@
 				throw new Error('Fn: Fn.pipe(object) object must be a stream. (' + stream + ')');
 			}
 
-			// Readable -> Writeable
-			return stream
-			.on('pull', this.shift)
-			.push();
+			return stream.on('pull', this.shift);
 		},
 
 		clone: function() {
@@ -1476,11 +1468,7 @@
 			return fn ? throttle(fn) : throttle ;
 		},
 
-		requestTick: (function(promise) {
-			return function(fn) {
-				promise.then(fn);
-			};
-		})(Promise.resolve()),
+		requestTick: requestTick,
 
 
 		// Numbers
@@ -1606,20 +1594,12 @@
 		},
 
 
-		// Debugging
+		// Time
 
-		log: curry(function(text, object) {
-			console.log(text, object);
-			return object;
-		}),
-
-		logReturn: function(fn) {
-			return function() {
-				var result = fn.apply(this, arguments);
-				console.log(fn.name, result);
-				return result;
-			};
-		}
+		now:      now,
+		Throttle: Throttle,
+		Timer:    Timer,
+		Wait:     Wait
 	});
 
 
@@ -1791,21 +1771,8 @@
 			if (!stream || !stream.push) {
 				throw new Error('Fn: Fn.pipe(object) object must be a pushable stream. (' + stream + ')');
 			}
-
-			// As a rule, notify should never be called from outside
-			// stream methods...
-			//
-			//this.on('push', function() {
-			//	return notify(stream, 'push');
-			//});
-
-			var source = this.on('push', stream.push);
-
-			stream.on('stop', function() {
-				source.off('push', stream.push);
-			});
-
-			// Delegate to Fn pipe()
+			
+			this.each(stream.push);
 			return Fn.prototype.pipe.apply(this, arguments);
 		},
 
@@ -1815,25 +1782,6 @@
 
 		unshift: function(object) {
 
-		},
-
-		reduce: function(fn, seed) {
-			var output = isDefined(seed) ? seed : 0 ;
-			var shift  = this.shift;
-
-			return create(this, function reduce() {
-				var value = shift();
-
-				// If there are no new values to reduce, return
-				if (value === undefined) { return; }
-
-				while (value !== undefined) {
-					output = fn(output, value);
-					value = shift();
-				}
-
-				return output;
-			});
 		},
 
 		each: function(fn) {
@@ -1915,21 +1863,22 @@
 	Object.assign(Stream, {
 		of: Fn.of,
 
-		Throttle: function ThrottleStream(duration) {
-			var buffer = [];
+		Throttle: function ThrottleStream(request) {
+			// If request is a number create a timer, otherwise if request is
+			// a function use it, or if undefined, use an animation timer.
+			request = typeof request === 'number' ? Timer(request).request :
+				typeof request === 'function' ? request :
+				requestAnimationFrame ;
 
-			function shift() {
+			var buffer  = [];
+
+			return Stream(function shift() {
 				return buffer.shift();
-			}
-
-			var throttle = Throttle(function push() {
-				// Maintain buffer with length 1, containing last pushed value
+			}, Throttle(function push() {
 				buffer[0] = arguments[arguments.length - 1];
 				this.notify('push');
-			}, duration);
-
-			return Stream(shift, throttle, function stop() {
-				buffer.length = 0;
+			}, request), function stop() {
+				buffer = empty;
 				throttle.cancel();
 				this.status = "done";
 			});
@@ -2065,8 +2014,6 @@
 
 	Object.assign(Fn, {
 		Pool:          Pool,
-		Throttle:      Throttle,
-		Wait:          Wait,
 		Stream:        Stream
 	});
 

@@ -249,16 +249,15 @@ Create a buffered stream of values.
 
 Create a stream of changes to the value of an object property.
 
-##### `Stream.choke(duration)`
+##### `Stream.choke()`
 
-Create a stream that throttles the flow of values to flow one per frame, where
-a frame is `duration` seconds long.
+Create a stream that chokes the flow of values to flow one per frame, where
+a frame is a browser animation frame.
 
-##### `Stream.throttle(duration)`
+##### `Stream.throttle()`
 
-Create a stream that throttles the flow of values to flow one per frame, where
-a frame is `duration` seconds long. All but the last pushed value before each
-frame is thrown away.
+Create a stream that throttles the flow of values to the latest value per frame,
+where a frame is a browser animation frame.
 
 ##### `Stream.delay(duration)`
 

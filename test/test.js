@@ -6,11 +6,14 @@ function typeWrap(value) {
 	return type === 'string' ? '"' + value + '"' : value ;
 }
 
-function equals(expected, value) {
-	console.assert(value === expected,
-		'expected ' + typeWrap(expected) + ', ' +
-		'received ' + typeWrap(value) + '.'
-	);
+function equals(expected, value, message) {
+	if (value !== expected) {
+		console.trace(message ||
+			'Test failed: ' + 
+			'expected: ' + typeWrap(expected) + ', ' +
+			'received: ' + typeWrap(value)
+		);
+	}
 }
 
 function test(name, fn) {
