@@ -377,54 +377,6 @@
 		return object.find ? object.find(fn) : A.find.call(object, fn);
 	}
 
-	//function intersectScales(arr1, arr2) {
-	//	// A fast intersect that assumes arrays are sorted (ascending) numbers.
-	//	var l1 = arr1.length, l2 = arr2.length;
-	//	var i1 = 0, i2 = 0;
-	//	var arr3 = [];
-	//
-	//	while (i1 < l1 && i2 < l2) {
-	//		if (arr1[i1] === arr2[i2]) {
-	//			arr3.push(arr1[i1]);
-	//			++i1;
-	//			++i2;
-	//		}
-	//		else if (arr2[i2] > arr1[i1]) { ++i1; }
-	//		else { ++i2; }
-	//	}
-	//
-	//	return arr3;
-	//}
-
-	//function diffScales(arr1, arr2) {
-	//	// A fast diff that assumes arrays are sorted (ascending) numbers.
-	//	var l1 = arr1.length, l2 = arr2.length,
-	//	    i1 = 0, i2 = 0,
-	//	    arr3 = [], n;
-	//
-	//	while (i1 < l1) {
-	//		while (i2 < l2 && arr1[i1] > arr2[i2]) {
-	//			arr3.push(arr2[i2]);
-	//			++i2;
-	//		}
-	//
-	//		if (arr1[i1] !== arr2[i2]) {
-	//			arr3.push(arr1[i1]);
-	//		}
-	//
-	//		n = arr1[i1];
-	//		while (n === arr1[i1] && ++i1 < l1);
-	//		while (n === arr2[i2] && ++i2 < l2);
-	//	}
-	//
-	//	while (i2 < l2) {
-	//		arr3.push(arr2[i2]);
-	//		++i2;
-	//	}
-	//
-	//	return arr3;
-	//}
-
 
 	// Object functions
 
@@ -1606,6 +1558,7 @@
 	// Stream
 
 	var defaults = {
+		push: noop,
 		stop: function stop() {
 			// Get rid of all event handlers in one fell swoop
 			this.stream.status = "done";
@@ -1621,10 +1574,6 @@
 		var events = object[eventsSymbol];
 
 		if (!events) { return; }
-
-		// Todo: make sure forEach is acting on a copy of events[type] ?
-		//events && events[type] && events[type].forEach(call);
-
 		if (!events[type]) { return; }
 
 		var n = -1;
@@ -1647,71 +1596,55 @@
 		return notify(this.stream, type);
 	};
 
-	function mixinFnStream(shift, push, stop) {
-		// Avoid exposing notify() by creating a lifecycle control object
-		// and use it as context for shift, push and stop.
-		var context = new Context(this);
+	function BufferStream(array) {
+		if (typeof array.length !== 'number') {
+			throw new TypeError('BufferStream requires 1st parameter to be an array or array-like object.');
+		}
 
-		this.shift = shift.bind(context);
-
-		this.push = function() {
-			push && push.apply(context, arguments);
-			// Todo: May not return the object we're expecting, when push is detached from this!!
-			return this;
-		};
-
-		this.stop = function() {
-			stop && stop.apply(context, arguments);
-			return this;
-		};
-	}
-
-	function mixinBufferStream(array) {
-		var stream = this;
 		var buffer = A.slice.apply(array);
 
-		this.shift = function shift() {
-			if (stream.status === "done") { return; }
-
+		return new Stream(function shift() {
 			var value = sparseShift(buffer);
-
-			if (value === undefined) {
-				value = notify(stream, 'pull');
-			}
-
-			return value;
-		};
-
-		this.push = function push() {
-			if (stream.status === "done") { return; }
+			return value === undefined ?
+				notify(this.stream, 'pull') :
+				value ;
+		}, function push() {
 			A.push.apply(buffer, arguments);
-			notify(stream, 'push');
+			notify(this.stream, 'push');
 			return this;
-		};
-
-		this.stop = function() {
-			stream.status = "done";
-			return this;
-		};
+		});
 	}
 
 	function Stream(shift, push, stop) {
+		// Stream has been called with a single array-like parameter
+		if (typeof shift !== 'function') {
+			return BufferStream(shift);
+		}
+
 		// Enable construction without the `new` keyword
 		if (!Stream.prototype.isPrototypeOf(this)) {
 			return new Stream(shift, push, stop);
 		}
 
-		// Require at least one parameter
-		if (!shift) {
-			throw new TypeError('Stream constructor requires at least 1 parameter');
-		}
+		stop = stop || defaults.stop;
+		push = push || defaults.push;
 
-		if (typeof shift === 'function') {
-			mixinFnStream.call(this, shift, push, stop || defaults.stop);
-		}
-		else if (typeof shift.length === "number") {
-			mixinBufferStream.call(this, shift);
-		}
+		// A lifecycle control object to use as context for push and stop.
+		var context = new Context(this);
+
+		this.shift = function() {
+			return shift.apply(context);
+		};
+
+		this.push = function() {
+			push.apply(context, arguments);
+			return context.stream;
+		};
+
+		this.stop = function() {
+			stop.apply(context, arguments);
+			return context.stream;
+		};
 
 		this[eventsSymbol] = {};
 	}
@@ -1786,12 +1719,11 @@
 
 		each: function(fn) {
 			var source = this;
-			var args = arguments;
 
 			function each() {
 				// Delegate to Fn.each(), which returns self, telling the
 				// notifier that this event has been handled.
-				return Fn.prototype.each.apply(source, args);
+				return Fn.prototype.each.call(source, fn);
 			}
 
 			// Flush and observe
