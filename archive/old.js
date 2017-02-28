@@ -1,3 +1,14 @@
+	//function curryUntil(fn, test) {
+	//	// Returns partially applied functions until some condition `test`
+	//	// is met, when `fn` is called
+	//	return function curried() {
+	//		return test.apply(null, arguments) ?
+	//			fn.apply(null, arguments) :
+	//			bind(arguments, curried) ;
+	//	};
+	//}
+
+
 	//function intersectScales(arr1, arr2) {
 	//	// A fast intersect that assumes arrays are sorted (ascending) numbers.
 	//	var l1 = arr1.length, l2 = arr2.length;

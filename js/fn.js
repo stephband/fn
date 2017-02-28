@@ -182,16 +182,6 @@
 		};
 	}
 
-	//function curryUntil(fn, test) {
-	//	// Returns partially applied functions until some condition `test`
-	//	// is met, when `fn` is called
-	//	return function curried() {
-	//		return test.apply(null, arguments) ?
-	//			fn.apply(null, arguments) :
-	//			bind(arguments, curried) ;
-	//	};
-	//}
-
 	function flip(fn) {
 		return function(a, b) {
 			return fn(b, a);
@@ -380,6 +370,8 @@
 
 	// Object functions
 
+	var assign = Object.assign;
+
 	var rpathtrimmer  = /^\[|\]$/g;
 	var rpathsplitter = /\]?(?:\.|\[)/g;
 	var rpropselector = /(\w+)=(['"]?\w+['"]?)/;
@@ -507,16 +499,23 @@
 				// If the timer is cued do nothing
 				if (timer) { return; }
 				
-				// Set the timer
 				var n = getTime();
-				timer = t + time > n ?
+
+				// Set the timer and return something truthy
+				return (timer = t + time > n ?
 					setTimeout(update, (time + t - n) * 1000) :
-					requestTick(update) ;
+					requestTick(update)
+				);
 			},
 
 			cancel: noop
 		};
 	}
+
+	// Throttle
+	//
+	// Returns a function that calls `fn` once on the next timer frame, using
+	// the context and arguments from the latest invocation.
 
 	function Throttle(fn, request) {
 		request = request || requestAnimationFrame;
@@ -555,47 +554,44 @@
 		return throttle;
 	}
 
-
 	// Wait
-
-	// Returns a function that waits for `time` seconds without being called
-	// before calling `fn` with the last context and arguments passed to
-	// function.
+	//
+	// Returns a function that waits for `time` seconds without being invoked
+	// before calling `fn` using the context and arguments from the latest
+	// invocation
 
 	function Wait(fn, time) {
-		var timer;
+		var timer, context, args;
 
-		var queue = function() {
-			clearTimeout(timer);
-			// Set time in milliseconds
+		function cue() {
+			if (timer) { clearTimeout(timer); }
 			timer = setTimeout(update, (time || 0) * 1000);
-		};
-
-		var context, a;
+		}
 
 		function update() {
-			fn.apply(context, a);
+			timer = false;
+			fn.apply(context, args);
 		}
 
 		function cancel() {
 			// Don't permit further changes to be queued
-			queue = noop;
+			schedule = noop;
 
 			// If there is an update queued apply it now
-			clearTimeout(timer);
+			if (timer) { clearTimeout(timer); }
 		}
 
-		function hold() {
+		function wait() {
 			// Store the latest context and arguments
 			context = this;
-			a = arguments;
+			args = arguments;
 
-			// Queue the update
-			queue();
+			// Cue the update
+			cue();
 		}
 
-		hold.cancel = cancel;
-		return hold;
+		wait.cancel = cancel;
+		return wait;
 	}
 
 
@@ -622,9 +618,8 @@
 		// fn is an object with a shift function
 		if (typeof fn.shift === "function" && fn.length === undefined) {
 			this.shift = function shift() {
-				if (source.status === 'done') { return; }
 				var value = fn.shift();
-				if (fn.status === "done") { source.status = 'done'; }
+				if (fn.status === "done" || fn.length === 0) { source.status = 'done'; }
 				return value;
 			};
 			return;
@@ -633,7 +628,6 @@
 		// fn is an iterator
 		if (typeof fn.next === "function") {
 			this.shift = function shift() {
-				if (source.status === 'done') { return; }
 				var result = fn.next();
 				if (result.done) { source.status = 'done'; }
 				return result.value;
@@ -644,18 +638,17 @@
 		// fn is an arguments object, maybe from Fn.of()
 		if (Fn.toClass(fn) === "Arguments") {
 			this.shift = function shift() {
-				if (source.status === 'done') { return; }
-				var result = sparseShift(fn);
-				if (result === undefined) { source.status = "done"; }
-				return result;
+				if (fn.length < 2) { source.status = 'done'; }
+				return sparseShift(fn);
 			};
+
 			return;
 		}
 
 		// fn is an array or array-like object
 		buffer = A.slice.apply(fn);
 		this.shift = function shift() {
-			if (source.status === 'done') { return; }
+			if (buffer.length < 2) { source.status = 'done'; }
 			return buffer.shift();
 		};
 	}
@@ -667,7 +660,7 @@
 		return functor;
 	}
 
-	Object.assign(Fn.prototype, {
+	assign(Fn.prototype, {
 		// Input
 
 		of: function() {
@@ -678,12 +671,15 @@
 
 		// Transform
 
-		process: function(fn) { return fn(this); },
-
 		ap: function ap(object) {
-			var fn = this.shift();
-			if (fn === undefined) { return; }
-			return object.map(fn);
+		  var shift = this.shift;
+		
+		  return create(this, function ap() {
+		  	var fn = shift();
+		  	return fn === undefined ?
+		  		undefined :
+		  		object.map(fn);
+		  });
 		},
 
 		filter: function(fn) {
@@ -755,11 +751,11 @@
 		},
 
 		dedup: function() {
-			var value;
-			return this.filter(function(newValue) {
-				var oldValue = value;
-				value = newValue;
-				return oldValue !== newValue;
+			var v;
+			return this.filter(function(value) {
+				var old = v;
+				v = value;
+				return old !== value;
 			});
 		},
 
@@ -767,11 +763,11 @@
 			var source = this;
 			var buffer = empty;
 
-			return create(this, function join(object) {
+			return create(this, function join() {
 				var value = buffer.shift();
 				if (value !== undefined) { return value; }
 				buffer = source.shift();
-				if (buffer !== undefined) { return join(object); }
+				if (buffer !== undefined) { return join(); }
 				buffer = empty;
 			});
 		},
@@ -783,13 +779,9 @@
 		concat: function(object) {
 			var source = this;
 			return create(this, function concat() {
-				var value = source.shift();
-
-				if (value === undefined) {
-					value = object.shift();
-				}
-
-				return value;
+				return source.status !== 'done' ?
+					source.shift() :
+					object.shift() ;
 			});
 		},
 
@@ -981,19 +973,27 @@
 			});
 		},
 
+		// Hack needed for soundio, I think. Keep an eye on whether we
+		// can remove it.
+		process: function(fn) { return fn(this); },
+
 
 		// Timed
-
-		delay: function(time) {
-			return this.pipe(Stream.Delay(time));
-		},
 
 		choke: function(time) {
 			return this.pipe(Stream.Choke(time));
 		},
 
-		throttle: function(time) {
-			return this.pipe(Stream.Throttle(time));
+		delay: function(time) {
+			return this.pipe(Stream.Delay(time));
+		},
+
+		throttle: function(request) {
+			return this.pipe(Stream.Throttle(request));
+		},
+
+		clock: function(request) {
+			return this.pipe(Stream.Clock(request));
 		},
 
 		// Todo: Perhaps CueTimer should become part of Fn?
@@ -1148,7 +1148,7 @@
 		};
 	}
 
-	Object.assign(Fn, {
+	assign(Fn, {
 		of: function() { return new this(arguments); },
 
 		empty:          empty,
@@ -1356,7 +1356,7 @@
 
 		// Objects
 
-		assign: curry(Object.assign, 2),
+		assign: curry(assign, 2),
 
 		entries: function(object){
 			return typeof object.entries === 'function' ?
@@ -1557,44 +1557,39 @@
 
 	// Stream
 
-	var defaults = {
-		push: noop,
-		stop: function stop() {
-			// Get rid of all event handlers in one fell swoop
-			this.stream.status = "done";
-			notify(this.stream, 'stop');
-			delete this.stream[eventsSymbol];
-			return this;
-		}
-	};
-
 	var eventsSymbol = Symbol('events');
 
-	function notify(object, type) {
-		var events = object[eventsSymbol];
-
-		if (!events) { return; }
-		if (!events[type]) { return; }
-
-		var n = -1;
-		var l = events[type].length;
-		var value;
-
-		while (++n < l) {
-			value = events[type][n]();
-			if (value !== undefined) {
-				return value;
-			}
-		}
-	}
-
-	function Context(stream) {
+	// A Lifecycle controller for streams
+	function Control(stream) {
 		this.stream = stream;
 	}
 
-	Context.prototype.notify = function(type) {
-		return notify(this.stream, type);
-	};
+	assign(Control.prototype, {
+		notify: function(type) {
+			var events = this.stream[eventsSymbol];
+	
+			if (!events) { return; }
+			if (!events[type]) { return; }
+	
+			var n = -1;
+			var l = events[type].length;
+			var value;
+	
+			while (++n < l) {
+				value = events[type][n]();
+				if (value !== undefined) {
+					return value;
+				}
+			}
+		},
+
+		stop: function stop() {
+			// Get rid of all event handlers in one fell swoop
+			this.stream.status = 'done';
+			this.notify('stop');
+			delete this.stream[eventsSymbol];
+		}
+	});
 
 	function BufferStream(array) {
 		if (typeof array.length !== 'number') {
@@ -1606,11 +1601,11 @@
 		return new Stream(function shift() {
 			var value = sparseShift(buffer);
 			return value === undefined ?
-				notify(this.stream, 'pull') :
+				this.notify('pull') :
 				value ;
 		}, function push() {
 			A.push.apply(buffer, arguments);
-			notify(this.stream, 'push');
+			this.notify('push');
 			return this;
 		});
 	}
@@ -1626,32 +1621,32 @@
 			return new Stream(shift, push, stop);
 		}
 
-		stop = stop || defaults.stop;
-		push = push || defaults.push;
+		// A lifecycle control object to use as context for shift, push and
+		// stop, giving those functions access to flow control for the stream.
+		var control = new Control(this);
+		var stream = this;
 
-		// A lifecycle control object to use as context for push and stop.
-		var context = new Context(this);
+		stop = stop || control.stop;
+		push = push || noop;
 
 		this.shift = function() {
-			return shift.apply(context);
+			return shift.apply(control);
 		};
 
 		this.push = function() {
-			push.apply(context, arguments);
-			return context.stream;
+			push.apply(control, arguments);
+			return stream;
 		};
 
 		this.stop = function() {
-			stop.apply(context, arguments);
-			return context.stream;
+			stop.apply(control, arguments);
+			return stream;
 		};
 
 		this[eventsSymbol] = {};
 	}
 
-	Stream.prototype = Object.create(Fn.prototype);
-
-	Object.assign(Stream.prototype, {
+	Stream.prototype = assign(Object.create(Fn.prototype), {
 		on: function on(type, fn) {
 			var events = this[eventsSymbol];
 			if (!events) { return this; }
@@ -1689,16 +1684,6 @@
 			return this;
 		},
 
-		ap: function ap(object) {
-			var shift = this.shift;
-
-			return create(this, function ap() {
-				var fn = shift();
-				if (fn === undefined) { return; }
-				return object.map(fn);
-			});
-		},
-
 		pipe: function(stream) {
 			// Target must be writable
 			if (!stream || !stream.push) {
@@ -1707,10 +1692,6 @@
 			
 			this.each(stream.push);
 			return Fn.prototype.pipe.apply(this, arguments);
-		},
-
-		push: function error() {
-			throw new Error('Fn: ' + this.constructor.name + ' is not pushable.');
 		},
 
 		unshift: function(object) {
@@ -1731,7 +1712,7 @@
 			return this.on('push', each);
 		},
 
-		concatParallel: function() {
+		merge: function() {
 			var shift = this.shift;
 			var order = [];
 
@@ -1756,7 +1737,7 @@
 					value ;
 			}
 
-			return create(this, function concatParallel() {
+			return create(this, function merge() {
 				var object = shift();
 				if (object !== undefined) { bind(object); }
 				var value = shiftNext();
@@ -1792,10 +1773,10 @@
 		}
 	});
 
-	Object.assign(Stream, {
+	assign(Stream, {
 		of: Fn.of,
 
-		Throttle: function ThrottleStream(request) {
+		Throttle: function(request) {
 			// If request is a number create a timer, otherwise if request is
 			// a function use it, or if undefined, use an animation timer.
 			request = typeof request === 'number' ? Timer(request).request :
@@ -1811,50 +1792,22 @@
 				this.notify('push');
 			}, request), function stop() {
 				buffer = empty;
-				throttle.cancel();
-				this.status = "done";
+				throttle.cancel(false);
+				this.stop();
 			});
 		},
 
-		Choke: function ChokeStream(duration) {
-			var buffer1 = [];
-			var buffer2 = [];
-			var timer;
+		Choke: function(time) {
+			var buffer  = [];
 
-			// Where duration is falsy default to animation frames
-
-			var request = duration ?
-				function request(fn) { setTimeout(fn, duration * 1000); } :
-				requestAnimationFrame;
-
-			var cancel = duration ?
-				clearTimeout :
-				cancelAnimationFrame;
-
-			function shift() {
-				return buffer2.shift();
-			}
-
-			function push(stream) {
-				if (!buffer1.length) {
-					timer = undefined;
-					return;
-				}
-
-				buffer2.push(buffer1.shift());
-				stream.notify('push');
-				timer = request(function() { push(stream); });
-			}
-
-			function flow() {
-				buffer1.push.apply(buffer1, arguments);
-				if (timer === undefined) { push(this); }
-			}
-
-			return Stream(shift, flow, function stop() {
-				buffer2.length = 0;
-				cancel(timer);
-				this.status = "done";
+			return Stream(function shift() {
+				return buffer.shift();
+			}, Wait(function push() {
+				buffer[0] = arguments[arguments.length - 1];
+				this.notify('push');
+			}, time), function stop() {
+				throttle.cancel(false);
+				this.stop();
 			});
 		},
 
@@ -1862,11 +1815,7 @@
 			var buffer = [];
 			var timers = [];
 
-			function shift() {
-				return buffer.shift();
-			}
-
-			function push(context, values) {
+			function trigger(context, values) {
 				// Careful! We're assuming that timers fire in the order they
 				// were declared, which may not be the case in JS.
 				var value;
@@ -1881,71 +1830,58 @@
 				}
 
 				context.notify('push');
-				clearTimeout(timers.shift());
+				timers.shift();
 			}
 
-			function delay() {
-				timers.push(
-					setTimeout(push, duration * 1000, this, arguments)
-				);
-			}
-
-			return Stream(shift, delay, function stop() {
-				buffer.length = 0;
+			return Stream(function shift() {
+				return buffer.shift();
+			}, function push() {
+				timers.push(setTimeout(trigger, duration * 1000, this, arguments));
+			}, function stop() {
+				buffer = empty;
 				timers.forEach(clearTimeout);
-				this.status = "done";
+				this.stop();
+			});
+		},
+
+		Clock: function(request) {
+			// If request is a number create a timer, otherwise if request is
+			// a function use it, or if undefined, use an animation timer.
+			request = typeof request === 'number' ? Timer(request).request :
+				typeof request === 'function' ? request :
+				requestAnimationFrame ;
+
+			var buffer  = [];
+			var pushed  = [];
+
+			function update(control) {
+				pushed[0] = buffer.shift();
+				control.notify('push');
+			}
+
+			return Stream(function shift() {
+				var value = pushed.shift();
+				if (value !== undefined) {
+					timer = request(function() { update(this); });
+				}
+				return value;
+			}, function push() {
+				buffer.push.apply(buffer, arguments);
+				if (!timer) {
+					timer = request(function() { update(this); });
+				}
+			}, function stop() {
+				pushed = empty;
+				update = noop;
+				this.stop();
 			});
 		}
 	});
 
 
-	// Pool
-
-	var loggers = [];
-
-	function Pool(options, prototype) {
-		var create = options.create || Fn.noop;
-		var reset  = options.reset  || Fn.noop;
-		var isIdle = options.isIdle;
-		var store = [];
-
-		// Todo: This is bad! It keeps a reference to the pools hanging around,
-		// accessible from the global scope, so even if the pools are forgotten
-		// they are never garbage collected!
-		loggers.push(function log() {
-			var total = store.length;
-			var idle  = store.filter(isIdle).length;
-			return {
-				name:   options.name,
-				total:  total,
-				active: total - idle,
-				idle:   idle
-			};
-		});
-
-		return function PooledObject() {
-			var object = store.find(isIdle);
-
-			if (!object) {
-				object = Object.create(prototype || null);
-				create.apply(object, arguments);
-				store.push(object);
-			}
-
-			reset.apply(object, arguments);
-			return object;
-		};
-	}
-
-	Pool.snapshot = function() {
-		return Fn(loggers).map(call).toJSON();
-	};
-
-
 	// Export
 
-	Object.assign(Fn, {
-		Pool:          Pool,
+	assign(Fn, {
 		Stream:        Stream
 	});
 

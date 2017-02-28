@@ -300,21 +300,14 @@ while it is called again with new context and arguments.
 
 ## Fn.Wait(fn, time)
 
-Returns a function that waits for `time` seconds without being called
-before calling fn with the latest context and arguments.
+Returns a function that waits for `time` seconds without being invoked
+before calling `fn` using the context and arguments from the latest invocation.
 
+    var wait = Fn.Wait(console.log, 1.5);
 
-<table>
-	<thead>
-		<tr>
-			<td>Hello</td>
-			<td>Brilliant acting</td>
-		</tr>
-	</thead>
-	<tbody>
-		<tr>
-			<td>Hello</td>
-			<td>`Brilliant acting`</td>
-		</tr>
-	</tbody>
-</table>
+	wait(1);
+	wait(2);
+	wait(3);
+
+	// 1.5 seconds later:
+	// > 3

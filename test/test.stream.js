@@ -277,10 +277,10 @@ test('.unique()', function() {
 	equals('0,1,2,3,4', Stream.of(0,0,1,1,1,2,3,3,3,3,3,4,4).unique().toArray().join());
 });
 
-test('.group().concatParallel()', function() {
+test('.group().merge()', function() {
 	var s = Stream.of(0,0,1,2,3,3,2,3,0)
 		.group()
-		.concatParallel();
+		.merge();
 
 	equals([0,0,1,2,3,3,2,3,0].join(), s.toArray().join());
 
