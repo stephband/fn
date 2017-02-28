@@ -67,6 +67,24 @@ so on until the result of the last function is returned.
 Returns a function that applies `params` to `fn` when called.
 The `this` context inside `fn` is unchanged.
 
+##### `Throttle(fn, request)`
+
+Returns a function that calls fn immediately and thereafter every `time` seconds
+while it is called again with new context and arguments.
+
+##### `Wait(fn, time)`
+
+Returns a function that waits for `time` seconds without being invoked
+before calling `fn` using the context and arguments from its latest invocation.
+
+    var wait = Fn.Wait(console.log, 1.5);
+
+	wait(1);
+	wait(2);
+	wait(3);
+
+	// 1.5 seconds later:
+	// > 3
 
 ### Types
 
@@ -75,9 +93,6 @@ The `this` context inside `fn` is unchanged.
 ##### `toArray(object)`
 ##### `toInt(object)`
 ##### `toString(object)`
-
-
-### Objects
 
 ##### `equals(a, b)`
 
@@ -97,9 +112,12 @@ Test for presence of `object` in `array`.
 
 ##### `not(object)`
 
+
+### Objects
+
 ##### `assign(source, object)`
 
-Copies keys of `source` to `object`.
+Copies keys of `object` to `source`.
 
 ##### `get(key, object)`
 
@@ -111,8 +129,10 @@ WeakMap) or where `key` is a property of object.
 Sets property `key` of `object`, where `object` has a `set` method (eg. Map,
 WeakMap) or where object can have `key` set on it.
 
+##### `invoke(name, object)`
+Invokes method `name` of `object`.
 
-### Arrays and collections
+### Arrays and array-like objects
 
 ##### `concat(array2, array1)`
 
@@ -124,18 +144,12 @@ arrays, array-like objects, functors and streams.
 ##### `filter(fn, object)`
 ##### `intersect(array1, array2)`
 ##### `map(fn, object)`
-
 Delegates to `object.map` or applies `Array.prototype.map` to `object`.
 
-##### `reduce(fn, value, object)`
+##### `reduce(fn, seed, object)`
 ##### `sort(fn, object)`
 ##### `unite(array1, array2)`
 ##### `unique(array)`
-
-##### `invoke(name, object)`
-
-Invokes method `name` of `object`.
-
 ##### `throttle([time,] fn)`
 ##### `by(key, a, b)`
 ##### `byGreater(a, b)`
@@ -143,20 +157,39 @@ Invokes method `name` of `object`.
 
 ### Numbers
 
-##### `add(a, b)`
-##### `multiply(a, b)`
-##### `pow(a, b)`
-##### `mod(a, b)`
-##### `normalise(min, max, n)`
-
-Normalises `n` from range `min`-`max` to range 0-1.
+##### `add(n, m)`
+##### `multiply(n, m)`
+##### `dB(n)`
+Returns `n` as a ratio to unity, expressed in dB.
 
 ##### `denormalise(min, max, n)`
-
 Denormalises `n` from range 0-1 to range `min`-`max`.
 
-##### `toFixed(n, value)`
+##### `gaussian()`
+Returns a random number with a bell curve probability centred
+around 0 and limits -1 to 1.
 
+##### `gcd(n, m)`
+Greatest common denominator.
+
+##### `lcm(n, m)`
+Lowest common multiple.
+
+##### `limit(min, max, n)`
+##### `log(base, n)`
+##### `max(n, m)`
+##### `min(n, m)`
+##### `mod(n, m)`
+##### `normalise(min, max, n)`
+Normalises `n` from range `min`-`max` to range 0-1.
+
+##### `pow(n, m)`
+##### `toFixed(n, value)`
+##### `toCartesian(array)`
+##### `toPolar(array)`
+##### `radToDeg(n)`
+##### `degToRad(n)`
+##### `wrap(min, max, n)`
 
 ### Strings
 
@@ -170,144 +203,171 @@ Denormalises `n` from range 0-1 to range `min`-`max`.
     Fn.toStringType('{}');                  // 'json'
     Fn.toStringType('...');                 // 'string'
 
+### Time
 
-## Fn(fn)
+##### `now()`
+Returns `performance.now()` or date time, in seconds.
 
-Creates an IO Functor. The functor has fantasy-land compliant methods for
-Functor, Applicative and Monad. Values can be extracted from a functor
-with `.shift()`:
+##### `requestTick(fn)`
+Calls `fn` at the end of the current tick.
+This helper is called `setImmediate` in other libraries.
 
-    var f = Functor(function() { return 6; })
+## Fn()
+
+Create a functor: a lazy, mappable, readable list of values with chainable
+methods. A functor is a fantasy-land compliant Functor, Applicative and Monad.
+
+##### `Fn(fn)`
+
+    var f = Fn(function() { return 6; })
+
+Values can be extracted from a functor with `.shift()`:
 
     f.shift() // 6
     f.shift() // 6
     ...
 
-A functor is also an iterable:
+Or with `.next()`, which makes a functor an iterable:
 
     f.next().value // 6
     f.next().done  // undefined
     ...
 
-Functors also have the methods:
+##### `Fn(array)`
 
-#### Create
+Creates a functor from an array or array-like object.
 
 ##### `Fn.of(value, ...)`
 
-Create a functor of values.
+Creates a functor of the arguments.
 
 #### Transform
 
 ##### `ap(object)`
-##### `map(fn)`
-##### `filter(fn)`
-##### `reduce(fn, seed)`
-##### `join(fn)`
 ##### `chain(fn)`
-##### `sort(fn)`
-##### `head()`
-##### `tail()`
-##### `concat(object)`
-##### `batch()`
+##### `concat(stream)`
+##### `dedup()`
+##### `filter(fn)`
 ##### `group(fn)`
+##### `head()`
+##### `join()`
+##### `lest()`
+##### `map(fn)`
+##### `partition(n)`
+##### `reduce(fn, seed)`
+##### `scan(fn, seed)`
 ##### `slice(n, m)`
-##### `unique(fn)`
-##### `scan(fn, value)`
+##### `sort(fn)`
+##### `split()`
+##### `tail()`
+##### `tap(fn)`
+##### `unique()`
 
-#### Output
+#### Time
+
+##### `choke(time)`
+##### `clock(request)`
+##### `delay(time)`
+##### `throttle(request)`
+
+#### Input
+
+##### `buffer()`
+
+Give the functor an `.unshift()` method, creating an entry point for unshifting
+values back into the flow.
+
+#### Consume
 
 ##### `each(fn)`
 ##### `find(fn)`
+##### `next()`
 ##### `pipe(stream)`
 ##### `shift()`
-##### `tap()`
-##### `toString()`
 ##### `toArray()`
+##### `toJSON()`
+##### `toString()`
 
-## Fn.Stream(shift, push, stop)
+#### Create
 
-Streams are pushable, observable Functors. Streams inherit all input, transform
-and output methods from `Fn.prototype`, plus they also get a `.push` method and
+##### `clone()`
+##### `of(value, ...)`
+
+Create a functor of values.
+
+## Stream()
+
+Streams are pushable, observable functors. Streams inherit all methods of a
+functor, plus they also get a `.push` method and
 are observed for `"push"` and events with `.on(type, fn)`.
+
+##### `Stream(shift, push, stop)`
+
+Creates a stream from functions.
 
 	var i = 0;
     var stream = Fn.Stream(function shift() {
 		return ++i;
     });
 
-    stream.each(function(value) {
-        if (value > 50) { stream.stop(); }
-        ...
-    });
+##### `Stream(array)`
+
+Creates a functor from an array or array-like object.
 
 ##### `Stream.of(value1, value2, ...)`
 
 Create a buffered stream of values.
 
-##### `Stream.observe(property, object)`
+#### Transform
 
-Create a stream of changes to the value of an object property.
-
-##### `Stream.choke()`
-
-Create a stream that chokes the flow of values to flow one per frame, where
-a frame is a browser animation frame.
-
-##### `Stream.throttle()`
-
-Create a stream that throttles the flow of values to the latest value per frame,
-where a frame is a browser animation frame.
-
-##### `Stream.delay(duration)`
-
-Create a stream that delays the flow of pushed values by `duration` seconds.
+##### `merge()`
 
 #### Input
 
 ##### `push(value, ...)`
 
-#### Transform
+#### Observe
 
-##### `split(fn)`
-##### `batch(n)`
-##### `group(fn)`
-##### `delay(time)`
-##### `throttle(time, fn)`
+##### `on(fn)`
+##### `off(n)`
 
-#### Output
+## More Streams
 
-##### `toPromise()`
+##### `Stream.Choke()`
 
-## Fn.Pool(options, prototype)
+Create a stream that chokes the flow of values to flow one per frame, where
+a frame is a browser animation frame.
 
-    var Thing = Fn.pool({
-	    create: function() { ... },
-        reset:  function() { ... },
-        isIdle: function() { ... }
+##### `Stream.Delay(duration)`
+
+Create a stream that delays the flow of pushed values by `duration` seconds.
+
+##### `Stream.Throttle()`
+
+Create a stream that throttles the flow of values to the latest value per frame,
+where a frame is a browser animation frame.
+
+##### `Stream.Timer()`
+
+Create a stream that emits values at constant intervals.
+
+## Pool(options, prototype)
+
+Creates a pseudo-constructor function for pooled objects.
+
+    var Thing = Pool({
+	    create: function(...) { ... },
+        reset:  function(...) { ... },
+        isIdle: function(object) { ... }
     });
 
-Creates an object pool, such that each call to `Thing(...)` returns an idle
-object from the pool, or if there are no idle objects, a newly created
-object. Garbage cannot be collected until all references to `Thing` are
+Calls to this pseudo-constructor return an idle object from the pool or a newly
+created object. The `create` and `reset` functions are called with the object as
+(like a constructor function), and are passed all arguments given to the
+pseudo-contructor.
+
+    var thing = Thing(0, 1, 2);
+
+Pooled objects are useful for controlling garbage collection.
+Garbage cannot be collected until all references to pseudo-constructor are
 released.
-
-
-## Fn.Throttle(fn, time)
-
-Returns a function that calls fn immediately and thereafter every `time` seconds
-while it is called again with new context and arguments.
-
-## Fn.Wait(fn, time)
-
-Returns a function that waits for `time` seconds without being invoked
-before calling `fn` using the context and arguments from the latest invocation.
-
-    var wait = Fn.Wait(console.log, 1.5);
-
-	wait(1);
-	wait(2);
-	wait(3);
-
-	// 1.5 seconds later:
-	// > 3

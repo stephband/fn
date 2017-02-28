@@ -663,10 +663,9 @@
 			return this.constructor.of.apply(this.constructor, arguments);
 		},
 
-
 		// Transform
 
-		ap: function ap(object) {
+		ap: function(object) {
 		  var shift = this.shift;
 		
 		  return create(this, function ap() {
@@ -677,71 +676,55 @@
 		  });
 		},
 
-		filter: function(fn) {
+		buffer: function() {
+			// Create an unshift buffer, such that objects can be inserted
+			// back into the stream at will with stream.unshift(object).
 			var source = this;
+			var array  = [];
 
-			return create(this, function filter() {
-				var value;
-				while ((value = source.shift()) !== undefined && !fn(value));
-				return value;
+			this.unshift = function(object) {
+				if (object === undefined) { return; }
+				array.unshift(object);
+			};
+
+			return create(this, function buffer() {
+				return array.length ? array.shift() : source.shift() ;
 			});
 		},
 
-		map: function(fn) {
-			return create(this, compose(function map(object) {
-				return object === undefined ? undefined : fn(object) ;
-			}, this.shift));
+		chain: function(fn) {
+			return this.map(fn).join();
 		},
 
-		scan: function(fn, seed) {
-			// seed defaults to 0
-			seed = arguments.length > 1 ? seed : 0 ;
-			var i = 0;
-			return this.map(function scan(value) {
-				return (seed = fn(seed, value, i++));
-			});
-		},
-
-		reduce: function(fn, seed) {
+		clone: function() {
 			var shift = this.shift;
-
-			function reduce(seed) {
-				var value = shift();
-				return value === undefined ? seed : reduce(fn(seed, value)) ;
-			}
-
-			return create(this, once(function() {
-				return reduce(isDefined(seed) ? seed : 0);
-			}));
-		},
-
-		syphon: function(fn) {
-			var shift   = this.shift;
 			var buffer1 = [];
 			var buffer2 = [];
 
+			function fill() {
+				var value = shift();
+				if (value === undefined) { return; }
+				buffer1.push(value);
+				buffer2.push(value);
+			}
+
 			this.shift = function() {
-				if (buffer1.length) { return buffer1.shift(); }
-
-				var value;
-
-				while ((value = shift()) !== undefined && fn(value)) {
-					buffer2.push(value);
-				}
-
-				return value;
+				if (!buffer1.length) { fill(); }
+				return buffer1.shift();
 			};
 
-			return create(this, function filter() {
-				if (buffer2.length) { return buffer2.shift(); }
+			return create(this, function clone() {
+				if (!buffer2.length) { fill(); }
+				return buffer2.shift();
+			});
+		},
 
-				var value;
-
-				while ((value = shift()) !== undefined && !fn(value)) {
-					buffer1.push(value);
-				}
-
-				return value;
+		concat: function(object) {
+			var source = this;
+			return create(this, function concat() {
+				return source.status !== 'done' ? source.shift() :
+					object.shift ? object.shift() :
+					A.shift.apply(object) ;
 			});
 		},
 
@@ -754,150 +737,14 @@
 			});
 		},
 
-		join: function() {
+		filter: function(fn) {
 			var source = this;
-			var buffer = empty;
 
-			return create(this, function join() {
-				var value = buffer.shift();
-				if (value !== undefined) { return value; }
-				buffer = source.shift();
-				if (buffer !== undefined) { return join(); }
-				buffer = empty;
-			});
-		},
-
-		chain: function(fn) {
-			return this.map(fn).join();
-		},
-
-		concat: function(object) {
-			var source = this;
-			return create(this, function concat() {
-				return source.status !== 'done' ?
-					source.shift() :
-					object.shift() ;
-			});
-		},
-
-		sort: function(fn) {
-			fn = fn || Fn.byGreater ;
-
-			var source = this;
-			var buffer = [];
-
-			return create(this, function sort() {
+			return create(this, function filter() {
 				var value;
-
-				while((value = source.shift()) !== undefined) {
-					sortedSplice(buffer, fn, value);
-				}
-
-				return buffer.shift();
+				while ((value = source.shift()) !== undefined && !fn(value));
+				return value;
 			});
-		},
-
-		head: function() {
-			var source = this;
-
-			return create(this, function head() {
-				if (source.status === 'done') { return; }
-				source.status = 'done';
-				return source.shift();
-			});
-		},
-
-		tail: function() {
-			var source = this;
-			var i = 0;
-
-			return create(this, function tail() {
-				if (i++ === 0) { source.shift(); }
-				return source.shift();
-			});
-		},
-
-		last: function() {
-			var source = this;
-
-			return create(this, function() {
-				return last(source.shift);
-			});
-		},
-
-		slice: function(n, m) {
-			var source = this;
-			var i = -1;
-
-			return create(this, function slice() {
-				while (++i < n) {
-					source.shift();
-				}
-
-				if (i < m) {
-					if (i === m - 1) { this.status = 'done'; }
-					return source.shift();
-				}
-			});
-		},
-
-		split: function(fn) {
-			var source = this;
-			var buffer = [];
-
-			return create(this, function split() {
-				var value = source.shift();
-				var temp;
-
-				if (value === undefined) {
-					if (buffer.length) {
-						temp = buffer;
-						buffer = [];
-						return temp;
-					}
-
-					return;
-				}
-
-				if (fn(value)) {
-					temp = buffer;
-					buffer = [value];
-					return temp.length ? temp : split() ;
-				}
-
-				buffer.push(value);
-				return split();
-			});
-		},
-
-		batch: function(n) {
-			var source = this;
-			var buffer = [];
-
-			return create(this, n ?
-				// If n is defined batch into arrays of length n.
-				function nextBatchN() {
-					var value, _buffer;
-
-					while (buffer.length < n) {
-						value = source.shift();
-						if (value === undefined) { return; }
-						buffer.push(value);
-					}
-
-					if (buffer.length >= n) {
-						_buffer = buffer;
-						buffer = [];
-						return Fn.of.apply(Fn, _buffer);
-					}
-				} :
-
-				// If n is undefined or 0, batch all values into an array.
-				function nextBatch() {
-					buffer = source.toArray();
-					// An empty array is equivalent to undefined
-					return buffer.length ? buffer : undefined ;
-				});
 		},
 
 		group: function(fn) {
@@ -951,20 +798,216 @@
 			});
 		},
 
+		head: function() {
+			var source = this;
+
+			return create(this, function head() {
+				if (source.status === 'done') { return; }
+				source.status = 'done';
+				return source.shift();
+			});
+		},
+
+		join: function() {
+			var source = this;
+			var buffer = empty;
+
+			return create(this, function join() {
+				var value = buffer.shift();
+				if (value !== undefined) { return value; }
+				buffer = source.shift();
+				if (buffer !== undefined) { return join(); }
+				buffer = empty;
+			});
+		},
+
+		last: function() {
+			var source = this;
+
+			return create(this, function() {
+				return last(source.shift);
+			});
+		},
+
+		map: function(fn) {
+			return create(this, compose(function map(object) {
+				return object === undefined ? undefined : fn(object) ;
+			}, this.shift));
+		},
+
+		partition: function(n) {
+			var source = this;
+			var buffer = [];
+
+			return create(this, n ?
+				// If n is defined batch into arrays of length n.
+				function nextBatchN() {
+					var value, _buffer;
+
+					while (buffer.length < n) {
+						value = source.shift();
+						if (value === undefined) { return; }
+						buffer.push(value);
+					}
+
+					if (buffer.length >= n) {
+						_buffer = buffer;
+						buffer = [];
+						return Fn.of.apply(Fn, _buffer);
+					}
+				} :
+
+				// If n is undefined or 0, batch all values into an array.
+				function nextBatch() {
+					buffer = source.toArray();
+					// An empty array is equivalent to undefined
+					return buffer.length ? buffer : undefined ;
+				});
+		},
+
+		reduce: function(fn, seed) {
+			var shift = this.shift;
+
+			function reduce(seed) {
+				var value = shift();
+				return value === undefined ? seed : reduce(fn(seed, value)) ;
+			}
+
+			return create(this, once(function() {
+				return reduce(isDefined(seed) ? seed : 0);
+			}));
+		},
+
+		scan: function(fn, seed) {
+			// seed defaults to 0
+			seed = arguments.length > 1 ? seed : 0 ;
+			var i = 0;
+			return this.map(function scan(value) {
+				return (seed = fn(seed, value, i++));
+			});
+		},
+
+		slice: function(n, m) {
+			var source = this;
+			var i = -1;
+
+			return create(this, function slice() {
+				while (++i < n) {
+					source.shift();
+				}
+
+				if (i < m) {
+					if (i === m - 1) { this.status = 'done'; }
+					return source.shift();
+				}
+			});
+		},
+
+		sort: function(fn) {
+			fn = fn || Fn.byGreater ;
+
+			var source = this;
+			var buffer = [];
+
+			return create(this, function sort() {
+				var value;
+
+				while((value = source.shift()) !== undefined) {
+					sortedSplice(buffer, fn, value);
+				}
+
+				return buffer.shift();
+			});
+		},
+
+		split: function(fn) {
+			var source = this;
+			var buffer = [];
+
+			return create(this, function split() {
+				var value = source.shift();
+				var temp;
+
+				if (value === undefined) {
+					if (buffer.length) {
+						temp = buffer;
+						buffer = [];
+						return temp;
+					}
+
+					return;
+				}
+
+				if (fn(value)) {
+					temp = buffer;
+					buffer = [value];
+					return temp.length ? temp : split() ;
+				}
+
+				buffer.push(value);
+				return split();
+			});
+		},
+
+		syphon: function(fn) {
+			var shift   = this.shift;
+			var buffer1 = [];
+			var buffer2 = [];
+
+			this.shift = function() {
+				if (buffer1.length) { return buffer1.shift(); }
+
+				var value;
+
+				while ((value = shift()) !== undefined && fn(value)) {
+					buffer2.push(value);
+				}
+
+				return value;
+			};
+
+			return create(this, function filter() {
+				if (buffer2.length) { return buffer2.shift(); }
+
+				var value;
+
+				while ((value = shift()) !== undefined && !fn(value)) {
+					buffer1.push(value);
+				}
+
+				return value;
+			});
+		},
+
+		tail: function() {
+			var source = this;
+			var i = 0;
+
+			return create(this, function tail() {
+				if (i++ === 0) { source.shift(); }
+				return source.shift();
+			});
+		},
+
+		tap: function(fn) {
+			// Overwrite shift to copy values to tap fn
+			this.shift = Fn.compose(function(value) {
+				if (value !== undefined) { fn(value); }
+				return value;
+			}, this.shift);
+
+			return this;
+		},
+
 		unique: function() {
 			var source = this;
 			var values = [];
 
 			return create(this, function unique() {
 				var value = source.shift();
-				if (value === undefined) { return; }
-
-				if (values.indexOf(value) === -1) {
-					values.push(value);
-					return value;
-				}
-
-				return unique();
+				return value === undefined ? undefined :
+					values.indexOf(value) === -1 ? values.push(value) && value :
+					unique() ;
 			});
 		},
 
@@ -972,8 +1015,7 @@
 		// can remove it.
 		process: function(fn) { return fn(this); },
 
-
-		// Timed
+		// Time transforms
 
 		choke: function(time) {
 			return this.pipe(Stream.Choke(time));
@@ -987,62 +1029,11 @@
 			return this.pipe(Stream.Throttle(request));
 		},
 
-		clock: function(request) {
-			return this.pipe(Stream.Clock(request));
+		timer: function(request) {
+			return this.pipe(Stream.Timer(request));
 		},
 
-
-		// Output
-
-		next: function() {
-			var value = this.shift();
-			return {
-				done: value === undefined,
-				value: value
-			};
-		},
-
-		pipe: function(stream) {
-			// Target must be evented
-			if (!stream || !stream.on) {
-				throw new Error('Fn: Fn.pipe(object) object must be a stream. (' + stream + ')');
-			}
-
-			return stream.on('pull', this.shift);
-		},
-
-		clone: function() {
-			var shift = this.shift;
-			var buffer1 = [];
-			var buffer2 = [];
-
-			function fill() {
-				var value = shift();
-				if (value === undefined) { return; }
-				buffer1.push(value);
-				buffer2.push(value);
-			}
-
-			this.shift = function() {
-				if (!buffer1.length) { fill(); }
-				return buffer1.shift();
-			};
-
-			return create(this, function clone() {
-				if (!buffer2.length) { fill(); }
-				return buffer2.shift();
-			});
-		},
-
-		tap: function(fn) {
-			// Overwrite shift to copy values to tap fn
-			this.shift = Fn.compose(function(value) {
-				if (value !== undefined) { fn(value); }
-				return value;
-			}, this.shift);
-
-			return this;
-		},
+		// Consumers
 
 		each: function(fn) {
 			var value = this.shift();
@@ -1062,12 +1053,29 @@
 			.shift();
 		},
 
-		toString: function() {
-			return this.reduce(prepend, '').shift();
+		next: function() {
+			var value = this.shift();
+			return {
+				done: value === undefined,
+				value: value
+			};
+		},
+
+		pipe: function(stream) {
+			// Target must be evented
+			if (!stream || !stream.on) {
+				throw new Error('Fn: Fn.pipe(object) object must be a stream. (' + stream + ')');
+			}
+
+			return stream.on('pull', this.shift);
 		},
 
 		toJSON: function() {
 			return this.reduce(pushReducer, []).shift();
+		},
+
+		toString: function() {
+			return this.reduce(prepend, '').shift();
 		}
 	});
 
@@ -1224,10 +1232,6 @@
 			return Fn.prototype.pipe.apply(this, arguments);
 		},
 
-		unshift: function(object) {
-
-		},
-
 		each: function(fn) {
 			var source = this;
 
@@ -1306,27 +1310,6 @@
 	assign(Stream, {
 		of: Fn.of,
 
-		Throttle: function(request) {
-			// If request is a number create a timer, otherwise if request is
-			// a function use it, or if undefined, use an animation timer.
-			request = typeof request === 'number' ? Timer(request).request :
-				typeof request === 'function' ? request :
-				requestAnimationFrame ;
-
-			var buffer  = [];
-
-			return Stream(function shift() {
-				return buffer.shift();
-			}, Throttle(function push() {
-				buffer[0] = arguments[arguments.length - 1];
-				this.notify('push');
-			}, request), function stop() {
-				buffer = empty;
-				throttle.cancel(false);
-				this.stop();
-			});
-		},
-
 		Choke: function(time) {
 			var buffer  = [];
 
@@ -1374,7 +1357,28 @@
 			});
 		},
 
-		Clock: function(request) {
+		Throttle: function(request) {
+			// If request is a number create a timer, otherwise if request is
+			// a function use it, or if undefined, use an animation timer.
+			request = typeof request === 'number' ? Timer(request).request :
+				typeof request === 'function' ? request :
+				requestAnimationFrame ;
+
+			var buffer  = [];
+
+			return Stream(function shift() {
+				return buffer.shift();
+			}, Throttle(function push() {
+				buffer[0] = arguments[arguments.length - 1];
+				this.notify('push');
+			}, request), function stop() {
+				buffer = empty;
+				throttle.cancel(false);
+				this.stop();
+			});
+		},
+
+		Timer: function(request) {
 			// If request is a number create a timer, otherwise if request is
 			// a function use it, or if undefined, use an animation timer.
 			request = typeof request === 'number' ? Timer(request).request :
@@ -1693,10 +1697,10 @@
 
 		// Numbers
 
-		randomGaussian: function randomGaussian(n) {
+		gaussian: function gaussian() {
 			// Returns a random number with a bell curve probability centred
-			// around 0 with limits -n to n.
-			return n * (Math.random() + Math.random() - 1);
+			// around 0 and limits -1 to 1.
+			return Math.random() + Math.random() - 1;
 		},
 
 		add:      curry(function add(a, b) { return b + a; }),
@@ -1746,7 +1750,8 @@
 		},
 
 		// conflicting properties not allowed in strict mode
-		// log:         curry(function log(base, n) { return Math.log(n) / Math.log(base); }),
+		log:         curry(function log(base, n) { return Math.log(n) / Math.log(base); }),
+
 		nthRoot:     curry(function nthRoot(n, x) { return Math.pow(x, 1/n); }),
 
 		gcd: function gcd(a, b) {
