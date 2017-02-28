@@ -642,21 +642,16 @@
 			return;
 		}
 
-		// fn is an arguments object, maybe from Fn.of()
-		if (Fn.toClass(fn) === "Arguments") {
-			this.shift = function shift() {
-				if (fn.length < 2) { source.status = 'done'; }
-				return sparseShift(fn);
-			};
-
-			return;
-		}
-
-		// fn is an array or array-like object
-		buffer = A.slice.apply(fn);
+		// fn is an array or array-like object. Iterate over it.
+		var i = -1;
 		this.shift = function shift() {
-			if (buffer.length < 2) { source.status = 'done'; }
-			return buffer.shift();
+			if (++i >= fn.length - 1) {
+				source.status = 'done';
+				return fn[i];
+			}
+
+			// Ignore holes
+			return fn[i] === undefined ? shift() : fn[i] ;
 		};
 	}
 
@@ -994,70 +989,6 @@
 
 		clock: function(request) {
 			return this.pipe(Stream.Clock(request));
-		},
-
-		// Todo: Perhaps CueTimer should become part of Fn?
-		cue: function(request, cancel, cuetime, map, test) {
-			var source    = this;
-			var cuestream = Stream.of();
-			var startTime = -Infinity;
-			var stopTime  = Infinity;
-			var t1        = startTime;
-			var value, mappedValue;
-
-			function cue(time) {
-				var t2 = time >= stopTime ? stopTime : time ;
-
-				if (value === undefined) {
-					while ((value = source.shift()) !== undefined && (mappedValue = map(value)) !== undefined && test(t1, t2, mappedValue)) {
-						cuestream.push(mappedValue);
-						value = undefined;
-					}
-				}
-				else {
-					mappedValue = map(value);
-
-					if (mappedValue !== undefined && test(t1, t2, mappedValue)) {
-						cuestream.push(mappedValue);
-
-						while ((value = source.shift()) !== undefined && (mappedValue = map(value)) !== undefined && test(t1, t2, mappedValue)) {
-							cuestream.push(mappedValue);
-							value = undefined;
-						}
-					}
-				}
-
-				if (source.status === 'done') { return; }
-				if (time === stopTime) { return; }
-
-				t1 = startTime > time ? startTime : time ;
-				request(cue);
-			}
-
-			cuestream.stop = function stop(time) {
-				stopTime = time;
-				if (stopTime <= t1) { cancel(cue); }
-				return this;
-			};
-
-			cuestream.start = function start(time) {
-				startTime = time;
-				t1 = startTime;
-
-				if (startTime >= cuetime()) {
-					// This is ok even when cuetime() is -Infinity, because the
-					// first request() goes through the timer synchronously, ie
-					// immediately
-					request(cue);
-				}
-				else {
-					cue(cuetime());
-				}
-
-				return this;
-			};
-
-			return cuestream;
 		},
 
 

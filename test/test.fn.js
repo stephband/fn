@@ -4,7 +4,7 @@ console.group('Fn()');
 var Fn = Fn;
 var Stream = Fn.Stream;
 
-test(' Fn(fn)', function() {
+test('Fn(fn)', function() {
 	var fr = Fn(function() { return 6; });
 
 	equals(6, fr.shift());
@@ -12,8 +12,36 @@ test(' Fn(fn)', function() {
 	equals(6, fr.shift());
 });
 
-test('.of()', function() {
+test('Fn(array)', function() {
+	var fr = Fn([6]);
+	equals(6, fr.shift());
+	equals(undefined, fr.shift());
 
+	var fr = Fn([0, 'lamb', true, false]);
+	equals(0, fr.shift());
+	equals('lamb', fr.shift());
+	equals(true, fr.shift());
+	equals(false, fr.shift());
+	equals(undefined, fr.shift());
+
+	var fr = Fn([undefined, true, false]);
+	equals(true, fr.shift());
+	equals(false, fr.shift());
+	equals(undefined, fr.shift());
+
+	var fr = Fn([true, undefined, false]);
+	equals(true, fr.shift());
+	equals(false, fr.shift());
+	equals(undefined, fr.shift());
+
+	var fr = Fn([true, null, false]);
+	equals(true, fr.shift());
+	equals(null, fr.shift());
+	equals(false, fr.shift());
+	equals(undefined, fr.shift());
+});
+
+test('Fn.of()', function() {
 	var fr = Fn.of(6);
 	equals(6, fr.shift());
 	equals(undefined, fr.shift());
@@ -25,8 +53,6 @@ test('.of()', function() {
 	equals(false, fr.shift());
 	equals(undefined, fr.shift());
 
-	console.log('ignores undefined...');
-
 	var fr = Fn.of(undefined,true,false);
 	equals(true, fr.shift());
 	equals(false, fr.shift());
@@ -34,6 +60,12 @@ test('.of()', function() {
 
 	var fr = Fn.of(true,undefined,false);
 	equals(true, fr.shift());
+	equals(false, fr.shift());
+	equals(undefined, fr.shift());
+
+	var fr = Fn.of(true, null, false);
+	equals(true, fr.shift());
+	equals(null, fr.shift());
 	equals(false, fr.shift());
 	equals(undefined, fr.shift());
 });
@@ -128,8 +160,6 @@ test('.join()', function() {
 	equals(0, fr.shift());
 	equals(undefined, fr.shift());
 
-	console.log('ignores undefined...');
-
 	var fr = Fn.of([0,1,0],undefined,[1],[0]).join();
 	equals(0, fr.shift());
 	equals(1, fr.shift());
@@ -172,8 +202,6 @@ test('.chain(fn)', function() {
 	equals(0, fr.shift());
 	equals(1, fr.shift());
 	equals(undefined, fr.shift());
-
-	console.log('ignores undefined...');
 
 	var fr = Fn.of(1,0).chain(toJust01Nothing);
 	equals(0, fr.shift());
