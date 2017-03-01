@@ -232,7 +232,7 @@
 		cssValue:  /^(-?\d+(?:\.\d+)?)(px|%|em|ex|pt|in|cm|mm|pt|pc)?$/,
 		cssAngle:  /^(-?\d+(?:\.\d+)?)(deg)?$/,
 		image:     /(?:\.png|\.gif|\.jpeg|\.jpg)$/,
-		float:     /^(-?\d+(?:\.\d+)?)$/,
+		float:     /^[+-]?(?:\d*\.)?\d+$/,
 		int:       /^(-?\d+)$/
 	};
 
@@ -719,12 +719,21 @@
 			});
 		},
 
-		concat: function(object) {
+		concat: function() {
+			var sources = Fn(arguments);
 			var source = this;
+
 			return create(this, function concat() {
-				return source.status !== 'done' ? source.shift() :
-					object.shift ? object.shift() :
-					A.shift.apply(object) ;
+				if (source === undefined) { return; }
+
+				var value = source.shift();
+
+				if (value === undefined) {
+					source = sources.shift();
+					return concat();
+				}
+
+				return value;
 			});
 		},
 
@@ -1439,6 +1448,8 @@
 		pipe:           pipe,
 		overloadLength: overloadLength,
 		overloadTypes:  overloadTypes,
+
+		apply: curry(apply),
 
 		bind: curry(bind),
 

@@ -60,9 +60,13 @@ Composes functions into a pipe.
 `fn2` is passed the result of `fn1`, `fn3` is passed the result of `fn2` and
 so on until the result of the last function is returned.
 
+##### `apply(params, fn)`
+
+Calls `fn` with `params`.
+
 ##### `bind(params, fn)`
 
-    var fn = Fn.bind([0,1,2,3], function() {...})
+    var fn = bind([0,1,2,3], function() {...})
 
 Returns a function that applies `params` to `fn` when called.
 The `this` context inside `fn` is unchanged.
