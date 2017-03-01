@@ -432,14 +432,14 @@
 		var key = array.shift();
 
 		if (array.length === 0) {
-			set(key, value, root);
+			set(key, root, value);
 			return value;
 		}
 
 		var object = get(key, root);
 		if (!isObject(object)) { object = {}; }
 
-		set(key, object, root);
+		set(key, root, object);
 		return objTo(object, array, value) ;
 	}
 
