@@ -69,6 +69,34 @@ test('.push()', function() {
 	equals(undefined, s.shift());
 });
 
+test('.clone()', function() {
+	var s1 = Stream([0,1,2,3]);
+	var s2 = s1.clone();
+	var s3 = s1.clone();
+
+	equals('0,1,2,3', s2.toArray().join());
+	equals('0,1,2,3', s3.toArray().join());
+
+	s1 = Stream([0,1,2,3]);
+	s2 = s1.clone().toArray();
+	s3 = s1.clone().toArray();
+
+	equals('0,1,2,3', s2.join());
+	equals('0,1,2,3', s3.join());
+
+	s1 = Stream([0,1,2,3]);
+
+	s2 = s1.clone().each(function(value) {
+		console.log('s2', value);
+	});
+
+	s3 = s1.clone().each(function(value) {
+		console.log('s3', value);
+	});
+
+	s1.push(4, 5);
+});
+
 test('.toArray()', function() {
 	var s1 = Fn();
 	equals('', s1.toArray().join());

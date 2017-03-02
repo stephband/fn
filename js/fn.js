@@ -312,7 +312,6 @@
 		return a === b ? 0 : a > b ? 1 : -1 ;
 	}
 
-
 	// Arrays and collections
 
 	function concat(array2, array1) {
@@ -604,6 +603,19 @@
 		return functor;
 	}
 
+	function cloneShift(buffer1, buffer2, shift) {
+		return function clone() {
+			if (buffer1.length) { return buffer1.shift(); }
+			var value = shift();
+			if (value !== undefined) { buffer2.push(value); }
+			return value;
+		};
+	}
+
+	function notifyPush() {
+		this.notify('push');
+	}
+
 	function Fn(fn) {
 		if (!this || !Fn.prototype.isPrototypeOf(this)) {
 			return new Fn(fn);
@@ -697,26 +709,11 @@
 		},
 
 		clone: function() {
-			var shift = this.shift;
+			var shift   = this.shift;
 			var buffer1 = [];
 			var buffer2 = [];
-
-			function fill() {
-				var value = shift();
-				if (value === undefined) { return; }
-				buffer1.push(value);
-				buffer2.push(value);
-			}
-
-			this.shift = function() {
-				if (!buffer1.length) { fill(); }
-				return buffer1.shift();
-			};
-
-			return create(this, function clone() {
-				if (!buffer2.length) { fill(); }
-				return buffer2.shift();
-			});
+			this.shift = cloneShift(buffer1, buffer2, shift);
+			return new Fn(cloneShift(buffer2, buffer1, shift));
 		},
 
 		concat: function() {
@@ -844,7 +841,7 @@
 			}, this.shift));
 		},
 
-		partition: function(n) {
+		batch: function(n) {
 			var source = this;
 			var buffer = [];
 
@@ -1153,7 +1150,6 @@
 		}, function push() {
 			A.push.apply(buffer, arguments);
 			this.notify('push');
-			return this;
 		});
 	}
 
@@ -1193,7 +1189,9 @@
 		this[eventsSymbol] = {};
 	}
 
-	Stream.prototype = assign(Object.create(Fn.prototype), {
+	Stream.prototype = Object.create(Fn.prototype);
+
+	assign(Stream.prototype, {
 		on: function on(type, fn) {
 			var events = this[eventsSymbol];
 			if (!events) { return this; }
@@ -1231,6 +1229,28 @@
 			return this;
 		},
 
+		clone: function() {
+			var source  = this;
+			var buffer1 = [];
+			var buffer2 = [];
+			var stream = Stream(
+				cloneShift(buffer2, buffer1, this.shift),
+				notifyPush,
+				function stop() {
+					source.off('push', push);
+					this.stop();
+				}
+			);
+
+			function push() {
+				stream.push();
+			}
+
+			this.shift = cloneShift(buffer1, buffer2, this.shift);
+			this.on('push', push);
+			return stream;
+		},
+
 		pipe: function(stream) {
 			// Target must be writable
 			if (!stream || !stream.push) {
@@ -1242,17 +1262,17 @@
 		},
 
 		each: function(fn) {
+			var args   = arguments;
 			var source = this;
 
-			function each() {
-				// Delegate to Fn.each(), which returns self, telling the
-				// notifier that this event has been handled.
-				return Fn.prototype.each.call(source, fn);
-			}
-
 			// Flush and observe
-			each();
-			return this.on('push', each);
+			Fn.prototype.each.apply(source, args);
+
+			return this.on('push', function each() {
+				// Delegate to Fn.each(). That returns self, which is truthy,
+				// so telling the notifier that this event has been handled.
+				Fn.prototype.each.apply(source, args);
+			});
 		},
 
 		merge: function() {

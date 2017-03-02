@@ -70,6 +70,22 @@ test('Fn.of()', function() {
 	equals(undefined, fr.shift());
 });
 
+test('.clone()', function() {
+	var s1 = Fn([0,1,2,3]);
+	var s2 = s1.clone();
+	var s3 = s1.clone();
+
+	equals('0,1,2,3', s2.toArray().join());
+	equals('0,1,2,3', s3.toArray().join());
+
+	s1 = Fn([0,1,2,3]);
+	s2 = s1.clone().toArray();
+	s3 = s1.clone().toArray();
+
+	equals('0,1,2,3', s2.join());
+	equals('0,1,2,3', s3.join());
+});
+
 test('.pipe()', function() {
 	var s1 = Fn([0,1,2,3]);
 	var s2 = s1.pipe(Stream.of());
