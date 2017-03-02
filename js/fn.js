@@ -1893,7 +1893,7 @@
 			var by = 3 * (p2[1] - p1[1]) - cy;
 			var ay = 1 - cy - by;
 
-			var y = solveCubicBezierX(ax, bx, by, x, epsilon);
+			var y = solveCubicBezierX(ax, bx, cx, x, epsilon);
 			return sampleCubicBezier(ay, by, cy, y);
 		}),
 
