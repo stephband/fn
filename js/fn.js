@@ -1873,7 +1873,7 @@
 			});
 		},
 
-		cubicBezier: curry(function cubicBezier(p1, p2, duration, t) {
+		cubicBezier: curry(function cubicBezier(p1, p2, duration, x) {
 			// Cubic bezier timing function (originally translated from
 			// webkit source by Christian Effenberger):
 			// http://www.netzgesta.de/dev/cubic-bezier-timing-function.html
@@ -1893,9 +1893,10 @@
 			var by = 3 * (p2[1] - p1[1]) - cy;
 			var ay = 1 - cy - by;
 
-			var y = solveCubicBezierX(ax, bx, by, t, epsilon);
+			var y = solveCubicBezierX(ax, bx, by, x, epsilon);
 			return sampleCubicBezier(ay, by, cy, y);
 		}),
+
 
 		// Strings
 
