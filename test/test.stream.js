@@ -84,17 +84,18 @@ test('.clone()', function() {
 	equals('0,1,2,3', s2.join());
 	equals('0,1,2,3', s3.join());
 
+	var v1, v2, v3;
 	s1 = Stream([0,1,2,3]);
 
-	s2 = s1.clone().each(function(value) {
-		console.log('s2', value);
-	});
-
-	s3 = s1.clone().each(function(value) {
-		console.log('s3', value);
-	});
+	s2 = s1.clone().each(function(value) { v2 = value; });
+	s3 = s1.clone().each(function(value) { v3 = value; });
+	s1 = s1.each(function(value) { v1 = value; });
 
 	s1.push(4, 5);
+
+	equals(5, v1);
+	equals(5, v2);
+	equals(5, v3);
 });
 
 test('.toArray()', function() {
@@ -352,7 +353,7 @@ test('.throttle()', function() {
 
 		setTimeout(function() {
 			equals(2, i, 'Test did not complete');
-		}, 200);
+		}, 300);
 	})();
 
 	console.log('.throttle(time)');
