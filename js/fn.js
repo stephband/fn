@@ -87,6 +87,33 @@
 		};
 	}
 
+	function partial(fn) {
+		var fns = arguments;
+
+		return fns.length === 1 ?
+			curry(fn) :
+			curry(function() {
+				var args, args1, args2;
+
+				if (arguments.length > fn.length) {
+					args1 = A.slice.call(arguments, 0, fn.length);
+					args2 = A.slice.call(arguments, fn.length);
+					args = concat(args2, fn.apply(this, args1));
+				}
+				else {
+					args = fn.apply(this, arguments);
+				}
+
+				return fns.length === 2 && args.length >= fns[1].length ?
+					// A quick out when we don't need to re-curry
+					fns[1].apply(null, args) :
+					// A new partial
+					partial
+					.apply(null, A.slice.call(fns, 1))
+					.apply(null, args) ;
+			}, fn.length) ;
+	}
+
 	function pipe() {
 		var a = arguments;
 		return function piped(n) {
@@ -317,17 +344,14 @@
 		// objects. We need a robust concat that will glue any old thing
 		// together.
 		return Array.isArray(array1) ?
-			// Both are arrays. Easy.
-			Array.isArray(array2) ? array1.concat(array2) :
-			// 1 is an array. Convert 2 to an array
-			array1.concat(toArray(array2)) :
-		// It's not an array but it has it's own concat method. Lets assume
-		// it's robust.
-		array1.concat ? array1.concat(array2) :
+			// 1 is an array. Convert 2 to an array if necessary
+			array1.concat(Array.isArray(array2) ? array2 : toArray(array2)) :
+
+		array1.concat ?
+			// It has it's own concat method. Lets assume it's robust
+			array1.concat(array2) :
 		// 1 is not an array, but 2 is
-		Array.isArray(array2) ? toArray(array1).concat(array2) :
-		// Neither are arrays
-		toArray(array1).concat(toArray(array2)) ;
+		toArray(array1).concat(Array.isArray(array2) ? array2 : toArray(array2)) ;
 	}
 
 	function contains(value, object) {
@@ -1516,6 +1540,7 @@
 		cacheCurry:     cacheCurry,
 		compose:        compose,
 		flip:           flip,
+		partial:        partial,
 		pipe:           pipe,
 		overloadLength: overloadLength,
 		overloadTypes:  overloadTypes,

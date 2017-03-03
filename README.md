@@ -26,9 +26,9 @@ Caches the results of calls to `fn2(value)`.
 Curries `fn`. If `fn` normally requires 3 parameters, the curried result can
 take those parameters in any grouping:
 
-    fn2(a, b, c)
-    fn2(a)(b)(c)
-    fn2(a, b)(c)
+    fn2(a, b, c);
+    fn2(a)(b)(c);
+    fn2(a, b)(c);
 
 ##### `cacheCurry(fn)`
 
@@ -53,6 +53,12 @@ Returns a function that calls `fn` with it's parameters in reverse order.
 
 Calls `fn1` once, the first time `fn2` is called.
 Subsequent calls to `fn2` return the value from the first run.
+
+##### `partial(fn1, fn2, fn3, ...)`
+
+Curries several functions into one, where `fn1` is invoked (as soon it has
+received enough arguments) and it's return value (an array) passed to `fn2`
+when it has received enough arguments, and so on.
 
 ##### `pipe(fn1, fn2, fn3, ...)`
 
