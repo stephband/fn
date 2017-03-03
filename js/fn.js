@@ -1791,7 +1791,7 @@
 
 		mod:      curry(function mod(a, b) { return b % a; }),
 
-		pow:      curry(function pow(a, b) { return Math.pow(b, a); }),
+		//pow:      curry(function pow(a, b) { return Math.pow(b, a); }),
 
 		min:      curry(function min(a, b) { return a > b ? b : a ; }),
 
@@ -1873,11 +1873,11 @@
 			});
 		},
 
-		cubicBezier: curry(function cubicBezier(p1, p2, duration, x) {
-			// Cubic bezier timing function (originally translated from
-			// webkit source by Christian Effenberger):
-			// http://www.netzgesta.de/dev/cubic-bezier-timing-function.html
+		// Cubic bezier function (originally translated from
+		// webkit source by Christian Effenberger):
+		// http://www.netzgesta.de/dev/cubic-bezier-timing-function.html
 
+		cubicBezier: curry(function cubicBezier(p1, p2, duration, x) {
 			// The epsilon value to pass given that the animation is going
 			// to run over duruation seconds. The longer the animation, the
 			// more precision is needed in the timing function result to
@@ -1895,6 +1895,24 @@
 
 			var y = solveCubicBezierX(ax, bx, cx, x, epsilon);
 			return sampleCubicBezier(ay, by, cy, y);
+		}),
+
+		// Exponential functions
+		//
+		// e - exponent
+		// x - range 0-1
+		//
+		// eg.
+		// var easeInQuad   = exponential(2);
+		// var easeOutCubic = exponentialOut(3);
+		// var easeOutQuart = exponentialOut(4);
+
+		exponential: curry(function exponential(e, x) {
+			return Math.pow(x, e);
+		}),
+
+		exponentialOut: curry(function exponentialOut(e, x) {
+			return 1 - Math.pow(1 - x, e);
 		}),
 
 
