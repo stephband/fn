@@ -586,6 +586,7 @@
 		};
 	}
 
+
 	// Throttle
 	//
 	// Returns a function that calls `fn` once on the next timer frame, using
@@ -627,6 +628,7 @@
 		throttle.cancel = stop;
 		return throttle;
 	}
+
 
 	// Wait
 	//
@@ -1816,7 +1818,11 @@
 
 		mod:      curry(function mod(a, b) { return b % a; }),
 
-		//pow:      curry(function pow(a, b) { return Math.pow(b, a); }),
+		pow:      curry(function pow(n, x) { return Math.pow(x, n); }),
+
+		exp:      curry(function pow(n, x) { return Math.pow(n, x); }),
+
+		log:      curry(function log(n, x) { return Math.log(x) / Math.log(n); }),
 
 		min:      curry(function min(a, b) { return a > b ? b : a ; }),
 
@@ -1855,9 +1861,6 @@
 				Math.cos(a) * d
 			];
 		},
-
-		// conflicting properties not allowed in strict mode
-		log:         curry(function log(base, n) { return Math.log(n) / Math.log(base); }),
 
 		nthRoot:     curry(function nthRoot(n, x) { return Math.pow(x, 1/n); }),
 
@@ -1931,10 +1934,6 @@
 		// var easeInQuad   = exponential(2);
 		// var easeOutCubic = exponentialOut(3);
 		// var easeOutQuart = exponentialOut(4);
-
-		exponential: curry(function exponential(e, x) {
-			return Math.pow(x, e);
-		}),
 
 		exponentialOut: curry(function exponentialOut(e, x) {
 			return 1 - Math.pow(1 - x, e);
