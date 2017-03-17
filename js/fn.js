@@ -297,9 +297,25 @@
 	function sortedSplice(array, fn, value) {
 		// Splices value into array at position determined by result of fn,
 		// where result is either in the range [-1, 0, 1] or [true, false]
-		var n = array.length;
-		while (n-- && fn(array[n], value) > 0);
-		array.splice(++n, 0, value);
+		var n = sortIndex(array, function(n) {
+			return fn(value, n);
+		});
+		array.splice(n, 0, value);
+	}
+
+	function sortIndex(array, fn) {
+		var l = array.length;
+		var n = l + l % 2;
+		var i = 0;
+
+		while ((n = Math.floor(n / 2)) && (i + n <= l)) {
+			if (fn(array[i + n - 1]) >= 0) {
+				i += n;
+				n += n % 2;
+			}
+		}
+
+		return i;
 	}
 
 	function sparseShift(array) {
