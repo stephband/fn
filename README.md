@@ -261,7 +261,7 @@ Creates a functor of the arguments.
 ##### `group(fn)`
 ##### `head()`
 ##### `join()`
-##### `lest()`
+##### `last()`
 ##### `map(fn)`
 ##### `partition(n)`
 ##### `fold(fn, seed)`
