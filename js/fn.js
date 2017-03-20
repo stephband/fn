@@ -964,26 +964,18 @@
 				});
 		},
 
-		reduce: function(fn, seed) {
-			var shift = this.shift;
-
-			function reduce(seed) {
-				var value = shift();
-				return value === undefined ? seed : reduce(fn(seed, value)) ;
-			}
-
-			return create(this, once(function() {
-				return reduce(isDefined(seed) ? seed : 0);
-			}));
-		},
-
-		scan: function(fn, seed) {
+		fold: function(fn, seed) {
 			// seed defaults to 0
 			seed = arguments.length > 1 ? seed : 0 ;
 			var i = 0;
-			return this.map(function scan(value) {
-				return (seed = fn(seed, value, i++));
+			return this.map(function(value) {
+				seed = fn(seed, value, i++);
+				return seed;
 			});
+		},
+
+		reduce: function(fn, seed) {
+			return this.fold(fn, seed).last();
 		},
 
 		slice: function(n, m) {
@@ -1188,7 +1180,16 @@
 	}
 
 	assign(Fn, {
-		of: function() { return new this(arguments); }
+		of: function() { return new this(arguments); },
+		from: function(object) { return new this(object); },
+
+		merge: function() {
+			// Merge multiple streams into one
+		},
+
+		combine: function() {
+			
+		}
 	});
 
 

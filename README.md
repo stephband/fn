@@ -264,8 +264,8 @@ Creates a functor of the arguments.
 ##### `lest()`
 ##### `map(fn)`
 ##### `partition(n)`
+##### `fold(fn, seed)`
 ##### `reduce(fn, seed)`
-##### `scan(fn, seed)`
 ##### `slice(n, m)`
 ##### `sort(fn)`
 ##### `split()`
