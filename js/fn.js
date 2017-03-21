@@ -817,11 +817,10 @@
 		},
 
 		clone: function() {
-			var shift   = this.shift;
 			var buffer1 = [];
 			var buffer2 = [];
-			this.shift = cloneShift(buffer1, buffer2, shift);
-			return new Fn(cloneShift(buffer2, buffer1, shift));
+			this.shift = cloneShift(buffer1, buffer2, this.shift);
+			return new Fn(cloneShift(buffer2, buffer1, this.shift));
 		},
 
 		concat: function() {
@@ -1339,24 +1338,33 @@
 		},
 
 		clone: function() {
-			var source  = this;
-			var buffer1 = [];
-			var buffer2 = [];
+			var source     = this;
+			var buffer1    = [];
+			var buffer2    = [];
 			var stream = Stream(
 				cloneShift(buffer2, buffer1, this.shift),
 				notifyPush,
 				function stop() {
 					source.off('push', push);
+					source.off('stop', stop);
 					this.stop();
 				}
 			);
 
+			// Wrapper functions, because we have made the notifications system
+			// dependent on return value, a little stupidly perhaps, and we
+			// don't want return values here.
 			function push() {
 				stream.push();
 			}
 
+			function stop() {
+				stream.stop();
+			}
+
 			this.shift = cloneShift(buffer1, buffer2, this.shift);
 			this.on('push', push);
+			this.on('stop', stop);
 			return stream;
 		},
 
