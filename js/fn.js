@@ -1815,6 +1815,19 @@
 			return object[name].apply(object, args);
 		}),
 
+		store: function(object) {
+			// Creating a store using a weak map:
+			// Fn.store(new WeakMap())
+
+			return function store(key) {
+				var object = store.get(key);
+				if (object) { return object; }
+				object = {};
+				store.set(key, object);
+				return object;
+			};
+		},
+
 
 		// Time
 
