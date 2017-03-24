@@ -1561,6 +1561,8 @@
 
 	// Export
 
+	A.each = A.forEach;
+
 	window.Fn = assign(Fn, {
 
 		// Constructors
