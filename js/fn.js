@@ -911,10 +911,9 @@
 			});
 		},
 
-		head: function() {
+		first: function() {
 			var source = this;
-
-			return create(this, function head() {
+			return create(this, function first() {
 				if (source.status === 'done') { return; }
 				source.status = 'done';
 				return source.shift();
