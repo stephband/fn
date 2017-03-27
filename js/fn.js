@@ -799,15 +799,15 @@
 			// Create an unshift buffer, such that objects can be inserted
 			// back into the stream at will with stream.unshift(object).
 			var source = this;
-			var array  = [];
+			var buffer = toArray(arguments);
 
 			this.unshift = function(object) {
 				if (object === undefined) { return; }
-				array.unshift(object);
+				buffer.unshift(object);
 			};
 
 			return create(this, function buffer() {
-				return array.length ? array.shift() : source.shift() ;
+				return buffer.length ? buffer.shift() : source.shift() ;
 			});
 		},
 
@@ -910,10 +910,9 @@
 			});
 		},
 
-		head: function() {
+		first: function() {
 			var source = this;
-
-			return create(this, function head() {
+			return create(this, function first() {
 				if (source.status === 'done') { return; }
 				source.status = 'done';
 				return source.shift();
@@ -1557,6 +1556,8 @@
 
 
 	// Export
+
+	A.each = A.forEach;
 
 	window.Fn = assign(Fn, {
 
