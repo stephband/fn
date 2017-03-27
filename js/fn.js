@@ -707,7 +707,6 @@
 	function create(object, fn) {
 		var functor = Object.create(object);
 		functor.shift = fn;
-		//functor.unshift = function(object) {};
 		return functor;
 	}
 
@@ -979,13 +978,11 @@
 		},
 
 		fold: function(fn, seed) {
-			// seed defaults to 0
-			seed = arguments.length > 1 ? seed : 0 ;
 			var i = 0;
 			return this.map(function(value) {
 				seed = fn(seed, value, i++);
 				return seed;
-			});
+			}).buffer(seed);
 		},
 
 		reduce: function(fn, seed) {

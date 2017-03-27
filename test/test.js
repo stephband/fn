@@ -1,6 +1,4 @@
 
-var log = console.log.bind(console);
-
 function typeWrap(value) {
 	var type = typeof value;
 	return type === 'string' ? '"' + value + '"' : value ;
