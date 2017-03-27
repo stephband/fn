@@ -800,15 +800,15 @@
 			// Create an unshift buffer, such that objects can be inserted
 			// back into the stream at will with stream.unshift(object).
 			var source = this;
-			var array  = [];
+			var buffer = toArray(arguments);
 
 			this.unshift = function(object) {
 				if (object === undefined) { return; }
-				array.unshift(object);
+				buffer.unshift(object);
 			};
 
 			return create(this, function buffer() {
-				return array.length ? array.shift() : source.shift() ;
+				return buffer.length ? buffer.shift() : source.shift() ;
 			});
 		},
 
