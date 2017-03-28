@@ -35,7 +35,9 @@
 
 		while (++n < l) {
 			value = events[type][n](type, object);
-			if (value !== undefined) { return value; }
+			if (value !== undefined) {
+				return value;
+			}
 		}
 	}
 
@@ -97,7 +99,9 @@
 
 		function initialise() {
 			// Allow constructors with `new`?
-			source = new setup(function(type) { notify(type, stream); });
+			source = new setup(function(type) {
+				return notify(type, stream);
+			});
 
 			if (!source.shift) {
 				throw new Error('Stream: setup() must return an object with .shift()');
@@ -130,7 +134,9 @@
 
 			return {
 				shift: function() {
-					return buffer.shift();
+					return buffer.length ?
+						buffer.shift() :
+						notify('pull') ;
 				},
 
 				push: function() {

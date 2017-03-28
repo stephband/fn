@@ -816,10 +816,11 @@
 		},
 
 		clone: function() {
+			var shift   = this.shift;
 			var buffer1 = [];
 			var buffer2 = [];
-			this.shift = cloneShift(buffer1, buffer2, this.shift);
-			return new Fn(cloneShift(buffer2, buffer1, this.shift));
+			this.shift = cloneShift(buffer1, buffer2, shift);
+			return new Fn(cloneShift(buffer2, buffer1, shift));
 		},
 
 		concat: function() {
