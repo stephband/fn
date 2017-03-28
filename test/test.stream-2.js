@@ -3,7 +3,7 @@ console.group('Stream');
 
 var Stream = window.Stream;
 
-test(' Stream(fn)', function() {
+test(' Stream(setup)', function() {
 	var i = 0;
 	var s = Stream(function setup() {
 		return {
@@ -118,6 +118,16 @@ test('.map()', function() {
 	var s1 = Fn([0,1,2,3]);
 	var s2 = s1.map(Fn.add(1));
 	equals('1,2,3,4', s2.toArray().join());
+});
+
+test('.fold()', function() {
+	var s = Stream.of(1,0,1,0).fold(Fn.add, 2);
+	equals(2, s.shift());
+	equals(3, s.shift());
+	equals(3, s.shift());
+	equals(4, s.shift());
+	equals(4, s.shift());
+	equals(undefined, s.shift());
 });
 
 test('.reduce()', function() {
@@ -314,29 +324,29 @@ test('.unique()', function() {
 	equals('0,1,2,3,4', Stream.of(0,0,1,1,1,2,3,3,3,3,3,4,4).unique().toArray().join());
 });
 
-test('.group().merge()', function() {
-	var s = Stream.of(0,0,1,2,3,3,2,3,0)
-		.group()
-		.merge();
-
-	equals([0,0,1,2,3,3,2,3,0].join(), s.toArray().join());
-
-	s.push(0);
-	equals(0, s.shift());
-	s.push(1);
-	equals(1, s.shift());
-	s.push(4);
-	equals(4, s.shift());
-
-	s.push(1);
-	s.push(2);
-	s.push(4);
-	s.push(2);
-	equals([1,2,4,2].join(), s.toArray().join());
-
-	s.push(0,1,2,4,4,4,2);
-	equals([0,1,2,4,4,4,2].join(), s.toArray().join());
-});
+//test('.group().merge()', function() {
+//	var s = Stream.of(0,0,1,2,3,3,2,3,0)
+//		.group()
+//		.merge();
+//
+//	equals([0,0,1,2,3,3,2,3,0].join(), s.toArray().join());
+//
+//	s.push(0);
+//	equals(0, s.shift());
+//	s.push(1);
+//	equals(1, s.shift());
+//	s.push(4);
+//	equals(4, s.shift());
+//
+//	s.push(1);
+//	s.push(2);
+//	s.push(4);
+//	s.push(2);
+//	equals([1,2,4,2].join(), s.toArray().join());
+//
+//	s.push(0,1,2,4,4,4,2);
+//	equals([0,1,2,4,4,4,2].join(), s.toArray().join());
+//});
 
 test('.throttle()', function() {
 	console.log('.throttle()');

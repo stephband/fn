@@ -8,6 +8,7 @@
 	var assign    = Object.assign;
 	var curry     = Fn.curry;
 	var isDefined = Fn.isDefined;
+	var toArray   = Fn.toArray;
 
 
 	// Utilities
@@ -343,6 +344,11 @@
 
 			return this;
 		},
+
+		stop: function() {
+			notify(this, 'done');
+			delete this[eventsSymbol];
+		}
 	});
 
 	window.Stream = Stream;

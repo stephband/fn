@@ -806,7 +806,7 @@
 				buffer.unshift(object);
 			};
 
-			return create(this, function buffer() {
+			return create(this, function() {
 				return buffer.length ? buffer.shift() : source.shift() ;
 			});
 		},
