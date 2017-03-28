@@ -42,7 +42,7 @@
 	}
 
 
-	// Constructors
+	// Construct
 
 	function cloneShift(buffer1, buffer2, shift) {
 		return function clone() {
