@@ -42,12 +42,6 @@
 
 	// Constructors
 
-	//function create(object, fn) {
-	//	var stream = Object.create(object);
-	//	stream.shift = fn;
-	//	return stream;
-	//}
-
 	function cloneShift(buffer1, buffer2, shift) {
 		return function clone() {
 			if (buffer1.length) { return buffer1.shift(); }
