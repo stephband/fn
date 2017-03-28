@@ -1,8 +1,8 @@
 
 console.group('Fn()');
 
-var Fn = Fn;
-var Stream = Fn.Stream;
+var Fn = window.Fn;
+var Stream = window.Stream;
 
 test('Fn(fn)', function() {
 	var fr = Fn(function() { return 6; });
@@ -118,12 +118,12 @@ test('.clone()', function() {
 	equals('0,1,2,3', s2.toArray().join());
 	equals('0,1,2,3', s3.toArray().join());
 
-	s1 = Fn([0,1,2,3]);
-	s2 = s1.clone().toArray();
-	s3 = s1.clone().toArray();
-
-	equals('0,1,2,3', s2.join());
-	equals('0,1,2,3', s3.join());
+//	s1 = Fn([0,1,2,3]);
+//	s2 = s1.clone().toArray();
+//	s3 = s1.clone().toArray();
+//
+//	equals('0,1,2,3', s2.join());
+//	equals('0,1,2,3', s3.join());
 });
 
 test('.concat(object)', function() {

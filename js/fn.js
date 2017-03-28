@@ -867,17 +867,24 @@
 			fn = fn || Fn.id;
 
 			function group() {
-				var array = [];
-				var stream = Stream(function group() {
-					if (!array.length) {
-						// Pull until a new value is added to the current stream
-						pullUntil(Fn.is(stream));
-					}
+				var stream = Stream(function setup(notify) {
+					var array = [];
 
-					return array.shift();
-				}, function push() {
-					array.push.apply(array, arguments);
-					this.notify('push');
+					return {
+						shift: function group() {
+							if (!array.length) {
+								// Pull until a new value is added to the current stream
+								pullUntil(Fn.is(stream));
+							}
+					
+							return array.shift();
+						},
+						
+						push: function push() {
+							array.push.apply(array, arguments);
+							notify('push');
+						}
+					};
 				});
 
 				buffer.push(stream);
@@ -1112,28 +1119,6 @@
 			});
 		},
 
-		// Hack needed for soundio, I think. Keep an eye on whether we
-		// can remove it.
-		process: function(fn) { return fn(this); },
-
-		// Time transforms
-
-		choke: function(time) {
-			return this.pipe(Stream.Choke(time));
-		},
-
-		delay: function(time) {
-			return this.pipe(Stream.Delay(time));
-		},
-
-		throttle: function(request) {
-			return this.pipe(Stream.Throttle(request));
-		},
-
-		timer: function(request) {
-			return this.pipe(Stream.Timer(request));
-		},
-
 		// Consumers
 
 		each: function(fn) {
@@ -1150,7 +1135,7 @@
 		find: function(fn) {
 			return this
 			.filter(fn)
-			.head()
+			.first()
 			.shift();
 		},
 
@@ -1177,7 +1162,12 @@
 
 		toString: function() {
 			return this.reduce(prepend, '').shift();
-		}
+		},
+
+		// Hack needed for soundio, I think. Keep an eye on whether we
+		// can remove it.
+
+		process: function(fn) { return fn(this); }
 	});
 
 	Fn.prototype.toArray = Fn.prototype.toJSON;
@@ -1203,373 +1193,19 @@
 	});
 
 
-	// Stream
-
-	var eventsSymbol = Symbol('events');
-
-	// A Lifecycle controller for streams
-	function Control(stream) {
-		this.stream = stream;
-	}
-
-	assign(Control.prototype, {
-		notify: function(type) {
-			var events = this.stream[eventsSymbol];
-	
-			if (!events) { return; }
-			if (!events[type]) { return; }
-	
-			var n = -1;
-			var l = events[type].length;
-			var value;
-	
-			while (++n < l) {
-				value = events[type][n]();
-				if (value !== undefined) {
-					return value;
-				}
-			}
-		},
-
-		stop: function stop() {
-			// Get rid of all event handlers in one fell swoop
-			this.stream.status = 'done';
-			this.notify('stop');
-			delete this.stream[eventsSymbol];
-		}
-	});
-
-	function BufferStream(array) {
-		if (typeof array.length !== 'number') {
-			throw new TypeError('BufferStream requires 1st parameter to be an array or array-like object.');
-		}
-
-		var buffer = A.slice.apply(array);
-
-		return new Stream(function shift() {
-			var value = sparseShift(buffer);
-			return value === undefined ?
-				this.notify('pull') :
-				value ;
-		}, function push() {
-			A.push.apply(buffer, arguments);
-			this.notify('push');
-		});
-	}
-
-	function Stream(shift, push, stop) {
-		// Stream has been called with a single array-like parameter
-		if (typeof shift !== 'function') {
-			return BufferStream(shift);
-		}
-
-		// Enable construction without the `new` keyword
-		if (!Stream.prototype.isPrototypeOf(this)) {
-			return new Stream(shift, push, stop);
-		}
-
-		// A lifecycle control object to use as context for shift, push and
-		// stop, giving those functions access to flow control for the stream.
-		var control = new Control(this);
-		var stream = this;
-
-		stop = stop || control.stop;
-		push = push || noop;
-
-		this.shift = function() {
-			return shift.apply(control);
-		};
-
-		this.push = function() {
-			push.apply(control, arguments);
-			return stream;
-		};
-
-		this.stop = function() {
-			stop.apply(control, arguments);
-			return stream;
-		};
-
-		this[eventsSymbol] = {};
-	}
-
-	Stream.prototype = Object.create(Fn.prototype);
-
-	assign(Stream.prototype, {
-		on: function on(type, fn) {
-			var events = this[eventsSymbol];
-			if (!events) { return this; }
-
-			var listeners = events[type] || (events[type] = []);
-			listeners.push(fn);
-			return this;
-		},
-
-		off: function off(type, fn) {
-			var events = this[eventsSymbol];
-			if (!events) { return this; }
-
-			// Remove all handlers for all types
-			if (arguments.length === 0) {
-				Object.keys(events).forEach(off, this);
-				return this;
-			}
-
-			var listeners = events[type];
-			if (!listeners) { return; }
-
-			// Remove all handlers for type
-			if (!fn) {
-				delete events[type];
-				return this;
-			}
-
-			// Remove handler fn for type
-			var n = listeners.length;
-			while (n--) {
-				if (listeners[n] === fn) { listeners.splice(n, 1); }
-			}
-
-			return this;
-		},
-
-		clone: function() {
-			var source     = this;
-			var buffer1    = [];
-			var buffer2    = [];
-			var stream = Stream(
-				cloneShift(buffer2, buffer1, this.shift),
-				notifyPush,
-				function stop() {
-					source.off('push', push);
-					source.off('stop', stop);
-					this.stop();
-				}
-			);
-
-			// Wrapper functions, because we have made the notifications system
-			// dependent on return value, a little stupidly perhaps, and we
-			// don't want return values here.
-			function push() {
-				stream.push();
-			}
-
-			function stop() {
-				stream.stop();
-			}
-
-			this.shift = cloneShift(buffer1, buffer2, this.shift);
-			this.on('push', push);
-			this.on('stop', stop);
-			return stream;
-		},
-
-		pipe: function(stream) {
-			// Target must be writable
-			if (!stream || !stream.push) {
-				throw new Error('Fn: Fn.pipe(object) object must be a pushable stream. (' + stream + ')');
-			}
-			
-			this.each(stream.push);
-			return Fn.prototype.pipe.apply(this, arguments);
-		},
-
-		each: function(fn) {
-			var args   = arguments;
-			var source = this;
-
-			// Flush and observe
-			Fn.prototype.each.apply(source, args);
-
-			return this.on('push', function each() {
-				// Delegate to Fn.each(). That returns self, which is truthy,
-				// so telling the notifier that this event has been handled.
-				Fn.prototype.each.apply(source, args);
-			});
-		},
-
-		merge: function() {
-			var shift = this.shift;
-			var order = [];
-
-			function bind(object) {
-				order.push(object);
-
-				if (!object.on) { return; }
-
-				object.on('push', function() {
-					// Return a value to indicate this event has been handled.
-					// For convenience, lets use the return of array.push().
-					return order.push(object);
-				});
-			}
-
-			function shiftNext() {
-				var stream = order.shift();
-				if (stream === undefined) { return; }
-				var value = stream.shift();
-				return value === undefined ?
-					shiftNext() :
-					value ;
-			}
-
-			return create(this, function merge() {
-				var object = shift();
-				if (object !== undefined) { bind(object); }
-				var value = shiftNext();
-				return value;
-			});
-		},
-
-		toPromise: function() {
-			var source = this;
-
-			return new Promise(function setup(resolve, reject) {
-				var value = source.shift();
-
-				if (value !== undefined) {
-					resolve(value);
-					return;
-				}
-
-				source
-				.on('push', function push() {
-					var value = source.shift();
-					if (value === undefined) { return; }
-
-					resolve(value);
-					source.off('push', push);
-
-					// Return a value to indicate this push event
-					// has been handled
-					return true;
-				})
-				.on('stop', reject);
-			});
-		}
-	});
-
-	assign(Stream, {
-		of: Fn.of,
-
-		Choke: function(time) {
-			var buffer  = [];
-
-			return Stream(function shift() {
-				return buffer.shift();
-			}, Wait(function push() {
-				buffer[0] = arguments[arguments.length - 1];
-				this.notify('push');
-			}, time), function stop() {
-				throttle.cancel(false);
-				this.stop();
-			});
-		},
-
-		Delay: function DelayStream(duration) {
-			var buffer = [];
-			var timers = [];
-
-			function trigger(context, values) {
-				// Careful! We're assuming that timers fire in the order they
-				// were declared, which may not be the case in JS.
-				var value;
-
-				if (values.length) {
-					buffer.push.apply(buffer, values);
-				}
-				else {
-					value = context.notify('pull');
-					if (value === undefined) { return; }
-					buffer.push(value);
-				}
-
-				context.notify('push');
-				timers.shift();
-			}
-
-			return Stream(function shift() {
-				return buffer.shift();
-			}, function push() {
-				timers.push(setTimeout(trigger, duration * 1000, this, arguments));
-			}, function stop() {
-				buffer = empty;
-				timers.forEach(clearTimeout);
-				this.stop();
-			});
-		},
-
-		Throttle: function(request) {
-			// If request is a number create a timer, otherwise if request is
-			// a function use it, or if undefined, use an animation timer.
-			request = typeof request === 'number' ? Timer(request).request :
-				typeof request === 'function' ? request :
-				requestAnimationFrame ;
-
-			var buffer  = [];
-
-			return Stream(function shift() {
-				return buffer.shift();
-			}, Throttle(function push() {
-				buffer[0] = arguments[arguments.length - 1];
-				this.notify('push');
-			}, request), function stop() {
-				buffer = empty;
-				throttle.cancel(false);
-				this.stop();
-			});
-		},
-
-		Timer: function(request) {
-			// If request is a number create a timer, otherwise if request is
-			// a function use it, or if undefined, use an animation timer.
-			request = typeof request === 'number' ? Timer(request).request :
-				typeof request === 'function' ? request :
-				requestAnimationFrame ;
-
-			var buffer  = [];
-			var pushed  = [];
-
-			function update(control) {
-				pushed[0] = buffer.shift();
-				control.notify('push');
-			}
-
-			return Stream(function shift() {
-				var value = pushed.shift();
-				if (value !== undefined) {
-					timer = request(function() { update(this); });
-				}
-				return value;
-			}, function push() {
-				buffer.push.apply(buffer, arguments);
-				if (!timer) {
-					timer = request(function() { update(this); });
-				}
-			}, function stop() {
-				pushed = empty;
-				update = noop;
-				this.stop();
-			});
-		}
-	});
-
-
 	// Export
 
 	A.each = A.forEach;
 
 	window.Fn = assign(Fn, {
 
-		// Constructors
+		// Construct
 
-		Stream:   Stream,
 		Throttle: Throttle,
 		Timer:    Timer,
 		Wait:     Wait,
 
-
-		// Functional
+		// Functions
 
 		empty:          empty,
 		noop:           noop,
@@ -1600,8 +1236,7 @@
 
 		self: function self() { return this; },
 
-
-		// Logical
+		// Logic
 
 		and: curry(function and(a, b) { return !!(a && b); }),
 
@@ -1610,9 +1245,6 @@
 		or: curry(function or(a, b) { return a || b; }),
 
 		xor: curry(function or(a, b) { return (a || b) && (!!a !== !!b); }),
-
-
-		// Comparison
 
 		equals: curry(function equals(a, b) {
 			// Fast out if references are for the same object.
@@ -1651,7 +1283,6 @@
 		byAlphabet: curry(function byAlphabet(a, b) {
 			return S.localeCompare.call(a, b);
 		}),
-
 
 		// Types
 
@@ -1740,8 +1371,6 @@
 		}),
 
 		map: curry(map),
-
-		//push: curry(push),
 
 		reduce: curry(reduce),
 

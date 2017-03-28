@@ -1,12 +1,16 @@
 
 console.group('Stream');
 
-var Stream = Fn.Stream;
+var Stream = window.Stream;
 
-test(' Stream(fn)', function() {
+test(' Stream(setup)', function() {
 	var i = 0;
-	var s = Stream(function oneToFive() {
-		return ++i < 5 ? i : undefined ;
+	var s = Stream(function setup() {
+		return {
+			shift: function oneToFive() {
+				return ++i < 5 ? i : undefined ;
+			}
+		};
 	});
 
 	equals(1, s.shift());
@@ -16,16 +20,16 @@ test(' Stream(fn)', function() {
 	equals(undefined, s.shift());
 });
 
-test(' Stream(array)', function() {
-	var i = 0;
-	var s = Stream([1,2,3,4]);
-
-	equals(1, s.shift());
-	equals(2, s.shift());
-	equals(3, s.shift());
-	equals(4, s.shift());
-	equals(undefined, s.shift());
-});
+//test(' Stream(array)', function() {
+//	var i = 0;
+//	var s = Stream([1,2,3,4]);
+//
+//	equals(1, s.shift());
+//	equals(2, s.shift());
+//	equals(3, s.shift());
+//	equals(4, s.shift());
+//	equals(undefined, s.shift());
+//});
 
 test(' Stream.of(...)', function() {
 	var i = 0;
@@ -40,9 +44,13 @@ test(' Stream.of(...)', function() {
 
 test('.shift()', function() {
 	var i = 0;
-	var s = Fn.Stream(function oneToFive() {
-		return ++i < 5 ? i : undefined ;
-	});
+	var s = Stream(function setup() {
+		return {
+			shift: function oneToFive() {
+				return ++i < 5 ? i : undefined ;
+			}
+		};
+	});;
 
 	equals(1, s.shift());
 	equals(2, s.shift());
@@ -70,14 +78,14 @@ test('.push()', function() {
 });
 
 test('.clone()', function() {
-	var s1 = Stream([0,1,2,3]);
+	var s1 = Stream.from([0,1,2,3]);
 	var s2 = s1.clone();
 	var s3 = s1.clone();
 
 	equals('0,1,2,3', s2.toArray().join());
 	equals('0,1,2,3', s3.toArray().join());
 
-	s1 = Stream([0,1,2,3]);
+	s1 = Stream.from([0,1,2,3]);
 	s2 = s1.clone().toArray();
 	s3 = s1.clone().toArray();
 
@@ -85,7 +93,7 @@ test('.clone()', function() {
 	equals('0,1,2,3', s3.join());
 
 	var v1, v2, v3;
-	s1 = Stream([0,1,2,3]);
+	s1 = Stream.from([0,1,2,3]);
 
 	s2 = s1.clone().each(function(value) { v2 = value; });
 	s3 = s1.clone().each(function(value) { v3 = value; });
@@ -99,17 +107,27 @@ test('.clone()', function() {
 });
 
 test('.toArray()', function() {
-	var s1 = Fn();
+	var s1 = Stream.of();
 	equals('', s1.toArray().join());
 
-	var s2 = Fn([0,1,2,3]);
-	equals( '0,1,2,3', s2.toArray().join());
+	var s2 = Stream.from([0,1,2,3]);
+	equals('0,1,2,3', s2.toArray().join());
 });
 
 test('.map()', function() {
 	var s1 = Fn([0,1,2,3]);
 	var s2 = s1.map(Fn.add(1));
 	equals('1,2,3,4', s2.toArray().join());
+});
+
+test('.fold()', function() {
+	var s = Stream.of(1,0,1,0).fold(Fn.add, 2);
+	equals(2, s.shift());
+	equals(3, s.shift());
+	equals(3, s.shift());
+	equals(4, s.shift());
+	equals(4, s.shift());
+	equals(undefined, s.shift());
 });
 
 test('.reduce()', function() {
@@ -306,29 +324,29 @@ test('.unique()', function() {
 	equals('0,1,2,3,4', Stream.of(0,0,1,1,1,2,3,3,3,3,3,4,4).unique().toArray().join());
 });
 
-test('.group().merge()', function() {
-	var s = Stream.of(0,0,1,2,3,3,2,3,0)
-		.group()
-		.merge();
-
-	equals([0,0,1,2,3,3,2,3,0].join(), s.toArray().join());
-
-	s.push(0);
-	equals(0, s.shift());
-	s.push(1);
-	equals(1, s.shift());
-	s.push(4);
-	equals(4, s.shift());
-
-	s.push(1);
-	s.push(2);
-	s.push(4);
-	s.push(2);
-	equals([1,2,4,2].join(), s.toArray().join());
-
-	s.push(0,1,2,4,4,4,2);
-	equals([0,1,2,4,4,4,2].join(), s.toArray().join());
-});
+//test('.group().merge()', function() {
+//	var s = Stream.of(0,0,1,2,3,3,2,3,0)
+//		.group()
+//		.merge();
+//
+//	equals([0,0,1,2,3,3,2,3,0].join(), s.toArray().join());
+//
+//	s.push(0);
+//	equals(0, s.shift());
+//	s.push(1);
+//	equals(1, s.shift());
+//	s.push(4);
+//	equals(4, s.shift());
+//
+//	s.push(1);
+//	s.push(2);
+//	s.push(4);
+//	s.push(2);
+//	equals([1,2,4,2].join(), s.toArray().join());
+//
+//	s.push(0,1,2,4,4,4,2);
+//	equals([0,1,2,4,4,4,2].join(), s.toArray().join());
+//});
 
 test('.throttle()', function() {
 	console.log('.throttle()');
