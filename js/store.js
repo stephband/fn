@@ -3,7 +3,7 @@
 	
 	var assign = Object.assign;
 	var Fn     = window.Fn;
-	var Stream = Fn.Stream;
+	var Stream = window.Stream;
 	var debug  = true;
 
 	// Methods mixin for newly created store objects

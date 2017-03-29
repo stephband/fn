@@ -33,7 +33,8 @@
 (function(window) {
 	"use strict";
 
-	var Fn = window.Fn;
+	var Fn     = window.Fn;
+	var Stream = window.Stream;
 
 	var mixin = window.mixin || (window.mixin = {});
 	var slice = Function.prototype.call.bind(Array.prototype.slice);
@@ -100,7 +101,7 @@
 			if (arguments.length === 1) {
 				// If types is a string return a stream.
 				if (typeof types === 'string') {
-					return Fn.Stream(function setup(notify) {
+					return Stream(function setup(notify) {
 						var buffer = [];
 
 						function push(collection, object) {
