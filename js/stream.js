@@ -6,8 +6,10 @@
 	// Import
 
 	var Fn        = window.Fn;
+	var A         = Array.prototype;
 
 	var assign    = Object.assign;
+	var call      = Fn.call;
 	var curry     = Fn.curry;
 	var each      = Fn.each;
 	var Timer     = Fn.Timer;
@@ -143,6 +145,102 @@
 				push: function() {
 					buffer.push.apply(buffer, arguments);
 					notify('push');
+				}
+			};
+		});
+	};
+
+	Stream.Combine = function(fn) {
+		var sources = A.slice.call(arguments, 1);
+
+		if (sources.length < 2) {
+			throw new Error('Stream: Combine requires more than ' + sources.length + ' source streams')
+		}
+
+		return new Stream(function setup(notify) {
+			var hot = true;
+			var store = sources.map(function(source) {
+				var data = {
+					source: source,
+					listen: listen
+				};
+
+				// Listen for incoming values and flag as hot
+				function listen() {
+					data.value = undefined;
+					hot = true;
+				}
+
+				source.on('push', listen)
+				source.on('push', notify);
+				return data;
+			});
+
+			function toValue(data) {
+				var source = data.source;
+				var value  = data.value;
+				return data.value = value === undefined ? latest(source) : value ;
+			}
+
+			return {
+				shift: function combine() {
+					// Prevent duplicate values going out the door
+					if (!hot) { return; }
+					hot = false;
+
+					var values = store.map(toValue);
+					return values.every(isValue) && fn.apply(null, values) ;
+				},
+
+				stop: function stop() {
+					// Remove listeners
+					each(function(data) {
+						var source = data.source;
+						var listen = data.listen;
+						source.off('push', listen);
+						source.off('push', notify);						
+					}, store);
+
+					notify('stop');
+				}
+			};
+		});
+	};
+
+	Stream.Merge = function(source1, source2) {
+		var args = arguments;
+	
+		return new Stream(function setup(notify) {
+			var values  = [];
+			var buffer  = [];
+			var sources = Array.from(args);
+	
+			function update(type, source) {
+				buffer.push(source);
+			}
+
+			each(function(source) {
+				// Flush the source
+				values.push.apply(values, toArray(source));
+
+				// Listen for incoming values
+				source.on('push', update);
+				source.on('push', notify);
+			}, sources);
+
+			return {
+				shift: function() {
+					if (values.length) { return values.shift(); }
+					var stream = buffer.shift();
+					return stream && stream.shift();
+				},
+
+				stop: function() {
+					// Remove listeners
+					each(function(source) {
+						source.off('push', update);
+						source.off('push', notify);
+					});
 				}
 			};
 		});
@@ -312,87 +410,6 @@
 
 	Stream.of = function() { return Stream.Buffer(arguments); };
 
-	Stream.merge = function(source1, source2) {
-		var args = arguments;
-	
-		return new Stream(function setup(notify) {
-			var values  = [];
-			var buffer  = [];
-			var sources = Array.from(args);
-	
-			function update(type, source) {
-				buffer.push(source);
-			}
-
-			each(function(source) {
-				// Flush the source
-				values.push.apply(values, toArray(source));
-
-				// Listen for incoming values
-				source.on('push', update);
-				source.on('push', notify);
-			}, sources);
-
-			return {
-				shift: function() {
-					if (values.length) { return values.shift(); }
-					var stream = buffer.shift();
-					return stream && stream.shift();
-				},
-
-				stop: function() {
-					// Remove listeners
-					each(function(source) {
-						source.off('push', update);
-						source.off('push', notify);
-					});
-				}
-			};
-		});
-	};
-
-	Stream.combine = function(fn, source1, source2) {
-		return new Stream(function setup(notify) {
-			var hot = true;
-
-			// Keep values
-			var value1;
-			var value2;
-
-			// Listen for incoming values and nullify
-			function update1() { value1 = undefined; hot = true; }
-			function update2() { value2 = undefined; hot = true; }
-
-			source1.on('push', update1);
-			source2.on('push', update2);
-			source1.on('push', notify);
-			source2.on('push', notify);
-
-			return {
-				shift: function combine() {
-					// Prevent duplicate values going out the door
-					if (!hot) { return; }
-
-					hot    = false;
-					value1 = value1 === undefined ? latest(source1) : value1;
-					value2 = value2 === undefined ? latest(source2) : value2;
-
-					return value1 !== undefined && value2 !== undefined &&
-						fn(value1, value2) ;
-				},
-
-				stop: function stop() {
-					// Remove listeners
-					source1.off('push', update1);
-					source2.off('push', update2);
-					source1.off('push', notify);
-					source2.off('push', notify);
-					notify('stop');
-				}
-			};
-		});
-	};
-
 	Stream.prototype = assign(Object.create(Fn.prototype), {
 
 		// Construct
@@ -429,13 +446,13 @@
 		// Transform
 
 		combine: function(fn, source) {
-			return Stream.combine(fn, this, source);
+			return Stream.Combine(fn, this, source);
 		},
 
 		merge: function() {
 			var sources = toArray(arguments);
 			sources.unshift(this);
-			return Stream.merge.apply(null, sources);
+			return Stream.Merge.apply(null, sources);
 		},
 
 		latest: function() {

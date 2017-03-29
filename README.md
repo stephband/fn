@@ -251,6 +251,10 @@ Creates a functor from an array or array-like object.
 
 Creates a functor of the arguments.
 
+##### `Fn.from(array)`
+
+Creates a functor from an array or collection.
+
 #### Transform
 
 ##### `ap(object)`
@@ -264,7 +268,6 @@ Creates a functor of the arguments.
 ##### `map(fn)`
 ##### `partition(n)`
 ##### `fold(fn, seed)`
-##### `reduce(fn, seed)`
 ##### `take(n)`
 ##### `sort(fn)`
 ##### `tail()`
@@ -279,8 +282,8 @@ Creates a functor of the arguments.
 
 ##### `buffer()`
 
-Give the functor an `.unshift()` method, creating an entry point for unshifting
-values back into the flow.
+<!--Give the functor an `.unshift()` method, creating an entry point for unshifting
+values back into the flow.-->
 
 #### Consume
 
@@ -288,6 +291,7 @@ values back into the flow.
 ##### `find(fn)`
 ##### `next()`
 ##### `pipe(stream)`
+##### `reduce(fn, seed)`
 ##### `shift()`
 ##### `toArray()`
 ##### `toJSON()`
@@ -303,31 +307,58 @@ Create a functor of values.
 ## Stream()
 
 Streams are pushable, observable functors. Streams inherit all methods of a
-functor, plus they also get a `.push` method and
-are observed for `"push"` and events with `.on(type, fn)`.
+functor, plus they also get a `.push` method and are observed for `"push"`,
+`"pull"` and `"stop"` events.
 
-##### `Stream(shift, push, stop)`
+##### `Stream(setup)`
 
-Creates a stream from functions.
+Creates a stream.
 
-	var i = 0;
-    var stream = Fn.Stream(function shift() {
-		return ++i;
+    var stream = Stream(function setup() {
+		var buffer = [0,1,2,3];
+		return buffer;
     });
-
-##### `Stream(array)`
-
-Creates a functor from an array or array-like object.
 
 ##### `Stream.of(value1, value2, ...)`
 
-Create a buffered stream of values.
+Create a buffer stream of values.
+
+##### `Stream.from(array)`
+
+Create a buffer stream from an array or collection.
 
 #### Transform
 
-##### `combine(fn, stream)`
+##### `ap(object)`
+##### `chain(fn)`
+##### `concat(source)`
+##### `combine(fn, source1, source2, ...)`
+
+Takes any number of streams and combines their latest values into one stream
+by passing them through the combinator function `fn`. The combinator should
+be able to accept the same number of arguments as the number of streams
+(including the current stream).
+
+##### `dedup()`
+##### `filter(fn)`
+##### `first()`
+##### `last()`
 ##### `latest()`
+##### `join()`
+##### `map(fn)`
 ##### `merge(source1, source2, ...)`
+##### `partition(n)`
+##### `fold(fn, seed)`
+##### `take(n)`
+##### `sort(fn)`
+##### `tail()`
+##### `tap(fn)`
+##### `unique()`
+##### `choke(time)`
+##### `clock(request)`
+##### `delay(time)`
+##### `throttle(request)`
+
 ##### `choke()`
 ##### `delay()`
 ##### `throttle()`
@@ -335,9 +366,23 @@ Create a buffered stream of values.
 
 #### Consume
 
+##### `each(fn)`
+##### `find(fn)`
+##### `next()`
+##### `pipe(stream)`
+##### `reduce(fn, seed)`
+##### `shift()`
+##### `toArray()`
+##### `toJSON()`
+##### `toString()`
+
 #### Input
 
 ##### `push(value, ...)`
+##### `buffer(value, ...)`
+
+<!--Give the functor an `.unshift()` method, creating an entry point for unshifting
+values back into the flow.-->
 
 #### Control
 
@@ -345,7 +390,19 @@ Create a buffered stream of values.
 ##### `off(n)`
 ##### `stop()`
 
-## More Streams
+## Constructors
+
+##### `Stream.Combine(fn, source1, source2, ...)`
+
+Takes any number of streams and combines their latest values into one stream
+by passing them through the combinator function `fn`. The combinator should
+be able to accept the same number of arguments as the number of streams.
+
+##### `Stream.Merge(source1, source2, ...)`
+
+Takes any number of streams and combines their latest values into one stream
+by merging them temporally: that is, values are emitted in the order they are
+pushed to their respective source streams.
 
 ##### `Stream.Choke()`
 

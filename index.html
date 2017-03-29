@@ -48,7 +48,7 @@
 
 		var st1 = Stream.Events('input', in1).map(Fn.getPath('target.value')).buffer(in1.value).map(parseFloat);
 		var st2 = Stream.Events('input', in2).map(Fn.getPath('target.value')).buffer(in2.value).map(parseFloat);
-		var st3 = Stream.combine(Fn.add, st1, st2);
+		var st3 = Stream.Combine(Fn.add, st1, st2);
 
 		st3.each(Fn.set('value', in3));
 	</script>
