@@ -95,11 +95,15 @@
 		var source;
 
 		function initialise() {
-			// Allow constructors with `new`?
+			// Allow constructors with `new` ? Yeeaaa... maybe
 			source = new setup(function(type) {
 				// Prevent nested events, so a 'push' event triggered while
 				// the stream is 'pull'ing will do nothing. A bit of a fudge.
-				if (busy) { return; }
+				if (busy) {
+					console.log('Stream: prevented ', type);
+					return;
+				}
+
 				busy = true;
 				var value = notify(type, stream);
 				busy = false;
@@ -113,9 +117,12 @@
 			methodise(stream, source);
 		}
 
+		// Event handler store
 		stream[eventsSymbol] = {};
 
+		// Methods
 		this.shift = function() {
+			if (stream.status === 'done') { return; }
 			if (!source) { initialise(); }
 			return source.shift();
 		};
@@ -420,27 +427,35 @@
 			var buffer1 = [];
 			var buffer2 = [];
 
-			this.shift = cloneShift(buffer1, buffer2, shift);
-
-			return new Stream(function setup(notify) {
-				source.on('push', notify);
+			var stream = new Stream(function setup(notify) {
+				source.off('stop', stop);
 				source.on('stop', notify);
+				source.on('push', notify);
 
 				return {
 					shift: cloneShift(buffer2, buffer1, shift),
 
-					push:  function() {
+					push: function() {
 						buffer2.push.apply(buffer2, arguments);
 						notify('push');
 					},
 
-					stop:  function stop() {
+					stop: function stop() {
 						source.off('push', notify);
 						source.off('stop', notify);
 						notify('stop');
 					}
 				}
 			});
+
+			// Temporary stop handler for propagating stop events before
+			// stream has run setup().
+			function stop() { stream.stop(); }
+			source.on('stop', stop);
+
+			this.shift = cloneShift(buffer1, buffer2, shift);
+
+			return stream;
 		},
 
 		// Transform
