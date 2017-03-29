@@ -9,6 +9,7 @@
 
 	var assign    = Object.assign;
 	var curry     = Fn.curry;
+	var each      = Fn.each;
 	var Timer     = Fn.Timer;
 	var Throttle  = Fn.Throttle;
 	var toArray   = Fn.toArray;
@@ -53,12 +54,11 @@
 		};
 	}
 
-	function flush(fn, source) {
+	function latest(source) {
 		var value = source.shift();
-		while (value !== undefined) {
-			fn(value);
-			value = source.shift();
-		}
+		return value === undefined ?
+			arguments[1] :
+			latest(source, value) ;
 	}
 
 	function stop(type, stream) {
@@ -89,12 +89,19 @@
 		}
 
 		var stream = this;
+		var busy   = false;
 		var source;
 
 		function initialise() {
 			// Allow constructors with `new`?
 			source = new setup(function(type) {
-				return notify(type, stream);
+				// Prevent nested events, so a 'push' event triggered while
+				// the stream is 'pull'ing will do nothing. A bit of a fudge.
+				if (busy) { return; }
+				busy = true;
+				var value = notify(type, stream);
+				busy = false;
+				return value;
 			});
 
 			if (!source.shift) {
@@ -120,14 +127,14 @@
 		this.on('stop', stop);
 	}
 
-	Stream.Buffer = function(array) {
+	Stream.Buffer = function(source) {
 		return new Stream(function setup(notify) {
-			var buffer = array === undefined ? [] :
-				Fn.prototype.isPrototypeOf(array) ? array :
-				Array.from(array).filter(isValue) ;
+			var buffer = source === undefined ? [] :
+				Fn.prototype.isPrototypeOf(source) ? source :
+				Array.from(source).filter(isValue) ;
 
 			return {
-				shift: function() {
+				shift: function shift() {
 					return buffer.length ?
 						buffer.shift() :
 						notify('pull') ;
@@ -136,45 +143,6 @@
 				push: function() {
 					buffer.push.apply(buffer, arguments);
 					notify('push');
-				}
-			};
-		});
-	};
-
-	Stream.Merge = function() {
-		var args = arguments;
-	
-		return new Stream(function setup(notify) {
-			var buffer  = [];
-			var sources = Array.from(args);
-	
-			function update(value) {
-				buffer.push(value);
-				notify('push');
-			}
-
-			var listeners = sources.map(function(source) {
-				// Flush the source
-				flush(update, source);
-
-				// Listen for incoming values and buffer them into stream
-				function listen() { flush(update, source); }
-				source.on('push', listen);
-
-				// Remember listeners
-				return listen;
-			});
-
-			return {
-				shift: function() {
-					return buffer.shift();
-				},
-
-				stop: function() {
-					// Remove listeners
-					sources.forEach(function(source, i) {
-						source.off('push', listeners[i]);
-					});
 				}
 			};
 		});
@@ -204,10 +172,10 @@
 		});
 	};
 
-	Stream.Choke = function() {
+	Stream.Choke = function(time) {
 		return new Stream(function setup(notify) {
 			var buffer = [];
-			var wait = Wait(function() {
+			var update = Wait(function() {
 				// Get last value and stick it in buffer
 				buffer[0] = arguments[arguments.length - 1];
 				notify('push');
@@ -221,7 +189,7 @@
 				push: update,
 
 				stop: function stop() {
-					wait.cancel(false);
+					update.cancel(false);
 					notify('stop');
 				}
 			};
@@ -344,6 +312,87 @@
 
 	Stream.of = function() { return Stream.Buffer(arguments); };
 
+	Stream.merge = function(source1, source2) {
+		var args = arguments;
+	
+		return new Stream(function setup(notify) {
+			var values  = [];
+			var buffer  = [];
+			var sources = Array.from(args);
+	
+			function update(type, source) {
+				buffer.push(source);
+			}
+
+			each(function(source) {
+				// Flush the source
+				values.push.apply(values, toArray(source));
+
+				// Listen for incoming values
+				source.on('push', update);
+				source.on('push', notify);
+			}, sources);
+
+			return {
+				shift: function() {
+					if (values.length) { return values.shift(); }
+					var stream = buffer.shift();
+					return stream && stream.shift();
+				},
+
+				stop: function() {
+					// Remove listeners
+					each(function(source) {
+						source.off('push', update);
+						source.off('push', notify);
+					});
+				}
+			};
+		});
+	};
+
+	Stream.combine = function(fn, source1, source2) {
+		return new Stream(function setup(notify) {
+			var hot = true;
+
+			// Keep values
+			var value1;
+			var value2;
+
+			// Listen for incoming values and nullify
+			function update1() { value1 = undefined; hot = true; }
+			function update2() { value2 = undefined; hot = true; }
+
+			source1.on('push', update1);
+			source2.on('push', update2);
+			source1.on('push', notify);
+			source2.on('push', notify);
+
+			return {
+				shift: function combine() {
+					// Prevent duplicate values going out the door
+					if (!hot) { return; }
+
+					hot    = false;
+					value1 = value1 === undefined ? latest(source1) : value1;
+					value2 = value2 === undefined ? latest(source2) : value2;
+
+					return value1 !== undefined && value2 !== undefined &&
+						fn(value1, value2) ;
+				},
+
+				stop: function stop() {
+					// Remove listeners
+					source1.off('push', update1);
+					source2.off('push', update2);
+					source1.off('push', notify);
+					source2.off('push', notify);
+					notify('stop');
+				}
+			};
+		});
+	};
+
 	Stream.prototype = assign(Object.create(Fn.prototype), {
 
 		// Construct
@@ -379,11 +428,42 @@
 
 		// Transform
 
+		combine: function(fn, source) {
+			return Stream.combine(fn, this, source);
+		},
+
 		merge: function() {
 			var sources = toArray(arguments);
 			sources.unshift(this);
-			return Stream.Merge.apply(null, sources);
+			return Stream.merge.apply(null, sources);
 		},
+
+		latest: function() {
+			var source = this;
+			var stream = Object.create(this);
+			var value;
+
+			stream.shift = function() {
+				return latest(source);
+			};
+
+			return stream;
+		},
+
+		//remember: function() {
+		//	var source  = this;
+		//	var value;
+		//
+		//	return assign(Object.create(this, {
+		//		each: { value: undefined }
+		//	}), {
+		//		shift: function() {
+		//			var val = latest(source);
+		//			if (val !== undefined) { value = val; }
+		//			return value;
+		//		}
+		//	});
+		//},
 
 		choke: function(time) {
 			return this.pipe(Stream.Choke(time));
@@ -425,6 +505,10 @@
 
 			this.each(stream.push);
 			return Fn.prototype.pipe.apply(this, arguments);
+		},
+
+		reduce: function(fn, seed) {
+			return this.fold(fn, seed).latest().shift();
 		},
 
 		// Control

@@ -258,23 +258,18 @@ Creates a functor of the arguments.
 ##### `concat(stream)`
 ##### `dedup()`
 ##### `filter(fn)`
-##### `group(fn)`
-##### `head()`
-##### `join()`
+##### `first()`
 ##### `last()`
+##### `join()`
 ##### `map(fn)`
 ##### `partition(n)`
 ##### `fold(fn, seed)`
 ##### `reduce(fn, seed)`
-##### `slice(n, m)`
+##### `take(n)`
 ##### `sort(fn)`
-##### `split()`
 ##### `tail()`
 ##### `tap(fn)`
 ##### `unique()`
-
-#### Time
-
 ##### `choke(time)`
 ##### `clock(request)`
 ##### `delay(time)`
@@ -330,16 +325,25 @@ Create a buffered stream of values.
 
 #### Transform
 
-##### `merge()`
+##### `combine(fn, stream)`
+##### `latest()`
+##### `merge(source1, source2, ...)`
+##### `choke()`
+##### `delay()`
+##### `throttle()`
+##### `interval()`
+
+#### Consume
 
 #### Input
 
 ##### `push(value, ...)`
 
-#### Observe
+#### Control
 
 ##### `on(fn)`
 ##### `off(n)`
+##### `stop()`
 
 ## More Streams
 

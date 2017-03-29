@@ -10,11 +10,13 @@ test('Fn(fn)', function() {
 	equals(6, fr.shift());
 	equals(6, fr.shift());
 	equals(6, fr.shift());
+	equals(undefined, fr.status);
 });
 
 test('Fn(array)', function() {
 	var fr = Fn([6]);
 	equals(6, fr.shift());
+	equals('done', fr.status);
 	equals(undefined, fr.shift());
 
 	var fr = Fn([0, 'lamb', true, false]);
@@ -22,28 +24,33 @@ test('Fn(array)', function() {
 	equals('lamb', fr.shift());
 	equals(true, fr.shift());
 	equals(false, fr.shift());
+	equals('done', fr.status);
 	equals(undefined, fr.shift());
 
 	var fr = Fn([undefined, true, false]);
 	equals(true, fr.shift());
 	equals(false, fr.shift());
+	equals('done', fr.status);
 	equals(undefined, fr.shift());
 
 	var fr = Fn([true, undefined, false]);
 	equals(true, fr.shift());
 	equals(false, fr.shift());
+	equals('done', fr.status);
 	equals(undefined, fr.shift());
 
 	var fr = Fn([true, null, false]);
 	equals(true, fr.shift());
 	equals(null, fr.shift());
 	equals(false, fr.shift());
+	equals('done', fr.status);
 	equals(undefined, fr.shift());
 });
 
 test('Fn.of()', function() {
 	var fr = Fn.of(6);
 	equals(6, fr.shift());
+	equals('done', fr.status);
 	equals(undefined, fr.shift());
 
 	var fr = Fn.of(0,'lamb',true,false);
@@ -51,26 +58,30 @@ test('Fn.of()', function() {
 	equals('lamb', fr.shift());
 	equals(true, fr.shift());
 	equals(false, fr.shift());
+	equals('done', fr.status);
 	equals(undefined, fr.shift());
 
 	var fr = Fn.of(undefined,true,false);
 	equals(true, fr.shift());
 	equals(false, fr.shift());
+	equals('done', fr.status);
 	equals(undefined, fr.shift());
 
 	var fr = Fn.of(true,undefined,false);
 	equals(true, fr.shift());
 	equals(false, fr.shift());
+	equals('done', fr.status);
 	equals(undefined, fr.shift());
 
 	var fr = Fn.of(true, null, false);
 	equals(true, fr.shift());
 	equals(null, fr.shift());
 	equals(false, fr.shift());
+	equals('done', fr.status);
 	equals(undefined, fr.shift());
 });
 
-test('.chain(fn)', function() {
+test('.chain()', function() {
 	var n = 0;
 
 	function toJust01() {
@@ -94,14 +105,25 @@ test('.chain(fn)', function() {
 	equals(1, fr.shift());
 	equals(0, fr.shift());
 	equals(1, fr.shift());
+	equals('done', fr.status);
 	equals(undefined, fr.shift());
 
 	var fr = Fn.of(1,0).chain(toJust01Nothing);
 	equals(0, fr.shift());
 	equals(1, fr.shift());
+	equals('done', fr.status);
 	equals(undefined, fr.shift());
 	equals(undefined, fr.shift());
 	equals(undefined, fr.shift());
+});
+
+test('.chunk()', function() {
+	var f = Fn.of(0,1,2,3,4,5,6,7,8).chunk(2);
+	equals('0,1', f.shift().toArray().join());
+	equals('2,3', f.shift().toArray().join());
+	equals('4,5', f.shift().toArray().join());
+	equals('6,7', f.shift().toArray().join());
+	equals(undefined, f.shift());
 });
 
 test('.clone()', function() {
@@ -109,24 +131,32 @@ test('.clone()', function() {
 	var s2 = s1.clone();
 
 	equals('0,1,2,3', s1.toArray().join());
+	equals('done',    s1.status);
 	equals('0,1,2,3', s2.toArray().join());
+	equals('done',    s2.status);
 
 	s1 = Fn([0,1,2,3]);
 	s2 = s1.clone();
 	s3 = s1.clone();
 
 	equals('0,1,2,3', s2.toArray().join());
+	equals('done',    s2.status);
 	equals('0,1,2,3', s3.toArray().join());
+	equals('done',    s3.status);
 
-//	s1 = Fn([0,1,2,3]);
-//	s2 = s1.clone().toArray();
-//	s3 = s1.clone().toArray();
-//
-//	equals('0,1,2,3', s2.join());
-//	equals('0,1,2,3', s3.join());
+	s1 = Fn([0,1,2,3]);
+	s2 = s1.clone();
+	s3 = s2.clone();
+	var a2 = s2.toArray();
+	var a3 = s3.toArray();
+
+	equals('done',    s2.status);
+	equals('done',    s3.status);
+	equals('0,1,2,3', a2.join());
+	equals('0,1,2,3', a3.join());
 });
 
-test('.concat(object)', function() {
+test('.concat()', function() {
 	var n = Fn.of(1,0,1,0).concat([8,9]);
 	equals('1,0,1,0,8,9', n.toArray().join());
 
@@ -137,7 +167,23 @@ test('.concat(object)', function() {
 	equals('1,0,1,0,8,9,10,11', n.toArray().join());
 });
 
-test('.each(fn)', function() {
+test('.dedup()', function() {
+	var n = Fn.of(1,0,1,0).dedup();
+	equals('1,0,1,0', n.toArray().join());
+	equals('done', n.status);
+
+	var n = Fn.of(1,1,1,0).dedup();
+	equals(1, n.shift());
+	equals(0, n.shift());
+	equals('done', n.status);
+	equals(undefined, n.shift());
+
+	var n = Fn.of(1,2,2,2,6,0).dedup();
+	equals('1,2,6,0', n.toArray().join());
+	equals('done', n.status);
+});
+
+test('.each()', function() {
 	var buffer = [];
 	var fr = Fn.of(1,0,1,0).each(function(value) {
 		buffer.push(value);
@@ -151,6 +197,18 @@ test('.each(fn)', function() {
 	});
 
 	equals('1,0,1,0', buffer.join());
+});
+
+test('.fold()', function() {
+	var fn = Fn.of(1,0,1,0).fold(Fn.add, 2);
+	equals(2, fn.shift());
+	equals(3, fn.shift());
+	equals(3, fn.shift());
+	equals(4, fn.shift());
+	equals(undefined, fn.status);
+	equals(4, fn.shift());
+	equals('done', fn.status);
+	equals(undefined, fn.shift());
 });
 
 test('.join()', function() {
@@ -167,6 +225,7 @@ test('.join()', function() {
 	equals(0, fr.shift());
 	equals(1, fr.shift());
 	equals(0, fr.shift());
+	equals('done', fr.status);
 	equals(undefined, fr.shift());
 
 	var fr = Fn.of([0,1,0],undefined,[1],[0]).join();
@@ -175,6 +234,7 @@ test('.join()', function() {
 	equals(0, fr.shift());
 	equals(1, fr.shift());
 	equals(0, fr.shift());
+	equals('done', fr.status);
 	equals(undefined, fr.shift());
 
 	var fr = Fn.of([0,1,0],[undefined],[1],[0]).join();
@@ -183,10 +243,21 @@ test('.join()', function() {
 	equals(0, fr.shift());
 	equals(1, fr.shift());
 	equals(0, fr.shift());
+	equals('done', fr.status);
 	equals(undefined, fr.shift());
 });
 
-test('.map(fn)', function() {
+test('.last()', function() {
+	var f = Fn.of(0,1,'one',true,2,false,true,'two',3,'three').last();
+	equals('three', f.shift());
+	equals(undefined, f.shift());
+
+	var f = Stream.of(0,1,'one',true,2,false,true,'two',3,'three').latest();
+	equals('three', f.shift());
+	equals(undefined, f.shift());
+});
+
+test('.map()', function() {
 	var fr = Fn(function() { return 6; }).map(Fn.add(2));
 	equals(8, fr.shift());
 	equals(8, fr.shift());
@@ -194,6 +265,7 @@ test('.map(fn)', function() {
 
 	var fr = Fn.of(6).map(Fn.add(2));
 	equals(8, fr.shift());
+	equals('done', fr.status);
 	equals(undefined, fr.shift());
 
 	var fr = Fn.of(0,'lamb',true,false,null).map(Fn.isDefined);
@@ -202,7 +274,22 @@ test('.map(fn)', function() {
 	equals(true, fr.shift());
 	equals(true, fr.shift());
 	equals(false, fr.shift());
+	equals('done', fr.status);
 	equals(undefined, fr.shift());
+});
+
+test('.partition()', function() {
+	var f = Fn.of(0,1,'one',true,2,false,true,'two',3,'three').partition(Fn.toType);
+	equals('0,1,2,3', f.shift().toArray().join());
+	equals('one,two,three', f.shift().toArray().join());
+	equals('true,false,true', f.shift().toArray().join());
+	equals(undefined, f.shift());
+
+	var f = Fn.of({a:0},{a:0},{a:'0'},{a:'0'},{b:5}).partition(Fn.get('a'));
+	equals('[{"a":0},{"a":0}]', JSON.stringify(f.shift()));
+	equals('[{"a":"0"},{"a":"0"}]', JSON.stringify(f.shift()));
+	equals('[{"b":5}]', JSON.stringify(f.shift()));
+	equals(undefined, f.shift());
 });
 
 test('.pipe()', function() {
@@ -210,9 +297,8 @@ test('.pipe()', function() {
 	var s2 = s1.pipe(Stream.of());
 
 	equals('0,1,2,3', s2.toArray().join());
-});
+	equals('done', s1.status);
 
-test('.pipe() multiple', function() {
 	var s1 = Fn.of(1,2);
 	var s2 = Fn.of(3);
 	var s3 = Stream.of(0);
@@ -229,9 +315,7 @@ test('.pipe() multiple', function() {
 	});
 
 	equals('0,1,2,3', results.join());
-});
 
-test('.pipe() .stop()', function() {
 	var s1 = Stream.of(1,2);
 	var s2 = Stream.of(3);
 	var s3 = Stream.of(0);
@@ -260,44 +344,15 @@ test('.pipe() .stop()', function() {
 	equals('0,1', results.join());
 });
 
-test('.reduce(fn, value)', function() {
-	var fn = Fn.of(1,0,1,0).reduce(Fn.add, 2);;
-	equals(4, fn.shift());
+test('.reduce()', function() {
+	var fn  = Fn.of(1,0,1,0);
+	var val = fn.reduce(Fn.add, 2);
+	equals(4, val);
 	equals(undefined, fn.shift());
 });
 
-test('.batch(n)', function() {
-	var f = Fn.of(0,1,2,3,4,5,6,7,8).batch(2);
-	equals('0,1', f.shift().toArray().join());
-	equals('2,3', f.shift().toArray().join());
-	equals('4,5', f.shift().toArray().join());
-	equals('6,7', f.shift().toArray().join());
-	equals(undefined, f.shift());
+test('.unique()', function() {
+	equals('0,1,2,3,4', Fn.of(0,0,1,1,1,2,3,3,3,3,3,4,4).unique().toArray().join());
 });
-
-test('.group(fn)', function() {
-	var f = Fn.of(0,1,'one',true,2,false,true,'two',3,'three').group(Fn.toType);
-	equals('0,1,2,3', f.shift().toArray().join());
-	equals('one,two,three', f.shift().toArray().join());
-	equals('true,false,true', f.shift().toArray().join());
-	equals(undefined, f.shift());
-
-	var f = Fn.of({a:0},{a:0},{a:'0'},{a:'0'},{b:5}).group(Fn.get('a'));
-	equals('[{"a":0},{"a":0}]', JSON.stringify(f.shift()));
-	equals('[{"a":"0"},{"a":"0"}]', JSON.stringify(f.shift()));
-	equals('[{"b":5}]', JSON.stringify(f.shift()));
-	equals(undefined, f.shift());
-});
-
-//test('.groupTo(fn, object)', function() {
-//	var f = Fn.of(0,1,'one',true).groupTo(Fn.toType, {}).stringify();
-//	equals('{"number":[0,1],"string":["one"],"boolean":[true]}', f.shift());
-//	equals(undefined, f.shift());
-//
-//	var f = Fn.of(0,1,'one',true).groupTo(Fn.toType, new Map());
-//	equals('one', f.shift().get('string').toArray().join());
-//	equals(undefined, f.shift());
-//});
-
 
 console.groupEnd();

@@ -23,6 +23,18 @@
 		shift: { value: noop }
 	}));
 
+	if (window.console) {
+		console.wrap = function(fn) {
+			return function() {
+				console.group((fn.name || 'function') + '() args:', arguments);
+				var value = fn.apply(this, arguments);
+				console.log('return:', value);
+				console.groupEnd();
+				return value;
+			};
+		};
+	}
+
 	// Constant for converting radians to degrees
 	var angleFactor = 180 / Math.PI;
 
@@ -247,8 +259,8 @@
 	// Types
 
 	var regex = {
-		url:       /^(?:\/|https?:\/\/)(?:[!#$&-;=?-~\[\]\w]|%[0-9a-fA-F]{2})+$/,
-		//url:       /^([a-z][\w\.\-\+]*\:\/\/)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,6}/,
+		//         / (  (  (  (   http:         ) //  ) domain          /path   )(more /path  ) /   (path/      ) chars  )(hash or query string      )  /
+		url:       /^(?:(?:(?:(?:[fht]{1,2}tps?:)?\/\/)?[-\w]+\.[-\w]+|\/[-\w.]+)(?:\/?[-\w.]+)*\/?|(?:[-\w.]+\/)+[-\w.]*)(?:[#?][#?!\[\]$\,;&=-\w.]*)?$/,
 		email:     /^((([a-z]|\d|[!#$%&'*+\-\/=?^_`{|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#$%&'*+\-\/=?^_`{|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i,
 		date:      /^\d{4}-(?:0[1-9]|1[012])-(?:0[1-9]|[12][0-9]|3[01])$/,
 		hexColor:  /^(#)?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/,
@@ -347,7 +359,7 @@
 		return array;
 	}
 
-	function pushReducer(array, value) {
+	function arrayReducer(array, value) {
 		array.push(value);
 		return array;
 	}
@@ -361,9 +373,12 @@
 		return values;
 	}
 
-	function last(fn, value) {
-		var v = fn();
-		return v === undefined ? value : last(fn, v) ;
+	function last(source) {
+		var value = source.shift();
+		// Keep a note of the last defined value. There are cases where
+		// source.status is not updated until the following iteration (TODO).
+		value = value !== undefined ? value : arguments[1] ;
+		return source.status === 'done' ? value : last(source, value) ;
 	}
 
 	function byGreater(a, b) {
@@ -403,6 +418,22 @@
 			A.map.call(object, fn) ;
 	}
 
+	function each(fn, object) {
+		// A stricter version of .forEach, where the callback fn
+		// gets only one argument.
+
+		if (typeof object.each === 'function') {
+			object.each(fn);
+		}
+		else {
+			var l = object.length;
+			var n = -1;
+			while (++n < l) { fn(object[n]); }
+		}
+
+		return object;
+	}
+
 	function filter(fn, object) {
 		return object.filter ?
 			object.filter(fn) :
@@ -419,6 +450,9 @@
 		return object.find ? object.find(fn) : A.find.call(object, fn);
 	}
 
+	function isDone(source) {
+		return source.length === 0 || source.status === 'done' ;
+	}
 
 	// Objects
 
@@ -711,12 +745,7 @@
 	}
 
 	function cloneShift(buffer1, buffer2, shift) {
-		return function clone() {
-			if (buffer1.length) { return buffer1.shift(); }
-			var value = shift();
-			if (value !== undefined) { buffer2.push(value); }
-			return value;
-		};
+		return ;
 	}
 
 	function notifyPush() {
@@ -733,6 +762,7 @@
 
 		if (!fn) {
 			this.shift = noop;
+			this.status = 'done';
 			return;
 		}
 
@@ -764,9 +794,13 @@
 		// fn is an array or array-like object. Iterate over it.
 		var i = -1;
 		this.shift = function shift() {
-			if (++i >= fn.length - 1) {
+			if (++i === fn.length - 1) {
 				source.status = 'done';
 				return fn[i];
+			}
+
+			if (i >= fn.length) {
+				return;
 			}
 
 			// Ignore holes
@@ -801,13 +835,13 @@
 			var source = this;
 			var buffer = toArray(arguments);
 
-			this.unshift = function(object) {
-				if (object === undefined) { return; }
-				buffer.unshift(object);
-			};
+			//this.unshift = function(object) {
+			//	if (object === undefined) { return; }
+			//	buffer.unshift(object);
+			//};
 
 			return create(this, function() {
-				return buffer.length ? buffer.shift() : source.shift() ;
+				return (buffer.length ? buffer : source).shift() ;
 			});
 		},
 
@@ -816,29 +850,84 @@
 		},
 
 		clone: function() {
+			var source  = this;
 			var shift   = this.shift;
 			var buffer1 = [];
 			var buffer2 = [];
-			this.shift = cloneShift(buffer1, buffer2, shift);
-			return new Fn(cloneShift(buffer2, buffer1, shift));
-		},
+			var doneFlag = false;
 
-		concat: function() {
-			var sources = Fn(arguments);
-			var source = this;
+			// Messy. But it works. Just.
 
-			return create(this, function concat() {
-				if (source === undefined) { return; }
+			this.shift = function() {
+				var value;
+				if (buffer1.length) {
+					value = buffer1.shift();
+					if (!buffer1.length && doneFlag) {
+						source.status = 'done';
+					}
+				}
+				else if (!doneFlag) {
+					value = shift();
+					if (!buffer2.length) { clone.status = source.status; }
+					if (source.status === 'done') {
+						doneFlag = true;
+					}
+					if (value !== undefined) { buffer2.push(value); }
+				}
+				return value;
+			};
 
-				var value = source.shift();
+			var clone = new Fn(function() {
+				if (clone.status === 'done') { return; }
 
-				if (value === undefined) {
-					source = sources.shift();
-					return concat();
+				var value;
+
+				if (buffer2.length) {
+					value = buffer2.shift();
+					if (!buffer2.length && doneFlag) {
+						clone.status = 'done';
+					}
+				}
+				else if (!doneFlag) {
+					value = shift();
+					clone.status = source.status;
+					if (source.status === 'done') {
+						doneFlag = true;
+						source.status = undefined;
+					}
+					if (value !== undefined) { buffer1.push(value); }
 				}
 
 				return value;
 			});
+
+			return clone;
+		},
+
+		concat: function() {
+			var sources = toArray(arguments);
+			var source  = this;
+
+			var stream  = create(this, function concat() {
+				if (source === undefined) {
+					stream.status = 'done';
+					return;
+				}
+
+				if (isDone(source)) {
+					source = sources.shift();
+					return concat();
+				}
+
+				var value = source.shift();
+
+				stream.status = sources.length === 0 && isDone(source) ?
+					'done' : undefined ;
+
+				return value;
+			});
+
+			return stream;
 		},
 
 		dedup: function() {
@@ -860,71 +949,64 @@
 			});
 		},
 
-		group: function(fn) {
+		partition: function(fn) {
 			var source = this;
 			var buffer = [];
 			var streams = new Map();
 
 			fn = fn || Fn.id;
 
-			function group() {
-				var stream = Stream(function setup(notify) {
-					var array = [];
-
-					return {
-						shift: function group() {
-							if (!array.length) {
-								// Pull until a new value is added to the current stream
-								pullUntil(Fn.is(stream));
-							}
-					
-							return array.shift();
-						},
-						
-						push: function push() {
-							array.push.apply(array, arguments);
-							notify('push');
-						}
-					};
-				});
-
-				buffer.push(stream);
-				return stream;
+			function createPart(key, value) {
+				var stream = Stream.of().on('pull', shiftPull);
+				stream.key = key;
+				streams.set(key, stream);
+				return stream;	
 			}
 
-			function pullUntil(check) {
-				var value = source.shift();
+			function shiftPull(type, pullStream) {
+				var value  = source.shift();
 				if (value === undefined) { return; }
-				var key = fn(value);
+
+				var key    = fn(value);
 				var stream = streams.get(key);
 
+				if (stream === pullStream) { return value; }
+
 				if (stream === undefined) {
-					stream = group();
-					streams.set(key, stream);
+					stream = createPart(key, value);
+					buffer.push(stream);
 				}
 
 				stream.push(value);
-				return check(stream) || pullUntil(check);
+				return shiftPull(type, pullStream);
 			}
 
-			function isBuffered() {
-				return !!buffer.length;
-			}
+			return create(this, function shiftStream() {
+				if (buffer.length) { return buffer.shift(); }
 
-			return create(this, function group() {
-				// Pull until a new stream is available
-				pullUntil(isBuffered);
-				return buffer.shift();
+				var value  = source.shift();
+				if (value === undefined) { return; }
+
+				var key    = fn(value);
+				var stream = streams.get(key);
+
+				if (stream === undefined) {
+					stream = createPart(key, value);
+					stream.push(value);
+					return stream;
+				}
+
+				stream.push(value);
+				return shiftStream();
 			});
 		},
 
 		first: function() {
 			var source = this;
-			return create(this, function first() {
-				if (source.status === 'done') { return; }
+			return create(this, once(function first() {
 				source.status = 'done';
 				return source.shift();
-			});
+			}));
 		},
 
 		join: function() {
@@ -942,9 +1024,8 @@
 
 		last: function() {
 			var source = this;
-
-			return create(this, function() {
-				return last(source.shift);
+			return create(this, function shiftLast() {
+				return last(source);
 			});
 		},
 
@@ -954,13 +1035,13 @@
 			}, this.shift));
 		},
 
-		batch: function(n) {
+		chunk: function(n) {
 			var source = this;
 			var buffer = [];
 
 			return create(this, n ?
 				// If n is defined batch into arrays of length n.
-				function nextBatchN() {
+				function shiftChunk() {
 					var value, _buffer;
 
 					while (buffer.length < n) {
@@ -977,36 +1058,33 @@
 				} :
 
 				// If n is undefined or 0, batch all values into an array.
-				function nextBatch() {
+				function shiftChunk() {
 					buffer = source.toArray();
 					// An empty array is equivalent to undefined
 					return buffer.length ? buffer : undefined ;
-				});
+				}
+			);
 		},
 
 		fold: function(fn, seed) {
 			var i = 0;
-			return this.map(function(value) {
+			return this.map(function fold(value) {
 				seed = fn(seed, value, i++);
 				return seed;
 			}).buffer(seed);
 		},
 
-		reduce: function(fn, seed) {
-			return this.fold(fn, seed).last();
+		reduce: function reduce(fn, seed) {
+			return this.fold(fn, seed).last().shift();
 		},
 
-		slice: function(n, m) {
+		take: function(n) {
 			var source = this;
 			var i = -1;
 
-			return create(this, function slice() {
-				while (++i < n) {
-					source.shift();
-				}
-
-				if (i < m) {
-					if (i === m - 1) { this.status = 'done'; }
+			return create(this, function take() {
+				if (i < n) {
+					if (i === n - 1) { this.status = 'done'; }
 					return source.shift();
 				}
 			});
@@ -1114,8 +1192,9 @@
 
 			return create(this, function unique() {
 				var value = source.shift();
+
 				return value === undefined ? undefined :
-					values.indexOf(value) === -1 ? values.push(value) && value :
+					values.indexOf(value) === -1 ? (values.push(value), value) :
 					unique() ;
 			});
 		},
@@ -1158,11 +1237,11 @@
 		},
 
 		toJSON: function() {
-			return this.reduce(pushReducer, []).shift();
+			return this.reduce(arrayReducer, []);
 		},
 
 		toString: function() {
-			return this.reduce(prepend, '').shift();
+			return this.reduce(prepend, '');
 		},
 
 		// Hack needed for soundio, I think. Keep an eye on whether we
@@ -1181,21 +1260,14 @@
 	}
 
 	assign(Fn, {
-		of: function() { return new this(arguments); },
-		from: function(object) { return new this(object); },
-
-		merge: function() {
-			// Merge multiple streams into one
-		},
-
-		combine: function() {
-			
-		}
+		of: function() { return new Fn(arguments); },
+		from: function(object) { return new Fn(object); }
 	});
 
 
 	// Export
 
+	// Dodgy dodgy. Don't do it.
 	A.each = A.forEach;
 
 	window.Fn = assign(Fn, {
@@ -1305,11 +1377,11 @@
 
 		toStringType: (function(regex, types) {
 			return function toStringType(string) {
-				// Determine the type of string from its text content.
-				var n = -1;
+				// Determine the type of string from its content.
+				var n = types.length;
 
 				// Test regexable string types
-				while (++n < types.length) {
+				while (n--) {
 					if(regex[types[n]].test(string)) {
 						return types[n];
 					}
@@ -1325,7 +1397,7 @@
 				// Default to 'string'
 				return 'string';
 			};
-		})(regex, ['date', 'url', 'email', 'int', 'float']),
+		})(regex, ['url', 'date', 'email', 'float', 'int']),
 
 
 		// Collections
@@ -1346,15 +1418,7 @@
 
 		contains: curry(contains),
 
-		each: curry(function each(fn, object) {
-			// A stricter version of .forEach, where the callback fn
-			// gets only one argument.
-			return object && (
-				typeof object.each === 'function' ? object.each(fn) :
-				object.forEach ? object.forEach(function(item) { fn(item); }) :
-				A.forEach.call(object, function(item) { fn(item); })
-			);
-		}),
+		each: curry(each),
 
 		filter: curry(filter),
 

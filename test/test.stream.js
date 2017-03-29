@@ -20,17 +20,6 @@ test(' Stream(setup)', function() {
 	equals(undefined, s.shift());
 });
 
-//test(' Stream(array)', function() {
-//	var i = 0;
-//	var s = Stream([1,2,3,4]);
-//
-//	equals(1, s.shift());
-//	equals(2, s.shift());
-//	equals(3, s.shift());
-//	equals(4, s.shift());
-//	equals(undefined, s.shift());
-//});
-
 test(' Stream.of(...)', function() {
 	var i = 0;
 	var s = Stream.of(1,2,3,4);
@@ -42,6 +31,15 @@ test(' Stream.of(...)', function() {
 	equals(undefined, s.shift());
 });
 
+test('.chunk()', function() {
+	var f = Stream.of(0,1,2,3,4,5,6,7,8).chunk(2);
+	equals('0,1', f.shift().toArray().join());
+	equals('2,3', f.shift().toArray().join());
+	equals('4,5', f.shift().toArray().join());
+	equals('6,7', f.shift().toArray().join());
+	equals(undefined, f.shift());
+});
+
 test('.shift()', function() {
 	var i = 0;
 	var s = Stream(function setup() {
@@ -50,7 +48,7 @@ test('.shift()', function() {
 				return ++i < 5 ? i : undefined ;
 			}
 		};
-	});;
+	});
 
 	equals(1, s.shift());
 	equals(2, s.shift());
@@ -131,8 +129,9 @@ test('.fold()', function() {
 });
 
 test('.reduce()', function() {
-	var s = Stream.of(1,0,1,0).reduce(Fn.add, 2);
-	equals(4, s.shift());
+	var s = Stream.of(1,0,1,0);
+	var v = s.reduce(Fn.add, 2);
+	equals(4, v);
 	equals(undefined, s.shift());
 });
 
@@ -261,7 +260,7 @@ test('.each()', function() {
 //	equals('0,1,2,3,4,5', results2.join());
 });
 
-test('.group()', function() {
+test('.partition()', function() {
 	var s = Stream.of(
 		[0, "note", 60, 0.5],
 		[1, "note", 60, 0.5],
@@ -270,7 +269,7 @@ test('.group()', function() {
 		[4, "pitch", 60],
 		[5, "tempo", 120]
 	)
-	.group(Fn.get(1));
+	.partition(Fn.get(1));
 
 	equals('note,note,note', s.shift().map(Fn.get(1)).toArray().join());
 	equals('pitch,pitch', s.shift().map(Fn.get(1)).toArray().join());
@@ -279,10 +278,14 @@ test('.group()', function() {
 });
 
 test('.join()', function() {
-	equals('0,0,1,1,1,2,3,3,3,3,3,4,4', Stream.of([0,0,1,1,1],[2,3],[3,3,3,3],[4,4]).join().toArray().join());
+	equals('0,0,1,1,1,2,3,3,3,3,3,4,4',
+		Stream.of([0,0,1,1,1],[2,3],[3,3,3,3],[4,4])
+		.join()
+		.toArray()
+		.join()
+	);
 
-	equals('note,note,note,pitch,pitch,tempo',
-		Stream.of(
+	equals('note,note,note,pitch,pitch,tempo', Stream.of(
 			[0, "note", 60, 0.5],
 			[1, "note", 60, 0.5],
 			[2, "pitch", 1],
@@ -290,7 +293,7 @@ test('.join()', function() {
 			[4, "pitch", 60],
 			[5, "tempo", 120]
 		)
-		.group(Fn.get(1))
+		.partition(Fn.get(1))
 		.join()
 		.map(Fn.get(1))
 		.toArray()
@@ -298,7 +301,7 @@ test('.join()', function() {
 	);
 
 	var s = Stream.of(0,0,1,2,3,3,2,3,0)
-		.group()
+		.partition()
 		.join();
 
 	equals([0,0,0,1,2,2,3,3,3].join(), s.toArray().join());
@@ -319,6 +322,72 @@ test('.join()', function() {
 	s.push(8);
 	equals([7,7,8,8].join(), s.toArray().join());
 });
+
+test('.merge()', function() {
+	var s0 = Stream.of(0,1);
+	var s1 = Stream.of(2,3);
+	var s2 = Stream.of(4,5);
+
+	equals('0,1,2,3,4,5', 
+		s0.merge(s1, s2)
+		.toArray()
+		.join()
+	);
+
+	var s0 = Stream.of(0,1);
+	var s1 = Stream.of(2,3);
+	var s2 = Stream.of(4,5);
+
+	s1.push(6);
+
+	equals('0,1,2,3,6,4,5', 
+		s0.merge(s1, s2)
+		.toArray()
+		.join()
+	);
+
+	var s0 = Stream.of(0,1);
+	var s1 = Stream.of(2,3);
+	var s2 = Stream.of(4,5);
+	var s3 = s0.merge(s1, s2);
+
+	s1.push(6);
+
+	equals('0,1,2,3,6,4,5', s3.toArray().join());
+
+	var s0 = Stream.of(0,1);
+	var s1 = Stream.of(2,3);
+	var s2 = Stream.of(4,5);
+	var s3 = s0.merge(s1, s2);
+
+	equals(0, s3.shift());
+
+	s1.push(6);
+	
+	equals(1, s3.shift());
+	equals(2, s3.shift());
+	equals(3, s3.shift());
+	equals(4, s3.shift());
+	equals(5, s3.shift());
+	equals(6, s3.shift());
+});
+
+test('.combine()', function() {
+	var s0 = Stream.of(0,1);
+	var s1 = Stream.of(2,3);
+	var s2 = s0.combine(Fn.add, s1);
+
+	equals(4, s2.shift());
+
+	s1.push(9);
+	equals(10, s2.shift());
+
+	s0.push(9);
+	equals(18, s2.shift());
+
+	equals(undefined, s2.shift());
+});
+
 
 test('.unique()', function() {
 	equals('0,1,2,3,4', Stream.of(0,0,1,1,1,2,3,3,3,3,3,4,4).unique().toArray().join());
