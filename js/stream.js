@@ -107,7 +107,7 @@
 			});
 
 			if (!source.shift) {
-				throw new Error('Stream: setup() must return an object with .shift()');
+				throw new Error('Stream: setup() must return an object with .shift() ' + setup);
 			}
 
 			methodise(stream, source);
