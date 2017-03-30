@@ -375,10 +375,23 @@
 
 	function last(source) {
 		var value = source.shift();
+		var i;
+
+		if (value === undefined) {
+			i = arguments[2] === undefined ? 0 :
+				arguments[2] + 1 ;
+
+			if (i > 2) {
+				console.warn('Stream last() is overrunning');
+				console.trace();
+				return;
+			}
+		}
+
 		// Keep a note of the last defined value. There are cases where
 		// source.status is not updated until the following iteration (TODO).
 		value = value !== undefined ? value : arguments[1] ;
-		return source.status === 'done' ? value : last(source, value) ;
+		return source.status === 'done' ? value : last(source, value, i) ;
 	}
 
 	function byGreater(a, b) {

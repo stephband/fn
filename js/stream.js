@@ -52,6 +52,7 @@
 			if (buffer1.length) { return buffer1.shift(); }
 			var value = shift();
 			if (value !== undefined) { buffer2.push(value); }
+			console.log('cloneShift', value);
 			return value;
 		};
 	}
