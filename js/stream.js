@@ -32,22 +32,6 @@
 			latest(source, value) ;
 	}
 
-	function methodise(stream, source) {
-		if (source.start) {
-			stream.start = function() {
-				source.start.apply(stream.start, arguments);
-				return stream;
-			};
-		}
-	
-		if (source.stop) {
-			stream.stop = function() {
-				source.stop.apply(stream.stop, arguments);
-				return stream;
-			};
-		}
-	}
-
 
 	// Events
 
@@ -86,6 +70,11 @@
 	InitSource.prototype.shift = function() {
 		// Initialise on first run and return result from source
 		var source = this.setup();
+
+		if (!source.shift) {
+			throw new Error('Stream: Source must create an object with .shift() ' + Source);
+		}
+
 		return source.shift();
 	};
 
@@ -121,8 +110,7 @@
 
 		// If source is empty, stop
 		if (value === undefined) {
-			stream.status = 'done';
-			delete stream[eventsSymbol];
+			notify('stop', stream);
 		}
 
 		return value;
@@ -144,30 +132,22 @@
 		var stream = this;
 		var source = new InitSource(setup);
 		var events = stream[eventsSymbol] = {};
+		var trigger = notify;
 		var busy   = false;
 
 		function setup() {
-			// Allow source constructors via `new`
 			source = new Source(function(type) {
 				// Prevent nested events, so a 'push' event triggered while
 				// the stream is 'pull'ing will do nothing. A bit of a fudge.
 				// Todo: review!
-				if (busy) {
-					//console.log('Stream: prevented ', type);
-					return;
-				}
-
-				busy = true;
+				var notify = trigger;
+				trigger = noop;
 				var value = notify(type, stream);
-				busy = false;
+				trigger = notify;
 				return value;
 			});
 
-			if (!source.shift) {
-				throw new Error('Stream: Source must create an object with .shift() ' + Source);
-			}
-
-			methodise(stream, source);
+			// We have to return as it is needed inside InitSource. Dommage.
 			return source;
 		}
 
@@ -192,6 +172,12 @@
 				new QuitSource(stream) :
 				new StopSource(stream, source) ;
 		};
+
+		// The first and only stop event should be the first and only stop event
+		this.on('stop', function() {
+			stream.status = 'done';
+			delete stream[eventsSymbol];
+		});
 	}
 
 	Stream.Buffer = function(source) {
@@ -210,6 +196,11 @@
 				push: function() {
 					buffer.push.apply(buffer, arguments);
 					notify('push');
+				},
+
+				stop: function() {
+					if (buffer.length) { return; }
+					notify('stop');
 				}
 			};
 		});
