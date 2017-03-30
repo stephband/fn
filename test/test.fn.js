@@ -1,5 +1,5 @@
 
-console.group('Fn()');
+console.log('%cFn()', 'color: #bada55; font-weight: 700; font-size: 1rem;');
 
 var Fn = window.Fn;
 var Stream = window.Stream;
@@ -354,5 +354,3 @@ test('.reduce()', function() {
 test('.unique()', function() {
 	equals('0,1,2,3,4', Fn.of(0,0,1,1,1,2,3,3,3,3,3,4,4).unique().toArray().join());
 });
-
-console.groupEnd();

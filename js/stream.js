@@ -12,6 +12,7 @@
 	var call      = Fn.call;
 	var curry     = Fn.curry;
 	var each      = Fn.each;
+	var noop      = Fn.noop;
 	var Timer     = Fn.Timer;
 	var Throttle  = Fn.Throttle;
 	var toArray   = Fn.toArray;
@@ -20,6 +21,32 @@
 	// Utilities
 
 	function isValue(n) { return n !== undefined; }
+
+
+	// Functions
+
+	function latest(source) {
+		var value = source.shift();
+		return value === undefined ?
+			arguments[1] :
+			latest(source, value) ;
+	}
+
+	function methodise(stream, source) {
+		if (source.start) {
+			stream.start = function() {
+				source.start.apply(stream.start, arguments);
+				return stream;
+			};
+		}
+	
+		if (source.stop) {
+			stream.stop = function() {
+				source.stop.apply(stream.stop, arguments);
+				return stream;
+			};
+		}
+	}
 
 
 	// Events
@@ -45,63 +72,88 @@
 	}
 
 
-	// Construct
+	// Sources
+	//
+	// Internal sources represent the states of the stream before streaming has
+	// started (InitSource), when stopped before streaming (QuitSource), and
+	// when stopped following streaming (StopSource). Implemented as
+	// constructors to keep them efficient.
 
-	function cloneShift(buffer1, buffer2, shift) {
-		return function clone() {
-			if (buffer1.length) { return buffer1.shift(); }
-			var value = shift();
-			if (value !== undefined) { buffer2.push(value); }
-			console.log('cloneShift', value);
-			return value;
-		};
+	function InitSource(setup) {
+		this.setup = setup;
 	}
 
-	function latest(source) {
-		var value = source.shift();
-		return value === undefined ?
-			arguments[1] :
-			latest(source, value) ;
+	InitSource.prototype.shift = function() {
+		// Initialise on first run and return result from source
+		var source = this.setup();
+		return source.shift();
+	};
+
+	InitSource.prototype.push = function() {
+		// Initialise on first run and return result from source
+		var source = this.setup();
+		return source.push.apply(source, arguments);
+	};
+
+	function QuitSource(stream) {
+		this.stream = stream;
 	}
 
-	function stop(type, stream) {
+	QuitSource.prototype.shift = function() {
+		var stream = this.stream;
 		stream.status = 'done';
 		delete stream[eventsSymbol];
+	};
+
+	QuitSource.prototype.push = function() {
+		console.warn('Stream: failed .push() to stopped stream.', this.stream, arguments);
+	};
+
+	function StopSource(stream, source) {
+		this.stream = stream;
+		this.source = source;
 	}
 
-	function methodise(stream, source) {
-		if (source.start) {
-			stream.start = function() {
-				source.start.apply(stream.start, arguments);
-				return stream;
-			};
-		}
-	
-		if (source.stop) {
-			stream.stop = function() {
-				source.stop.apply(stream.stop, arguments);
-				return stream;
-			};
-		}
-	}
+	StopSource.prototype.shift = function() {
+		var stream = this.stream;
+		var source = this.source;
+		var value  = source.shift();
 
-	function Stream(setup) {
+		// If source is empty, stop
+		if (value === undefined) {
+			stream.status = 'done';
+			delete stream[eventsSymbol];
+		}
+
+		return value;
+	};
+
+	StopSource.prototype.push = function() {
+		console.warn('Stream: failed .push() to stopped stream.', this.stream, arguments);
+	};
+
+
+	// Stream
+
+	function Stream(Source) {
 		// Enable construction without the `new` keyword
 		if (!Stream.prototype.isPrototypeOf(this)) {
-			return new Stream(setup);
+			return new Stream(Source);
 		}
 
 		var stream = this;
+		var source = new InitSource(setup);
+		var events = stream[eventsSymbol] = {};
 		var busy   = false;
-		var source;
 
-		function initialise() {
-			// Allow constructors with `new` ? Yeeaaa... maybe
-			source = new setup(function(type) {
+		function setup() {
+			// Allow source constructors via `new`
+			source = new Source(function(type) {
 				// Prevent nested events, so a 'push' event triggered while
 				// the stream is 'pull'ing will do nothing. A bit of a fudge.
+				// Todo: review!
 				if (busy) {
-					console.log('Stream: prevented ', type);
+					//console.log('Stream: prevented ', type);
 					return;
 				}
 
@@ -112,29 +164,34 @@
 			});
 
 			if (!source.shift) {
-				throw new Error('Stream: setup() must return an object with .shift() ' + setup);
+				throw new Error('Stream: Source must create an object with .shift() ' + Source);
 			}
 
 			methodise(stream, source);
+			return source;
 		}
-
-		// Event handler store
-		stream[eventsSymbol] = {};
 
 		// Methods
 		this.shift = function() {
-			if (stream.status === 'done') { return; }
-			if (!source) { initialise(); }
-			return source.shift();
+			return stream.status === 'done' ? undefined : source.shift() ;
 		};
 
 		this.push = function() {
-			if (!source) { initialise(); }
 			source.push.apply(source, arguments);
 			return stream;
 		};
 
-		this.on('stop', stop);
+		this.stop = function() {
+			// Kill pull and push events
+			delete events.pull;
+			delete events.push;
+
+			if (source.stop) { source.stop.apply(source, arguments); }
+
+			source = source instanceof InitSource ?
+				new QuitSource(stream) :
+				new StopSource(stream, source) ;
+		};
 	}
 
 	Stream.Buffer = function(source) {
@@ -428,13 +485,25 @@
 			var buffer1 = [];
 			var buffer2 = [];
 
+			function populate() {
+				var value = shift();
+				if (value !== undefined) {
+					buffer1.push(value);
+					buffer2.push(value);
+				}
+				return value;
+			}
+
 			var stream = new Stream(function setup(notify) {
-				source.off('stop', stop);
-				source.on('stop', notify);
 				source.on('push', notify);
 
 				return {
-					shift: cloneShift(buffer2, buffer1, shift),
+					shift: function clone() {
+						if (buffer2.length) { return buffer2.shift(); }
+						populate();
+						if (source.status === 'done') { stop(); }
+						return buffer2.shift();
+					},
 
 					push: function() {
 						buffer2.push.apply(buffer2, arguments);
@@ -443,18 +512,23 @@
 
 					stop: function stop() {
 						source.off('push', notify);
-						source.off('stop', notify);
-						notify('stop');
 					}
 				}
 			});
 
 			// Temporary stop handler for propagating stop events before
 			// stream has run setup().
-			function stop() { stream.stop(); }
-			source.on('stop', stop);
+			function stop() {
+				if (buffer2.length) { return; }
+				stream.stop();
+			}
 
-			this.shift = cloneShift(buffer1, buffer2, shift);
+			this.shift = function clone() {
+				if (buffer1.length) { return buffer1.shift(); }
+				populate();
+				if (source.status === 'done') { stop(); }
+				return buffer1.shift();
+			};
 
 			return stream;
 		},
@@ -581,13 +655,10 @@
 			}
 
 			return this;
-		},
-
-		stop: function() {
-			notify('stop', this);
 		}
 	});
 
 	window.Stream = Stream;
 
 })(this);
+

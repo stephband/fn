@@ -14,8 +14,14 @@ function equals(expected, value, message) {
 	}
 }
 
+function group(name, fn) {
+	console.groupCollapsed('%c' + name, 'color: #666666; font-weight: 300;');
+	fn(test);
+	console.groupEnd();
+}
+
 function test(name, fn) {
-	console.group(name);
+	console.group('%c' + name, 'color: #666666; font-weight: 300;');
 	fn();
 	console.groupEnd();
 }

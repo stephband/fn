@@ -1,9 +1,9 @@
 
-console.group('Stream');
+console.log('%cStream()', 'color: #bada55; font-weight: 700; font-size: 1rem;');
 
 var Stream = window.Stream;
 
-test(' Stream(setup)', function() {
+test('Stream(setup)', function() {
 	var i = 0;
 	var s = Stream(function setup() {
 		return {
@@ -20,7 +20,7 @@ test(' Stream(setup)', function() {
 	equals(undefined, s.shift());
 });
 
-test(' Stream.of(...)', function() {
+test('Stream.of(...)', function() {
 	var i = 0;
 	var s = Stream.of(1,2,3,4);
 
@@ -73,35 +73,6 @@ test('.push()', function() {
 	equals(6, s.shift());
 	equals(7, s.shift());
 	equals(undefined, s.shift());
-});
-
-test('.clone()', function() {
-	var s1 = Stream.from([0,1,2,3]);
-	var s2 = s1.clone();
-	var s3 = s1.clone();
-
-	equals('0,1,2,3', s2.toArray().join());
-	equals('0,1,2,3', s3.toArray().join());
-
-	s1 = Stream.from([0,1,2,3]);
-	s2 = s1.clone().toArray();
-	s3 = s1.clone().toArray();
-
-	equals('0,1,2,3', s2.join());
-	equals('0,1,2,3', s3.join());
-
-	var v1, v2, v3;
-	s1 = Stream.from([0,1,2,3]);
-
-	s2 = s1.clone().each(function(value) { v2 = value; });
-	s3 = s1.clone().each(function(value) { v3 = value; });
-	s1 = s1.each(function(value) { v1 = value; });
-
-	s1.push(4, 5);
-
-	equals(5, v1);
-	equals(5, v2);
-	equals(5, v3);
 });
 
 test('.toArray()', function() {
@@ -517,5 +488,3 @@ test('.delay(time)', function() {
 		equals('0,1,2,3,4,5,6,7,8,9', results.join());
 	}, 2000);
 });
-
-console.groupEnd();

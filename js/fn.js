@@ -25,11 +25,18 @@
 
 	if (window.console) {
 		console.wrap = function(fn) {
+			var fn   = arguments[arguments.length - 1];
+			var logs = A.slice.call(arguments, 0, arguments.length - 1);
+
+			logs.push((fn.name || 'function') + '(');
+
 			return function() {
-				console.group((fn.name || 'function') + '() args:', arguments);
+				logs.push.apply(logs, arguments);
+				logs.push(')');
+				console.group.apply(console, logs);
 				var value = fn.apply(this, arguments);
-				console.log('return:', value);
 				console.groupEnd();
+				console.log('⬅', value);
 				return value;
 			};
 		};
