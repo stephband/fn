@@ -119,7 +119,7 @@
 		}
 
 		var stream = this;
-		var events = stream[eventsSymbol] = {};
+		var events = this[eventsSymbol] = {};
 		var source;
 
 		var promise = new Promise(function(accept, reject) {
@@ -181,11 +181,11 @@
 
 	// Stream.Buffer
 
-	function BufferSource(notify, stop, buffer) {
+	function BufferSource(notify, done, buffer) {
 		this.buffer  = buffer;
 		this.stopped = false;
 		this.notify  = notify;
-		this.done    = stop;
+		this.done    = done;
 	}
 
 	assign(BufferSource.prototype, {

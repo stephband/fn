@@ -282,10 +282,15 @@ Creates a functor from an array or collection.
 
 ##### `buffer()`
 
-<!--Give the functor an `.unshift()` method, creating an entry point for unshifting
-values back into the flow.-->
+<!--Give the functor an `.unshift()` method, creating an entry point for
+unshifting values back into the flow.-->
 
 #### Consume
+
+##### `catch(fn)`
+
+Catch errors. The callback is passed the error object, and it's return value
+is passed to the flow of values.
 
 ##### `each(fn)`
 ##### `find(fn)`
@@ -366,6 +371,11 @@ be able to accept the same number of arguments as the number of streams
 
 #### Consume
 
+##### `catch(fn)`
+
+Catch errors. The callback is passed the error object, and it's return value
+is passed into the stream.
+
 ##### `each(fn)`
 ##### `find(fn)`
 ##### `next()`
@@ -392,6 +402,10 @@ values back into the flow.-->
 ##### `then(fn)`
 
 ## Constructors
+
+##### `Stream.Buffer(array)`
+
+Create a pushable buffer stream from an array of values. Alias of `Stream.from(array)`.
 
 ##### `Stream.Combine(fn, source1, source2, ...)`
 

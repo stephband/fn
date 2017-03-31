@@ -865,6 +865,19 @@
 			});
 		},
 
+		catch: function(fn) {
+			var source = this;
+
+			return create(this, function() {
+				try {
+					return source.shift();
+				}
+				catch(e) {
+					return fn(e);
+				}
+			});
+		},
+
 		chain: function(fn) {
 			return this.map(fn).join();
 		},
