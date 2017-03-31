@@ -58,24 +58,10 @@
 
 	// Sources
 	//
-	// Sources that represent the actions of a stream -
+	// Sources that represent the actions of a stream:
 	//
 	// InitSource - before streaming has started
 	// doneSource - after streaming has stopped
-
-	//var doneSource = {
-	//	shift: function() {
-	//		console.warn('Stream: failed to .shift() a stopped stream.', this.stream);
-	//	},
-	//
-	//	push: function() {
-	//		console.warn('Stream: failed to .push() to stopped stream.', this.stream, arguments);
-	//	},
-	//
-	//	stop: function() {
-	//		console.warn('Stream: failed to .stop() a stopped stream.', this.stream);
-	//	}
-	//};
 
 	var doneSource = { shift: noop, push: noop, stop: noop };
 
@@ -190,7 +176,7 @@
 	}
 
 
-	// Stream.Buffer
+	// Stream Constructors
 
 	function BufferSource(notify, done, buffer) {
 		this.buffer  = buffer;
@@ -499,6 +485,9 @@
 
 	Stream.of = function() { return Stream.Buffer(arguments); };
 
+
+	// Stream prorotype
+
 	Stream.prototype = assign(Object.create(Fn.prototype), {
 
 		// Construct
@@ -703,4 +692,3 @@
 	window.Stream = Stream;
 
 })(this);
-
