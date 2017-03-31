@@ -6,10 +6,19 @@ group('.clone()', function(test) {
 		var s1 = Stream.from([0,1,2,3]);
 		var s2 = s1.clone();
 		var s3 = s1.clone();
-	
+
 		equals('0,1,2,3', s2.toArray().join());
 		equals('0,1,2,3', s3.toArray().join());
-	})
+
+		s1.stop();
+
+		equals('done', s1.status);
+		
+		Fn.requestTick(function() {
+			equals('done', s2.status);
+			equals('done', s3.status);
+		});
+	});
 
 	test('Clone and consume, two times', function() {
 		var s1 = Stream.from([0,1,2,3]);

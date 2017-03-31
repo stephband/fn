@@ -364,34 +364,9 @@ test('.unique()', function() {
 	equals('0,1,2,3,4', Stream.of(0,0,1,1,1,2,3,3,3,3,3,4,4).unique().toArray().join());
 });
 
-//test('.group().merge()', function() {
-//	var s = Stream.of(0,0,1,2,3,3,2,3,0)
-//		.group()
-//		.merge();
-//
-//	equals([0,0,1,2,3,3,2,3,0].join(), s.toArray().join());
-//
-//	s.push(0);
-//	equals(0, s.shift());
-//	s.push(1);
-//	equals(1, s.shift());
-//	s.push(4);
-//	equals(4, s.shift());
-//
-//	s.push(1);
-//	s.push(2);
-//	s.push(4);
-//	s.push(2);
-//	equals([1,2,4,2].join(), s.toArray().join());
-//
-//	s.push(0,1,2,4,4,4,2);
-//	equals([0,1,2,4,4,4,2].join(), s.toArray().join());
-//});
+group('.throttle()', function() {
 
-test('.throttle()', function() {
-	console.log('.throttle()');
-
-	(function() {		
+	test('.throttle()', function() {		
 		var buffer = Stream.of(0,1,2,3,4,5);
 		var i = 0;
 		
@@ -412,11 +387,9 @@ test('.throttle()', function() {
 		setTimeout(function() {
 			equals(2, i, 'Test did not complete');
 		}, 300);
-	})();
+	});
 
-	console.log('.throttle(time)');
-
-	(function() {
+	test('.throttle(time)', function() {
 		var buffer = Stream.of(0,1,2,3,4,5);
 		var i = 0;
 
@@ -437,11 +410,9 @@ test('.throttle()', function() {
 		setTimeout(function() {
 			equals(2, i, 'Test did not complete');
 		}, 1000);
-	})();
+	});
 
-	console.log('.throttle(request)');
-
-	(function() {
+	test('.throttle(request)', function() {
 		var timer  = Fn.Timer(0.5);
 		var buffer = Stream.of(0,1,2,3,4,5);
 		var i = 0;
@@ -463,7 +434,7 @@ test('.throttle()', function() {
 		setTimeout(function() {
 			equals(2, i, 'Test did not complete');
 		}, 1200);
-	})();
+	});
 });
 
 test('.delay(time)', function() {

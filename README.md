@@ -389,6 +389,7 @@ values back into the flow.-->
 ##### `on(fn)`
 ##### `off(n)`
 ##### `stop()`
+##### `then(fn)`
 
 ## Constructors
 
