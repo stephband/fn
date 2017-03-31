@@ -89,7 +89,7 @@
 		var source = this.setup();
 
 		if (!source.shift) {
-			throw new Error('Stream: Source must create an object with .shift() ' + Source);
+			throw new Error('Stream: Source must create an object with .shift(): ' + source);
 		}
 
 		if (!source.stop) {
@@ -102,6 +102,11 @@
 	InitSource.prototype.push = function() {
 		// Initialise on first run and return result from source
 		var source = this.setup();
+
+		if (!source.push) {
+			throw new Error('Cant push to an unpushable stream: ' + source);
+		}
+
 		return source.push.apply(source, arguments);
 	};
 
@@ -126,7 +131,9 @@
 			function done(text) {
 				delete stream[eventsSymbol];
 				stream.status = 'done';
-				source = doneSource;
+				//source.push = noop;
+				//source.stop = noop;
+				stream.then(teardown);
 				accept(text);
 			}
 
@@ -150,6 +157,10 @@
 
 				// We have to return source as it is needed inside InitSource.
 				return source;
+			}
+
+			function teardown() {
+				source = doneSource;
 			}
 
 			source = new InitSource(setup, done);
