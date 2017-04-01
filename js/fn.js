@@ -1253,10 +1253,9 @@
 		},
 
 		next: function() {
-			var value = this.shift();
 			return {
-				done: value === undefined,
-				value: value
+				value: this.shift(),
+				done:  this.status
 			};
 		},
 

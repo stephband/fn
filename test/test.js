@@ -6,10 +6,11 @@ function typeWrap(value) {
 
 function equals(expected, value, message) {
 	if (value !== expected) {
-		console.trace(message ||
-			'Test failed: ' + 
+		console.trace('%c' +
+			(message || ('Test failed,' + ' ' + 
 			'expected: ' + typeWrap(expected) + ', ' +
-			'received: ' + typeWrap(value)
+			'received: ' + typeWrap(value))),
+			'color: #ee8833; font-weight: 700;'
 		);
 	}
 }
@@ -21,7 +22,7 @@ function group(name, fn) {
 }
 
 function test(name, fn) {
-	console.group('%c' + name, 'color: #666666; font-weight: 300;');
+	console.log('%c' + name, 'color: #666666; font-weight: 300;');
 	fn();
-	console.groupEnd();
+	//console.groupEnd();
 }
