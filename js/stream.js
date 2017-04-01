@@ -18,18 +18,26 @@
 	var toArray   = Fn.toArray;
 
 
-	// Utilities
+	// Functions
 
 	function isValue(n) { return n !== undefined; }
 
-
-	// Functions
+	function isDone(stream) {
+		return stream.status === 'done';
+	}
 
 	function latest(source) {
 		var value = source.shift();
 		return value === undefined ?
 			arguments[1] :
 			latest(source, value) ;
+	}
+
+	function checkSource(source) {
+		// Check for .shift()
+		if (!source.shift) {
+			throw new Error('Stream: Source must create an object with .shift() ' + Source);
+		}
 	}
 
 
@@ -55,49 +63,73 @@
 		}
 	}
 
+	function createNotify(stream) {
+		var _notify = notify;
 
-	// Sources
+		return function trigger(type) {
+			// Prevent nested events, so a 'push' event triggered while
+			// the stream is 'pull'ing will do nothing. A bit of a fudge.
+			var notify = _notify;
+			_notify = noop;
+			var value = notify(type, stream);
+			_notify = notify;
+			return value;
+		};
+	}
+
+
+	// Internal sources
 	//
 	// Sources that represent the actions of a stream:
 	//
 	// InitSource - before streaming has started
-	// doneSource - after streaming has stopped
+	// StopSource - when stream has been stopped but is not yet empty
+	// doneSource - when stream is stopped and empty
 
-	var doneSource = { shift: noop, push: noop, stop: noop };
-
-	function InitSource(setup, done) {
-		this.setup = setup;
-		this.done  = done;
+	function InitSource(setup) {
+		this._setup = setup;
 	}
 
 	InitSource.prototype.shift = function() {
-		// Initialise on first run and return result from source
-		var source = this.setup();
-
-		if (!source.shift) {
-			throw new Error('Stream: Source must create an object with .shift(): ' + source);
-		}
-
-		if (!source.stop) {
-			source.stop = this.done;
-		}
-
+		// Initialise on first run, passing in source.stop() arguments if stop
+		// has already been called.
+		var source = this._setup();
 		return source.shift();
 	};
 
 	InitSource.prototype.push = function() {
+		// ??????
 		// Initialise on first run and return result from source
-		var source = this.setup();
-
-		if (!source.push) {
-			throw new Error('Cant push to an unpushable stream: ' + source);
-		}
-
+		var source = this._setup();
 		return source.push.apply(source, arguments);
 	};
 
 	InitSource.prototype.stop = function() {
-		this.done('unused');
+		// Initialise on first run, passing in source.stop() arguments if stop
+		// has already been called.
+		var source = this._setup(arguments);
+		return source.stop.apply(source, arguments);
+	};
+
+	function StopSource(source, n, done) {
+		this._source = source;
+		this._n      = n;
+		this._done   = done;
+	}
+
+	StopSource.prototype.shift = function() {
+		if (--this._n < 1) { this._done(); }
+		return this._source.shift();
+	};
+
+	StopSource.prototype.push = noop;
+
+	StopSource.prototype.stop = noop;
+
+	var doneSource = {
+		shift: noop,
+		push: noop,
+		stop: noop
 	};
 
 
@@ -109,50 +141,46 @@
 			return new Stream(Source);
 		}
 
-		var stream = this;
-		var events = this[eventsSymbol] = {};
 		var source;
-
-		var promise = new Promise(function(accept, reject) {
-			function done(text) {
+		var stream  = this;
+		var promise = new Promise(function(resolve, reject) {
+			function stop(n) {
+				// Neuter events and schedule shutdown of the stream
+				// after n values
 				delete stream[eventsSymbol];
+				if (n) { source = new StopSource(source, n, done); }
+				else   { done(); }
+
+				// Note that we cannot resolve with stream because Chrome sees
+				// it as a promise (resolving with promises is special)
+				resolve();
+			}
+
+			function done() {
 				stream.status = 'done';
-				//source.push = noop;
-				//source.stop = noop;
-				stream.then(teardown);
-				accept(text);
-			}
-
-			function setup() {
-				var trigger = notify;
-				var busy   = false;
-
-				source = new Source(function(type) {
-					// Prevent nested events, so a 'push' event triggered while
-					// the stream is 'pull'ing will do nothing. A bit of a fudge.
-					// Todo: review!
-					var notify = trigger;
-					trigger = noop;
-					var value = notify(type, stream);
-					trigger = notify;
-					return value;
-				}, done);
-
-				// Gaurantee that source has a .stop() method
-				if (!source.stop) { source.stop = done; }
-
-				// We have to return source as it is needed inside InitSource.
-				return source;
-			}
-
-			function teardown() {
 				source = doneSource;
 			}
 
-			source = new InitSource(setup, done);
+			function setup(stopped) {
+				var notify = stopped ? noop : createNotify(stream);
+				source = new Source(notify, stop);
+
+				// Check for sanity
+				if (debug) { checkSource(source); }
+
+				// Gaurantee that source has a .stop() method
+				if (!source.stop) { source.stop = noop; }
+
+				// InitSource requires source to be returned
+				return source;
+			}
+
+			source = new InitSource(setup);
 		});
 
-		// Methods
+		// Properties and methods
+
+		this[eventsSymbol] = {};
 
 		this.push = function push() {
 			source.push.apply(source, arguments);
@@ -164,10 +192,6 @@
 		};
 
 		this.stop = function stop() {
-			// Kill events
-			delete stream[eventsSymbol];
-
-			// Delegate stop
 			source.stop.apply(source, arguments);
 			return stream;
 		};
@@ -178,40 +202,29 @@
 
 	// Stream Constructors
 
-	function BufferSource(notify, done, buffer) {
-		this.buffer  = buffer;
-		this.stopped = false;
-		this.notify  = notify;
-		this.done    = done;
+	function BufferSource(notify, stop, buffer) {
+		this._buffer = buffer;
+		this._notify = notify;
+		this._stop   = stop;
 	}
 
 	assign(BufferSource.prototype, {
 		shift: function() {
-			var buffer = this.buffer;
-			var notify = this.notify;
-
-			if (this.stopped && buffer.length === 1) {
-				this.done('buffer end');
-				return buffer.shift();
-			}
-
+			var buffer = this._buffer;
+			var notify = this._notify;
 			return buffer.length ? buffer.shift() : notify('pull') ;
 		},
 
 		push: function() {
-			var buffer = this.buffer;
-			var notify = this.notify;
-
+			var buffer = this._buffer;
+			var notify = this._notify;
 			buffer.push.apply(buffer, arguments);
 			notify('push');
 		},
 
 		stop: function() {
-			var buffer = this.buffer;
-
-			this.stopped = true;
-			if (buffer.length) { return; }
-			this.done('buffer end');
+			var buffer = this._buffer;
+			this._stop(buffer.length);
 		}
 	});
 
@@ -225,6 +238,73 @@
 		});
 	};
 
+	Stream.from = Stream.Buffer;
+
+	Stream.of = function() { return Stream.Buffer(arguments); };
+
+
+	// Stream.Combine
+
+	function toValue(data) {
+		var source = data.source;
+		var value  = data.value;
+		return data.value = value === undefined ? latest(source) : value ;
+	}
+
+	function CombineSource(notify, stop, fn, sources) {
+		var object = this;
+
+		this._notify  = notify;
+		this._stop    = stop;
+		this._fn      = fn;
+		this._sources = sources;
+		this._hot     = true;
+
+		this._store = sources.map(function(source) {
+			var data = {
+				source: source,
+				listen: listen
+			};
+
+			// Listen for incoming values and flag as hot
+			function listen() {
+				data.value = undefined;
+				object._hot = true;
+			}
+
+			source.on('push', listen)
+			source.on('push', notify);
+			return data;
+		});
+	}
+
+	assign(CombineSource.prototype, {
+		shift: function combine() {
+			// Prevent duplicate values going out the door
+			if (!this._hot) { return; }
+			this._hot = false;
+
+			var sources = this._sources;
+			var values  = this._store.map(toValue);
+			if (sources.every(isDone)) { this._stop(0); }
+			return values.every(isValue) && this._fn.apply(null, values) ;
+		},
+
+		stop: function stop() {
+			var notify = this._notify;
+
+			// Remove listeners
+			each(function(data) {
+				var source = data.source;
+				var listen = data.listen;
+				source.off('push', listen);
+				source.off('push', notify);						
+			}, this._store);
+
+			this._stop(this._hot ? 1 : 0);
+		}
+	});
+
 	Stream.Combine = function(fn) {
 		var sources = A.slice.call(arguments, 1);
 
@@ -232,97 +312,85 @@
 			throw new Error('Stream: Combine requires more than ' + sources.length + ' source streams')
 		}
 
-		return new Stream(function setup(notify, done) {
-			var hot = true;
-			var store = sources.map(function(source) {
-				var data = {
-					source: source,
-					listen: listen
-				};
-
-				// Listen for incoming values and flag as hot
-				function listen() {
-					data.value = undefined;
-					hot = true;
-				}
-
-				source.on('push', listen)
-				source.on('push', notify);
-				return data;
-			});
-
-			function toValue(data) {
-				var source = data.source;
-				var value  = data.value;
-				return data.value = value === undefined ? latest(source) : value ;
-			}
-
-			return {
-				shift: function combine() {
-					// Prevent duplicate values going out the door
-					if (!hot) { return; }
-					hot = false;
-
-					var values = store.map(toValue);
-					return values.every(isValue) && fn.apply(null, values) ;
-				},
-
-				stop: function stop() {
-					// Remove listeners
-					each(function(data) {
-						var source = data.source;
-						var listen = data.listen;
-						source.off('push', listen);
-						source.off('push', notify);						
-					}, store);
-
-					done();
-				}
-			};
+		return new Stream(function setup(notify, stop) {
+			return new CombineSource(notify, stop, fn, sources);
 		});
 	};
+
+
+	// Stream.Merge
+
+	function MergeSource(notify, stop, sources) {
+		var values = [];
+		var buffer = [];
+
+		function update(type, source) {
+			buffer.push(source);
+		}
+
+		this._notify  = notify;
+		this._stop    = stop;
+		this._sources = sources;
+		this._values  = values;
+		this._buffer  = buffer;
+		this._i       = 0;
+		this._update  = update;
+
+		each(function(source) {
+			// Flush the source
+			values.push.apply(values, toArray(source));
+
+			// Listen for incoming values
+			source.on('push', update);
+			source.on('push', notify);
+		}, sources);
+	}
+
+	assign(MergeSource.prototype, {
+		shift: function() {
+			var sources = this._sources;
+			var values  = this._values;
+			var buffer  = this._buffer;
+			var stop    = this._stop;
+
+			if (values.length) { return values.shift(); }
+			var stream = buffer.shift();
+			if (!stream) { return; }
+			var value = stream.shift();
+			// When all the sources are empty, stop
+			if (stream.status === 'done' && ++this._i >= sources.length) { stop(0); }
+			return value;
+		},
+
+		stop: function() {
+			var notify  = this._notify;
+			var sources = this._sources;
+			var stop    = this._stop;
+			var update  = this._update;
+
+			// Remove listeners
+			each(function(source) {
+				source.off('push', update);
+				source.off('push', notify);
+			}, sources);
+
+			stop(values.length + buffer.length);
+		}
+	});
 
 	Stream.Merge = function(source1, source2) {
 		var args = arguments;
 	
-		return new Stream(function setup(notify) {
-			var values  = [];
-			var buffer  = [];
-			var sources = Array.from(args);
-	
-			function update(type, source) {
-				buffer.push(source);
-			}
-
-			each(function(source) {
-				// Flush the source
-				values.push.apply(values, toArray(source));
-
-				// Listen for incoming values
-				source.on('push', update);
-				source.on('push', notify);
-			}, sources);
-
-			return {
-				shift: function() {
-					if (values.length) { return values.shift(); }
-					var stream = buffer.shift();
-					return stream && stream.shift();
-				},
-
-				stop: function() {
-					// Remove listeners
-					each(function(source) {
-						source.off('push', update);
-						source.off('push', notify);
-					});
-				}
-			};
+		return new Stream(function setup(notify, stop) {
+			return new MergeSource(notify, stop, Array.from(args));
 		});
 	};
 
+
+	// Stream.Events
+
 	Stream.Events = function(type, node) {
-		return new Stream(function setup(notify, done) {
+		return new Stream(function setup(notify, stop) {
 			var buffer = [];
 	
 			function update(value) {
@@ -339,11 +407,14 @@
 
 				stop: function stop() {
 					node.removeEventListener(type, update);
-					done();
+					stop(buffer.length);
 				}
 			};
 		});
 	};
+
+
+	// Stream Timers
 
 	Stream.Choke = function(time) {
 		return new Stream(function setup(notify, done) {
@@ -481,9 +552,8 @@
 		});
 	};
 
-	Stream.from = Stream.Buffer;
 
-	Stream.of = function() { return Stream.Buffer(arguments); };
+	// Stream Methods
 
 
 	// Stream prorotype
@@ -494,77 +564,55 @@
 
 		clone: function() {
 			var source  = this;
-			var shift   = source.shift;
+			var shift   = this.shift;
 			var buffer1 = [];
 			var buffer2 = [];
 
-			function populate() {
-				var value = shift();
-				if (value !== undefined) {
-					buffer1.push(value);
-					buffer2.push(value);
-				}
-				return value;
-			}
+			var stream  = new Stream(function setup(notify, stop) {
+				var buffer = buffer2;
 
-			var stream = new Stream(function setup(notify, done) {
 				source.on('push', notify);
-				var stopped = false;
 
 				return {
-					shift: function clone() {
-						if (stopped && buffer2.length === 1) {
-							done();
-							return buffer2.shift();
-						}
-		
-						if (buffer2.length) {
-							return buffer2.shift();
-						}
+					shift: function() {
+						if (buffer.length) { return buffer.shift(); }
+						var value = shift();
 
-						populate();
-
-						if (source.status === 'done') {
-							stopped = true;
-							if (!buffer2.length) { done(); }
+						if (value !== undefined) { buffer1.push(value); }
+						else if (source.status === 'done') {
+							stop(0);
+							source.off('push', notify);
 						}
 
-						return buffer2.shift();
+						return value;
 					},
 
-					push: function() {
-						buffer2.push.apply(buffer2, arguments);
-						notify('push');
-					},
+					stop: function() {
+						var value;
 
-					stop: function stop() {
-						stopped = true;
-						if (!buffer2.length) { done(); }
+						// Flush all available values into buffer
+						while ((value = shift()) !== undefined) {
+							buffer.push(value);
+							buffer1.push(value);
+						}
+
+						stop(buffer.length);
 						source.off('push', notify);
 					}
 				};
 			});
 
-			// Temporary stop handler for propagating stop events before
-			// stream has run setup().
+			this.then(stream.stop);
 
-			function stop() {
-				stream.stop();
-			}
-
-			this.then(stop);
-
-			this.shift = function clone() {
+			this.shift = function() {
 				if (buffer1.length) { return buffer1.shift(); }
-				populate();
-				if (source.status === 'done') { stop(); }
-				return buffer1.shift();
+				var value = shift();
+				if (value !== undefined && stream.status !== 'done') { buffer2.push(value); }
+				return value;
 			};
 
 			return stream;
 		},
-
-		// Transform
 
 		combine: function(fn, source) {
 			return Stream.Combine(fn, this, source);
@@ -575,6 +623,8 @@
 			sources.unshift(this);
 			return Stream.Merge.apply(null, sources);
 		},
+
+		// Transform
 
 		latest: function() {
 			var source = this;
@@ -629,18 +679,12 @@
 			Fn.prototype.each.apply(source, args);
 
 			return this.on('push', function each() {
-				// Delegate to Fn.each(). That returns self, which is truthy,
-				// so telling the notifier that this event has been handled.
+				// Delegate to Fn#each().
 				Fn.prototype.each.apply(source, args);
 			});
 		},
 
 		pipe: function(stream) {
-			// Target must be writable
-			if (!stream || !stream.push) {
-				throw new Error('Fn: Fn.pipe(object) object must be a pushable stream. (' + stream + ')');
-			}
-
 			this.each(stream.push);
 			return Fn.prototype.pipe.apply(this, arguments);
 		},
@@ -649,7 +693,7 @@
 			return this.fold(fn, seed).latest().shift();
 		},
 
-		// Control
+		// Events
 
 		on: function(type, fn) {
 			var events = this[eventsSymbol];
@@ -688,6 +732,9 @@
 			return this;
 		}
 	});
+
+
+	// Export
 
 	window.Stream = Stream;
 
