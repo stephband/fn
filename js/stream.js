@@ -238,6 +238,10 @@
 		});
 	};
 
+	Stream.from = Stream.Buffer;
+
+	Stream.of = function() { return Stream.Buffer(arguments); };
+
 
 	// Stream.Combine
 
@@ -403,14 +407,14 @@
 
 				stop: function stop() {
 					node.removeEventListener(type, update);
-					stop();
+					stop(buffer.length);
 				}
 			};
 		});
 	};
 
 
-	// Stream timers
+	// Stream Timers
 
 	Stream.Choke = function(time) {
 		return new Stream(function setup(notify, done) {
@@ -548,9 +552,8 @@
 		});
 	};
 
-	Stream.from = Stream.Buffer;
 
-	Stream.of = function() { return Stream.Buffer(arguments); };
+	// Stream Methods
 
 	Stream.prototype = assign(Object.create(Fn.prototype), {
 
@@ -608,8 +611,6 @@
 			return stream;
 		},
 
-		// Transform
-
 		combine: function(fn, source) {
 			return Stream.Combine(fn, this, source);
 		},
@@ -619,6 +620,8 @@
 			sources.unshift(this);
 			return Stream.Merge.apply(null, sources);
 		},
+
+		// Transform
 
 		latest: function() {
 			var source = this;
@@ -673,18 +676,12 @@
 			Fn.prototype.each.apply(source, args);
 
 			return this.on('push', function each() {
-				// Delegate to Fn.each(). That returns self, which is truthy,
-				// so telling the notifier that this event has been handled.
+				// Delegate to Fn#each().
 				Fn.prototype.each.apply(source, args);
 			});
 		},
 
 		pipe: function(stream) {
-			// Target must be writable
-			if (!stream || !stream.push) {
-				throw new Error('Fn: Fn.pipe(object) object must be a pushable stream. (' + stream + ')');
-			}
-
 			this.each(stream.push);
 			return Fn.prototype.pipe.apply(this, arguments);
 		},
@@ -732,6 +729,9 @@
 			return this;
 		}
 	});
+
+
+	// Export
 
 	window.Stream = Stream;
 

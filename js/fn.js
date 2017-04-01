@@ -764,14 +764,6 @@
 		return functor;
 	}
 
-	function cloneShift(buffer1, buffer2, shift) {
-		return ;
-	}
-
-	function notifyPush() {
-		this.notify('push');
-	}
-
 	function Fn(fn) {
 		if (!this || !Fn.prototype.isPrototypeOf(this)) {
 			return new Fn(fn);
