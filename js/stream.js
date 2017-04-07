@@ -191,6 +191,11 @@
 			return source.shift();
 		};
 
+		this.start = function start() {
+			source.start.apply(source, arguments);
+			return stream;
+		};
+
 		this.stop = function stop() {
 			source.stop.apply(source, arguments);
 			return stream;

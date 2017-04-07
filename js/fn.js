@@ -847,10 +847,10 @@
 			var source = this;
 			var buffer = toArray(arguments);
 
-			//this.unshift = function(object) {
-			//	if (object === undefined) { return; }
-			//	buffer.unshift(object);
-			//};
+			this.unshift = function(object) {
+				if (object === undefined) { return; }
+				buffer.unshift(object);
+			};
 
 			return create(this, function() {
 				return (buffer.length ? buffer : source).shift() ;
