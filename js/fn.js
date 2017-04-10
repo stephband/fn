@@ -62,10 +62,10 @@
 		return fn.length === 2;
 	})();
 
-	function setFunctionProperties(string, parity, fn1, fn2) {
+	function setFunctionProperties(text, parity, fn1, fn2) {
 		// Make the string representation of fn2 display parameters of fn1
 		fn2.toString = function() {
-			return /function\s*[\w\d]*\s*\([,\w\d\s]*\)/.exec(fn1.toString()) + ' { [' + string + '] }';
+			return /function\s*[\w\d]*\s*\([,\w\d\s]*\)/.exec(fn1.toString()) + ' { [' + text + '] }';
 		};
 
 		// Where possible, define length so that curried functions show how
@@ -73,6 +73,8 @@
 		if (isFunctionLengthDefineable) {
 			Object.defineProperty(fn2, 'length', { value: parity });
 		}
+
+		return fn2;
 	}
 
 
@@ -976,6 +978,7 @@
 
 		partition: function(fn) {
 			var source = this;
+			var shift  = this.shift;
 			var buffer = [];
 			var streams = new Map();
 
@@ -1009,7 +1012,7 @@
 			return create(this, function shiftStream() {
 				if (buffer.length) { return buffer.shift(); }
 
-				var value  = source.shift();
+				var value = shift();
 				if (value === undefined) { return; }
 
 				var key    = fn(value);
