@@ -14,7 +14,7 @@
 	var O = Object.prototype;
 	var S = String.prototype;
 
-	var debug = true;
+	var debug = false;//true;
 
 
 	// Define
@@ -62,10 +62,10 @@
 		return fn.length === 2;
 	})();
 
-	function setFunctionProperties(string, parity, fn1, fn2) {
+	function setFunctionProperties(text, parity, fn1, fn2) {
 		// Make the string representation of fn2 display parameters of fn1
 		fn2.toString = function() {
-			return /function\s*[\w\d]*\s*\([,\w\d\s]*\)/.exec(fn1.toString()) + ' { [' + string + '] }';
+			return /function\s*[\w\d]*\s*\([,\w\d\s]*\)/.exec(fn1.toString()) + ' { [' + text + '] }';
 		};
 
 		// Where possible, define length so that curried functions show how
@@ -73,6 +73,8 @@
 		if (isFunctionLengthDefineable) {
 			Object.defineProperty(fn2, 'length', { value: parity });
 		}
+
+		return fn2;
 	}
 
 
@@ -106,33 +108,6 @@
 		};
 	}
 
-	function partial(fn) {
-		var fns = arguments;
-
-		return fns.length === 1 ?
-			curry(fn) :
-			curry(function() {
-				var args, args1, args2;
-
-				if (arguments.length > fn.length) {
-					args1 = A.slice.call(arguments, 0, fn.length);
-					args2 = A.slice.call(arguments, fn.length);
-					args = concat(args2, fn.apply(this, args1));
-				}
-				else {
-					args = fn.apply(this, arguments);
-				}
-
-				return fns.length === 2 && args.length >= fns[1].length ?
-					// A quick out when we don't need to re-curry
-					fns[1].apply(null, args) :
-					// A new partial
-					partial
-					.apply(null, A.slice.call(fns, 1))
-					.apply(null, args) ;
-			}, fn.length) ;
-	}
-
 	function pipe() {
 		var a = arguments;
 		return function piped(n) {
@@ -143,7 +118,7 @@
 	function cache(fn) {
 		var map = new Map();
 
-		function cached(object) {
+		return function cached(object) {
 			if (arguments.length !== 1) {
 				throw new Error('Fn: Cached function called with ' + arguments.length + ' arguments. Accepts exactly 1.');
 			}
@@ -152,72 +127,43 @@
 				return map.get(object);
 			}
 
-			var result = fn(object);
-			map.set(object, result);
-			return result;
-		}
-
-		if (debug) {
-			setFunctionProperties('cached function', 1, fn, cached);
-		}
-
-		return cached;
-	}
-
-	function curry(fn, parity) {
-		parity = parity || fn.length;
-
-		if (parity < 2) { return fn; }
-
-		var curried = function curried() {
-			var a = arguments;
-			return a.length >= parity ?
-				// If there are enough arguments, call fn.
-				fn.apply(this, a) :
-				// Otherwise create a new function. And curry that. The param is
-				// declared so that partial has length 1.
-				curry(function partial(param) {
-					var params = A.slice.apply(a);
-					A.push.apply(params, arguments);
-					return fn.apply(this, params);
-				}, parity - a.length) ;
+			var value = fn(object);
+			map.set(object, value);
+			return value;
 		};
-
-		if (debug) {
-			setFunctionProperties('curried function', parity, fn, curried);
-		}
-
-		return curried;
 	}
 
-	function cacheCurry(fn, parity) {
-		parity = parity || fn.length;
+	function applyFn(fn, args) {
+		return typeof fn === 'function' ? fn.apply(null, args) : fn ;
+	}
 
-		if (parity < 2) { return cache(fn); }
+	function curry(fn) {
+		// curry(fn, arity, cached)
+		var arity  = arguments[1] || fn.length;
+		var cached = arguments[2] ;
 
-		var memo = cache(function partial(object) {
-			return cacheCurry(function() {
-				var params = [object];
-				A.push.apply(params, arguments);
-				return fn.apply(null, params);
-			}, parity - 1) ;
-		});
+		var memo = arity === 1 ?
+			// Don't cache if `cached` flag is false
+			(cached === false ? id : cache)(fn) :
 
-		// For convenience, allow curried functions to be called as:
-		// fn(a, b, c)
-		// fn(a)(b)(c)
-		// fn(a, b)(c)
-		function curried() {
-			return arguments.length > 1 ?
-				memo(arguments[0]).apply(null, A.slice.call(arguments, 1)) :
-				memo(arguments[0]) ;
-		}
+			// It's ok to always cache intermediate memos, though
+			cache(function(object) {
+				return curry(function() {
+					var args = [object];
+					args.push.apply(args, arguments);
+					return fn.apply(null, args);
+				}, arity - 1, cached) ;
+			}) ;
 
-		if (debug) {
-			setFunctionProperties('cached and curried function', parity, fn, curried);
-		}
-
-		return curried;
+		return function partial(object) {
+			return arguments.length === 1 ?
+				memo(object) :
+			arguments.length === arity ?
+				fn.apply(null, arguments) :
+			arguments.length > arity ?
+				applyFn(fn.apply(null, A.splice.call(arguments, 0, arity)), arguments) :
+			applyFn(memo(object), A.slice.call(arguments, 1)) ;
+		};
 	}
 
 	function once(fn) {
@@ -847,10 +793,10 @@
 			var source = this;
 			var buffer = toArray(arguments);
 
-			//this.unshift = function(object) {
-			//	if (object === undefined) { return; }
-			//	buffer.unshift(object);
-			//};
+			this.unshift = function(object) {
+				if (object === undefined) { return; }
+				buffer.unshift(object);
+			};
 
 			return create(this, function() {
 				return (buffer.length ? buffer : source).shift() ;
@@ -976,6 +922,7 @@
 
 		partition: function(fn) {
 			var source = this;
+			var shift  = this.shift;
 			var buffer = [];
 			var streams = new Map();
 
@@ -1009,7 +956,7 @@
 			return create(this, function shiftStream() {
 				if (buffer.length) { return buffer.shift(); }
 
-				var value  = source.shift();
+				var value = shift();
 				if (value === undefined) { return; }
 
 				var key    = fn(value);
@@ -1310,10 +1257,8 @@
 		once:           once,
 		cache:          cache,
 		curry:          curry,
-		cacheCurry:     cacheCurry,
 		compose:        compose,
 		flip:           flip,
-		partial:        partial,
 		pipe:           pipe,
 		overloadLength: overloadLength,
 		overloadTypes:  overloadTypes,

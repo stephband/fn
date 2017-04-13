@@ -3,6 +3,10 @@
 
 	var Fn = window.Fn;
 
+	function call(fn) {
+		return fn();
+	}
+
 	// Just for debugging
 	var loggers = [];
 
@@ -27,7 +31,7 @@
 			};
 		});
 
-		return function PooledObject() {
+		return function PoolObject() {
 			var object = store.find(isIdle);
 
 			if (!object) {
@@ -41,8 +45,14 @@
 		};
 	}
 
+	Pool.release = function() {
+		loggers.length = 0;
+	};
+
 	Pool.snapshot = function() {
-		return Fn(loggers).map(call).toJSON();
+		return Fn(loggers)
+		.map(call)
+		.toJSON();
 	};
 
 	window.Pool = Pool;
