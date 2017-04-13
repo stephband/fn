@@ -555,9 +555,6 @@
 
 	// Stream Methods
 
-
-	// Stream prorotype
-
 	Stream.prototype = assign(Object.create(Fn.prototype), {
 
 		// Construct
