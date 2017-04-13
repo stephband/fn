@@ -133,16 +133,8 @@
 		};
 	}
 
-	function curryFn(fn, cached) {
-		return typeof fn === 'function' ? curry(fn, fn.length, cached) : fn ;
-	}
-
 	function applyFn(fn, args) {
 		return typeof fn === 'function' ? fn.apply(null, args) : fn ;
-	}
-
-	function curryApplyFn(fn, args, cached) {
-		return typeof fn === 'function' ? curry(fn, fn.length, cached).apply(null, args) : fn ;
 	}
 
 	function curry(fn) {
@@ -152,9 +144,7 @@
 
 		var memo = arity === 1 ?
 			// Don't cache if `cached` flag is false
-			(cached === false ? id : cache)(function(object) {
-				return curryFn(fn(object), cached);
-			}) :
+			(cached === false ? id : cache)(fn) :
 
 			// It's ok to always cache intermediate memos, though
 			cache(function(object) {
@@ -169,9 +159,9 @@
 			return arguments.length === 1 ?
 				memo(object) :
 			arguments.length === arity ?
-				curryFn(fn.apply(null, arguments), cached) :
+				fn.apply(null, arguments) :
 			arguments.length > arity ?
-				curryApplyFn(fn.apply(null, A.splice.call(arguments, 0, arity)), arguments, cached) :
+				applyFn(fn.apply(null, A.splice.call(arguments, 0, arity)), arguments) :
 			applyFn(memo(object), A.slice.call(arguments, 1)) ;
 		};
 	}
