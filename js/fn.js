@@ -14,7 +14,7 @@
 	var O = Object.prototype;
 	var S = String.prototype;
 
-	var debug = true;
+	var debug = false;//true;
 
 
 	// Define
@@ -108,33 +108,6 @@
 		};
 	}
 
-	function partial(fn) {
-		var fns = arguments;
-
-		return fns.length === 1 ?
-			curry(fn) :
-			curry(function() {
-				var args, args1, args2;
-
-				if (arguments.length > fn.length) {
-					args1 = A.slice.call(arguments, 0, fn.length);
-					args2 = A.slice.call(arguments, fn.length);
-					args = concat(args2, fn.apply(this, args1));
-				}
-				else {
-					args = fn.apply(this, arguments);
-				}
-
-				return fns.length === 2 && args.length >= fns[1].length ?
-					// A quick out when we don't need to re-curry
-					fns[1].apply(null, args) :
-					// A new partial
-					partial
-					.apply(null, A.slice.call(fns, 1))
-					.apply(null, args) ;
-			}, fn.length) ;
-	}
-
 	function pipe() {
 		var a = arguments;
 		return function piped(n) {
@@ -145,7 +118,7 @@
 	function cache(fn) {
 		var map = new Map();
 
-		function cached(object) {
+		return function cached(object) {
 			if (arguments.length !== 1) {
 				throw new Error('Fn: Cached function called with ' + arguments.length + ' arguments. Accepts exactly 1.');
 			}
@@ -154,72 +127,53 @@
 				return map.get(object);
 			}
 
-			var result = fn(object);
-			map.set(object, result);
-			return result;
-		}
-
-		if (debug) {
-			setFunctionProperties('cached function', 1, fn, cached);
-		}
-
-		return cached;
-	}
-
-	function curry(fn, parity) {
-		parity = parity || fn.length;
-
-		if (parity < 2) { return fn; }
-
-		var curried = function curried() {
-			var a = arguments;
-			return a.length >= parity ?
-				// If there are enough arguments, call fn.
-				fn.apply(this, a) :
-				// Otherwise create a new function. And curry that. The param is
-				// declared so that partial has length 1.
-				curry(function partial(param) {
-					var params = A.slice.apply(a);
-					A.push.apply(params, arguments);
-					return fn.apply(this, params);
-				}, parity - a.length) ;
+			var value = fn(object);
+			map.set(object, value);
+			return value;
 		};
-
-		if (debug) {
-			setFunctionProperties('curried function', parity, fn, curried);
-		}
-
-		return curried;
 	}
 
-	function cacheCurry(fn, parity) {
-		parity = parity || fn.length;
+	function curryFn(fn, cached) {
+		return typeof fn === 'function' ? curry(fn, fn.length, cached) : fn ;
+	}
 
-		if (parity < 2) { return cache(fn); }
+	function applyFn(fn, args) {
+		return typeof fn === 'function' ? fn.apply(null, args) : fn ;
+	}
 
-		var memo = cache(function partial(object) {
-			return cacheCurry(function() {
-				var params = [object];
-				A.push.apply(params, arguments);
-				return fn.apply(null, params);
-			}, parity - 1) ;
-		});
+	function curryApplyFn(fn, args, cached) {
+		return typeof fn === 'function' ? curry(fn, fn.length, cached).apply(null, args) : fn ;
+	}
 
-		// For convenience, allow curried functions to be called as:
-		// fn(a, b, c)
-		// fn(a)(b)(c)
-		// fn(a, b)(c)
-		function curried() {
-			return arguments.length > 1 ?
-				memo(arguments[0]).apply(null, A.slice.call(arguments, 1)) :
-				memo(arguments[0]) ;
-		}
+	function curry(fn) {
+		// curry(fn, arity, cached)
+		var arity  = arguments[1] || fn.length;
+		var cached = arguments[2] ;
 
-		if (debug) {
-			setFunctionProperties('cached and curried function', parity, fn, curried);
-		}
+		var memo = arity === 1 ?
+			// Don't cache if `cached` flag is false
+			(cached === false ? id : cache)(function(object) {
+				return curryFn(fn(object), cached);
+			}) :
 
-		return curried;
+			// It's ok to always cache intermediate memos, though
+			cache(function(object) {
+				return curry(function() {
+					var args = [object];
+					args.push.apply(args, arguments);
+					return fn.apply(null, args);
+				}, arity - 1, cached) ;
+			}) ;
+
+		return function partial(object) {
+			return arguments.length === 1 ?
+				memo(object) :
+			arguments.length === arity ?
+				curryFn(fn.apply(null, arguments), cached) :
+			arguments.length > arity ?
+				curryApplyFn(fn.apply(null, A.splice.call(arguments, 0, arity)), arguments, cached) :
+			applyFn(memo(object), A.slice.call(arguments, 1)) ;
+		};
 	}
 
 	function once(fn) {
@@ -1313,10 +1267,8 @@
 		once:           once,
 		cache:          cache,
 		curry:          curry,
-		cacheCurry:     cacheCurry,
 		compose:        compose,
 		flip:           flip,
-		partial:        partial,
 		pipe:           pipe,
 		overloadLength: overloadLength,
 		overloadTypes:  overloadTypes,
