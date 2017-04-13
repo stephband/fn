@@ -1238,9 +1238,6 @@
 
 	// Export
 
-	// Dodgy dodgy. Don't do it.
-	A.each = A.forEach;
-
 	window.Fn = assign(Fn, {
 
 		// Construct
