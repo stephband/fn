@@ -1,6 +1,6 @@
 (function(window) {
 	if (!window.console || !window.console.log) { return; }
-	console.log('Fn     – https://github.com/stephband/fn');
+	console.log('%cFn     - https://github.com/stephband/fn', 'color: #D27B16; font-weight: 800;');
 })(this);
 
 (function(window) {
