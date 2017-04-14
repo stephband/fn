@@ -416,6 +416,21 @@
 		return object.find ? object.find(fn) : A.find.call(object, fn);
 	}
 
+	function split(fn, object) {
+		if (object.split && typeof object !== 'string') { return object.split(fn); }
+
+		var array = [];
+		var n     = -1;
+		var value;
+
+		while((value = object[++n]) !== undefined) {
+			if (fn(value) || n === 0) { array.push([value]); }
+			else { array[array.length].push(value); }
+		}
+
+		return array;
+	}
+
 	function isDone(source) {
 		return source.length === 0 || source.status === 'done' ;
 	}
@@ -1177,7 +1192,7 @@
 			var value = this.shift();
 
 			while (value !== undefined) {
-				fn(value);
+				fn.call(this, value);
 				value = this.shift();
 			}
 
@@ -1232,7 +1247,8 @@
 
 	assign(Fn, {
 		of: function() { return new Fn(arguments); },
-		from: function(object) { return new Fn(object); }
+		from: function(object) { return new Fn(object); },
+		nothing: empty
 	});
 
 
@@ -1408,6 +1424,8 @@
 		slice: curry(function slice(n, m, object) { return object.slice ? object.slice(n, m) : A.slice.call(object, n, m); }),
 
 		sort: curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
+
+		split: curry(split),
 
 		unite: curry(function unite(array, object) {
 			var values = toArray(array);
