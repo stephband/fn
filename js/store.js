@@ -6,33 +6,17 @@
 	var Stream = window.Stream;
 	var debug  = true;
 
-	// Methods mixin for newly created store objects
-	var methods = {
-		modify: (function(action) {
-			var action = {};
-
-			// Take a string type and some data, update and push an action
-			// object. Watch out: if we ever introduce asynchronicity into the
-			// stream of actions we will have to use a proper object pool.
-			return function modify(type, data) {
-				action.type = type;
-				action.data = data;
-				return this.push(action);
-			};
-		})()
-	};
-
-	function actionsReducer(actions) {
+	function actions(actions) {
 		return function(data, action) {
 			return actions[action.type] ?
 				// For known actions, return modified data
-				actions[action.type](data, action.data) :
+				actions[action.type](data, action.data, action.constants) :
 				// For unknown actions, return the current state
 				data ;
 		};
 	}
 
-	function reducersReducer(reducers) {
+	function reducer(reducers) {
 		var keys = Object.keys(reducers);
 
 		if (debug) {
@@ -47,14 +31,13 @@
 		// Return a new reducer - mutable version
 
 		return function reducer(data, action) {
-			// To make this reducer immutable, set next to empty object {}.
-			var n = keys.length;
+			var n = -1;
 			var key, fn, state;
 
-			while (n--) {
+			while (++n < keys.length) {
 				// Update data with new state
-				key   = keys[n];
-				fn    = reducers[key];
+				key = keys[n];
+				fn  = reducers[key];
 				fn(data[key], action);
 			}
 
@@ -84,11 +67,20 @@
 		//};
 	}
 
-	function Store(reducer, data) {
-		return assign(Stream.of(), methods).fold(reducer, data);
+	function Store(reducer, data, constants) {
+		var stream = Stream.of();
+		var action = { constants: constants };
+
+		stream.modify = function modify(type, data) {
+			action.type = type;
+			action.data = data;
+			return this.push(action);
+		};
+
+		return stream.fold(reducer, data).last();
 	}
 
-	window.Store          = Store;
-	Store.actionsReducer  = actionsReducer;
-	Store.reducersReducer = reducersReducer;
+	window.Store  = Store;
+	Store.actions = actions;
+	Store.reducer = reducer;
 })(this);

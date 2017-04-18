@@ -1,89 +1,115 @@
 (function(window) {
 	"use strict";
 	
-	var assign = Object.assign;
-	var Fn     = window.Fn;
-	var Stream = window.Stream;
 	var debug  = true;
+	
+	var Fn      = window.Fn;
+	var map     = Fn.map;
+	var Stream  = window.Stream;
+	var dom     = window.dom;
+	var assign  = Object.assign;
 
-	// Mixin for router objects
-	var mixin = {};
 
 	function routesReducer(routes) {
-		return function(data, path) {
-			var n = -1;
-			var l = routes.length;
-			var route, captures;
+		return function(history, path) {
+			history.push.apply(fns, map(function(route) {
+				var regex    = route[0];
+				var fn       = route[1];
+				var captures = regex.exec(path);
 
-			while (++n < l) {
-				route    = routes[n];
-				captures = route[0].exec(path);
+				if (!captures) { return; }
 
-				if (captures) {
-					//route[0].lastString = path;
-					//route[0].lastMatch = args[0];
-					return route[1].apply(null, captures.slice(1));
-				}
-			}
+				return fn.apply(null, captures.slice(1));
+			}, routes));
 
-			// For unknown paths, return the current state
-			return data;
+			return history;
 		};
 	}
 
-	function Router(reducer, data) {
-		var router = assign(Stream.of(), mixin).scan(reducer, data);
-		var stop   = router.stop;
+	function reducersReducer(routes) {
+		var keys = Object.keys(reducers);
 
-		function popstate() {
-			router.push(location.pathname);
+		if (debug) {
+			var isFunctions = Fn(keys)
+			.map(function(key) { return reducers[key]; })
+			.each(function(fn) {
+				if (typeof fn === "function") { return; }
+				throw new TypeError('Reducer is not a function');
+			});
 		}
 
-		function click(e) {
-			// Already handled
-			if (e.defaultPrevented) { return; }
-		
-			// Not primary button
-			if (!dom.isPrimaryButton(e)) { return; }
-		
-			var node = dom.closest('a[href]', e.target);
+		return function(history, path) {
+			each(function(route) {
+				var regex = route[0];
+				var fn    = route[1];
+				var part  = path.replace(regex, '');
 
-			// Not in a link
-			if (!node) { return; }
+				if (part === path) { return; }
 
-			// A download
-			if (dom.attribute('download', node)) { return; }
+				fn(history, part);
+			}, routes);
 
-			// Another window or frame
-			if (node.target && node.target !== '_self') { return; }
+			return history;
+		} ;
+	}
 
-			// An external site
-			if (location.hostname !== node.hostname) { return; }
+	function isNavigation(e) {
+		// Already handled
+		if (e.defaultPrevented) { return; }
+	
+		// Not primary button
+		if (!dom.isPrimaryButton(e)) { return; }
+	
+		var node = dom.closest('a[href]', e.target);
 
-			// Only the hash changed
-			if (node.href !== location.href && node.href.split('#')[0] === location.href.split('#')) { return; }
+		// Not in a link
+		if (!node) { return; }
 
-			// From: https://github.com/riot/route/blob/master/src/index.js :: click()
-			//    || base[0] !== '#' && getPathFromRoot(el.href).indexOf(base) !== 0 // outside of base
-			//    || base[0] === '#' && el.href.split(base)[0] !== loc.href.split(base)[0] // outside of #base
-			//    || !go(getPathFromBase(el.href), el.title || doc.title) // route not found
+		// A download
+		if (dom.attribute('download', node)) { return; }
 
-			var routed = router.push(node.pathname);
+		// Another window or frame
+		if (node.target && node.target !== '_self') { return; }
+
+		// An external site
+		if (location.hostname !== node.hostname) { return; }
+
+		// Only the hash changed
+		if (node.href !== location.href && node.href.split('#')[0] === location.href.split('#')) { return; }
+
+		// From: https://github.com/riot/route/blob/master/src/index.js :: click()
+		//    || base[0] !== '#' && getPathFromRoot(el.href).indexOf(base) !== 0 // outside of base
+		//    || base[0] === '#' && el.href.split(base)[0] !== loc.href.split(base)[0] // outside of #base
+		//    || !go(getPathFromBase(el.href), el.title || doc.title) // route not found
+
+		return e;
+	}
+
+	function Router(reducer) {
+		var stream  = Stream.of();
+		var history = [];
+
+		var clicks = on('click', document)
+		.filter(isNavigation)
+		.each(function(e) {
+			var routed = stream.push(node.pathname);
 
 			// If route is accepted, prevent default browser navigation
 			if (routed) { e.preventDefault(); }
-		}
+		});
 
-		router.stop = function() {
-			window.removeEventListener('popstate', popstate);
-			document.removeEventListener('click', click);
-			stop.apply(router, arguments);
-		};
+		var pops = on('popstate')
+		.map(function(e) { return location.pathname; })
+		.each(stream.push);
 
-		window.addEventListener('popstate', popstate);
-		document.addEventListener('click', click);
+		stream.then(function() {
+			clicks.stop();
+			pops.stop();
+		});
 
-		return router;
+		return stream.fold(reducer, history).each(function(history) {
+			console.log.apply(console, history);
+		});
 	}
 
 	Object.defineProperties(Router, {
@@ -107,6 +133,7 @@
 
 	Router.scrolling = false;
 
-	window.Router         = Router;
-	Router.routesReducer  = routesReducer;
+	window.Router  = Router;
+	Router.routes  = routesReducer;
+	Router.reducer = reducersReducer;
 })(this);

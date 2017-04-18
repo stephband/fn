@@ -14,12 +14,12 @@
 	var O = Object.prototype;
 	var S = String.prototype;
 
-	var debug = false;//true;
+	var debug = true;
 
 
 	// Define
 
-	var empty = Object.freeze(Object.defineProperties([], {
+	var nothing = Object.freeze(Object.defineProperties([], {
 		shift: { value: noop }
 	}));
 
@@ -77,12 +77,22 @@
 		return fn2;
 	}
 
+	function deprecate(fn, message) {
+		// Recall any function and log a depreciation warning
+		return function deprecate() {
+			console.warn('Fn: deprecated - ' + message);
+			return fn.apply(this, arguments);
+		};
+	}
+
 
 	// Functional functions
 
 	function noop() {}
 
 	function id(object) { return object; }
+
+	function self() { return this; }
 
 	function call(fn) {
 		return fn();
@@ -119,7 +129,7 @@
 		var map = new Map();
 
 		return function cached(object) {
-			if (arguments.length !== 1) {
+			if (arguments.length > 1) {
 				throw new Error('Fn: Cached function called with ' + arguments.length + ' arguments. Accepts exactly 1.');
 			}
 
@@ -137,18 +147,14 @@
 		return typeof fn === 'function' ? fn.apply(null, args) : fn ;
 	}
 
-	function curry(fn) {
-		// curry(fn, arity, cached)
-		var arity  = arguments[1] || fn.length;
-		var cached = arguments[2] ;
-
+	function _curry(fn, arity, cached) {
 		var memo = arity === 1 ?
 			// Don't cache if `cached` flag is false
 			(cached === false ? id : cache)(fn) :
 
 			// It's ok to always cache intermediate memos, though
 			cache(function(object) {
-				return curry(function() {
+				return _curry(function() {
 					var args = [object];
 					args.push.apply(args, arguments);
 					return fn.apply(null, args);
@@ -166,6 +172,15 @@
 		};
 	}
 
+	function curry(fn) {
+		var arity  = arguments[1] || fn.length;
+		var cached = arguments[2] ;
+
+		return debug ?
+			setFunctionProperties('curried', arity, fn, _curry(fn, arity, cached)) :
+			_curry(fn, arity, cached) ;
+	}
+
 	function once(fn) {
 		return function once() {
 			var value = fn.apply(this, arguments);
@@ -180,32 +195,22 @@
 		};
 	}
 
-	function overloadLength(object) {
-		return function overload() {
-			var length = arguments.length;
-			var fn = object[length] || object.default;
-
-			if (fn) {
-				return fn.apply(this, arguments);
-			}
-
-			if (debug) { console.warn('Fn: method overload for ' + length + ' arguments not available'); }
-			return this;
-		}
+	function overload(fn, map) {
+		return typeof map.get === 'function' ?
+			function overload() {
+				var key = fn.apply(null, arguments);
+				return map.get(key).apply(this, arguments);
+			} :
+			function overload() {
+				var key = fn.apply(null, arguments);
+				return (map[key] || map.default).apply(this, arguments);
+			} ;
 	}
 
-	function overloadTypes(object) {
-		return function overload() {
-			var types = A.map.call(arguments, toType).join(' ');
-			var fn = object[types] || object.default;
-
-			if (!fn) {
-				console.warn('Fn: method overload for type (' + types + ') not available')
-				return;
-			}
-
-			return fn.apply(this, arguments);
-		};
+	function choose(map) {
+		return function choose(key) {
+			return (map[key] || map.default).apply(this, rest(1, arguments));
+		}
 	}
 
 
@@ -227,6 +232,30 @@
 		float:     /^[+-]?(?:\d*\.)?\d+$/,
 		int:       /^(-?\d+)$/
 	};
+
+	function equals(a, b) {
+		// Fast out if references are for the same object.
+		if (a === b) { return true; }
+
+		if (typeof a !== 'object' || typeof b !== 'object') { return false; }
+
+		var akeys = Object.keys(a);
+		var bkeys = Object.keys(b);
+
+		if (akeys.length !== bkeys.length) { return false; }
+
+		var n = akeys.length;
+
+		while (n--) {
+			if (!equals(a[akeys[n]], b[akeys[n]])) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	function is(a, b) { return a === b; }
 
 	function isDefined(value) {
 		// !!value is a fast out for non-zero numbers, non-empty strings
@@ -326,27 +355,6 @@
 		return values;
 	}
 
-	function last(source) {
-		var value = source.shift();
-		var i;
-
-		if (value === undefined) {
-			i = arguments[2] === undefined ? 0 :
-				arguments[2] + 1 ;
-
-			if (i > 2) {
-				console.warn('Stream last() is overrunning');
-				console.trace();
-				return;
-			}
-		}
-
-		// Keep a note of the last defined value. There are cases where
-		// source.status is not updated until the following iteration (TODO).
-		value = value !== undefined ? value : arguments[1] ;
-		return source.status === 'done' ? value : last(source, value, i) ;
-	}
-
 	function byGreater(a, b) {
 		return a === b ? 0 : a > b ? 1 : -1 ;
 	}
@@ -406,14 +414,40 @@
 			A.filter.call(object, fn) ;
 	}
 
-	function reduce(fn, n, object) {
+	function reduce(fn, seed, object) {
 		return object.reduce ?
-			object.reduce(fn, n) :
-			A.reduce.call(object, fn, n);
+			object.reduce(fn, seed) :
+			A.reduce.call(object, fn, seed);
+	}
+
+	function rest(i, object) {
+		if (object.slice) { return object.slice(i); }
+		if (object.rest)  { return object.rest(i); }
+
+		var a = [];
+		var n = object.length - i;
+		while (n--) { a[n] = args[n + i]; }
+		return a;
+	}
+
+	function take(i, object) {
+		if (object.slice) { return object.slice(0, i); }
+		if (object.take)  { return object.take(i); }
+
+		var a = [];
+		var n = i;
+		while (n--) { a[n] = args[n]; }
+		return a;
 	}
 
 	function find(fn, object) {
 		return object.find ? object.find(fn) : A.find.call(object, fn);
+	}
+
+	function remove(object, value) {
+		if (object.remove) { object.remove(value); }
+		var i = object.indexOf(value);
+		if (i !== -1) { object.splice(i, 1); }
 	}
 
 	function split(fn, object) {
@@ -431,9 +465,46 @@
 		return array;
 	}
 
-	function isDone(source) {
-		return source.length === 0 || source.status === 'done' ;
+	function diff(array, object) {
+		var values = toArray(array);
+
+		return filter(function(value) {
+			var i = values.indexOf(value);
+			if (i === -1) { return true; }
+			values.splice(i, 1);
+			return false;
+		}, object)
+		.concat(values);
 	}
+
+	function intersect(array, object) {
+		var values = toArray(array);
+
+		return filter(function(value) {
+			var i = values.indexOf(value);
+			if (i === -1) { return false; }
+			values.splice(i, 1);
+			return true;
+		}, object);
+	}
+
+	function unite(array, object) {
+		var values = toArray(array);
+
+		return map(function(value) {
+			var i = values.indexOf(value);
+			if (i > -1) { values.splice(i, 1); }
+			return value;
+		}, object)
+		.concat(values);
+	}
+
+	function unique(object) {
+		return object.unique ?
+			object.unique() :
+			reduce(uniqueReducer, [], object) ;
+	}
+
 
 	// Objects
 
@@ -524,6 +595,16 @@
 
 	// Numbers
 
+	function gcd(a, b) {
+		// Greatest common divider
+		return b ? gcd(b, a % b) : a ;
+	}
+
+	function lcm(a, b) {
+		// Lowest common multiple.
+		return a * b / gcd(a, b);
+	}
+
 	function sampleCubicBezier(a, b, c, t) {
 		// `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
 		return ((a * t + b) * t + c) * t;
@@ -577,8 +658,6 @@
 
 	// Time
 
-	var requestAnimationFrame = window.requestAnimationFrame;
-
 	var now = window.performance && window.performance.now ? function now() {
 		// Return time in seconds
 		return window.performance.now() / 1000;
@@ -586,6 +665,8 @@
 		// Return time in seconds
 		return +new Date() / 1000;
 	} ;
+
+	var requestFrame = window.requestAnimationFrame;
 
 	var resolved = Promise.resolve();
 
@@ -612,7 +693,7 @@
 		}
 
 		return {
-			request: function requestTimerFrame(fn) {
+			request: function requestTime(fn) {
 				// Add fn to queue
 				fns.push(fn);
 				
@@ -639,7 +720,7 @@
 	// the context and arguments from the latest invocation.
 
 	function Throttle(fn, request) {
-		request = request || requestAnimationFrame;
+		request = request || requestFrame;
 
 		var queue = schedule;
 		var context, args;
@@ -718,6 +799,15 @@
 
 
 	// Fn
+
+	function isDone(source) {
+		return source.length === 0 || source.status === 'done' ;
+	}
+
+	function last(source) {
+		var value = source.shift();
+		return value === undefined ? arguments[1] : last(source, value) ;
+	}
 
 	function create(object, fn) {
 		var functor = Object.create(object);
@@ -998,14 +1088,14 @@
 
 		join: function() {
 			var source = this;
-			var buffer = empty;
+			var buffer = nothing;
 
 			return create(this, function join() {
 				var value = buffer.shift();
 				if (value !== undefined) { return value; }
 				buffer = source.shift();
 				if (buffer !== undefined) { return join(); }
-				buffer = empty;
+				buffer = nothing;
 			});
 		},
 
@@ -1153,12 +1243,11 @@
 			});
 		},
 
-		tail: function() {
+		rest: function(i) {
 			var source = this;
-			var i = 0;
 
-			return create(this, function tail() {
-				if (i++ === 0) { source.shift(); }
+			return create(this, function rest() {
+				while (i-- > 0) { source.shift(); }
 				return source.shift();
 			});
 		},
@@ -1245,12 +1334,6 @@
 		};
 	}
 
-	assign(Fn, {
-		of: function() { return new Fn(arguments); },
-		from: function(object) { return new Fn(object); },
-		nothing: empty
-	});
-
 
 	// Export
 
@@ -1258,40 +1341,41 @@
 
 		// Construct
 
+		of: function() { return new Fn(arguments); },
+		from: function(object) { return new Fn(object); },
+
+
+		// Constructors
+
 		Throttle: Throttle,
 		Timer:    Timer,
 		Wait:     Wait,
 
+
 		// Functions
 
-		empty:          empty,
-		noop:           noop,
-		id:             id,
-		once:           once,
-		cache:          cache,
-		curry:          curry,
-		compose:        compose,
-		flip:           flip,
-		pipe:           pipe,
-		overloadLength: overloadLength,
-		overloadTypes:  overloadTypes,
+		noop:     noop,
+		nothing:  nothing,
+		id:       id,
+		once:     once,
+		cache:    cache,
+		curry:    curry,
+		compose:  compose,
+		flip:     flip,
+		choose:   choose,
+		overload: overload,
+		pipe:     pipe,
+		self:     self,
+		apply:    curry(apply),
+		bind:     curry(bind),
 
-		apply: curry(apply),
-
-		bind: curry(bind),
-
-		run: curry(function apply(values, fn) {
-			return fn.apply(null, values);
-		}),
-
-		returnThis: function self() {
-			console.warn('Fn.returnThis() has been renamed Fn.self()');
-			return this;
-		},
-
-		self: function self() { return this; },
 
 		// Logic
+
+		equals:    curry(equals),
+		is:        curry(is),
+		isIn:      curry(isIn),
+		isDefined: isDefined,
 
 		and: curry(function and(a, b) { return !!(a && b); }),
 
@@ -1300,32 +1384,6 @@
 		or: curry(function or(a, b) { return a || b; }),
 
 		xor: curry(function or(a, b) { return (a || b) && (!!a !== !!b); }),
-
-		equals: curry(function equals(a, b) {
-			// Fast out if references are for the same object.
-			if (a === b) { return true; }
-
-			if (typeof a !== 'object' || typeof b !== 'object') { return false; }
-
-			var akeys = Object.keys(a);
-			var bkeys = Object.keys(b);
-
-			if (akeys.length !== bkeys.length) { return false; }
-
-			var n = akeys.length;
-
-			while (n--) {
-				if (!equals(a[akeys[n]], b[akeys[n]])) {
-					return false;
-				}
-			}
-
-			return true;
-		}),
-
-		is: curry(function is(a, b) { return a === b; }),
-
-		isIn: curry(isIn),
 
 		isGreater: curry(function byGreater(a, b) { return b > a ; }),
 
@@ -1339,9 +1397,9 @@
 			return S.localeCompare.call(a, b);
 		}),
 
+
 		// Types
 
-		isDefined: isDefined,
 		toType:    toType,
 		toClass:   toClass,
 		toArray:   toArray,
@@ -1384,71 +1442,23 @@
 
 		// Collections
 
-		diff: curry(function diff(array, object) {
-			var values = toArray(array);
-
-			return filter(function(value) {
-				var i = values.indexOf(value);
-				if (i === -1) { return true; }
-				values.splice(i, 1);
-				return false;
-			}, object)
-			.concat(values);
-		}),
-
-		concat: curry(concat),
-
-		contains: curry(contains),
-
-		each: curry(each),
-
-		filter: curry(filter),
-
-		find: curry(find),
-
-		intersect: curry(function intersect(array, object) {
-			var values = toArray(array);
-
-			return filter(function(value) {
-				var i = values.indexOf(value);
-				if (i === -1) { return false; }
-				values.splice(i, 1);
-				return true;
-			}, object);
-		}),
-
-		map: curry(map),
-
-		reduce: curry(reduce),
-
-		slice: curry(function slice(n, m, object) { return object.slice ? object.slice(n, m) : A.slice.call(object, n, m); }),
+		concat:    curry(concat),
+		contains:  curry(contains),
+		diff:      curry(diff),
+		each:      curry(each),
+		filter:    curry(filter),
+		find:      curry(find),
+		intersect: curry(intersect),
+		map:       curry(map),
+		reduce:    curry(reduce),
+		remove:    curry(remove),
+		rest:      curry(rest),
+		split:     curry(split),
+		take:      curry(take),
+		unite:     curry(unite),
+		unique:    unique,
 
 		sort: curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
-
-		split: curry(split),
-
-		unite: curry(function unite(array, object) {
-			var values = toArray(array);
-
-			return map(function(value) {
-				var i = values.indexOf(value);
-				if (i > -1) { values.splice(i, 1); }
-				return value;
-			}, object)
-			.concat(values);
-		}),
-
-		unique: function unique(object) {
-			return object.unique ?
-				object.unique() :
-				reduce(uniqueReducer, [], object) ;
-		},
-
-		while: curry(function(fn, object) {
-			return object.while ?
-				object.while(fn) :
-				whileArray(fn, object) ;
-		}),
 
 
 		// Objects
@@ -1499,39 +1509,6 @@
 			return object[name].apply(object, args);
 		}),
 
-		store: function(object) {
-			// Creating a store using a weak map:
-			// Fn.store(new WeakMap())
-
-			return function store(key) {
-				var object = store.get(key);
-				if (object) { return object; }
-				object = {};
-				store.set(key, object);
-				return object;
-			};
-		},
-
-
-		// Time
-
-		throttle: function(time, fn) {
-			// Overload the call signature to support Fn.throttle(fn)
-			if (fn === undefined && time.apply) {
-				fn = time;
-				time = undefined;
-			}
-
-			function throttle(fn) {
-				return Throttle(fn, time);
-			}
-
-			// Where fn not given return a partially applied throttle
-			return fn ? throttle(fn) : throttle ;
-		},
-
-		requestTick: requestTick,
-
 
 		// Numbers
 
@@ -1543,29 +1520,40 @@
 
 		add:      curry(function add(a, b) { return b + a; }),
 
-		multiply: curry(function multiply(a, b) { return b * a; }),
+		multiply: curry(function mul(a, b) { return b * a; }),
 
 		mod:      curry(function mod(a, b) { return b % a; }),
-
-		pow:      curry(function pow(n, x) { return Math.pow(x, n); }),
-
-		exp:      curry(function pow(n, x) { return Math.pow(n, x); }),
-
-		log:      curry(function log(n, x) { return Math.log(x) / Math.log(n); }),
 
 		min:      curry(function min(a, b) { return a > b ? b : a ; }),
 
 		max:      curry(function max(a, b) { return a < b ? b : a ; }),
 
-		limit:    curry(function limit(min, max, n) { return n > max ? max : n < min ? min : n ; }),
+		pow:      curry(function pow(n, x) { return Math.pow(x, n); }),
 
-		wrap:     curry(function wrap(min, max, n) { return (n < min ? max : min) + (n - min) % (max - min); }),
+		exp:      curry(function exp(n, x) { return Math.pow(n, x); }),
 
-		degToRad: function toDeg(n) { return n / angleFactor; },
+		log:      curry(function log(n, x) { return Math.log(x) / Math.log(n); }),
 
-		radToDeg: function toRad(n) { return n * angleFactor; },
+		nthRoot:  curry(function nthRoot(n, x) { return Math.pow(x, 1/n); }),
 
-		toPolar:  function setPolar(cartesian) {
+		gcd:      curry(gcd),
+
+		lcm:      curry(lcm),
+
+		factorise: function factorise(n, d) {
+			// Reduce a fraction by finding the Greatest Common Divisor and
+			// dividing by it.
+			var f = gcd(n, d);
+			return [n/f, d/f];
+		},
+
+		todB:     function(n) { return 20 * Math.log10(value); },
+
+		toRad:    function toDeg(n) { return n / angleFactor; },
+
+		toDeg:    function toRad(n) { return n * angleFactor; },
+
+		toPolar:  function toPolar(cartesian) {
 			var x = cartesian[0];
 			var y = cartesian[1];
 
@@ -1581,7 +1569,7 @@
 			];
 		},
 
-		toCartesian: function setCartesian(polar) {
+		toCartesian: function toCartesian(polar) {
 			var d = polar[0];
 			var a = polar[1];
 
@@ -1591,30 +1579,15 @@
 			];
 		},
 
-		nthRoot:     curry(function nthRoot(n, x) { return Math.pow(x, 1/n); }),
+		toFixed:  curry(function toFixed(n, value) { return N.toFixed.call(value, n); }),
 
-		gcd: function gcd(a, b) {
-			// Greatest common divider
-			return b ? gcd(b, a % b) : a ;
-		},
+		limit:    curry(function limit(min, max, n) { return n > max ? max : n < min ? min : n ; }),
 
-		lcm: function lcm(a, b) {
-			// Lowest common multiple.
-			return a * b / Fn.gcd(a, b);
-		},
+		wrap:     curry(function wrap(min, max, n) { return (n < min ? max : min) + (n - min) % (max - min); }),
 
-		factorise: function factorise(n, d) {
-			// Reduce a fraction by finding the Greatest Common Divisor and
-			// dividing by it.
-			var f = Fn.gcd(n, d);
-			return [n/f, d/f];
-		},
+		normalise:   curry(function normalise(min, max, n) { return (n - min) / (max - min); }),
 
-		normalise:   curry(function normalise(min, max, value) { return (value - min) / (max - min); }),
-
-		denormalise: curry(function denormalise(min, max, value) { return value * (max - min) + min; }),
-
-		toFixed:     curry(function toFixed(n, value) { return N.toFixed.call(value, n); }),
+		denormalise: curry(function denormalise(min, max, n) { return n * (max - min) + min; }),
 
 		rangeLog:    curry(function rangeLog(min, max, n) {
 			return Fn.denormalise(min, max, Math.log(n / min) / Math.log(max / min))
@@ -1624,11 +1597,6 @@
 			return min * Math.pow(max / min, Fn.normalise(min, max, n));
 		}),
 
-		dB: function(n) {
-			return this.map(function(value) {
-				return 20 * Math.log10(value);
-			});
-		},
 
 		// Cubic bezier function (originally translated from
 		// webkit source by Christian Effenberger):
@@ -1689,16 +1657,63 @@
 
 		// Time
 
-		now: now,
+		now:          now,
+		requestTick:  requestTick,
+		requestFrame: requestFrame,
 
 
-		// JSON
+		// Deprecated
 
-		stringify: function stringify(object) {
-			return JSON.stringify(Fn.toClass(object) === "Map" ?
-				Fn(object) :
-				object
-			);
+		dB:       curry(deprecate(noop, 'dB() is now todB()')),
+		degToRad: curry(deprecate(noop, 'degToRad() is now toRad()')),
+		radToDeg: curry(deprecate(noop, 'radToDeg() is now toDeg()')),
+
+		while: curry(deprecate(function(fn, object) {
+			return object.while ?
+				object.while(fn) :
+				whileArray(fn, object) ;
+		}, 'while(fn, object) is marked for removal, use take(i) ??')),
+
+		throttle: deprecate(function(time, fn) {
+			// Overload the call signature to support Fn.throttle(fn)
+			if (fn === undefined && time.apply) {
+				fn = time;
+				time = undefined;
+			}
+
+			function throttle(fn) {
+				return Throttle(fn, time);
+			}
+
+			// Where fn not given return a partially applied throttle
+			return fn ? throttle(fn) : throttle ;
+		}, 'throttle() removed, use Throttle(fn, time)'),
+
+		slice: curry(deprecate(function slice(n, m, object) {
+			return object.slice ? object.slice(n, m) : A.slice.call(object, n, m);
+		}, 'slice(n, m, object) is removed in favour of take(n) or rest(n)')),
+
+		returnThis: deprecate(self, 'returnThis() is now self()'),
+
+		run: curry(deprecate(function apply(values, fn) {
+			return fn.apply(null, values);
+		}, 'run() is now apply()')),
+
+		overloadLength: curry(deprecate(overload, 'overloadLength(map) is now overload(fn, map)'), 2)(function() {
+			return arguments.length;
+		}),
+
+		overloadTypes: curry(deprecate(overload, 'overloadTypes(map) is now overload(fn, map)'), 2)(function() {
+			return A.map.call(arguments, toType).join(' ');
+		})
+	});
+
+	Object.defineProperties(Fn, {
+		empty: {
+			get: deprecate(
+				function() { return nothing; },
+				'Fn.empty is now Fn.nothing'
+			)
 		}
 	});
 })(this);

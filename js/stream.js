@@ -128,8 +128,9 @@
 
 	var doneSource = {
 		shift: noop,
-		push: noop,
-		stop: noop
+		push:  noop,
+		start: noop,
+		stop:  noop
 	};
 
 
@@ -628,17 +629,17 @@
 
 		// Transform
 
-		latest: function() {
-			var source = this;
-			var stream = Object.create(this);
-			var value;
-
-			stream.shift = function() {
-				return latest(source);
-			};
-
-			return stream;
-		},
+		//latest: function() {
+		//	var source = this;
+		//	var stream = Object.create(this);
+		//	var value;
+		//
+		//	stream.shift = function() {
+		//		return latest(source);
+		//	};
+		//
+		//	return stream;
+		//},
 
 		//remember: function() {
 		//	var source  = this;
@@ -674,6 +675,7 @@
 		// Consume
 
 		each: function(fn) {
+if (fn === undefined) {  throw new Error('splat');}
 			var args   = arguments;
 			var source = this;
 
@@ -691,9 +693,9 @@
 			return Fn.prototype.pipe.apply(this, arguments);
 		},
 
-		reduce: function(fn, seed) {
-			return this.fold(fn, seed).latest().shift();
-		},
+		//reduce: function(fn, seed) {
+		//	return this.fold(fn, seed).latest().shift();
+		//},
 
 		// Events
 
