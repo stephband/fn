@@ -145,7 +145,7 @@
 		var source;
 		var stream  = this;
 		var promise = new Promise(function(resolve, reject) {
-			function stop(n) {
+			function stop(n, value) {
 				// Neuter events and schedule shutdown of the stream
 				// after n values
 				delete stream[eventsSymbol];
@@ -154,7 +154,7 @@
 
 				// Note that we cannot resolve with stream because Chrome sees
 				// it as a promise (resolving with promises is special)
-				resolve();
+				resolve(value);
 			}
 
 			function done() {
