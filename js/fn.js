@@ -1547,7 +1547,9 @@
 			return [n/f, d/f];
 		},
 
-		todB:     function(n) { return 20 * Math.log10(value); },
+		todB:     function todB(n) { return 20 * Math.log10(value); },
+
+		toLevel:  function toLevel(n) { return Math.pow(2, n/6); },
 
 		toRad:    function toDeg(n) { return n / angleFactor; },
 
