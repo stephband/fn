@@ -106,9 +106,9 @@
 		return fn(n);
 	}
 
-	function bind(params, fn) {
+	function bind(args, fn) {
 		return function() {
-			fn.apply(this, concat(arguments, params));
+			fn.apply(this, concat(arguments, args));
 		};
 	}
 
@@ -503,6 +503,10 @@
 		return object.unique ?
 			object.unique() :
 			reduce(uniqueReducer, [], object) ;
+	}
+
+	function sort(fn, object) {
+		return object.sort ? object.sort(fn) : A.sort.call(object, fn);
 	}
 
 
@@ -1366,7 +1370,7 @@
 		overload: overload,
 		pipe:     pipe,
 		self:     self,
-		apply:    curry(apply),
+//		apply:    curry(apply),
 		bind:     curry(bind),
 
 
@@ -1374,7 +1378,7 @@
 
 		equals:    curry(equals),
 		is:        curry(is),
-		isIn:      curry(isIn),
+		isIn:      curry(isIn, 2, false),
 		isDefined: isDefined,
 
 		and: curry(function and(a, b) { return !!(a && b); }),
@@ -1442,59 +1446,36 @@
 
 		// Collections
 
-		concat:    curry(concat),
-		contains:  curry(contains),
-		diff:      curry(diff),
-		each:      curry(each),
-		filter:    curry(filter),
-		find:      curry(find),
-		intersect: curry(intersect),
-		map:       curry(map),
-		reduce:    curry(reduce),
-		remove:    curry(remove),
-		rest:      curry(rest),
-		split:     curry(split),
-		take:      curry(take),
-		unite:     curry(unite),
+		concat:    curry(concat, 2, false),
+		contains:  curry(contains, 2, false),
+		diff:      curry(diff, 2, false),
+		each:      curry(each, 2, false),
+		filter:    curry(filter, 2, false),
+		find:      curry(find, 2, false),
+		intersect: curry(intersect, 2, false),
+		map:       curry(map, 2, false),
+		reduce:    curry(reduce, 2, false),
+		remove:    curry(remove, 2, false),
+		rest:      curry(rest, 2, false),
+		sort:      curry(sort, 2, false),
+		split:     curry(split, 2, false),
+		take:      curry(take, 2, false),
+		unite:     curry(unite, 2, false),
 		unique:    unique,
-
-		sort: curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
 
 
 		// Objects
 
-		assign: curry(assign, 2),
-
-		entries: function(object){
-			return typeof object.entries === 'function' ?
-				object.entries() :
-				A.entries.apply(object) ;
-		},
-
-		keys: function(object){
-			return typeof object.keys === 'function' ?
-				object.keys() :
-
-				/* Don't use Object.keys(), it returns an array,
-				   not an iterator. */
-				A.keys.apply(object) ;
-		},
-
-		values: function(object){
-			return typeof object.values === 'function' ?
-				object.values() :
-				A.values.apply(object) ;
-		},
-
-		get: curry(get),
-		set: curry(set),
+		assign: curry(assign, 2, false),
+		get:    curry(get, 2, false),
+		set:    curry(set, 1, false),
 
 		getPath: curry(function get(path, object) {
 			return object && (object.get ? object.get(path) :
 				typeof path === 'number' ? object[path] :
 				path === '' || path === '.' ? object :
 				objFrom(object, splitPath(path))) ;
-		}),
+		}, 2, false),
 
 		setPath: curry(function set(path, value, object) {
 			if (object.set) { object.set(path, value); }
@@ -1503,11 +1484,11 @@
 			return array.length === 1 ?
 				(object[path] = value) :
 				objTo(object, array, value);
-		}),
+		}, 3, false),
 
 		invoke: curry(function invoke(name, args, object) {
 			return object[name].apply(object, args);
-		}),
+		}, 3, false),
 
 
 		// Numbers
