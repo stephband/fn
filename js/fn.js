@@ -147,7 +147,7 @@
 		return typeof fn === 'function' ? fn.apply(null, args) : fn ;
 	}
 
-	function _curry(fn, arity, cached) {
+	function curry(fn, cached, arity) {
 		var memo = arity === 1 ?
 			// Don't cache if `cached` flag is false
 			(cached === false ? id : cache)(fn) :
@@ -158,7 +158,7 @@
 					var args = [object];
 					args.push.apply(args, arguments);
 					return fn.apply(null, args);
-				}, arity - 1, cached) ;
+				}, cached, arity - 1) ;
 			}) ;
 
 		return function partial(object) {
@@ -170,15 +170,6 @@
 				applyFn(fn.apply(null, A.splice.call(arguments, 0, arity)), arguments) :
 			applyFn(memo(object), A.slice.call(arguments, 1)) ;
 		};
-	}
-
-	function curry(fn) {
-		var arity  = arguments[1] || fn.length;
-		var cached = arguments[2] ;
-
-		return debug ?
-			setFunctionProperties('curried', arity, fn, _curry(fn, arity, cached)) :
-			_curry(fn, arity, cached) ;
 	}
 
 	function once(fn) {
@@ -211,6 +202,18 @@
 		return function choose(key) {
 			return (map[key] || map.default).apply(this, rest(1, arguments));
 		}
+	}
+
+	if (debug) {
+		var _curry = curry;
+
+		curry = function curry(fn, cached) {
+			var arity  = arguments[2] || fn.length;
+
+			return debug ?
+				setFunctionProperties('curried', arity, fn, _curry(fn, cached, arity)) :
+				_curry(fn, cached, arity) ;
+		};
 	}
 
 
@@ -1378,7 +1381,7 @@
 
 		equals:    curry(equals),
 		is:        curry(is),
-		isIn:      curry(isIn, 2, false),
+		isIn:      curry(isIn, false),
 		isDefined: isDefined,
 
 		and: curry(function and(a, b) { return !!(a && b); }),
@@ -1393,7 +1396,7 @@
 
 		by: curry(function by(property, a, b) {
 			return byGreater(a[property], b[property]);
-		}),
+		}, false),
 
 		byGreater: curry(byGreater),
 
@@ -1446,49 +1449,49 @@
 
 		// Collections
 
-		concat:    curry(concat, 2, false),
-		contains:  curry(contains, 2, false),
-		diff:      curry(diff, 2, false),
-		each:      curry(each, 2, false),
-		filter:    curry(filter, 2, false),
-		find:      curry(find, 2, false),
-		intersect: curry(intersect, 2, false),
-		map:       curry(map, 2, false),
-		reduce:    curry(reduce, 2, false),
-		remove:    curry(remove, 2, false),
-		rest:      curry(rest, 2, false),
-		sort:      curry(sort, 2, false),
-		split:     curry(split, 2, false),
-		take:      curry(take, 2, false),
-		unite:     curry(unite, 2, false),
+		concat:    curry(concat, false),
+		contains:  curry(contains, false),
+		diff:      curry(diff, false),
+		each:      curry(each, false),
+		filter:    curry(filter, false),
+		find:      curry(find, false),
+		intersect: curry(intersect, false),
+		map:       curry(map, false),
+		reduce:    curry(reduce, false),
+		remove:    curry(remove, false),
+		rest:      curry(rest, false),
+		sort:      curry(sort, false),
+		split:     curry(split, false),
+		take:      curry(take, false),
+		unite:     curry(unite, false),
 		unique:    unique,
 
 
 		// Objects
 
-		assign: curry(assign, 2, false),
-		get:    curry(get, 2, false),
-		set:    curry(set, 1, false),
+		assign: curry(assign, false, 2),
+		get:    curry(get, false),
+		set:    curry(set, false),
 
-		getPath: curry(function get(path, object) {
+		getPath: curry(function getPath(path, object) {
 			return object && (object.get ? object.get(path) :
 				typeof path === 'number' ? object[path] :
 				path === '' || path === '.' ? object :
 				objFrom(object, splitPath(path))) ;
-		}, 2, false),
+		}, false),
 
-		setPath: curry(function set(path, value, object) {
+		setPath: curry(function setPath(path, value, object) {
 			if (object.set) { object.set(path, value); }
 			if (typeof path === 'number') { return object[path] = value; }
 			var array = splitPath(path);
 			return array.length === 1 ?
 				(object[path] = value) :
 				objTo(object, array, value);
-		}, 3, false),
+		}, false),
 
 		invoke: curry(function invoke(name, args, object) {
 			return object[name].apply(object, args);
-		}, 3, false),
+		}, false),
 
 
 		// Numbers
@@ -1498,28 +1501,21 @@
 			// around 0 and limits -1 to 1.
 			return Math.random() + Math.random() - 1;
 		},
-
 		add:      curry(function add(a, b) { return b + a; }),
-
 		multiply: curry(function mul(a, b) { return b * a; }),
-
 		mod:      curry(function mod(a, b) { return b % a; }),
-
 		min:      curry(function min(a, b) { return a > b ? b : a ; }),
-
 		max:      curry(function max(a, b) { return a < b ? b : a ; }),
-
 		pow:      curry(function pow(n, x) { return Math.pow(x, n); }),
-
 		exp:      curry(function exp(n, x) { return Math.pow(n, x); }),
-
 		log:      curry(function log(n, x) { return Math.log(x) / Math.log(n); }),
-
 		nthRoot:  curry(function nthRoot(n, x) { return Math.pow(x, 1/n); }),
-
 		gcd:      curry(gcd),
-
 		lcm:      curry(lcm),
+		todB:     function todB(n) { return 20 * Math.log10(value); },
+		toLevel:  function toLevel(n) { return Math.pow(2, n/6); },
+		toRad:    function toDeg(n) { return n / angleFactor; },
+		toDeg:    function toRad(n) { return n * angleFactor; },
 
 		factorise: function factorise(n, d) {
 			// Reduce a fraction by finding the Greatest Common Divisor and
@@ -1528,15 +1524,7 @@
 			return [n/f, d/f];
 		},
 
-		todB:     function todB(n) { return 20 * Math.log10(value); },
-
-		toLevel:  function toLevel(n) { return Math.pow(2, n/6); },
-
-		toRad:    function toDeg(n) { return n / angleFactor; },
-
-		toDeg:    function toRad(n) { return n * angleFactor; },
-
-		toPolar:  function toPolar(cartesian) {
+		toPolar: function toPolar(cartesian) {
 			var x = cartesian[0];
 			var y = cartesian[1];
 
@@ -1647,15 +1635,15 @@
 
 		// Deprecated
 
-		dB:       curry(deprecate(noop, 'dB() is now todB()')),
-		degToRad: curry(deprecate(noop, 'degToRad() is now toRad()')),
-		radToDeg: curry(deprecate(noop, 'radToDeg() is now toDeg()')),
+		dB:       deprecate(noop, 'dB() is now todB()'),
+		degToRad: deprecate(noop, 'degToRad() is now toRad()'),
+		radToDeg: deprecate(noop, 'radToDeg() is now toDeg()'),
 
 		while: curry(deprecate(function(fn, object) {
 			return object.while ?
 				object.while(fn) :
 				whileArray(fn, object) ;
-		}, 'while(fn, object) is marked for removal, use take(i) ??')),
+		}, 'while(fn, object) is marked for removal, use take(i) ??'), false, 2),
 
 		throttle: deprecate(function(time, fn) {
 			// Overload the call signature to support Fn.throttle(fn)
@@ -1674,19 +1662,19 @@
 
 		slice: curry(deprecate(function slice(n, m, object) {
 			return object.slice ? object.slice(n, m) : A.slice.call(object, n, m);
-		}, 'slice(n, m, object) is removed in favour of take(n) or rest(n)')),
+		}, 'slice(n, m, object) is removed in favour of take(n) or rest(n)'), false, 3),
 
 		returnThis: deprecate(self, 'returnThis() is now self()'),
 
 		run: curry(deprecate(function apply(values, fn) {
 			return fn.apply(null, values);
-		}, 'run() is now apply()')),
+		}, 'run() is now apply()'), false, 2),
 
-		overloadLength: curry(deprecate(overload, 'overloadLength(map) is now overload(fn, map)'), 2)(function() {
+		overloadLength: curry(deprecate(overload, 'overloadLength(map) is now overload(fn, map)'), false, 2)(function() {
 			return arguments.length;
 		}),
 
-		overloadTypes: curry(deprecate(overload, 'overloadTypes(map) is now overload(fn, map)'), 2)(function() {
+		overloadTypes: curry(deprecate(overload, 'overloadTypes(map) is now overload(fn, map)'), false, 2)(function() {
 			return A.map.call(arguments, toType).join(' ');
 		})
 	});
