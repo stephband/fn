@@ -12,6 +12,7 @@
 	var call      = Fn.call;
 	var curry     = Fn.curry;
 	var each      = Fn.each;
+	var latest    = Fn.latest;
 	var noop      = Fn.noop;
 	var Timer     = Fn.Timer;
 	var Throttle  = Fn.Throttle;
@@ -24,13 +25,6 @@
 
 	function isDone(stream) {
 		return stream.status === 'done';
-	}
-
-	function latest(source) {
-		var value = source.shift();
-		return value === undefined ?
-			arguments[1] :
-			latest(source, value) ;
 	}
 
 	function checkSource(source) {
