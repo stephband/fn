@@ -417,6 +417,14 @@
 			A.filter.call(object, fn) ;
 	}
 
+	function last(array) {
+		if (typeof array.length === 'number') {
+			return array[array.length - 1];
+		}
+
+		// Todo: handle Fns and Streams
+	}
+
 	function reduce(fn, seed, object) {
 		return object.reduce ?
 			object.reduce(fn, seed) :
@@ -1463,9 +1471,12 @@
 
 		concat:    curry(concat, true),
 		contains:  curry(contains, true),
+		diff:      curry(diff, true),
 		each:      curry(each, true),
 		filter:    curry(filter, true),
 		find:      curry(find, true),
+		intersect: curry(intersect, true),
+		last:      last,
 		latest:    latest,
 		map:       curry(map, true),
 		reduce:    curry(reduce, true),
@@ -1474,9 +1485,6 @@
 		sort:      curry(sort, true),
 		split:     curry(split, true),
 		take:      curry(take, true),
-
-		diff:      curry(diff, true),
-		intersect: curry(intersect, true),
 		unite:     curry(unite, true),
 		unique:    unique,
 

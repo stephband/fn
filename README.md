@@ -172,6 +172,7 @@ See `contains` for a flipped version of this function.
     toStringType('{}');                  // 'json'
     toStringType('...');                 // 'string'
 
+
 ### Objects
 
 Curried functions that operate on objects and maps.
@@ -209,9 +210,13 @@ arrays, array-like objects, functors and streams.
 ##### `each(fn, array)`
 ##### `filter(fn, array)`
 ##### `find(fn, array)`
-##### `latest(array)`
+##### `last(array)`
 
-Consumes the array, functor or stream and returns the last or latest value.
+Picks the last value from an array or array-like object.
+
+##### `latest(stream)`
+
+Consumes an array, functor or stream and returns the latest value.
 
 ##### `map(fn, array)`
 ##### `reduce(fn, seed, array)`

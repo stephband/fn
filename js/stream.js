@@ -1,7 +1,8 @@
 (function(window) {
 	"use strict";
 
-	var debug     = true;
+	var debug     = false;
+
 
 	// Import
 
@@ -557,8 +558,6 @@
 
 	Stream.prototype = assign(Object.create(Fn.prototype), {
 
-		// Construct
-
 		clone: function() {
 			var source  = this;
 			var shift   = this.shift;
@@ -621,35 +620,6 @@
 			return Stream.Merge.apply(null, sources);
 		},
 
-		// Transform
-
-		//latest: function() {
-		//	var source = this;
-		//	var stream = Object.create(this);
-		//	var value;
-		//
-		//	stream.shift = function() {
-		//		return latest(source);
-		//	};
-		//
-		//	return stream;
-		//},
-
-		//remember: function() {
-		//	var source  = this;
-		//	var value;
-		//
-		//	return assign(Object.create(this, {
-		//		each: { value: undefined }
-		//	}), {
-		//		shift: function() {
-		//			var val = latest(source);
-		//			if (val !== undefined) { value = val; }
-		//			return value;
-		//		}
-		//	});
-		//},
-
 		choke: function(time) {
 			return this.pipe(Stream.Choke(time));
 		},
@@ -665,6 +635,7 @@
 		interval: function(request) {
 			return this.pipe(Stream.Interval(request));
 		},
+
 
 		// Consume
 
@@ -687,9 +658,6 @@ if (fn === undefined) {  throw new Error('splat');}
 			return Fn.prototype.pipe.apply(this, arguments);
 		},
 
-		//reduce: function(fn, seed) {
-		//	return this.fold(fn, seed).latest().shift();
-		//},
 
 		// Events
 
