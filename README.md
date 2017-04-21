@@ -30,21 +30,17 @@ The `this` context inside `fn` is unchanged.
 
 Caches the results of calls to `fn2(value)`.
 
-    var fn2 = Fn.cache(fn);
-
-Caches the results of calls to `fn2(value)`.
-
 ##### `choose(object)`
 
-Returns a function that calls the function property of `object` that matches it's
-first argument, calling it with all remaining arguments.
+Returns a function that calls the function at property of `object` that matches
+it's first argument. It is called with the remaining arguments.
 
     var fn = choose({
-        'pie':   function(a, b) {...},
-        'chips': function(a, b) {...}
+        'pie':   function fn1(a, b) {...},
+        'chips': function fn2(a, b) {...}
     });
 
-	fn('pie', a, b);
+	fn('pie', a, b);   // Calls fn1(a, b)
 
 Accepts `Map` objects as well as plain objects.
 
@@ -130,7 +126,7 @@ in a custom timer object with a `.request()` function.
 Returns a function that waits for `time` seconds without being invoked
 before calling `fn` using the context and arguments from its latest invocation.
 
-    var wait = Fn.Wait(console.log, 1.5);
+    var wait = Fn.wait(console.log, 1.5);
 
 	wait(1);
 	wait(2);
