@@ -66,7 +66,7 @@ in the same chain of parameters.
     var fn = curry(function(a, b, c) {
         var t = a + b + c;
         return curry(function(d, e) {
-	        return d + e;
+	        return t + d + e;
         });
     });
 
@@ -93,8 +93,8 @@ Calls `fn1` once, the first time `fn2` is called.
 
 ##### `overload(fn, object)`
 
-Returns a function that calls the function property of `object` that matches
-the result of calling `fn` with all arguments. `overload` is curried.
+Returns a function that calls a function at the property of `object` that
+matches the result of calling `fn` (with all arguments). `overload` is curried.
 
 	var overloadTypes = overload(function() {
 	   return map(toType, arguments).join(' '); 
