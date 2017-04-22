@@ -106,9 +106,9 @@
 		return fn(n);
 	}
 
-	function bind(params, fn) {
+	function bind(args, fn) {
 		return function() {
-			fn.apply(this, concat(arguments, params));
+			fn.apply(this, concat(arguments, args));
 		};
 	}
 
@@ -147,10 +147,10 @@
 		return typeof fn === 'function' ? fn.apply(null, args) : fn ;
 	}
 
-	function _curry(fn, arity, cached) {
+	function curry(fn, muteable, arity) {
 		var memo = arity === 1 ?
-			// Don't cache if `cached` flag is false
-			(cached === false ? id : cache)(fn) :
+			// Don't cache if `muteable` flag is true
+			muteable ? fn : cache(fn) :
 
 			// It's ok to always cache intermediate memos, though
 			cache(function(object) {
@@ -158,7 +158,7 @@
 					var args = [object];
 					args.push.apply(args, arguments);
 					return fn.apply(null, args);
-				}, arity - 1, cached) ;
+				}, muteable, arity - 1) ;
 			}) ;
 
 		return function partial(object) {
@@ -170,15 +170,6 @@
 				applyFn(fn.apply(null, A.splice.call(arguments, 0, arity)), arguments) :
 			applyFn(memo(object), A.slice.call(arguments, 1)) ;
 		};
-	}
-
-	function curry(fn) {
-		var arity  = arguments[1] || fn.length;
-		var cached = arguments[2] ;
-
-		return debug ?
-			setFunctionProperties('curried', arity, fn, _curry(fn, arity, cached)) :
-			_curry(fn, arity, cached) ;
 	}
 
 	function once(fn) {
@@ -211,6 +202,18 @@
 		return function choose(key) {
 			return (map[key] || map.default).apply(this, rest(1, arguments));
 		}
+	}
+
+	if (debug) {
+		var _curry = curry;
+
+		curry = function curry(fn, muteable) {
+			var arity  = arguments[2] || fn.length;
+
+			return debug ?
+				setFunctionProperties('curried', arity, fn, _curry(fn, muteable, arity)) :
+				_curry(fn, muteable, arity) ;
+		};
 	}
 
 
@@ -414,6 +417,14 @@
 			A.filter.call(object, fn) ;
 	}
 
+	function last(array) {
+		if (typeof array.length === 'number') {
+			return array[array.length - 1];
+		}
+
+		// Todo: handle Fns and Streams
+	}
+
 	function reduce(fn, seed, object) {
 		return object.reduce ?
 			object.reduce(fn, seed) :
@@ -510,6 +521,10 @@
 		return object.unique ?
 			object.unique() :
 			reduce(uniqueReducer, [], object) ;
+	}
+
+	function sort(fn, object) {
+		return object.sort ? object.sort(fn) : A.sort.call(object, fn);
 	}
 
 
@@ -811,9 +826,9 @@
 		return source.length === 0 || source.status === 'done' ;
 	}
 
-	function last(source) {
+	function latest(source) {
 		var value = source.shift();
-		return value === undefined ? arguments[1] : last(source, value) ;
+		return value === undefined ? arguments[1] : latest(source, value) ;
 	}
 
 	function create(object, fn) {
@@ -1032,6 +1047,79 @@
 			});
 		},
 
+		first: function() {
+			var source = this;
+			return create(this, once(function first() {
+				source.status = 'done';
+				return source.shift();
+			}));
+		},
+
+		join: function() {
+			var source = this;
+			var buffer = nothing;
+
+			return create(this, function join() {
+				var value = buffer.shift();
+				if (value !== undefined) { return value; }
+				buffer = source.shift();
+				if (buffer !== undefined) { return join(); }
+				buffer = nothing;
+			});
+		},
+
+		latest: function() {
+			var source = this;
+			return create(this, function shiftLast() {
+				return latest(source);
+			});
+		},
+
+		map: function(fn) {
+			return create(this, compose(function map(object) {
+				return object === undefined ? undefined : fn(object) ;
+			}, this.shift));
+		},
+
+		chunk: function(n) {
+			var source = this;
+			var buffer = [];
+
+			return create(this, n ?
+				// If n is defined batch into arrays of length n.
+				function shiftChunk() {
+					var value, _buffer;
+
+					while (buffer.length < n) {
+						value = source.shift();
+						if (value === undefined) { return; }
+						buffer.push(value);
+					}
+
+					if (buffer.length >= n) {
+						_buffer = buffer;
+						buffer = [];
+						return Fn.of.apply(Fn, _buffer);
+					}
+				} :
+
+				// If n is undefined or 0, batch all values into an array.
+				function shiftChunk() {
+					buffer = source.toArray();
+					// An empty array is equivalent to undefined
+					return buffer.length ? buffer : undefined ;
+				}
+			);
+		},
+
+		fold: function(fn, seed) {
+			var i = 0;
+			return this.map(function fold(value) {
+				seed = fn(seed, value, i++);
+				return seed;
+			}).buffer(seed);
+		},
+
 		partition: function(fn) {
 			var source = this;
 			var shift  = this.shift;
@@ -1085,81 +1173,8 @@
 			});
 		},
 
-		first: function() {
-			var source = this;
-			return create(this, once(function first() {
-				source.status = 'done';
-				return source.shift();
-			}));
-		},
-
-		join: function() {
-			var source = this;
-			var buffer = nothing;
-
-			return create(this, function join() {
-				var value = buffer.shift();
-				if (value !== undefined) { return value; }
-				buffer = source.shift();
-				if (buffer !== undefined) { return join(); }
-				buffer = nothing;
-			});
-		},
-
-		last: function() {
-			var source = this;
-			return create(this, function shiftLast() {
-				return last(source);
-			});
-		},
-
-		map: function(fn) {
-			return create(this, compose(function map(object) {
-				return object === undefined ? undefined : fn(object) ;
-			}, this.shift));
-		},
-
-		chunk: function(n) {
-			var source = this;
-			var buffer = [];
-
-			return create(this, n ?
-				// If n is defined batch into arrays of length n.
-				function shiftChunk() {
-					var value, _buffer;
-
-					while (buffer.length < n) {
-						value = source.shift();
-						if (value === undefined) { return; }
-						buffer.push(value);
-					}
-
-					if (buffer.length >= n) {
-						_buffer = buffer;
-						buffer = [];
-						return Fn.of.apply(Fn, _buffer);
-					}
-				} :
-
-				// If n is undefined or 0, batch all values into an array.
-				function shiftChunk() {
-					buffer = source.toArray();
-					// An empty array is equivalent to undefined
-					return buffer.length ? buffer : undefined ;
-				}
-			);
-		},
-
-		fold: function(fn, seed) {
-			var i = 0;
-			return this.map(function fold(value) {
-				seed = fn(seed, value, i++);
-				return seed;
-			}).buffer(seed);
-		},
-
 		reduce: function reduce(fn, seed) {
-			return this.fold(fn, seed).last().shift();
+			return this.fold(fn, seed).latest().shift();
 		},
 
 		take: function(n) {
@@ -1259,16 +1274,6 @@
 			});
 		},
 
-		tap: function(fn) {
-			// Overwrite shift to copy values to tap fn
-			this.shift = Fn.compose(function(value) {
-				if (value !== undefined) { fn(value); }
-				return value;
-			}, this.shift);
-
-			return this;
-		},
-
 		unique: function() {
 			var source = this;
 			var values = [];
@@ -1318,6 +1323,16 @@
 			return stream.on('pull', this.shift);
 		},
 
+		tap: function(fn) {
+			// Overwrite shift to copy values to tap fn
+			this.shift = Fn.compose(function(value) {
+				if (value !== undefined) { fn(value); }
+				return value;
+			}, this.shift);
+
+			return this;
+		},
+
 		toJSON: function() {
 			return this.reduce(arrayReducer, []);
 		},
@@ -1326,10 +1341,19 @@
 			return this.reduce(prepend, '');
 		},
 
-		// Hack needed for soundio, I think. Keep an eye on whether we
-		// can remove it.
 
-		process: function(fn) { return fn(this); }
+		// Deprecated
+
+		process: deprecate(function(fn) {
+			return fn(this);
+		}, '.process() is deprecated'),
+
+		last: deprecate(function() {
+			var source = this;
+			return create(this, function shiftLast() {
+				return latest(source);
+			});
+		}, '.last() is now .latest()'),
 	});
 
 	Fn.prototype.toArray = Fn.prototype.toJSON;
@@ -1346,43 +1370,46 @@
 
 	window.Fn = assign(Fn, {
 
-		// Construct
+		// Constructors
 
 		of: function() { return new Fn(arguments); },
 		from: function(object) { return new Fn(object); },
 
-
-		// Constructors
-
-		Throttle: Throttle,
 		Timer:    Timer,
-		Wait:     Wait,
+
+
+		// Objects
+
+		nothing:  nothing,
 
 
 		// Functions
 
-		noop:     noop,
-		nothing:  nothing,
 		id:       id,
-		once:     once,
-		cache:    cache,
-		curry:    curry,
-		compose:  compose,
-		flip:     flip,
-		choose:   choose,
-		overload: overload,
-		pipe:     pipe,
+		noop:     noop,
 		self:     self,
-		apply:    curry(apply),
+
 		bind:     curry(bind),
+		cache:    cache,
+		compose:  compose,
+		curry:    curry,
+		choose:   choose,
+		flip:     flip,
+		once:     once,
+		overload: curry(overload),
+		pipe:     pipe,
+		throttle: Throttle,
+		wait:     Wait,
+
+//		apply:    curry(apply),
 
 
 		// Logic
 
 		equals:    curry(equals),
 		is:        curry(is),
-		isIn:      curry(isIn),
 		isDefined: isDefined,
+		isIn:      curry(isIn, true),
 
 		and: curry(function and(a, b) { return !!(a && b); }),
 
@@ -1396,7 +1423,7 @@
 
 		by: curry(function by(property, a, b) {
 			return byGreater(a[property], b[property]);
-		}),
+		}, true),
 
 		byGreater: curry(byGreater),
 
@@ -1449,103 +1476,70 @@
 
 		// Collections
 
-		concat:    curry(concat),
-		contains:  curry(contains),
-		diff:      curry(diff),
-		each:      curry(each),
-		filter:    curry(filter),
-		find:      curry(find),
-		intersect: curry(intersect),
-		map:       curry(map),
-		reduce:    curry(reduce),
-		remove:    curry(remove),
-		rest:      curry(rest),
-		split:     curry(split),
-		take:      curry(take),
-		unite:     curry(unite),
+		concat:    curry(concat, true),
+		contains:  curry(contains, true),
+		diff:      curry(diff, true),
+		each:      curry(each, true),
+		filter:    curry(filter, true),
+		find:      curry(find, true),
+		intersect: curry(intersect, true),
+		last:      last,
+		latest:    latest,
+		map:       curry(map, true),
+		reduce:    curry(reduce, true),
+		remove:    curry(remove, true),
+		rest:      curry(rest, true),
+		sort:      curry(sort, true),
+		split:     curry(split, true),
+		take:      curry(take, true),
+		unite:     curry(unite, true),
 		unique:    unique,
-
-		sort: curry(function sort(fn, object) { return object.sort ? object.sort(fn) : A.sort.call(object, fn); }),
 
 
 		// Objects
 
-		assign: curry(assign, 2),
+		assign: curry(assign, true, 2),
+		get:    curry(get, true),
+		set:    curry(set, true),
 
-		entries: function(object){
-			return typeof object.entries === 'function' ?
-				object.entries() :
-				A.entries.apply(object) ;
-		},
-
-		keys: function(object){
-			return typeof object.keys === 'function' ?
-				object.keys() :
-
-				/* Don't use Object.keys(), it returns an array,
-				   not an iterator. */
-				A.keys.apply(object) ;
-		},
-
-		values: function(object){
-			return typeof object.values === 'function' ?
-				object.values() :
-				A.values.apply(object) ;
-		},
-
-		get: curry(get),
-		set: curry(set),
-
-		getPath: curry(function get(path, object) {
+		getPath: curry(function getPath(path, object) {
 			return object && (object.get ? object.get(path) :
 				typeof path === 'number' ? object[path] :
 				path === '' || path === '.' ? object :
 				objFrom(object, splitPath(path))) ;
-		}),
+		}, true),
 
-		setPath: curry(function set(path, value, object) {
+		setPath: curry(function setPath(path, value, object) {
 			if (object.set) { object.set(path, value); }
 			if (typeof path === 'number') { return object[path] = value; }
 			var array = splitPath(path);
 			return array.length === 1 ?
 				(object[path] = value) :
 				objTo(object, array, value);
-		}),
+		}, true),
 
 		invoke: curry(function invoke(name, args, object) {
 			return object[name].apply(object, args);
-		}),
+		}, true),
 
 
 		// Numbers
 
-		gaussian: function gaussian() {
-			// Returns a random number with a bell curve probability centred
-			// around 0 and limits -1 to 1.
-			return Math.random() + Math.random() - 1;
-		},
-
 		add:      curry(function add(a, b) { return b + a; }),
-
 		multiply: curry(function mul(a, b) { return b * a; }),
-
 		mod:      curry(function mod(a, b) { return b % a; }),
-
 		min:      curry(function min(a, b) { return a > b ? b : a ; }),
-
 		max:      curry(function max(a, b) { return a < b ? b : a ; }),
-
 		pow:      curry(function pow(n, x) { return Math.pow(x, n); }),
-
 		exp:      curry(function exp(n, x) { return Math.pow(n, x); }),
-
 		log:      curry(function log(n, x) { return Math.log(x) / Math.log(n); }),
-
-		nthRoot:  curry(function nthRoot(n, x) { return Math.pow(x, 1/n); }),
-
+		root:     curry(function nthRoot(n, x) { return Math.pow(x, 1/n); }),
 		gcd:      curry(gcd),
-
 		lcm:      curry(lcm),
+		todB:     function todB(n) { return 20 * Math.log10(value); },
+		toLevel:  function toLevel(n) { return Math.pow(2, n/6); },
+		toRad:    function toDeg(n) { return n / angleFactor; },
+		toDeg:    function toRad(n) { return n * angleFactor; },
 
 		factorise: function factorise(n, d) {
 			// Reduce a fraction by finding the Greatest Common Divisor and
@@ -1554,15 +1548,13 @@
 			return [n/f, d/f];
 		},
 
-		todB:     function todB(n) { return 20 * Math.log10(value); },
+		gaussian: function gaussian() {
+			// Returns a random number with a bell curve probability centred
+			// around 0 and limits -1 to 1.
+			return Math.random() + Math.random() - 1;
+		},
 
-		toLevel:  function toLevel(n) { return Math.pow(2, n/6); },
-
-		toRad:    function toDeg(n) { return n / angleFactor; },
-
-		toDeg:    function toRad(n) { return n * angleFactor; },
-
-		toPolar:  function toPolar(cartesian) {
+		toPolar: function toPolar(cartesian) {
 			var x = cartesian[0];
 			var y = cartesian[1];
 
@@ -1673,46 +1665,39 @@
 
 		// Deprecated
 
-		dB:       curry(deprecate(noop, 'dB() is now todB()')),
-		degToRad: curry(deprecate(noop, 'degToRad() is now toRad()')),
-		radToDeg: curry(deprecate(noop, 'radToDeg() is now toDeg()')),
+		dB:       deprecate(noop, 'dB() is now todB()'),
+		degToRad: deprecate(noop, 'degToRad() is now toRad()'),
+		radToDeg: deprecate(noop, 'radToDeg() is now toDeg()'),
+
+		nthRoot:  curry(
+			deprecate(function nthRoot(n, x) { return Math.pow(x, 1/n); }, 
+			'nthRoot(n, x) is now simply root(n, x)'), false, 2),
 
 		while: curry(deprecate(function(fn, object) {
 			return object.while ?
 				object.while(fn) :
 				whileArray(fn, object) ;
-		}, 'while(fn, object) is marked for removal, use take(i) ??')),
+		}, 'while(fn, object) is marked for removal, use take(i) ??'), true, 2),
 
-		throttle: deprecate(function(time, fn) {
-			// Overload the call signature to support Fn.throttle(fn)
-			if (fn === undefined && time.apply) {
-				fn = time;
-				time = undefined;
-			}
+		Throttle: deprecate(Throttle, 'Throttle(fn, time) removed, is now throttle(fn, time)'),
 
-			function throttle(fn) {
-				return Throttle(fn, time);
-			}
-
-			// Where fn not given return a partially applied throttle
-			return fn ? throttle(fn) : throttle ;
-		}, 'throttle() removed, use Throttle(fn, time)'),
+		Wait: deprecate(Wait, 'Wait(fn, time) removed, is now wait(fn, time)'),
 
 		slice: curry(deprecate(function slice(n, m, object) {
 			return object.slice ? object.slice(n, m) : A.slice.call(object, n, m);
-		}, 'slice(n, m, object) is removed in favour of take(n) or rest(n)')),
+		}, 'slice(n, m, object) is removed in favour of take(n) or rest(n)'), true, 3),
 
 		returnThis: deprecate(self, 'returnThis() is now self()'),
 
 		run: curry(deprecate(function apply(values, fn) {
 			return fn.apply(null, values);
-		}, 'run() is now apply()')),
+		}, 'run() is now apply()'), true, 2),
 
-		overloadLength: curry(deprecate(overload, 'overloadLength(map) is now overload(fn, map)'), 2)(function() {
+		overloadLength: curry(deprecate(overload, 'overloadLength(map) is now overload(fn, map)'), true, 2)(function() {
 			return arguments.length;
 		}),
 
-		overloadTypes: curry(deprecate(overload, 'overloadTypes(map) is now overload(fn, map)'), 2)(function() {
+		overloadTypes: curry(deprecate(overload, 'overloadTypes(map) is now overload(fn, map)'), true, 2)(function() {
 			return A.map.call(arguments, toType).join(' ');
 		})
 	});

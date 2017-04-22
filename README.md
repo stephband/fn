@@ -5,19 +5,49 @@ A library of functional functions.
 
 ### Functional functions
 
+##### `id(object)`
+
+Returns `object`.
+
 ##### `noop()`
 
 Returns `undefined`.
 
-##### `id(object)`
+##### `self()`
 
-Returns `object`.
+returns `this`.
+
+##### `bind(params, fn)`
+
+    var fn = bind([0,1,2,3], function() {...})
+
+Returns a function that applies `params` to `fn` when called.
+The `this` context inside `fn` is unchanged.
 
 ##### `cache(fn)`
 
     var fn2 = Fn.cache(fn);
 
 Caches the results of calls to `fn2(value)`.
+
+##### `choose(object)`
+
+Returns a function that calls the function at property of `object` that matches
+it's first argument. It is called with the remaining arguments.
+
+    var fn = choose({
+        'pie':   function fn1(a, b) {...},
+        'chips': function fn2(a, b) {...}
+    });
+
+	fn('pie', a, b);   // Calls fn1(a, b)
+
+Accepts `Map` objects as well as plain objects.
+
+##### `compose(fn2, fn1)`
+
+Composes two functions into a single function, where `fn2` is passed the result
+of `fn1` and the result is returned.
 
 ##### `curry(fn)`
 
@@ -30,18 +60,26 @@ take those parameters in any grouping:
     fn2(a)(b)(c);
     fn2(a, b)(c);
 
-##### `cacheCurry(fn)`
+If the curried function returns a curried function, that function can be called
+in the same chain of parameters.
 
-    var fn2 = Fn.cacheCurry(fn);
+    var fn = curry(function(a, b, c) {
+        var t = a + b + c;
+        return curry(function(d, e) {
+	        return t + d + e;
+        });
+    });
 
-Like `Fn.curry()`, only the results of calls with each consecutive parameter
-are also cached such that `fn` is only ever called once for each unique set of
-parameters.
+	fn(a, b, c, d, e);
 
-##### `compose(fn2, fn1)`
+By default a curried function expects immutable objects to be passed in. If a
+function expects only primitives there's no problem, but if it is to operate on
+objects that may change shape – or if it is a function with side effects –
+switch on mutability by passing `true` as the second parameter. 
 
-Composes two functions into a single function, where `fn2` is passed the result
-of `fn1` and the result is returned.
+    var fn2 = curry(fn1, true);
+
+All the curried helpers in the library can take mutable objects.
 
 ##### `flip(fn)`
 
@@ -52,57 +90,49 @@ Returns a function that calls `fn` with it's parameters in reverse order.
     var fn2 = Fn.once(fn1);
 
 Calls `fn1` once, the first time `fn2` is called.
-Subsequent calls to `fn2` return the value from the first run.
 
-##### `partial(fn1, fn2, fn3, ...)`
+##### `overload(fn, object)`
 
-Curries several functions into one, where `fn1` is invoked (as soon it has
-received enough arguments) and it's return value (an array) passed to `fn2`
-when it has received enough arguments, and so on.
+Returns a function that calls a function at the property of `object` that
+matches the result of calling `fn` (with all arguments). `overload` is curried.
 
-##### `pipe(fn1, fn2, fn3, ...)`
+	var overloadTypes = overload(function() {
+	   return map(toType, arguments).join(' '); 
+    });
 
-Composes functions into a pipe.
-`fn2` is passed the result of `fn1`, `fn3` is passed the result of `fn2` and
-so on until the result of the last function is returned.
+    var fn = overloadTypes({
+        'string number': function a() {...},
+        'number number': function b() {...}
+    });
 
-##### `apply(params, fn)`
+	fn('pie', 4);   // Calls a('pie', 4)
+	fn(1, 2);       // Calls b(1, 2)
 
-Calls `fn` with `params`.
+##### `pipe(fn1, fn2, ...)`
 
-##### `bind(params, fn)`
+Composes functions into a pipe. `fn2` is passed the result of `fn1`, `fn3` is
+passed the result of `fn2` and so on until the result of the last function is
+returned.
 
-    var fn = bind([0,1,2,3], function() {...})
+##### `throttle(fn [, time])`
 
-Returns a function that applies `params` to `fn` when called.
-The `this` context inside `fn` is unchanged.
+Returns a function that calls `fn` periodically after it is called, with the
+latest context and arguments. By default calls are throttled to animation
+frames. Pass in `time` (in seconds) to use a setTimeout based timer, or pass
+in a custom timer object with a `.request()` function.
 
-##### `Throttle(fn, request)`
-
-Returns a function that calls fn immediately and thereafter every `time` seconds
-while it is called again with new context and arguments.
-
-##### `Wait(fn, time)`
+##### `wait(fn, time)`
 
 Returns a function that waits for `time` seconds without being invoked
 before calling `fn` using the context and arguments from its latest invocation.
 
-    var wait = Fn.Wait(console.log, 1.5);
+    var wait = Fn.wait(console.log, 1.5);
 
 	wait(1);
 	wait(2);
-	wait(3);
-
-	// 1.5 seconds later:
-	// > 3
+	wait(3);        // Calls fn(3) after 1.5 seconds
 
 ### Types
-
-##### `toType(object)`
-##### `toClass(object)`
-##### `toArray(object)`
-##### `toInt(object)`
-##### `toString(object)`
 
 ##### `equals(a, b)`
 
@@ -120,10 +150,28 @@ Test returns `false` if `object` is `null` or `undefined` or `NaN`.
 
 Test for presence of `object` in `array`.
 
-##### `not(object)`
+See `contains` for a flipped version of this function.
+
+##### `toArray(object)`
+##### `toClass(object)`
+##### `toInt(object)`
+##### `toFloat(object)`
+##### `toString(object)`
+##### `toType(object)`
+##### `toStringType(string)`
+
+    toStringType('http://cruncher.ch');  // 'url'
+    toStringType('1955-09-12');          // 'date'
+    toStringType('hello@cruncher.ch');   // 'email'
+    toStringType('42');                  // 'int'
+    toStringType('41.5');                // 'float'
+    toStringType('{}');                  // 'json'
+    toStringType('...');                 // 'string'
 
 
 ### Objects
+
+Curried functions that operate on objects and maps.
 
 ##### `assign(source, object)`
 
@@ -139,88 +187,131 @@ WeakMap) or where `key` is a property of object.
 Sets property `key` of `object`, where `object` has a `set` method (eg. Map,
 WeakMap) or where object can have `key` set on it.
 
-##### `invoke(name, object)`
-Invokes method `name` of `object`.
+##### `invoke(name, args, object)`
+Invokes method `name` of `object` with `args`.
 
-### Arrays and array-like objects
+
+### Lists
+
+Curried functions that operate on arrays and array-like objects such as
+`arguments`. Many delegate to using a method of the same name if the object
+has one, so they can also be used points-free style on functors and streams.
 
 ##### `concat(array2, array1)`
 
 Concatenates `list2` to `list1`. More robust than Array#concat as it handles
 arrays, array-like objects, functors and streams.
 
-##### `diff(array1, array2)`
-##### `each(fn, object)`
-##### `filter(fn, object)`
-##### `intersect(array1, array2)`
-##### `map(fn, object)`
-Delegates to `object.map` or applies `Array.prototype.map` to `object`.
+##### `contains(object, array)`
+##### `each(fn, array)`
+##### `filter(fn, array)`
+##### `find(fn, array)`
+##### `last(array)`
 
-##### `reduce(fn, seed, object)`
-##### `sort(fn, object)`
+Picks the last value from an array or array-like object.
+
+##### `latest(stream)`
+
+Consumes an array, functor or stream and returns the latest value.
+
+##### `map(fn, array)`
+##### `reduce(fn, seed, array)`
+##### `remove(array, object)`
+##### `rest(i, array)`
+
+Returns values indexed `i` and above from `array`.
+
+##### `sort(fn, array)`
+##### `split(fn, array)`
+##### `take(i)`
+
+Returns values up to index `i` from `array`.
+
+##### `diff(array1, array2)`
+##### `intersect(array1, array2)`
 ##### `unite(array1, array2)`
 ##### `unique(array)`
-##### `throttle([time,] fn)`
+
+<!--
 ##### `by(key, a, b)`
 ##### `byGreater(a, b)`
 ##### `byAlphabet(a, b)`
+-->
 
 ### Numbers
 
-##### `add(n, m)`
-##### `multiply(n, m)`
-##### `dB(n)`
-Returns `n` as a ratio to unity, expressed in dB.
+##### `add(a, b)`
+##### `gcd(a, b)`
 
-##### `denormalise(min, max, n)`
-Denormalises `n` from range 0-1 to range `min`-`max`.
+Returns greatest common denominator.
 
-##### `gaussian()`
-Returns a random number with a bell curve probability centred
-around 0 and limits -1 to 1.
+##### `lcm(a, b)`
 
-##### `gcd(n, m)`
-Greatest common denominator.
+Returns lowest common multiple.
 
-##### `lcm(n, m)`
-Lowest common multiple.
+##### `max(a, b)`
+##### `min(a, b)`
+##### `mod(a, b)`
+##### `multiply(a, b)`
+##### `exp(n, x)`
+##### `log(n, x)`
+##### `pow(n, x)`
+##### `root(n, x)`
 
-##### `limit(min, max, n)`
-##### `log(base, n)`
-##### `max(n, m)`
-##### `min(n, m)`
-##### `mod(n, m)`
-##### `normalise(min, max, n)`
-Normalises `n` from range `min`-`max` to range 0-1.
+Returns the `n`th root of `x`.
 
-##### `pow(n, m)`
-##### `toFixed(n, value)`
+##### `toDeg(n)`
+##### `toRad(n)`
+##### `todB(n)`
+
+Returns `n` as a ratio expressed in dB.
+
+##### `toLevel(n)`
+
+If `n` is a ratio expressed in dB, returns linear value.
+
 ##### `toCartesian(array)`
 ##### `toPolar(array)`
-##### `radToDeg(n)`
-##### `degToRad(n)`
+##### `limit(min, max, n)`
+##### `normalise(min, max, n)`
+
+Normalises `n` from range `min`-`max` to range 0-1.
+
+##### `denormalise(min, max, n)`
+
+Denormalises `n` from range 0-1 to range `min`-`max`.
+
 ##### `wrap(min, max, n)`
+##### `cubicBezier(p1, p2, precision, x)`
+##### `gaussian()`
+Returns a random number with a bell curve probability centred around 0 with
+limits -1 to 1.
+
+##### `toFixed(n, value)`
+
 
 ### Strings
 
+##### `append(string2, string1)`
+##### `prepend(string1, string2)`
 ##### `slugify(string)`
-##### `toStringType(string)`
 
-    Fn.toStringType('http://cruncher.ch');  // 'url'
-    Fn.toStringType('hello@cruncher.ch');   // 'email'
-    Fn.toStringType('42');                  // 'int'
-    Fn.toStringType('41.5');                // 'float'
-    Fn.toStringType('{}');                  // 'json'
-    Fn.toStringType('...');                 // 'string'
 
 ### Time
 
 ##### `now()`
+
 Returns `performance.now()` or date time, in seconds.
 
 ##### `requestTick(fn)`
-Calls `fn` at the end of the current tick.
-This helper is called `setImmediate` in other libraries.
+
+Calls `fn` at the end of the current tick. (This helper is often called
+`setImmediate` in other libraries.
+
+##### `requestFrame(fn)`
+
+An alias for `requestAnimationFrame(fn)`.
+
 
 ## Fn()
 
@@ -229,54 +320,49 @@ methods. A functor is a fantasy-land compliant Functor, Applicative and Monad.
 
 ##### `Fn(fn)`
 
-    var f = Fn(function() { return 6; })
+Creates a functor from a function or generator:
 
-Values can be extracted from a functor with `.shift()`:
+	// An infinite functor of `1`s
+    var unity = Fn(function() { return 1; });
 
-    f.shift() // 6
-    f.shift() // 6
+Values are extracted from a functor with `.shift()`:
+
+    f.shift() // 1
+    f.shift() // 1
     ...
-
-Or with `.next()`, which makes a functor an iterable:
-
-    f.next().value // 6
-    f.next().done  // undefined
-    ...
-
-##### `Fn(array)`
-
-Creates a functor from an array or array-like object.
 
 ##### `Fn.of(value, ...)`
 
-Creates a functor of the arguments.
+Creates a functor from arguments.
+
+    var f1 = Fn.of(0, 1, 2, 3);
 
 ##### `Fn.from(array)`
 
 Creates a functor from an array or collection.
 
+    var f2 = Fn.from([0, 1, 2, 3]);
+
 #### Transform
 
 ##### `ap(object)`
+//##### `buffer(object)`
 ##### `chain(fn)`
-##### `concat(stream)`
+##### `chunk(n)`
+##### `clone()`
+##### `concat(list)`
 ##### `dedup()`
 ##### `filter(fn)`
 ##### `first()`
-##### `last()`
-##### `join()`
-##### `map(fn)`
-##### `partition(n)`
 ##### `fold(fn, seed)`
-##### `take(n)`
-##### `sort(fn)`
-##### `tail()`
-##### `tap(fn)`
+##### `join()`
+##### `latest()`
+##### `map(fn)`
+##### `partition(fn)`
+//##### `sort(fn)`
+##### `take(i)`
+##### `rest(i)`
 ##### `unique()`
-##### `choke(time)`
-##### `clock(request)`
-##### `delay(time)`
-##### `throttle(request)`
 
 #### Input
 
@@ -298,22 +384,16 @@ is passed to the flow of values.
 ##### `pipe(stream)`
 ##### `reduce(fn, seed)`
 ##### `shift()`
+##### `tap(fn)`
 ##### `toArray()`
 ##### `toJSON()`
 ##### `toString()`
 
-#### Create
-
-##### `clone()`
-##### `of(value, ...)`
-
-Create a functor of values.
-
 ## Stream()
 
 Streams are pushable, observable functors. Streams inherit all methods of a
-functor, plus they also get a `.push` method and are observed for `"push"`,
-`"pull"` and `"stop"` events.
+functor, plus they also get a `.push` method and are observed for `"push"` and
+`"pull"` events.
 
 ##### `Stream(setup)`
 
@@ -336,6 +416,8 @@ Create a buffer stream from an array or collection.
 
 ##### `ap(object)`
 ##### `chain(fn)`
+##### `choke(time)`
+##### `chunk(n)`
 ##### `concat(source)`
 ##### `combine(fn, source1, source2, ...)`
 
@@ -345,29 +427,25 @@ be able to accept the same number of arguments as the number of streams
 (including the current stream).
 
 ##### `dedup()`
+##### `delay()`
 ##### `filter(fn)`
 ##### `first()`
-##### `last()`
-##### `latest()`
+##### `fold(fn, seed)`
+##### `interval(request)`
 ##### `join()`
+##### `latest()`
 ##### `map(fn)`
 ##### `merge(source1, source2, ...)`
-##### `partition(n)`
-##### `fold(fn, seed)`
-##### `take(n)`
-##### `sort(fn)`
-##### `tail()`
-##### `tap(fn)`
+##### `partition(fn)`
+##### `take(i)`
+##### `rest(i)`
 ##### `unique()`
-##### `choke(time)`
-##### `clock(request)`
 ##### `delay(time)`
 ##### `throttle(request)`
 
-##### `choke()`
-##### `delay()`
-##### `throttle()`
-##### `interval()`
+#### Input
+
+##### `push(value, ...)`
 
 #### Consume
 
@@ -386,13 +464,10 @@ is passed into the stream.
 ##### `toJSON()`
 ##### `toString()`
 
-#### Input
-
-##### `push(value, ...)`
-##### `buffer(value, ...)`
-
-<!--Give the functor an `.unshift()` method, creating an entry point for unshifting
-values back into the flow.-->
+//##### `buffer(value, ...)`
+//
+//<!--Give the functor an `.unshift()` method, creating an entry point for unshifting
+//values back into the flow.-->
 
 #### Control
 
@@ -436,6 +511,7 @@ where a frame is a browser animation frame.
 ##### `Stream.Timer()`
 
 Create a stream that emits values at constant intervals.
+
 
 ## Pool(options, prototype)
 
