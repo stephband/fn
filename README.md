@@ -17,13 +17,6 @@ Returns `undefined`.
 
 returns `this`.
 
-##### `bind(params, fn)`
-
-    var fn = bind([0,1,2,3], function() {...})
-
-Returns a function that applies `params` to `fn` when called.
-The `this` context inside `fn` is unchanged.
-
 ##### `cache(fn)`
 
     var fn2 = Fn.cache(fn);
@@ -206,6 +199,7 @@ arrays, array-like objects, functors and streams.
 ##### `each(fn, array)`
 ##### `filter(fn, array)`
 ##### `find(fn, array)`
+##### `insert(fn, array, value)`
 ##### `last(array)`
 
 Picks the last value from an array or array-like object.

@@ -1389,7 +1389,6 @@
 		noop:     noop,
 		self:     self,
 
-		bind:     curry(bind),
 		cache:    cache,
 		compose:  compose,
 		curry:    curry,
@@ -1482,6 +1481,7 @@
 		each:      curry(each, true),
 		filter:    curry(filter, true),
 		find:      curry(find, true),
+		insert:    curry(insert, true),
 		intersect: curry(intersect, true),
 		last:      last,
 		latest:    latest,
@@ -1664,6 +1664,8 @@
 
 
 		// Deprecated
+
+		bind:     deprecate(bind, 'Review bind: it doesnt do what you think'),
 
 		dB:       deprecate(noop, 'dB() is now todB()'),
 		degToRad: deprecate(noop, 'degToRad() is now toRad()'),
