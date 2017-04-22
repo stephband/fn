@@ -444,10 +444,17 @@
 		return object.find ? object.find(fn) : A.find.call(object, fn);
 	}
 
-	function remove(object, value) {
-		if (object.remove) { object.remove(value); }
-		var i = object.indexOf(value);
-		if (i !== -1) { object.splice(i, 1); }
+	function insert(fn, array, object) {
+		var n = -1;
+		var l = array.length;
+		while(++n < l && fn(array[n], object) < 1);
+		array.splice(n, 0, object);
+	}
+
+	function remove(array, value) {
+		if (array.remove) { array.remove(value); }
+		var i = array.indexOf(value);
+		if (i !== -1) { array.splice(i, 1); }
 	}
 
 	function split(fn, object) {
