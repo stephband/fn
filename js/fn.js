@@ -458,7 +458,8 @@
 	function insert(fn, array, object) {
 		var n = -1;
 		var l = array.length;
-		while(++n < l && fn(array[n], object) < 1);
+		var value = fn(object);
+		while(++n < l && fn(array[n]) <= value);
 		array.splice(n, 0, object);
 	}
 
