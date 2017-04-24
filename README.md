@@ -21,9 +21,9 @@ A library of functional functions.
 </table>
 
 <dl>
-	<dt>`id(object)`</dt>
+	<dt><code>id(object)</code></dt>
 	<dd>Returns `object`.</dd>
-	<dt>`id(object)`</dt>
+	<dt><code>id(object)</code></dt>
 	<dd>Returns `object`.</dd>
 </dl>
 
