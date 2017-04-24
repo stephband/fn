@@ -9,9 +9,9 @@
 	var last   = Fn.last;
 
 	Stream.Property = function(name, object) {
-		return new Stream(function setup() {
+		return new Stream(function setup(notify) {
 			var value;
-console.log('SETUP')
+
 			// AudioParams objects must be polled, as they cannot be reconfigured
 			// to getters/setters, nor can they be Object.observed. And they fail
 			// to do both of those completely silently. So we test the scope to see
