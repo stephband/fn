@@ -20,6 +20,12 @@ A library of functional functions.
 	</tbody>
 </table>
 
+<dl>
+	<dt>`id(object)`</dt>
+	<dd>Returns `object`.</dd>
+	<dt>`id(object)`</dt>
+	<dd>Returns `object`.</dd>
+</dl>
 
 ##### `id(object)`
 
