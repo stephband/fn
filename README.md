@@ -5,28 +5,6 @@ A library of functional functions.
 
 ### Functional functions
 
-
-<table>
-	<tbody>
-		<tr>
-			<td>`id(object)`</td>
-			<td>Returns `object`.</td>
-		</tr>
-
-		<tr>
-			<td>`noop()`</td>
-			<td>Returns `undefined`.</td>
-		</tr>
-	</tbody>
-</table>
-
-<dl>
-	<dt><code>id(object)</code></dt>
-	<dd>Returns `object`.</dd>
-	<dt><code>id(object)</code></dt>
-	<dd>Returns `object`.</dd>
-</dl>
-
 ##### `id(object)`
 
 Returns `object`.
