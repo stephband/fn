@@ -42,6 +42,8 @@
 
 			observe(object, name, update);
 
+			if (object[name] !== undefined) { notify('push'); }
+
 			return {
 				shift: function() {
 					var v = value;
