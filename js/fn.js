@@ -6,6 +6,8 @@
 (function(window) {
 	"use strict";
 
+	var debug = true;
+
 
 	// Import
 
@@ -13,8 +15,6 @@
 	var N = Number.prototype;
 	var O = Object.prototype;
 	var S = String.prototype;
-
-	var debug = true;
 
 
 	// Define
