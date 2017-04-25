@@ -77,7 +77,7 @@
 			return this.push(action);
 		};
 
-		return stream.fold(reducer, data).last();
+		return stream.fold(reducer, data).latest();
 	}
 
 	window.Store  = Store;
