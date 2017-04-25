@@ -15,8 +15,8 @@
 	var each      = Fn.each;
 	var latest    = Fn.latest;
 	var noop      = Fn.noop;
+	var throttle  = Fn.throttle;
 	var Timer     = Fn.Timer;
-	var Throttle  = Fn.Throttle;
 	var toArray   = Fn.toArray;
 
 
@@ -491,7 +491,7 @@
 
 		return new Stream(function setup(notify, done) {
 			var buffer  = [];
-			var throttle = Throttle(function() {
+			var push = throttle(function() {
 				buffer[0] = arguments[arguments.length - 1];
 				notify('push');
 			}, request);
@@ -501,7 +501,7 @@
 					return buffer.shift();
 				},
 
-				push: throttle,
+				push: push,
 
 				stop: function stop() {
 					buffer = empty;
