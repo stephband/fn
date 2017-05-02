@@ -1695,10 +1695,14 @@
 		requestFrame: requestFrame,
 
 
+		// Debugging
+
+		deprecate:    deprecate,
+
+
 		// Deprecated
 
 		bind:     deprecate(bind, 'Review bind: it doesnt do what you think'),
-
 		dB:       deprecate(noop, 'dB() is now todB()'),
 		degToRad: deprecate(noop, 'degToRad() is now toRad()'),
 		radToDeg: deprecate(noop, 'radToDeg() is now toDeg()'),
@@ -1714,7 +1718,6 @@
 		}, 'while(fn, object) is marked for removal, use take(i) ??'), true, 2),
 
 		Throttle: deprecate(Throttle, 'Throttle(fn, time) removed, is now throttle(fn, time)'),
-
 		Wait: deprecate(Wait, 'Wait(fn, time) removed, is now wait(fn, time)'),
 
 		slice: curry(deprecate(function slice(n, m, object) {
