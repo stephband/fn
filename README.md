@@ -13,6 +13,15 @@ Returns `object`.
 
 Returns `undefined`.
 
+
+##### `id(object)`
+
+Returns `object`.
+
+##### `noop()`
+
+Returns `undefined`.
+
 ##### `self()`
 
 returns `this`.

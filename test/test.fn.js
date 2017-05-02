@@ -248,7 +248,7 @@ test('.join()', function() {
 });
 
 test('.last()', function() {
-	var f = Fn.of(0,1,'one',true,2,false,true,'two',3,'three').last();
+	var f = Fn.of(0,1,'one',true,2,false,true,'two',3,'three').latest();
 	equals('three', f.shift());
 	equals(undefined, f.shift());
 

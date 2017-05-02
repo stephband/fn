@@ -6,6 +6,8 @@
 (function(window) {
 	"use strict";
 
+	var debug = true;
+
 
 	// Import
 
@@ -13,8 +15,6 @@
 	var N = Number.prototype;
 	var O = Object.prototype;
 	var S = String.prototype;
-
-	var debug = true;
 
 
 	// Define
@@ -200,7 +200,8 @@
 
 	function choose(map) {
 		return function choose(key) {
-			return (map[key] || map.default).apply(this, rest(1, arguments));
+			var fn = map[key] || map.default;
+			return fn && fn.apply(this, rest(1, arguments)) ;
 		}
 	}
 

@@ -9,7 +9,7 @@
 	var last   = Fn.last;
 
 	Stream.Property = function(name, object) {
-		return new Stream(function setup() {
+		return new Stream(function setup(notify) {
 			var value;
 
 			// AudioParams objects must be polled, as they cannot be reconfigured
@@ -41,6 +41,8 @@
 			}
 
 			observe(object, name, update);
+
+			if (object[name] !== undefined) { notify('push'); }
 
 			return {
 				shift: function() {
