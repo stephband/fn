@@ -267,6 +267,8 @@
 		return !!value || (value !== undefined && value !== null && !Number.isNaN(value));
 	}
 
+	function isNot(a, b) { return a !== b; }
+
 	function toType(object) {
 		return typeof object;
 	}
@@ -906,14 +908,14 @@
 		// Transform
 
 		ap: function(object) {
-		  var shift = this.shift;
-		
-		  return create(this, function ap() {
-		  	var fn = shift();
-		  	return fn === undefined ?
-		  		undefined :
-		  		object.map(fn);
-		  });
+			var shift = this.shift;
+
+			return create(this, function ap() {
+				var fn = shift();
+				return fn === undefined ?
+					undefined :
+					object.map(fn) ;
+			});
 		},
 
 		buffer: function() {
@@ -1360,6 +1362,28 @@
 
 	Fn.prototype.toArray = Fn.prototype.toJSON;
 
+	// Todo: As of Nov 2016 fantasy land spec requires namespaced methods:
+	//
+	// equals: 'fantasy-land/equals',
+	// lte: 'fantasy-land/lte',
+	// concat: 'fantasy-land/concat',
+	// empty: 'fantasy-land/empty',
+	// map: 'fantasy-land/map',
+	// contramap: 'fantasy-land/contramap',
+	// ap: 'fantasy-land/ap',
+	// of: 'fantasy-land/of',
+	// alt: 'fantasy-land/alt',
+	// zero: 'fantasy-land/zero',
+	// reduce: 'fantasy-land/reduce',
+	// traverse: 'fantasy-land/traverse',
+	// chain: 'fantasy-land/chain',
+	// chainRec: 'fantasy-land/chainRec',
+	// extend: 'fantasy-land/extend',
+	// extract: 'fantasy-land/extract',
+	// bimap: 'fantasy-land/bimap',
+	// promap: 'fantasy-land/promap'
+
+
 	if (window.Symbol) {
 		// A functor is it's own iterator
 		Fn.prototype[Symbol.iterator] = function() {
@@ -1411,6 +1435,7 @@
 		is:        curry(is),
 		isDefined: isDefined,
 		isIn:      curry(isIn, true),
+		isNot:     curry(isNot),
 
 		and: curry(function and(a, b) { return !!(a && b); }),
 
@@ -1656,6 +1681,11 @@
 			if (typeof string !== 'string') { return; }
 			return string.trim().toLowerCase().replace(/[\W_]/g, '-');
 		},
+
+
+		// Regexp
+
+		rspaces: /\s+/,
 
 
 		// Time
