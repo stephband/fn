@@ -536,7 +536,7 @@
 
 	var rpathtrimmer  = /^\[|\]$/g;
 	var rpathsplitter = /\]?(?:\.|\[)/g;
-	var rpropselector = /(\w+)=(['"]?\w+['"]?)/;
+	var rpropselector = /(\w+)=(['"]?[\w-]+['"]?)/;
 
 	function isObject(obj) { return obj instanceof Object; }
 
