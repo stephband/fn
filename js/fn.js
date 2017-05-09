@@ -6,7 +6,7 @@
 (function(window) {
 	"use strict";
 
-	var debug = true;
+	var debug = false;//true;
 
 
 	// Import
@@ -148,13 +148,15 @@
 	}
 
 	function curry(fn, muteable, arity) {
+		arity = arity || fn.length;
+
 		var memo = arity === 1 ?
 			// Don't cache if `muteable` flag is true
 			muteable ? fn : cache(fn) :
 
 			// It's ok to always cache intermediate memos, though
 			cache(function(object) {
-				return _curry(function() {
+				return curry(function() {
 					var args = [object];
 					args.push.apply(args, arguments);
 					return fn.apply(null, args);
