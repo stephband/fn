@@ -1,6 +1,6 @@
 (function(window) {
 	if (!window.console || !window.console.log) { return; }
-	console.log('%cFn     - https://github.com/stephband/fn', 'color: #D27B16; font-weight: 800;');
+	console.log('%cFn          - https://github.com/stephband/fn', 'color: #D27B16; font-weight: 800;');
 })(this);
 
 (function(window) {
@@ -540,7 +540,7 @@
 
 	var rpathtrimmer  = /^\[|\]$/g;
 	var rpathsplitter = /\]?(?:\.|\[)/g;
-	var rpropselector = /(\w+)=(['"]?\w+['"]?)/;
+	var rpropselector = /(\w+)=(['"]?[\w-]+['"]?)/;
 
 	function isObject(obj) { return obj instanceof Object; }
 
