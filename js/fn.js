@@ -455,7 +455,7 @@
 	}
 
 	function find(fn, object) {
-		return object.find ? object.find(fn) : A.find.call(object, fn);
+		return A.find.call(object, fn);
 	}
 
 	function insert(fn, array, object) {
