@@ -459,3 +459,28 @@ test('.delay(time)', function() {
 		equals('0,1,2,3,4,5,6,7,8,9', results.join());
 	}, 2000);
 });
+
+test('.take()', function() {
+	var f = Stream.of(0,1,'one',true,2,false,true,'two',3,'three').take(0);
+	equals(undefined, f.shift());
+
+	var f = Stream.of(0,1,'one',true,2,false,true,'two',3,'three').take(1);
+	equals(0, f.shift());
+	equals(undefined, f.shift());
+
+	var f = Stream.of(0,1,'one',true,2,false,true,'two',3,'three').take(3);
+	equals(0, f.shift());
+	equals(1, f.shift());
+	equals('one', f.shift());
+	equals(undefined, f.shift());
+
+
+	var n = -1;
+	var f = Stream.of().take(3).each(function(value) {
+		equals(++n, value);
+	});
+
+	f.push(0,1,2,3,4,5,6,7);
+	equals(2, n);
+});
+

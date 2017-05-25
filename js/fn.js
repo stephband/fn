@@ -1185,12 +1185,17 @@
 
 		take: function(n) {
 			var source = this;
-			var i = -1;
+			var i = 0;
 
 			return create(this, function take() {
-				if (++i < n) {
-					if (i === n - 1) { this.status = 'done'; }
-					return source.shift();
+				var value;
+
+				if (i < n) {
+					value = source.shift();
+					// Only increment i where an actual value has been shifted
+					if (value === undefined) { return; }
+					if (++i === n) { this.status = 'done'; }
+					return value;
 				}
 			});
 		},
