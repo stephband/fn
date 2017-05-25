@@ -1188,7 +1188,7 @@
 			var i = -1;
 
 			return create(this, function take() {
-				if (i < n) {
+				if (++i < n) {
 					if (i === n - 1) { this.status = 'done'; }
 					return source.shift();
 				}
