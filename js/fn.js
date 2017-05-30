@@ -442,7 +442,7 @@
 
 		var a = [];
 		var n = object.length - i;
-		while (n--) { a[n] = args[n + i]; }
+		while (n--) { a[n] = object[n + i]; }
 		return a;
 	}
 
