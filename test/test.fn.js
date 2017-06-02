@@ -351,6 +351,21 @@ test('.reduce()', function() {
 	equals(undefined, fn.shift());
 });
 
+test('.take()', function() {
+	var f = Fn.of(0,1,'one',true,2,false,true,'two',3,'three').take(0);
+	equals(undefined, f.shift());
+
+	var f = Fn.of(0,1,'one',true,2,false,true,'two',3,'three').take(1);
+	equals(0, f.shift());
+	equals(undefined, f.shift());
+
+	var f = Fn.of(0,1,'one',true,2,false,true,'two',3,'three').take(3);
+	equals(0, f.shift());
+	equals(1, f.shift());
+	equals('one', f.shift());
+	equals(undefined, f.shift());
+});
+
 test('.unique()', function() {
 	equals('0,1,2,3,4', Fn.of(0,0,1,1,1,2,3,3,3,3,3,4,4).unique().toArray().join());
 });

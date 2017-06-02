@@ -1,6 +1,6 @@
 (function(window) {
 	if (!window.console || !window.console.log) { return; }
-	console.log('%cFn     - https://github.com/stephband/fn', 'color: #D27B16; font-weight: 800;');
+	console.log('%cFn          - https://github.com/stephband/fn', 'color: #D27B16; font-weight: 800;');
 })(this);
 
 (function(window) {
@@ -152,8 +152,8 @@
 	}
 
 	function curry(fn, muteable, arity) {
-		var arity  = arguments[2] || fn.length;
-console.log(fn, muteable, arity);
+		arity = arity || fn.length;
+
 		var memo = arity === 1 ?
 			// Don't cache if `muteable` flag is true
 			muteable ? fn : cache(fn) :
@@ -445,7 +445,7 @@ console.log(fn, muteable, arity);
 
 		var a = [];
 		var n = object.length - i;
-		while (n--) { a[n] = args[n + i]; }
+		while (n--) { a[n] = object[n + i]; }
 		return a;
 	}
 
@@ -460,7 +460,7 @@ console.log(fn, muteable, arity);
 	}
 
 	function find(fn, object) {
-		return object.find ? object.find(fn) : A.find.call(object, fn);
+		return A.find.call(object, fn);
 	}
 
 	function insert(fn, array, object) {
@@ -543,7 +543,7 @@ console.log(fn, muteable, arity);
 
 	var rpathtrimmer  = /^\[|\]$/g;
 	var rpathsplitter = /\]?(?:\.|\[)/g;
-	var rpropselector = /(\w+)=(['"]?\w+['"]?)/;
+	var rpropselector = /(\w+)=(['"]?[\w-]+['"]?)/;
 
 	function isObject(obj) { return obj instanceof Object; }
 
@@ -1188,12 +1188,17 @@ console.log(fn, muteable, arity);
 
 		take: function(n) {
 			var source = this;
-			var i = -1;
+			var i = 0;
 
 			return create(this, function take() {
+				var value;
+
 				if (i < n) {
-					if (i === n - 1) { this.status = 'done'; }
-					return source.shift();
+					value = source.shift();
+					// Only increment i where an actual value has been shifted
+					if (value === undefined) { return; }
+					if (++i === n) { this.status = 'done'; }
+					return value;
 				}
 			});
 		},

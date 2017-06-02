@@ -4,6 +4,7 @@
 
 
 	var A = Array.prototype;
+	var F = Function.prototype;
 	var cache = Fn.cache;
 
 	function concatArgs(args1, args2) {
@@ -128,12 +129,65 @@
 	// Curry 4
 
 	var curry4 = Fn.curry;
+	
+	/*
+	function curry(fn, muteable, arity) {
+		var memo = arity === 1 ?
+			// Don't cache if `muteable` flag is true
+			muteable ? fn : cache(fn) :
+
+			// It's ok to always cache intermediate memos, though
+			cache(function(object) {
+				return _curry(function() {
+					var args = [object];
+					args.push.apply(args, arguments);
+					return fn.apply(null, args);
+				}, muteable, arity - 1) ;
+			}) ;
+
+		return function partial(object) {
+			return arguments.length === 1 ?
+				memo(object) :
+			arguments.length === arity ?
+				fn.apply(null, arguments) :
+			arguments.length > arity ?
+				applyFn(fn.apply(null, A.splice.call(arguments, 0, arity)), arguments) :
+			applyFn(memo(object), A.slice.call(arguments, 1)) ;
+		};
+	}
+	*/
 
 
 	// Curry from lodash
 
 	var curry5 = _.curry;
 
+
+	// Curry using native .bind
+
+	function applyFn(fn, args) {
+		return typeof fn === 'function' ? fn.apply(null, args) : fn ;
+	}
+
+	var curry6 = function curry(fn, arity) {
+		arity = arity || fn.length;
+
+		var memo = arity === 1 ?
+			fn :
+			cache(function(object) {
+				return curry(fn.bind(null, object), arity - 1) ;
+			}) ;
+
+		return function partial(object) {
+			return arguments.length === 1 ?
+				memo(object) :
+			arguments.length >= arity ?
+				fn.apply(null, arguments) :
+			//arguments.length > arity ?
+			//	applyFn(fn.apply(null, A.splice.call(arguments, 0, arity)), arguments) :
+			memo(object).apply(null, A.slice.call(arguments, 1)) ;
+		};
+	};
 
 
 	// Tests
@@ -162,7 +216,12 @@
 		});
 	})
 	.add('lodash curry', function() {
-		var add4 = curry5(function(a, b) {
+		var add5 = curry5(function(a, b) {
+			return a + b;
+		});
+	})
+	.add('  bind curry', function() {
+		var add6 = curry6(function(a, b) {
 			return a + b;
 		});
 	})
@@ -199,7 +258,11 @@
 	var add5 = curry5(function(a, b) {
 		return a + b;
 	});
-	
+
+	var add6 = curry6(function(a, b) {
+		return a + b;
+	});
+
 	new Benchmark.Suite()
 	.add('   no1 curry', function() {
 		add1(2, 3);
@@ -215,6 +278,9 @@
 	})
 	.add('lodash curry', function() {
 		add5(2, 3);
+	})
+	.add('  bind curry', function() {
+		add6(2, 3);
 	})
 	.on('cycle', function(event) {
 		console.log(String(event.target));
@@ -295,6 +361,19 @@
 		fn(18);
 		fn(19);
 	})
+	.add('  bind curry', function() {
+		var fn = add6(2);
+		fn(10);
+		fn(11);
+		fn(12);
+		fn(13);
+		fn(14);
+		fn(15);
+		fn(16);
+		fn(17);
+		fn(18);
+		fn(19);
+	})
 	.on('cycle', function(event) {
 		console.log(String(event.target));
 	})
@@ -327,7 +406,11 @@
 	var sum5 = curry5(function(a, b, c, d, e) {
 		return a + b + c + d + e;
 	});
-	
+
+	var sum6 = curry6(function(a, b, c, d, e) {
+		return a + b + c + d + e;
+	});
+
 	
 	new Benchmark.Suite()
 	.add('   no1 curry', function() {
@@ -440,6 +523,33 @@
 	})
 	.add('lodash curry', function() {
 		var fa = sum5(2);
+		var fb = fa(3);
+		var fc = fb(4);
+		var fd = fc(5);
+	
+		fd(10);
+		fd(11);
+		fd(12);
+		fd(13);
+		fd(14);
+		fd(15);
+		fd(16);
+		fd(17);
+		fd(18);
+		fd(19);
+		fd(20);
+		fd(21);
+		fd(22);
+		fd(23);
+		fd(24);
+		fd(25);
+		fd(26);
+		fd(27);
+		fd(28);
+		fd(29);
+	})
+	.add('  bind curry', function() {
+		var fa = sum6(2);
 		var fb = fa(3);
 		var fc = fb(4);
 		var fd = fc(5);
