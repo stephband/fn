@@ -6,7 +6,7 @@
 (function(window) {
 	"use strict";
 
-	var debug = true;
+	var DEBUG = window.DEBUG === true;
 
 
 	// Import
@@ -23,24 +23,6 @@
 		shift: { value: noop }
 	}));
 
-	if (window.console) {
-		console.wrap = function(fn) {
-			var fn   = arguments[arguments.length - 1];
-			var logs = A.slice.call(arguments, 0, arguments.length - 1);
-
-			logs.push((fn.name || 'function') + '(');
-
-			return function() {
-				logs.push.apply(logs, arguments);
-				logs.push(')');
-				console.group.apply(console, logs);
-				var value = fn.apply(this, arguments);
-				console.groupEnd();
-				console.log('⬅', value);
-				return value;
-			};
-		};
-	}
 
 	// Constant for converting radians to degrees
 	var angleFactor = 180 / Math.PI;
@@ -62,6 +44,9 @@
 		return fn.length === 2;
 	})();
 
+
+	// Debug helpers
+
 	function setFunctionProperties(text, parity, fn1, fn2) {
 		// Make the string representation of fn2 display parameters of fn1
 		fn2.toString = function() {
@@ -82,6 +67,25 @@
 		return function deprecate() {
 			console.warn('Fn: deprecated - ' + message);
 			return fn.apply(this, arguments);
+		};
+	}
+
+	function debug(fn) {
+		if (!window.console) { return fn; }
+
+		var fn   = arguments[arguments.length - 1];
+		var logs = A.slice.call(arguments, 0, arguments.length - 1);
+
+		logs.push((fn.name || 'function') + '(');
+
+		return function() {
+			logs.push.apply(logs, arguments);
+			logs.push(')');
+			console.group.apply(console, logs);
+			var value = fn.apply(this, arguments);
+			console.groupEnd();
+			console.log('⬅', value);
+			return value;
 		};
 	}
 
@@ -148,13 +152,15 @@
 	}
 
 	function curry(fn, muteable, arity) {
+		var arity  = arguments[2] || fn.length;
+console.log(fn, muteable, arity);
 		var memo = arity === 1 ?
 			// Don't cache if `muteable` flag is true
 			muteable ? fn : cache(fn) :
 
 			// It's ok to always cache intermediate memos, though
 			cache(function(object) {
-				return _curry(function() {
+				return curry(function() {
 					var args = [object];
 					args.push.apply(args, arguments);
 					return fn.apply(null, args);
@@ -205,15 +211,14 @@
 		}
 	}
 
-	if (debug) {
+	if (DEBUG) {
 		var _curry = curry;
 
+		// Make curried functions log a pretty version of their partials
 		curry = function curry(fn, muteable) {
 			var arity  = arguments[2] || fn.length;
 
-			return debug ?
-				setFunctionProperties('curried', arity, fn, _curry(fn, muteable, arity)) :
-				_curry(fn, muteable, arity) ;
+			return setFunctionProperties('curried', arity, fn, _curry(fn, muteable, arity));
 		};
 	}
 
@@ -1697,6 +1702,7 @@
 
 		// Debugging
 
+		debug:        debug,
 		deprecate:    deprecate,
 
 
