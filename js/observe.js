@@ -5,7 +5,7 @@
 // Observes object properties for changes by redefining
 // properties of the observable object with setters that
 // fire a callback function whenever the property changes.
-// I warn you, this is hairy stuff. But when it works, it
+// I warn you, this is hairy stuff. But WHEN it works, it
 // works beautifully.
 
 (function(window){
