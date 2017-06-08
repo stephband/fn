@@ -542,7 +542,7 @@
 	var assign = Object.assign;
 
 	var rpathtrimmer  = /^\[|\]$/g;
-	var rpathsplitter = /\]?(?:\.|\[)/g;
+	var rpathsplitter = /["']?\](?:$|\.|\[["']?)|\[["']?/;
 	var rpropselector = /(\w+)=(['"]?[\w-]+['"]?)/;
 
 	function isObject(obj) { return obj instanceof Object; }
@@ -572,9 +572,11 @@
 	}
 
 	function splitPath(path) {
-		return path
-			.replace(rpathtrimmer, '')
-			.split(rpathsplitter);
+		// Split path, making sure whitespace is topped and tailed
+		var array = path.split(rpathsplitter);
+		if (array[0] === '') { array.shift(); }
+		if (array[array.length - 1] === '') { array.pop(); }
+		return array;
 	}
 
 	function findByProperty(name, array, value) {
