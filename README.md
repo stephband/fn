@@ -525,15 +525,28 @@ Create a stream that emits values at constant intervals.
 		<tr>
 			<td><code><strong>Observable(object)</strong></code></td>
 			<td>
-				Returns an observable proxy of <code>object</code>.
-				Objects got via property access on this proxy (and
-				anything in it's sub-tree) are also observable proxies.
-				Objects and values set by property access on this proxy (and
-				anything in it's sub-tree) cause relevant observers to fire. 
-				<pre><code>
-				var observable = Observable({a: 0});
-				</code></pre>
+				<p>Returns an observable proxy of <code>object</code>.</p>
+				<p>Objects accessed on this proxy (and anything in it's
+				sub-tree) are automatically returned as observable proxies.
+				Mutations made to this proxy (and anything in it's sub-tree)
+				cause relevant observers to fire.</p>
+				<pre><code>var observable = Observable({a: 0});</code></pre>
 			</td>
+		</tr>
+
+		<tr>
+			<td><code><strong>observe(object,&nbsp;path,&nbsp;fn)</strong></code></td>
+			<td>
+				<p>Observes changes to <code>path</code> and calls
+				<code>fn</code> when mutations are detected.</p>
+				<pre><code>var observe = Observable.observe;
+var observable = Observable({a: 0});
+
+observe(observable, 'a', function(value) { console.log(value); }); // > 0
+observable.a = 10;                                                 // > 20
+observable.a = [];                                                 // > []
+observable.a.push(20);                                             // > [20]
+</code></pre>
 		</tr>
 	</tbody>
 </table>
