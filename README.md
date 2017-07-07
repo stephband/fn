@@ -533,7 +533,6 @@ Create a stream that emits values at constant intervals.
 				<pre><code>var observable = Observable({a: 0});</code></pre>
 			</td>
 		</tr>
-
 		<tr>
 			<td><code><strong>observe(object,&nbsp;path,&nbsp;fn)</strong></code></td>
 			<td>
