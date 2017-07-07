@@ -521,76 +521,14 @@ Create a stream that emits values at constant intervals.
 
 
 <table cellpadding="0">
-	<colgroup>
-		<col width="40%" title="Method"/>
-		<col width="60%" style="width: 60%" title="Description"/>
-	</colgroup>
 	<tbody>
 		<tr>
-			<td>
-				*Observable(object)*
-			</td>
-			<td>Creates an observable proxy of an object.</td>
-		</tr>
-		<tr>
-			<td>*Observable(object)*</td>
-			<td>Creates an observable proxy of an object.</td>
-		</tr>
-		<tr>
-			<td><strong>Observable(object)</strong></td>
-			<td>Creates an observable proxy of an object.</td>
-		</tr>
-		<tr>
-			<td><strong>Observable(object)</strong></td>
-			<td>Creates an observable proxy of an object.</td>
-		</tr>
-		<tr>
-			<td><h5>Observable(object)</h5></td>
-			<td>Creates an observable proxy of an object.</td>
-		</tr>
-		<tr>
-			<td><h5>Observable(object)</h5></td>
-			<td>Creates an observable proxy of an object.</td>
-		</tr>
-		<tr>
-			<td><h5><code>Observable(object)</code></h5></td>
-			<td>Creates an observable proxy of an object.</td>
-		</tr>
-		<tr>
-			<td><h5><code>Observable(object)</h5></code></td>
-			<td>Creates an observable proxy of an object.</td>
-		</tr>
-		<tr>
-			<td><pre>Observable(object)</pre></td>
-			<td>Creates an observable proxy of an object.</td>
-		</tr>
-		<tr>
-			<td><pre>Observable(object)</pre></td>
-			<td>Creates an observable proxy of an object.</td>
-		</tr>
-		<tr>
-			<td><code>observe(object, path, fn)</code></td>
-			<td>Observes changes to path and calls `fn` when updates are made.</td>
-		</tr>
-		<tr>
-			<td><code>observe(object, path, fn)</code></td>
-			<td>Observes changes to path and calls `fn` when updates are made.</td>
-		</tr>
-		<tr>
-			<td><code><strong>observe(object, path, fn)</strong></code></td>
+			<td><code><strong>observe(object,&nbsp;path,&nbsp;fn)</strong></code></td>
 			<td>Observes changes to path and calls `fn` when updates are made.
 			Observes changes to path and calls `fn` when updates are made.
 			Observes changes to path and calls `fn` when updates are made.
 			Observes changes to path and calls `fn` when updates are made.
 			Observes changes to path and calls `fn` when updates are made.</td>
-		</tr>
-		<tr>
-			<td><strong><code>observe(object, path, fn)</code></strong></td>
-			<td>Observes changes to path and calls `fn` when updates are made.</td>
-		</tr>
-		<tr>
-			<td>observe(object, path, fn)</td>
-			<td>Observes changes to path and calls `fn` when updates are made.</td>
 		</tr>
 	</tbody>
 </table>
