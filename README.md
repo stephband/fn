@@ -520,7 +520,7 @@ Create a stream that emits values at constant intervals.
 
 # Observable
 
-##### `Observable(object)`
+#### `Observable(object)`
 
 Returns an observable proxy of <code>object</code>.
 
@@ -531,7 +531,7 @@ sub-tree) are automatically returned as observable proxies.
 Mutations made to this proxy (and anything in it's sub-tree)
 cause relevant observers to fire.
 
-##### `observe(object,&nbsp;path,&nbsp;fn)`
+#### `observe(object, path, fn)`
 
 Observes changes to <code>path</code> and calls `fn` when mutations are
 detected.
