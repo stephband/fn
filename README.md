@@ -516,6 +516,26 @@ where a frame is a browser animation frame.
 Create a stream that emits values at constant intervals.
 
 
+
+
+
+
+<table cellpadding="0">
+	<tbody>
+		<tr>
+			<td>`Observable(object)`</td>
+			<td>Creates an observable proxy of an object.</td>
+		</tr>
+		<tr>
+			<td>observe(object, path, fn)</td>
+			<td>Observes changes to path and calls `fn` when updates are made.</td>
+		</tr>
+	</tbody>
+</table>
+
+
+
+
 ## Pool(options, prototype)
 
 Creates a pseudo-constructor function for pooled objects.
