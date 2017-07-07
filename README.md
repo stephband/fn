@@ -574,7 +574,11 @@ Create a stream that emits values at constant intervals.
 		</tr>
 		<tr>
 			<td><code><strong>observe(object, path, fn)</strong></code></td>
-			<td>Observes changes to path and calls `fn` when updates are made.</td>
+			<td>Observes changes to path and calls `fn` when updates are made.
+			Observes changes to path and calls `fn` when updates are made.
+			Observes changes to path and calls `fn` when updates are made.
+			Observes changes to path and calls `fn` when updates are made.
+			Observes changes to path and calls `fn` when updates are made.</td>
 		</tr>
 		<tr>
 			<td><strong><code>observe(object, path, fn)</code></strong></td>
@@ -586,21 +590,6 @@ Create a stream that emits values at constant intervals.
 		</tr>
 	</tbody>
 </table>
-
-<dl>
-	<dt><code>observe(object, path, fn)</code></dt>
-	<dd>Observes changes to path and calls `fn` when updates are made.</dd>
-	<dt><code>observe(object, path, fn)</code></dt>
-	<dd>Observes changes to path and calls `fn` when updates are made.</dd>
-	<dt><code><strong>observe(object, path, fn)</strong></code></dt>
-	<dd>Observes changes to path and calls `fn` when updates are made.</dd>
-	<dt><strong><code>observe(object, path, fn)</code></strong></dt>
-	<dd>Observes changes to path and calls `fn` when updates are made.</dd>
-	<dt>observe(object, path, fn)</dt>
-	<dd>Observes changes to path and calls `fn` when updates are made.</dd>
-</dl>
-
-
 
 ## Pool(options, prototype)
 
