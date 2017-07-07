@@ -525,7 +525,6 @@ Create a stream that emits values at constant intervals.
 		<col width="40%" title="Method"/>
 		<col width="60%" style="width: 60%" title="Description"/>
 	</colgroup>
-
 	<tbody>
 		<tr>
 			<td>
