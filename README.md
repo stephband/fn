@@ -524,7 +524,7 @@ Create a stream that emits values at constant intervals.
 
 Returns an observable proxy of <code>object</code>.
 
-```var observable = Observable({a: 0});```
+    var observable = Observable({a: 0});
 
 Objects accessed on this proxy (and anything in it's
 sub-tree) are automatically returned as observable proxies.
@@ -536,11 +536,11 @@ cause relevant observers to fire.
 Observes changes to <code>path</code> and calls `fn` when mutations are
 detected.
 
-```var unobserve = observe(observable, 'a[b="1"]', fn);```
+    var unobserve = observe(observable, 'a[b="1"]', fn);
 
 Returns a function that unbinds the observer.
 
-```unobserve();```
+    unobserve();
 
 ## Observable
 
