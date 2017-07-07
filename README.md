@@ -573,6 +573,14 @@ Create a stream that emits values at constant intervals.
 			<td>Observes changes to path and calls `fn` when updates are made.</td>
 		</tr>
 		<tr>
+			<td><code><strong>observe(object, path, fn)</strong></code></td>
+			<td>Observes changes to path and calls `fn` when updates are made.</td>
+		</tr>
+		<tr>
+			<td><code><strong>observe(object, path, fn)</strong></code></td>
+			<td>Observes changes to path and calls `fn` when updates are made.</td>
+		</tr>
+		<tr>
 			<td>observe(object, path, fn)</td>
 			<td>Observes changes to path and calls `fn` when updates are made.</td>
 		</tr>
