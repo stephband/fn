@@ -523,6 +523,24 @@ Create a stream that emits values at constant intervals.
 <table cellpadding="0">
 	<tbody>
 		<tr>
+			<td>
+				*Observable(object)*
+			</td>
+			<td>Creates an observable proxy of an object.</td>
+		</tr>
+		<tr>
+			<td>*Observable(object)*</td>
+			<td>Creates an observable proxy of an object.</td>
+		</tr>
+		<tr>
+			<td><strong>Observable(object)</strong></td>
+			<td>Creates an observable proxy of an object.</td>
+		</tr>
+		<tr>
+			<td><strong>Observable(object)</strong></td>
+			<td>Creates an observable proxy of an object.</td>
+		</tr>
+		<tr>
 			<td><h5>Observable(object)</h5></td>
 			<td>Creates an observable proxy of an object.</td>
 		</tr>
