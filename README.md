@@ -541,7 +541,6 @@ Create a stream that emits values at constant intervals.
 				<code>fn</code> when mutations are detected.</p>
 				<pre><code>var observe = Observable.observe;
 var observable = Observable({a: 0});
-
 observe(observable, 'a', function(value) { console.log(value); }); // > 0
 observable.a = 10;                                                 // > 20
 observable.a = [];                                                 // > []
