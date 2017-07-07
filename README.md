@@ -520,30 +520,27 @@ Create a stream that emits values at constant intervals.
 
 # Observable
 
-<table>
-	<tbody>
-		<tr>
-			<td><code><strong>Observable(object)</strong></code></td>
-			<td>
-				<p>Returns an observable proxy of <code>object</code>.</p>
-				<p>Objects accessed on this proxy (and anything in it's
-				sub-tree) are automatically returned as observable proxies.
-				Mutations made to this proxy (and anything in it's sub-tree)
-				cause relevant observers to fire.</p>
-				<pre><code>var observable = Observable({a: 0});</code></pre>
-			</td>
-		</tr>
-		<tr>
-			<td><code><strong>observe(object,&nbsp;path,&nbsp;fn)</strong></code></td>
-			<td>
-				<p>Observes changes to <code>path</code> and calls
-				<code>fn</code> when mutations are detected.</p>
-				<pre><code>var unobserve = observe(observable, 'a[b="1"]', fn);</code></pre>
-				<p>Returns a function that unbinds the observer.</p>
-				<pre><code>unobserve();</code></pre>
-		</tr>
-	</tbody>
-</table>
+##### `Observable(object)`
+
+Returns an observable proxy of <code>object</code>.
+
+```var observable = Observable({a: 0});```
+
+Objects accessed on this proxy (and anything in it's
+sub-tree) are automatically returned as observable proxies.
+Mutations made to this proxy (and anything in it's sub-tree)
+cause relevant observers to fire.
+
+##### `observe(object,&nbsp;path,&nbsp;fn)`
+
+Observes changes to <code>path</code> and calls `fn` when mutations are
+detected.
+
+```var unobserve = observe(observable, 'a[b="1"]', fn);```
+
+Returns a function that unbinds the observer.
+
+```unobserve();```
 
 ## Observable
 
