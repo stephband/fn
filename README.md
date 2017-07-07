@@ -538,13 +538,9 @@ Create a stream that emits values at constant intervals.
 			<td>
 				<p>Observes changes to <code>path</code> and calls
 				<code>fn</code> when mutations are detected.</p>
-				<pre><code>var observe = Observable.observe;
-var observable = Observable({a: 0});
-observe(observable, 'a', function(value) { console.log(value); }); // > 0
-observable.a = 10;                                                 // > 20
-observable.a = [];                                                 // > []
-observable.a.push(20);                                             // > [20]
-</code></pre>
+				<pre><code>var unobserve = observe(observable, 'a[b="1"]', fn);</code></pre>
+				<p>Returns a function that unbinds the observer.</p>
+				<pre><code>unobserve();</code></pre>
 		</tr>
 	</tbody>
 </table>
