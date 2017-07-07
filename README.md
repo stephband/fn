@@ -518,9 +518,30 @@ Create a stream that emits values at constant intervals.
 
 
 
+# Observable
 
+<table>
+	<tbody>
+		<tr>
+			<td><code><strong>Observable(object)</strong></code></td>
+			<td>
+				Returns an observable proxy of <code>object</code>.
+				Objects got via property access on this proxy (and
+				anything in it's sub-tree) are also observable proxies.
+				Objects and values set by property access on this proxy (and
+				anything in it's sub-tree) cause relevant observers to fire. 
+				```
+				var observable = Observable({a: 0});
+				
+				```
+			</td>
+		</tr>
+	</tbody>
+</table>
 
-<table cellpadding="0">
+## Observable
+
+<table>
 	<tbody>
 		<tr>
 			<td><code><strong>observe(object,&nbsp;path,&nbsp;fn)</strong></code></td>
