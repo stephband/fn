@@ -530,9 +530,9 @@ Create a stream that emits values at constant intervals.
 				anything in it's sub-tree) are also observable proxies.
 				Objects and values set by property access on this proxy (and
 				anything in it's sub-tree) cause relevant observers to fire. 
-				```
+				<pre><code>
 				var observable = Observable({a: 0});
-				```
+				</code></pre>
 			</td>
 		</tr>
 	</tbody>
