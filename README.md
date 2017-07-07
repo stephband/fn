@@ -532,7 +532,6 @@ Create a stream that emits values at constant intervals.
 				anything in it's sub-tree) cause relevant observers to fire. 
 				```
 				var observable = Observable({a: 0});
-				
 				```
 			</td>
 		</tr>
