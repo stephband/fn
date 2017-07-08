@@ -1,8 +1,8 @@
 
-group('.clone()', function(test) {
+group('.clone()', function(test, log) {
 	var Stream = window.Stream;
 
-	test('.clone() twice, consume all three, .stop()', function() {
+	test('.clone() twice, consume all three, .stop()', function(equals) {
 		var s1 = Stream.from([0,1,2,3]);
 		var s2 = s1.clone();
 		var s3 = s1.clone();
@@ -21,7 +21,7 @@ group('.clone()', function(test) {
 		});
 	});
 
-	test('.clone() twice, consume clones first, .stop()', function() {
+	test('.clone() twice, consume clones first, .stop()', function(equals) {
 		var s1 = Stream.from([0,1,2,3]);
 		var s2 = s1.clone();
 		var s3 = s1.clone();
@@ -40,7 +40,7 @@ group('.clone()', function(test) {
 		});
 	});
 
-	test('.clone() twice, .stop(), consume clones first', function() {
+	test('.clone() twice, .stop(), consume clones first', function(equals) {
 		var s1 = Stream.from([0,1,2,3]);
 		var s2 = s1.clone();
 		var s3 = s1.clone();
@@ -59,7 +59,7 @@ group('.clone()', function(test) {
 		});
 	});
 
-	test('.clone() and consume, two times', function() {
+	test('.clone() and consume, two times', function(equals) {
 		var v1, v2, v3;
 		var s1 = Stream.from([0,1,2,3]);
 	
@@ -75,7 +75,7 @@ group('.clone()', function(test) {
 		equals(5, v3);
 	});
 
-	test('stream.clone() clone.shift()', function() {
+	test('stream.clone() clone.shift()', function(equals) {
 		var s0 = Stream.of(0,1);
 		var s1 = s0.clone();
 	
@@ -93,7 +93,7 @@ group('.clone()', function(test) {
 		equals(undefined, s1.shift());
 	});
 	
-	test('stream.clone() stream.stop() clone.shift()', function() {
+	test('stream.clone() stream.stop() clone.shift()', function(equals) {
 		var s0 = Stream.of(0,1);
 		var s1 = s0.clone();
 	
@@ -114,7 +114,7 @@ group('.clone()', function(test) {
 		equals(undefined, s1.shift());
 	});
 	
-	test('stream.clone() clone.shift() stream.stop()', function() {
+	test('stream.clone() clone.shift() stream.stop()', function(equals) {
 		var s0 = Stream.of(0,1);
 		var s1 = s0.clone();
 	

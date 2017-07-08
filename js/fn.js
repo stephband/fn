@@ -1548,7 +1548,7 @@
 				objFrom(object, splitPath(path))) ;
 		}, true),
 
-		setPath: curry(function setPath(path, value, object) {
+		setPath: curry(function setPath(path, object, value) {
 			if (object.set) { object.set(path, value); }
 			if (typeof path === 'number') { return object[path] = value; }
 			var array = splitPath(path);

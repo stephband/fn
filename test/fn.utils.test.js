@@ -1,6 +1,6 @@
 
-group('Fn', function() {
-	test('curry(fn)', function() {
+group('Fn', function(test, log) {
+	test('curry(fn)', function(equals) {
 		var curry = Fn.curry;
 		var i = 0;
 		var fn = curry(function(a, b, c) {
@@ -22,7 +22,7 @@ group('Fn', function() {
 		equals(4, fn(2, 2, 3));
 	});
 
-	test('curry(fn -> curry(fn))', function() {
+	test('curry(fn -> curry(fn))', function(equals) {
 		var curry = Fn.curry;
 		var i = 0;
 		var fn = curry(function(a, b, c) {
@@ -49,7 +49,7 @@ group('Fn', function() {
 		equals(6, fn(2)(2)(3)(4, 5, 6));
 	});
 
-	test('add(a, b)', function() {
+	test('add(a, b)', function(equals) {
 		var fn = Fn.add(1);
 
 		equals(1, fn(0));
@@ -57,7 +57,7 @@ group('Fn', function() {
 		equals(3, fn(2));
 	});
 
-	test('toStringType(string)', function() {
+	test('toStringType(string)', function(equals) {
 		equals('url',    Fn.toStringType('http://cruncher.ch/example.html?q=78'));
 		equals('email',  Fn.toStringType('info@cruncher.ch'));
 		equals('int',    Fn.toStringType('78'));
@@ -68,7 +68,7 @@ group('Fn', function() {
 		equals('string', Fn.toStringType('Hello me old peoples.'));
 	});
 	
-	test('equals(a, b)', function() {
+	test('equals(a, b)', function(equals) {
 		equals(Fn.equals(0, 0), true);
 		equals(Fn.equals(1, 1), true);
 		equals(Fn.equals(false, false), true);

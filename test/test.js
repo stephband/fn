@@ -16,15 +16,14 @@
 	}
 
 	function group(name, fn) {
-		console.group('%c' + name, 'color: #666666; font-weight: 300;');
+		console.group('%c' + name, 'color: #ffffff; background-color: #222222; padding: 0.25em 0.5em; border-radius: 0.25em; font-weight: 300;');
 		fn(test, console.log);
 		console.groupEnd();
 	}
 
 	function test(name, fn) {
-		console.log('%c' + name, 'color: #666666; font-weight: 300;');
+		console.log('%c' + name, 'color: #6f6f6f; font-weight: 300;');
 		fn(equals);
-		//console.groupEnd();
 	}
 
 	window.group = group;

@@ -1,8 +1,8 @@
 
-group('.stop()', function() {
+group('.stop()', function(test, log) {
 	var Stream = window.Stream;
 
-	test('.stop() before .shift()', function() {
+	test('.stop() before .shift()', function(equals) {
 		var s = Stream.of(0,1);
 	
 		s.stop();
@@ -14,7 +14,7 @@ group('.stop()', function() {
 		equals('done', s.status);
 	});
 
-	test('.stop() after one .shift()', function() {
+	test('.stop() after one .shift()', function(equals) {
 		var s = Stream.of(0,1);
 
 		equals(0, s.shift());
@@ -28,7 +28,7 @@ group('.stop()', function() {
 		equals('done', s.status);
 	});
 
-	test('.stop() after all .shift()', function() {
+	test('.stop() after all .shift()', function(equals) {
 		var s = Stream.of(0,1);
 
 		equals(0, s.shift());
@@ -44,7 +44,7 @@ group('.stop()', function() {
 		equals(undefined, s.shift());
 	});
 
-	test('.stop() before .shift(), .shift() inside .then()', function(done) {
+	test('.stop() before .shift(), .shift() inside .then()', function(equals) {
 		var s = Stream.of(0,1);
 		var done = 0;
 
@@ -68,7 +68,7 @@ group('.stop()', function() {
 		}, 200);
 	});
 
-	test('.stop() after one .shift(), .shift() inside .then()', function(done) {
+	test('.stop() after one .shift(), .shift() inside .then()', function(equals) {
 		var s = Stream.of(0,1);
 		var done = 0;
 
@@ -90,7 +90,7 @@ group('.stop()', function() {
 		});
 	});
 
-	test('.stop() after all .shift(), .shift() inside .then()', function(done) {
+	test('.stop() after all .shift(), .shift() inside .then()', function(equals) {
 		var s = Stream.of(0,1);
 		var done = 0;
 

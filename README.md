@@ -516,8 +516,6 @@ where a frame is a browser animation frame.
 Create a stream that emits values at constant intervals.
 
 
-
-
 # Observable
 
 #### `Observable(object)`
@@ -531,7 +529,7 @@ sub-tree) are automatically returned as observable proxies.
 Mutations made to this proxy (and anything in it's sub-tree)
 cause relevant observers to fire.
 
-#### `observe(object, path, fn)`
+#### `observe(observable, path, fn)`
 
 Observes changes to <code>path</code> and calls `fn` when mutations are
 detected.
@@ -542,20 +540,6 @@ Returns a function that unbinds the observer.
 
     unobserve();
 
-## Observable
-
-<table>
-	<tbody>
-		<tr>
-			<td><code><strong>observe(object,&nbsp;path,&nbsp;fn)</strong></code></td>
-			<td>Observes changes to path and calls `fn` when updates are made.
-			Observes changes to path and calls `fn` when updates are made.
-			Observes changes to path and calls `fn` when updates are made.
-			Observes changes to path and calls `fn` when updates are made.
-			Observes changes to path and calls `fn` when updates are made.</td>
-		</tr>
-	</tbody>
-</table>
 
 ## Pool(options, prototype)
 

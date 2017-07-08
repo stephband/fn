@@ -38,10 +38,10 @@
 
 	// Events
 
-	var eventsSymbol = Symbol('events');
+	var $events = Symbol('events');
 
 	function notify(type, object) {
-		var events = object[eventsSymbol];
+		var events = object[$events];
 
 		if (!events) { return; }
 		if (!events[type]) { return; }
@@ -73,53 +73,9 @@
 	}
 
 
-	// Internal sources
+	// Sources
 	//
-	// Sources that represent the actions of a stream:
-	//
-	// InitSource - before streaming has started
-	// StopSource - when stream has been stopped but is not yet empty
-	// doneSource - when stream is stopped and empty
-
-	function InitSource(setup) {
-		this._setup = setup;
-	}
-
-	InitSource.prototype.shift = function() {
-		// Initialise on first run, passing in source.stop() arguments if stop
-		// has already been called.
-		var source = this._setup();
-		return source.shift();
-	};
-
-	InitSource.prototype.push = function() {
-		// ??????
-		// Initialise on first run and return result from source
-		var source = this._setup();
-		return source.push.apply(source, arguments);
-	};
-
-	InitSource.prototype.stop = function() {
-		// Initialise on first run, passing in source.stop() arguments if stop
-		// has already been called.
-		var source = this._setup(arguments);
-		return source.stop.apply(source, arguments);
-	};
-
-	function StopSource(source, n, done) {
-		this._source = source;
-		this._n      = n;
-		this._done   = done;
-	}
-
-	StopSource.prototype.shift = function() {
-		if (--this._n < 1) { this._done(); }
-		return this._source.shift();
-	};
-
-	StopSource.prototype.push = noop;
-
-	StopSource.prototype.stop = noop;
+	// Sources that represent stopping and stopped states of a stream
 
 	var doneSource = {
 		shift: noop,
@@ -127,6 +83,19 @@
 		start: noop,
 		stop:  noop
 	};
+
+	function StopSource(source, n, done) {
+		this.source = source;
+		this.n      = n;
+		this.done   = done;
+	}
+
+	assign(StopSource.prototype, doneSource, {
+		shift: function() {
+			if (--this.n < 1) { this.done(); }
+			return this.source.shift();
+		}
+	});
 
 
 	// Stream
@@ -137,28 +106,31 @@
 			return new Stream(Source);
 		}
 
-		var source;
+		var getSource;
 		var stream  = this;
 		var promise = new Promise(function(resolve, reject) {
-			function stop(n, value) {
-				// Neuter events and schedule shutdown of the stream
-				// after n values
-				delete stream[eventsSymbol];
-				if (n) { source = new StopSource(source, n, done); }
-				else   { done(); }
-
-				// Note that we cannot resolve with stream because Chrome sees
-				// it as a promise (resolving with promises is special)
-				resolve(value);
-			}
+			var source;
 
 			function done() {
 				stream.status = 'done';
 				source = doneSource;
 			}
 
-			function setup(stopped) {
-				var notify = stopped ? noop : createNotify(stream);
+			function stop(n, value) {
+				// Neuter events and schedule shutdown of the stream
+				// after n values
+				delete stream[$events];
+
+				if (n) { source = new StopSource(source, n, done); }
+				else { done(); }
+
+				// Note that we cannot resolve with stream because Chrome sees
+				// it as a promise (resolving with promises is special)
+				resolve(value);
+			}
+
+			getSource = function() {
+				var notify = createNotify(stream);
 				source = new Source(notify, stop);
 
 				// Check for sanity
@@ -167,32 +139,34 @@
 				// Gaurantee that source has a .stop() method
 				if (!source.stop) { source.stop = noop; }
 
-				// InitSource requires source to be returned
-				return source;
-			}
+				getSource = function() { return source; };
 
-			source = new InitSource(setup);
+				return source;
+			};
 		});
 
 		// Properties and methods
 
-		this[eventsSymbol] = {};
+		this[$events] = {};
 
 		this.push = function push() {
+			var source = getSource();
 			source.push.apply(source, arguments);
 			return stream;
 		};
 
 		this.shift = function shift() {
-			return source.shift();
+			return getSource().shift();
 		};
 
 		this.start = function start() {
+			var source = getSource();
 			source.start.apply(source, arguments);
 			return stream;
 		};
 
 		this.stop = function stop() {
+			var source = getSource();
 			source.stop.apply(source, arguments);
 			return stream;
 		};
@@ -557,7 +531,6 @@
 	// Stream Methods
 
 	Stream.prototype = assign(Object.create(Fn.prototype), {
-
 		clone: function() {
 			var source  = this;
 			var shift   = this.shift;
@@ -640,7 +613,6 @@
 		// Consume
 
 		each: function(fn) {
-if (fn === undefined) {  throw new Error('splat');}
 			var args   = arguments;
 			var source = this;
 
@@ -662,7 +634,7 @@ if (fn === undefined) {  throw new Error('splat');}
 		// Events
 
 		on: function(type, fn) {
-			var events = this[eventsSymbol];
+			var events = this[$events];
 			if (!events) { return this; }
 
 			var listeners = events[type] || (events[type] = []);
@@ -671,7 +643,7 @@ if (fn === undefined) {  throw new Error('splat');}
 		},
 
 		off: function(type, fn) {
-			var events = this[eventsSymbol];
+			var events = this[$events];
 			if (!events) { return this; }
 
 			// Remove all handlers for all types
