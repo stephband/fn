@@ -209,7 +209,7 @@
 	}
 
 	function observe(object, path, fn) {
-		if (object === undefined) {
+		if (!object || typeof object !== 'object') {
 			return observePrimitive(object, fn);
 		}
 
