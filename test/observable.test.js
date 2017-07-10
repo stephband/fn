@@ -212,7 +212,7 @@ group('Observable()', function(test, log) {
 	});
 
 	test("observe 'a[0].n'", function(equals) {
-		var expected = [0, undefined, 1, undefined, 0];
+		var expected = [0, undefined, 1, undefined, 0, undefined, null];
 
 		var data = { a: [] };
 		var o    = Observable(data);
@@ -224,14 +224,18 @@ group('Observable()', function(test, log) {
 		o.a[0] = {n: 0};
 		o.a[1] = {n: 1};
 		o.a[2] = {n: 2};
-		
+
 		o.a.length = 0;
-		
+
 		o.a[0] = {n: 1};
-		
+
 		o.a.length = 0;
 		o.a.length = 0;
-		
+
 		o.a[0] = {n: 0};
+		o.a[0] = null;
+		o.a[0] = {n: null};
+
+		equals(0, expected.length);
 	});
 });

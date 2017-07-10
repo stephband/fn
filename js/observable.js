@@ -209,14 +209,14 @@
 	}
 
 	function observe(object, path, fn) {
-		if (!object || typeof object !== 'object') {
-			return observePrimitive(object, fn);
-		}
-
 		if (!path.length) {
-			return typeof object === 'object' ?
+			return object && typeof object === 'object' ?
 				observeObject(object, fn) :
 				observePrimitive(object, fn) ;
+		}
+
+		if (!(object && typeof object === 'object')) {
+			return observePrimitive(undefined, fn);
 		}
 
 		rname.lastIndex = 0;
