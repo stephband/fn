@@ -123,9 +123,9 @@
 	}
 
 	function pipe() {
-		var a = arguments;
-		return function piped(n) {
-			return A.reduce.call(a, invoke, n);
+		var fns = arguments;
+		return function pipe(value) {
+			return A.reduce.call(fns, invoke, value);
 		};
 	}
 
@@ -1577,8 +1577,8 @@
 		lcm:      curry(lcm),
 		todB:     function todB(n) { return 20 * Math.log10(value); },
 		toLevel:  function toLevel(n) { return Math.pow(2, n/6); },
-		toRad:    function toDeg(n) { return n / angleFactor; },
-		toDeg:    function toRad(n) { return n * angleFactor; },
+		toRad:    function toRad(n) { return n / angleFactor; },
+		toDeg:    function toDeg(n) { return n * angleFactor; },
 
 		factorise: function factorise(n, d) {
 			// Reduce a fraction by finding the Greatest Common Divisor and
