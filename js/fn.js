@@ -548,13 +548,11 @@
 	function isObject(obj) { return obj instanceof Object; }
 
 	function get(key, object) {
-		return object && (typeof object.get === "function" ?
-			object.get(key) :
-			// Coerse null to undefined
-			object[key] === null ?
-				undefined :
-				object[key]
-		);
+		// Todo? Support WeakMaps and Maps and other map-like objects with a
+		// get method - but not by detecting the get method
+		return object[key] === null ?
+			undefined :
+			object[key] ;
 	}
 
 	function set(key, object, value) {
