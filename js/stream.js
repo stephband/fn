@@ -15,6 +15,7 @@
 	var each      = Fn.each;
 	var latest    = Fn.latest;
 	var noop      = Fn.noop;
+	var nothing   = Fn.nothing;
 	var throttle  = Fn.throttle;
 	var Timer     = Fn.Timer;
 	var toArray   = Fn.toArray;
@@ -448,7 +449,7 @@
 				},
 				
 				stop: function stop() {
-					buffer = empty;
+					buffer = nothing;
 					timers.forEach(clearTimeout);
 					done();
 				}
@@ -456,19 +457,25 @@
 		});
 	};
 
-	Stream.Throttle = function(request) {
+	Stream.Throttle = function(request, cancel) {
 		// If request is a number create a timer, otherwise if request is
 		// a function use it, or if undefined, use an animation timer.
-		request = typeof request === 'number' ? Timer(request).request :
-			typeof request === 'function' ? request :
-			requestAnimationFrame ;
+		if (typeof request === 'number') {
+			var timer = Timer(request, cancel);
+			request = timer.request;
+			cancel = timer.cancel;
+		}
+		else {
+			request = request || requestAnimationFrame;
+			cancel  = cancel  || cancelAnimationFrame;
+		}
 
 		return new Stream(function setup(notify, done) {
 			var buffer  = [];
 			var push = throttle(function() {
 				buffer[0] = arguments[arguments.length - 1];
 				notify('push');
-			}, request);
+			}, request, cancel);
 
 			return {
 				shift: function shift() {
@@ -478,8 +485,8 @@
 				push: push,
 
 				stop: function stop() {
-					buffer = empty;
-					throttle.cancel(false);
+					buffer = nothing;
+					push.cancel();
 					done();
 				}
 			};
@@ -519,7 +526,7 @@
 				},
 
 				stop: function stop() {
-					pushed = empty;
+					pushed = nothing;
 					update = noop;
 					done();
 				}
@@ -601,8 +608,8 @@
 			return this.pipe(Stream.Delay(time));
 		},
 
-		throttle: function(request) {
-			return this.pipe(Stream.Throttle(request));
+		throttle: function(request, cancel) {
+			return this.pipe(Stream.Throttle(request, cancel));
 		},
 
 		interval: function(request) {

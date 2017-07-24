@@ -53,9 +53,10 @@
 	function equals(expected, value, message) {
 		if (!Fn.equals(value, expected)) {
 			console.trace('%c' +
-				(message || ('Test failed,' + ' ' + 
-				'expected: ' + JSON.stringify(expected) + ' ' +
-				'received: ' + JSON.stringify(value))),
+				('Test: ' + 
+				'Expected ' + JSON.stringify(expected) + ', ' +
+				'received ' + JSON.stringify(value) + '.' +
+				( message ? ' ' + message : '')),
 				'color: #ee8833; font-weight: 700;'
 			);
 		}
@@ -64,17 +65,30 @@
 	function group(name, fn, template) {
 		console.group('%c' + name, 'color: #ffffff; background-color: #222222; padding: 0.25em 0.5em; border-radius: 0.25em; font-weight: 300;');
 		var nodes = domify(template);
-		fn(test, console.log, nodes);
+		var tests = [];
+
+		function next() {
+			var args = tests.shift();
+			if (!args) { return; }
+			test(args[0], args[1], args[2], next);
+		}
+
+		fn(function test(name, fn, n) {
+			tests.push(arguments);
+		}, console.log, nodes);
+
+		next();
+
 		console.groupEnd();
 	}
 
-	function stoppedError() {
+	function stopped() {
 		console.trace('%c' +
 			'Test failed: assertion recieved after test stopped with done().'
 		);
 	}
 
-	function test(name, fn) {
+	function test(name, fn, n, next) {
 		console.log('%c' + name, 'color: #6f6f6f; font-weight: 300;');
 
 		var i = 0;
@@ -85,10 +99,10 @@
 			return eq.apply(null, arguments);
 		}
 
-		function done(number) {
-			eq = stoppedError;
+		fn(assert, function done() {
+			eq = stopped;
 
-			if (number !== undefined && number !== i) {
+			if (n !== undefined && i !== n) {
 				console.trace('%c' +
 					'Test failed: ' + 
 					'expected ' + number + ' assertions, ' +
@@ -99,9 +113,9 @@
 			else {
 				console.log('...passed');
 			}
-		}
 
-		fn(assert, done);
+			next();
+		});
 	}
 
 	window.group = group;

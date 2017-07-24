@@ -750,15 +750,16 @@
 	// Returns a function that calls `fn` once on the next timer frame, using
 	// the context and arguments from the latest invocation.
 
-	function Throttle(fn, request) {
+	function Throttle(fn, request, cancel) {
 		request = request || requestFrame;
+		cancel  = cancel  || cancelFrame;
 
 		var queue = schedule;
-		var context, args;
+		var context, args, id;
 
 		function schedule() {
 			queue = noop;
-			request(update);
+			id = request(update);
 		}
 
 		function update() {
@@ -768,7 +769,12 @@
 
 		function stop(callLast) {
 			// If there is an update queued apply it now
-			if (callLast !== false && queue === noop) { update(); }
+			//if (callLast !== false && queue === noop) { update(); }
+			
+			// An update is queued
+			if (queue === noop && id !== undefined) {
+				cancel(id);
+			}
 
 			// Don't permit further changes to be queued
 			queue = noop;
@@ -777,7 +783,7 @@
 		function throttle() {
 			// Store the latest context and arguments
 			context = this;
-			args = arguments;
+			args    = arguments;
 
 			// Queue the update
 			queue();
