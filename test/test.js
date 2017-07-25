@@ -12,27 +12,41 @@
 	var rcomment = /\s*\/\*([\s\S]*)\*\/\s*/;
 
 	var domify = overload(toType, {
-		'string': function(template) {
-			return createFixture(template);
-		},
+		'string': createSection,
 
-		'function': function(template) {
-			return createFixture(multiline(template));
+		'function': function(template, name) {
+			return createSection(multiline(template), name);
 		},
 
 		'default': function(template) {
 			// WHAT WHY?
-			var nodes = typeof template.length === 'number' ? template : [template] ;
-			append(nodes);
-			return nodes;
+			//var nodes = typeof template.length === 'number' ? template : [template] ;
+			//append(nodes);
+			//return nodes;
 		}
 	});
 
-	function createFixture(html) {
+	function createSection(html, name) {
 		var section = document.createElement('section');
-		section.innerHTML = html;
+		section.setAttribute('class', 'test-section');
+
+		var title = document.createElement('h2');
+		title.setAttribute('class', 'test-title');
+		title.innerHTML = name;
+
+		var div = document.createElement('div');
+		div.setAttribute('class', 'test-fixture');
+
+		div.innerHTML = html;
+		section.appendChild(title);
+		section.appendChild(div);		
 		document.body.appendChild(section);
-		return section;
+
+		return {
+			section: section,
+			title:   title,
+			fixture: div
+		};
 	}
 
 	function multiline(fn) {
@@ -64,18 +78,25 @@
 
 	function group(name, fn, template) {
 		console.group('%c' + name, 'color: #ffffff; background-color: #222222; padding: 0.25em 0.5em; border-radius: 0.25em; font-weight: 300;');
-		var nodes = domify(template);
-		var tests = [];
+
+		var nodes   = domify(template, name);
+		var fixture = nodes.fixture;
+		var tests   = [];
 
 		function next() {
 			var args = tests.shift();
-			if (!args) { return; }
+			if (!args) {
+				// Last test has run
+				nodes.section.className += ' test-passed';
+				return;
+			}
+
 			test(args[0], args[1], args[2], next);
 		}
 
 		fn(function test(name, fn, n) {
 			tests.push(arguments);
-		}, console.log, nodes);
+		}, console.log, nodes.fixture);
 
 		next();
 

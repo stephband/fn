@@ -1,8 +1,31 @@
 
-section {
+.test-section {
 	display: inline-block;
 	vertical-align: top;
 	width: calc(33.3333% - 1.25rem);
 	margin-left: 0.9375rem;
-	border-top: 1px solid #aaaaaa;
+	border-top: 3px solid #aaaaaa;
+}
+
+.test-section.test-passed {
+	border-color: #a0ce0b;
+}
+
+.test-section.test-passed > .test-title {
+	color: #a0ce0b;
+}
+
+.test-section.test-failed {
+	border-color: red;
+}
+
+
+.test-title {
+	font-size: 1.125rem;
+	line-height: 1.25rem;
+	font-weight: 300;
+}
+
+.test-title + .test-fixture {
+	margin-top: 1.25rem;
 }
