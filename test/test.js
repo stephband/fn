@@ -105,7 +105,7 @@
 			if (n !== undefined && i !== n) {
 				console.trace('%c' +
 					'Test failed: ' + 
-					'expected ' + number + ' assertions, ' +
+					'expected ' + n + ' assertions, ' +
 					'received ' + i,
 					'color: #ee8833; font-weight: 700;'
 				);
