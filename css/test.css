@@ -4,6 +4,7 @@
 	vertical-align: top;
 	width: calc(33.3333% - 1.25rem);
 	margin-left: 0.9375rem;
+	margin-top: 0.9375rem;
 	border-top: 3px solid #aaaaaa;
 }
 

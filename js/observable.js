@@ -114,7 +114,7 @@
 	}
 
 	function Observable(object) {
-		if (!object || typeof object !== 'object') {
+		if (!object || typeof object !== 'object' || object instanceof Date) {
 			return object;
 		}
 
@@ -210,7 +210,7 @@
 
 	function observe(object, path, fn) {
 		if (!path.length) {
-			return object && typeof object === 'object' ?
+			return object && typeof object === 'object' && !(object instanceof Date) ?
 				observeObject(object, fn) :
 				observePrimitive(object, fn) ;
 		}

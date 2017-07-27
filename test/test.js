@@ -85,6 +85,7 @@
 
 		function next() {
 			var args = tests.shift();
+
 			if (!args) {
 				// Last test has run
 				nodes.section.className += ' test-passed';
@@ -98,9 +99,9 @@
 			tests.push(arguments);
 		}, console.log, nodes.fixture);
 
-		next();
-
 		console.groupEnd();
+
+		next();
 	}
 
 	function stopped() {
@@ -110,7 +111,7 @@
 	}
 
 	function test(name, fn, n, next) {
-		console.log('%c' + name, 'color: #6f6f6f; font-weight: 300;');
+		//console.log('%c' + name, 'color: #6f6f6f; font-weight: 300;');
 
 		var i = 0;
 		var eq = equals;
@@ -124,6 +125,7 @@
 			eq = stopped;
 
 			if (n !== undefined && i !== n) {
+				console.log('%c✘ ' + name, 'color: #ee8833; font-weight: 300;');
 				console.trace('%c' +
 					'Test failed: ' + 
 					'expected ' + n + ' assertions, ' +
@@ -132,7 +134,7 @@
 				);
 			}
 			else {
-				console.log('...passed');
+				console.log('%c✔ ' + name, 'color: #6f9940; font-weight: 300;');
 			}
 
 			next();
