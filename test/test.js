@@ -79,16 +79,18 @@
 	function group(name, fn, template) {
 		console.group('%c' + name, 'color: #ffffff; background-color: #222222; padding: 0.25em 0.5em; border-radius: 0.25em; font-weight: 300;');
 
-		var nodes   = domify(template, name);
-		var fixture = nodes.fixture;
-		var tests   = [];
+		var nodes = template && domify(template, name);
+		var tests = [];
 
 		function next() {
 			var args = tests.shift();
 
 			if (!args) {
 				// Last test has run
-				nodes.section.className += ' test-passed';
+				if (nodes) {
+					nodes.section.className += ' test-passed';
+				}
+
 				return;
 			}
 
@@ -97,7 +99,7 @@
 
 		fn(function test(name, fn, n) {
 			tests.push(arguments);
-		}, console.log, nodes.fixture);
+		}, console.log, nodes && nodes.fixture);
 
 		console.groupEnd();
 

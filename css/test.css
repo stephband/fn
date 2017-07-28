@@ -2,9 +2,9 @@
 .test-section {
 	display: inline-block;
 	vertical-align: top;
-	width: calc(33.3333% - 1.25rem);
+	width: calc(50% - 1.40625rem);
 	margin-left: 0.9375rem;
-	margin-top: 0.9375rem;
+	margin-top: 1.5625rem;
 	border-top: 3px solid #aaaaaa;
 }
 
@@ -20,13 +20,34 @@
 	border-color: red;
 }
 
+@media (min-width: 42em) {
+	.test-section {
+		width: calc(33.3333% - 1.25rem);
+		margin-top: 0.9375rem;
+	}
+}
+
+@media (min-width: 64em) {
+	.test-section {
+		width: calc(20% - 1.125rem);
+	}
+}
+
 
 .test-title {
-	font-size: 1.125rem;
-	line-height: 1.25rem;
+	font-size: 0.9375rem;
+	line-height: 1.125rem;
 	font-weight: 300;
+	min-height: 2.5rem;
 }
 
 .test-title + .test-fixture {
 	margin-top: 1.25rem;
+}
+
+@media (min-width: 42em) {
+	.test-title {
+		font-size: 1.125rem;
+		line-height: 1.25rem;
+	}
 }
