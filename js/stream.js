@@ -16,6 +16,7 @@
 	var latest    = Fn.latest;
 	var noop      = Fn.noop;
 	var nothing   = Fn.nothing;
+	var rest      = Fn.rest;
 	var throttle  = Fn.throttle;
 	var Timer     = Fn.Timer;
 	var toArray   = Fn.toArray;
@@ -101,14 +102,16 @@
 
 	// Stream
 
-	function Stream(Source) {
+	function Stream(Source, options) {
 		// Enable construction without the `new` keyword
 		if (!Stream.prototype.isPrototypeOf(this)) {
-			return new Stream(Source);
+			return new Stream(Source, options);
 		}
 
-		var getSource;
 		var stream  = this;
+		var args    = arguments;
+		var getSource;
+
 		var promise = new Promise(function(resolve, reject) {
 			var source;
 
@@ -132,7 +135,7 @@
 
 			getSource = function() {
 				var notify = createNotify(stream);
-				source = new Source(notify, stop);
+				source = new Source(notify, stop, options);
 
 				// Check for sanity
 				if (debug) { checkSource(source); }
@@ -457,41 +460,155 @@
 		});
 	};
 
-	Stream.Throttle = function(request, cancel) {
-		// If request is a number create a timer, otherwise if request is
-		// a function use it, or if undefined, use an animation timer.
-		if (typeof request === 'number') {
-			var timer = Timer(request, cancel);
-			request = timer.request;
-			cancel = timer.cancel;
+	//Stream.Throttle = function(request, cancel) {
+	//	// If request is a number create a timer, otherwise if request is
+	//	// a function use it, or if undefined, use an animation timer.
+	//	if (typeof request === 'number') {
+	//		var timer = Timer(request, cancel);
+	//		request = timer.request;
+	//		cancel = timer.cancel;
+	//	}
+	//	else {
+	//		request = request || requestAnimationFrame;
+	//		cancel  = cancel  || cancelAnimationFrame;
+	//	}
+	//
+	//	return new Stream(function setup(notify, done) {
+	//		var buffer  = [];
+	//		var push = throttle(function() {
+	//			buffer[0] = arguments[arguments.length - 1];
+	//			notify('push');
+	//		}, request, cancel);
+	//
+	//		return {
+	//			shift: function shift() {
+	//				return buffer.shift();
+	//			},
+	//
+	//			push: push,
+	//
+	//			stop: function stop() {
+	//				buffer = nothing;
+	//				push.cancel();
+	//				done();
+	//			}
+	//		};
+	//	});
+	//};
+
+
+	function schedule() {
+		this.queue = noop;
+		var request = this.request;
+		this.id = request(this.update);
+	}
+
+	function ThrottleSource(notify, stop, request, cancel) {
+		this._stop   = stop;
+		this.request = request;
+		this.cancel  = cancel;
+		this.queue   = schedule;
+
+		this.update  = function update() {
+			this.queue = schedule;
+			notify('push');
+		}.bind(this);
+	}
+
+	assign(ThrottleSource.prototype, {
+		shift: function shift() {
+			if (!this.args) { return; }
+			var value = this.value;
+			this.value = undefined;
+			return value;
+		},
+
+		stop: function stop(callLast) {
+			// An update is queued
+			if (this.queue === noop) {
+				this.cancel && this.cancel(this.id);
+				this.id = undefined;
+			}
+
+			// Don't permit further changes to be queued
+			this.queue = noop;
+
+			// If there is an update queued apply it now
+			// Hmmm. This is weird semantics. TODO: callLast should
+			// really be an 'immediate' flag, no?
+			this._stop(this.value !== undefined && callLast ? 1 : 0);
+		},
+
+		push: function throttle() {
+			// Store the latest value
+			this.value = arguments[arguments.length - 1];
+
+			// Queue the update
+			this.queue();
 		}
-		else {
-			request = request || requestAnimationFrame;
-			cancel  = cancel  || cancelAnimationFrame;
-		}
+	});
 
-		return new Stream(function setup(notify, done) {
-			var buffer  = [];
-			var push = throttle(function() {
-				buffer[0] = arguments[arguments.length - 1];
-				notify('push');
-			}, request, cancel);
+	Stream.throttle = function(request, cancel) {
+		request = request || requestAnimationFrame;
+		cancel  = cancel  || cancelAnimationFrame;
 
-			return {
-				shift: function shift() {
-					return buffer.shift();
-				},
-
-				push: push,
-
-				stop: function stop() {
-					buffer = nothing;
-					push.cancel();
-					done();
-				}
-			};
+		return new Stream(function(notify, stop) {
+			return new ThrottleSource(notify, stop, request, cancel);
 		});
 	};
+
+
+
+	var frameTimer = {
+		request: requestAnimationFrame,
+		cancel:  cancelAnimationFrame
+	};
+
+	function ClockSource(notify, stop, options) {
+		// requestAnimationFrame/cancelAnimationFrame cannot be invoked
+		// with context, so need to be referenced.
+
+		var source  = this;
+		var request = options.request;
+
+		function frame(time) {
+			source.value = time;
+			notify('push');
+			source.value = undefined;
+			source.id    = request(frame);
+		}
+
+		this.cancel = options.cancel || noop;
+		this.end    = stop;
+
+		// Start clock
+		this.id = request(frame);
+	}
+
+	assign(ClockSource.prototype, {
+		shift: function shift() {
+			var value = this.value;
+			this.value = undefined;
+			return value;
+		},
+
+		stop: function stop() {
+			var cancel = this.cancel;
+			cancel(this.id);
+			this.end();
+		}
+	});
+
+	Stream.clock = function ClockStream(options) {
+		var timer = typeof options === 'number' ?
+			Timer(options) :
+			options || frameTimer ;
+
+		return new Stream(ClockSource, timer);
+	};
+
+
+
 
 	Stream.Interval = function(request) {
 		// If request is a number create a timer, otherwise if request is

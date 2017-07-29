@@ -706,41 +706,69 @@
 		return true;
 	}
 
-	function Timer(time) {
-		// Optional second argument is a function that returns
-		// time (in seconds)
-		var getTime = arguments[1] || now;
-		var fns = [];
-		var timer = false;
-		var t = 0;
 
-		function update() {
-			var fn;
-			timer = false;
-			t     = getTime();
-			while (fn = fns.shift()) {
-				fn(t);
+	// Timer
+	//
+	// Create an object with a request/cancel pair of functions that
+	// fire request(fn) callbacks at a given duration.
+
+	function Timer(duration, getTime) {
+		if (typeof duration !== 'number') { throw new Error('Timer(duration) requires a duration in seconds (' + duration + ')'); }
+
+		// Optional second argument is a function that returns
+		// current time (in seconds)
+		getTime = getTime || now;
+
+		var fns = [];
+		var id  = undefined;
+		var t0  = -Infinity;
+
+		function frame() {
+			var n = fns.length;
+
+			id = undefined;
+			t0 = getTime();
+
+			while (n--) {
+				fns.shift()(t0);
 			}
 		}
 
 		return {
-			request: function requestTime(fn) {
+			request: function(fn) {
+				if (typeof fn !== 'function') { throw new Error('fn is not a function.'); }
+
 				// Add fn to queue
 				fns.push(fn);
 				
 				// If the timer is cued do nothing
-				if (timer) { return; }
+				if (id) { return; }
 				
-				var n = getTime();
+				var t1 = getTime();
 
 				// Set the timer and return something truthy
-				return (timer = t + time > n ?
-					setTimeout(update, (time + t - n) * 1000) :
-					requestTick(update)
-				);
+				if (t0 + duration > t1) {
+					id = setTimeout(frame, (t0 + duration - t1) * 1000);
+				}
+				else {
+					requestTick(frame) ;
+				}
+
+				// Use the fn reference as the request id, because why not
+				return fn;
 			},
 
-			cancel: noop
+			cancel: function(fn) {
+				var i = fns.indexOf(fn);
+				if (i === -1) { return; }
+
+				fns.splice(i, 1);
+
+				if (!fns.length) {
+					clearTimeout(id);
+					id = undefined;
+				}
+			}
 		};
 	}
 
@@ -792,6 +820,29 @@
 		throttle.cancel = stop;
 		return throttle;
 	}
+
+
+	// Clock
+
+	function Clock(request, cancel, fn) {
+		request = request || requestAnimationFrame;
+		cancel  = cancel  || cancelAnimationFrame;
+
+		var id;
+
+		function frame(time) {
+			fn(time);
+			id = request(frame);
+		}
+
+		id = request(frame);
+
+		return function stop() {
+			cancel(id);
+		};
+	}
+
+
 
 
 	// Wait
