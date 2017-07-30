@@ -15,6 +15,7 @@
 	var each      = Fn.each;
 	var latest    = Fn.latest;
 	var noop      = Fn.noop;
+	var now       = Fn.now;
 	var nothing   = Fn.nothing;
 	var rest      = Fn.rest;
 	var throttle  = Fn.throttle;
@@ -560,6 +561,7 @@
 
 
 	var frameTimer = {
+		now:     now,
 		request: requestAnimationFrame,
 		cancel:  cancelAnimationFrame
 	};

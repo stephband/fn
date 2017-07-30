@@ -623,6 +623,26 @@
 		return string2 + string1;
 	}
 
+	function prepad(chars, n, string) {
+		var i = -1;
+		var pre = '';
+
+		while (pre.length < n - string.length) {
+			pre += chars[++i % chars.length];
+		}
+
+		string = pre + string;
+		return string.slice(string.length - n);
+	}
+
+	function postpad(chars, n, string) {
+		while (string.length < n) {
+			string = string + chars;
+		}
+
+		return string.slice(0, n);
+	}
+
 
 	// Numbers
 
@@ -735,6 +755,8 @@
 		}
 
 		return {
+			now: getTime,
+
 			request: function(fn) {
 				if (typeof fn !== 'function') { throw new Error('fn is not a function.'); }
 
@@ -820,29 +842,6 @@
 		throttle.cancel = stop;
 		return throttle;
 	}
-
-
-	// Clock
-
-	function Clock(request, cancel, fn) {
-		request = request || requestAnimationFrame;
-		cancel  = cancel  || cancelAnimationFrame;
-
-		var id;
-
-		function frame(time) {
-			fn(time);
-			id = request(frame);
-		}
-
-		id = request(frame);
-
-		return function stop() {
-			cancel(id);
-		};
-	}
-
-
 
 
 	// Wait
@@ -1735,13 +1734,11 @@
 		// Strings
 
 		append:      curry(append),
-
 		prepend:     curry(prepend),
-
+		postpad:     curry(postpad),
+		prepad:      curry(prepad),
 		match:       curry(function match(regex, string) { return regex.test(string); }),
-
 		exec:        curry(function parse(regex, string) { return regex.exec(string) || undefined; }),
-
 		replace:     curry(function replace(regex, fn, string) { return string.replace(regex, fn); }),
 
 		slugify: function slugify(string) {
