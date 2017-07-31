@@ -118,8 +118,9 @@
 	function noop() {};
 
 	function isArrayLike(object) {
-		return object.hasOwnProperty('length') &&
-			typeof object.length === 'number' ;
+		return typeof object === 'object'
+			&& object.hasOwnProperty('length')
+			&& typeof object.length === 'number' ;
 	}
 
 	function hasItems(object) {
@@ -171,7 +172,7 @@
 
 	function observeArray(array, fn) {
 		var observable = Observable(array);
-
+console.log('>>', array);
 		var observers =
 			array[$observers][$update] ||
 			(array[$observers][$update] = []) ;		
@@ -200,8 +201,9 @@
 
 		function update(array) {
 			var value = array && array.find(isMatch);
+console.log('UPDATE VALUE', value)
 			unobserve();
-			unobserve = observe(value, path, fn);
+			unobserve = observe(Observable(value), path, fn);
 		}
 
 		var unobserveArray = observeArray(array, update);
