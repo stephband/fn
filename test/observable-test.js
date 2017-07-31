@@ -5,20 +5,16 @@ group('Observable()', function(test, log) {
 	var Store  = window.Store;
 	var Observable = window.Observable;
 	var observe = Observable.observe;
-	
-	test("observe 'a.b.c'", function(equals) {
-		var expected = [1,2,3,4,undefined,5,[6],[7],[8],[8,9],10,{},{d:11}];
+
+	test("observe 'a.b.c'", function(equals, done) {
+		var expected = [1,2,3,4,undefined,5,[6],[7],/*[8],[8,9],*/10,{}/*,{d:11}*/];
 
 		var data = {a: {b: {c: 1}}};
 		var o    = Observable(data);
 	
 		observe(o, 'a.b.c', function(value, change) {
-			//console.log.apply(
-			//	console,
-			//	Array.prototype.map.call(arguments, JSON.stringify)
-			//);
-
-			equals(expected.shift(), value);
+			var e = expected.shift();
+			equals(e, value);
 		});
 
 		o.a.b.c = 2;
@@ -32,50 +28,56 @@ group('Observable()', function(test, log) {
 		o.a.b.c = 5;
 		o.a.b.c = [6];
 		o.a.b.c = [7];
-		o.a.b.c[0] = 8;
-		o.a.b.c[1] = 9;
+		//o.a.b.c[0] = 8;
+		//o.a.b.c[1] = 9;
 		o.a.b.c = 10;
 		o.a.b.c = {};
-		o.a.b.c.d = 11;
+		//o.a.b.c.d = 11;
 
-		equals(0, expected.length);
-	});
+		done();
+	}, 10);
 	
-	test("observe 'a.b[d=\"4\"]'", function(equals) {
+	test("observe 'a.b[d=\"4\"]'", function(equals, done) {
 		var expected = [
 			{"d":4,"n":1},
 			{"d":4,"n":2},
 			undefined,
 			{"d":4,"n":3},
+			undefined,
+			{"d":4,"n":4},
 			undefined
 		];
 
 		var data = {a: {b: [{d: 4, n: 1}]}};
 		var o    = Observable(data);
 	
-		observe(o, 'a.b[d="4"]', function(value, change) {
+		observe(o, 'a.b[d="4"]', function(value) {
 			//console.log.apply(
 			//	console,
 			//	Array.prototype.map.call(arguments, JSON.stringify)
 			//);
-
+//console.log('<<', value)
 			equals(expected.shift(), value);
 		});
 	
 		o.a = {b: [{d: 4, n: 2}]};
 		o.a.b.length = 0;
 		o.a.b = undefined;
+		o.a.b = [{d: 4, n: 3}];
 		o.a = undefined;
 		o.a = {};
 		o.a.b = [];
 		o.a.b.push({d: 9});
-		o.a.b.push({d: 4, n: 3});
+		o.a.b.push({d: 4, n: 4});
 		o.a.b.push({d: 3});
 		o.a.b.push({e: 30});
 		o.a.b.splice(1, 1);
-	});
-	
-	test("observe 'a.b[d=\"4\"].n'", function(equals) {
+
+		done();
+	})
+//	, 7);
+
+	test("observe 'a.b[d=\"4\"].n'", function(equals, done) {
 		var expected = [1, 2, undefined, 3, undefined];
 
 		var data = {a: {b: [{d: 4, n: 1}]}};
@@ -96,9 +98,87 @@ group('Observable()', function(test, log) {
 		o.a.b.push({d: 3});
 		o.a.b.push({e: 30});
 		o.a.b.splice(1, 1);
+
+		done();
 	});
 
-	test("observe '' (object)", function(equals) {
+	test("observe '[0]'", function(equals, done) {
+		var expected = [0, undefined, 1, undefined, 0];
+
+		var data = [];
+		var o    = Observable(data);
+
+		observe(o, '[0]', function(value) {
+			equals(expected.shift(), value);
+		});
+	
+		o.push(0);
+		o.push(1);
+		o.push(2);
+		
+		o.length = 0;
+
+		o.push(1);
+	
+		o.length = 0;
+		o.length = 0;
+		
+		o.push(0);
+
+		done();
+	}, 5);
+
+	test("observe 'a[0].n'", function(equals, done) {
+		var expected = [0, undefined, 1, undefined, 0, undefined, null];
+
+		var data = { a: [] };
+		var o    = Observable(data);
+
+		observe(o, 'a[0].n', function(value) {
+			equals(expected.shift(), value);
+		});
+
+		var oa = Observable(o.a);
+		oa.push({n: 0});
+		oa.push({n: 1});
+		oa.push({n: 2});
+
+		oa.length = 0;
+
+		oa.push({n: 1});
+
+		oa.length = 0;
+		oa.length = 0;
+
+		oa[0] = {n: 0};
+		oa[0] = null;
+		oa[0] = {n: null};
+
+		done();
+	}, 7);
+
+
+
+
+
+
+
+
+
+
+	// The noproxy Observable cannot be expected to pass the following tests
+	if (Observable.noproxy) { return; }
+
+
+
+
+
+
+
+
+
+
+	test("observe '' (object)", function(equals, done) {
 		var expected = [
 			{},
 			{a: 0},
@@ -121,9 +201,11 @@ group('Observable()', function(test, log) {
 		o.a = 0;
 		o.b = 1;
 		o.a = 2;
-	});
-	
-	test("observe '' (array)", function(equals) {
+
+		done();
+	}, 4);
+
+	test("observe '' (array)", function(equals, done) {
 		var expected = [
 			[],
 			[0],
@@ -144,8 +226,9 @@ group('Observable()', function(test, log) {
 			//	console,
 			//	Array.prototype.map.call(arguments, JSON.stringify)
 			//);
-
-			equals(expected.shift(), value);
+			var e = expected.shift();
+console.log('>>>', e, value)
+			equals(e, value);
 		});
 	
 		o[0] = 0;
@@ -161,9 +244,11 @@ group('Observable()', function(test, log) {
 		o.length = 0;
 		
 		o[0] = 0;
-	});
-	
-	test("observe '[0]'", function(equals) {
+
+		done();
+	}, 9);
+
+	test("observe '[0]'", function(equals, done) {
 		var expected = [0, undefined, 1, undefined, 0];
 
 		var data = [];
@@ -185,9 +270,11 @@ group('Observable()', function(test, log) {
 		o.length = 0;
 		
 		o[0] = 0;
+
+		done();
 	});
 
-	test("observe 'a.0.n'", function(equals) {
+	test("observe 'a.0.n'", function(equals, done) {
 		var expected = [0, undefined, 1, undefined, 0];
 
 		var data = { a: [] };
@@ -209,9 +296,11 @@ group('Observable()', function(test, log) {
 		o.a.length = 0;
 		
 		o.a[0] = {n: 0};
+
+		done();
 	});
 
-	test("observe 'a[0].n'", function(equals) {
+	test("observe 'a[0].n'", function(equals, done) {
 		var expected = [0, undefined, 1, undefined, 0, undefined, null];
 
 		var data = { a: [] };
@@ -236,6 +325,6 @@ group('Observable()', function(test, log) {
 		o.a[0] = null;
 		o.a[0] = {n: null};
 
-		equals(0, expected.length);
-	});
+		done();
+	}, 7);
 });

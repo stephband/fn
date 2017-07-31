@@ -243,14 +243,16 @@
 	};
 
 	function equals(a, b) {
-		// Fast out if references are for the same object.
+		// Fast out if references are for the same object
 		if (a === b) { return true; }
 
+		// Or if objects are of different types
 		if (typeof a !== 'object' || typeof b !== 'object') { return false; }
 
 		var akeys = Object.keys(a);
 		var bkeys = Object.keys(b);
 
+		// Are their enumerable keys different?
 		if (akeys.length !== bkeys.length) { return false; }
 
 		var n = akeys.length;
