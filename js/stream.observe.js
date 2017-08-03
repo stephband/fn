@@ -3,9 +3,12 @@
 
 	var Fn         = window.Fn;
 	var Stream     = window.Stream;
-	var Observable = window.Observable;
 
-	var observe    = Observable.observe;
+	// Dont import it yet - we may be about to overwrite it with our back-fill
+	// for browsers without Proxy.
+	//var Observable = window.Observable;
+	//var observe    = Observable.observe;
+
 	var curry      = Fn.curry;
 	var noop       = Fn.noop;
 	var setPath    = Fn.setPath;
@@ -36,6 +39,7 @@
 	};
 
 	Stream.observe = curry(function(path, object) {
+		var Observable = window.Observable;
 		var observable = Observable(object);
 
 		return new Stream(function setup(notify, stop) {
@@ -46,7 +50,7 @@
 				notify('push');
 			}
 
-			source.unobserve = observe(observable, path, update);
+			source.unobserve = Observable.observe(observable, path, update);
 			return source;
 		});
 	});
