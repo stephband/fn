@@ -201,7 +201,7 @@ console.log('>>', array);
 
 		function update(array) {
 			var value = array && array.find(isMatch);
-console.log('UPDATE VALUE', value)
+//console.log('UPDATE VALUE', value)
 			unobserve();
 			unobserve = observe(Observable(value), path, fn);
 		}

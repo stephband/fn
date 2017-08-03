@@ -1,6 +1,11 @@
 (function(window) {
 	"use strict";
 
+	if (!window.Proxy) {
+		console.warn('Proxy constructor not found. This version of Observable cannot be used.');
+		return;
+	}
+
 	var A           = Array.prototype;
 
 	var $observable = Symbol('observable');
