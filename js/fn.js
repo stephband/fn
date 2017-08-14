@@ -1246,7 +1246,7 @@
 					value = source.shift();
 					// Only increment i where an actual value has been shifted
 					if (value === undefined) { return; }
-					if (++i === n) { this.status = 'done'; }
+					if (++i === n) { source.status = 'done'; }
 					return value;
 				}
 			});
