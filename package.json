@@ -17,7 +17,7 @@
     "homepage": "http://stephen.band/fn",
     "docs": "http://github.com/stephband/fn",
     "devDependencies": {
-        "eslint": "^3.6.1"
+        "eslint": "^4.4.1",
     },
     "scripts": {
         "lint": "eslint js/*.js"
