@@ -258,7 +258,8 @@
 		return true;
 	}
 
-	function is(a, b) { return a === b; }
+	var is = Object.is
+		|| function is(a, b) { return a === b; } ;
 
 	function isDefined(value) {
 		// !!value is a fast out for non-zero numbers, non-empty strings

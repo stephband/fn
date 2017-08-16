@@ -6,13 +6,14 @@
 		return;
 	}
 
-	var A           = Array.prototype;
+	var A            = Array.prototype;
+	var isExtensible = Object.isExtensible;
 
-	var $observable = Symbol('observable');
-	var $observers  = Symbol('observers');
-	var $update     = Symbol('update');
+	var $observable  = Symbol('observable');
+	var $observers   = Symbol('observers');
+	var $update      = Symbol('update');
 
-	var rname       = /^\[?([-\w]+)(?:=(['"])([-\w]+)\2)?\]?\.?/g;
+	var rname        = /^\[?([-\w]+)(?:=(['"])([-\w]+)\2)?\]?\.?/g;
 
 
 	// Utils
@@ -118,8 +119,15 @@
 		}
 	}
 
+	function isObservable(object) {
+		return object
+			&& typeof object === 'object'
+			&& isExtensible(object)
+			&& !(object instanceof Date) ;
+	}
+
 	function Observable(object) {
-		if (!object || typeof object !== 'object' || object instanceof Date) {
+		if (!isObservable(object)) {
 			return object;
 		}
 
@@ -215,7 +223,7 @@
 
 	function observe(object, path, fn) {
 		if (!path.length) {
-			return object && typeof object === 'object' && !(object instanceof Date) ?
+			return isObservable(object) ?
 				observeObject(object, fn) :
 				observePrimitive(object, fn) ;
 		}
