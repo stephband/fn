@@ -70,7 +70,7 @@
 		};
 	}
 
-	function debug(fn) {
+	function debug() {
 		if (!window.console) { return fn; }
 
 		var fn   = arguments[arguments.length - 1];
@@ -97,14 +97,6 @@
 	function id(object) { return object; }
 
 	function self() { return this; }
-
-	function call(fn) {
-		return fn();
-	}
-
-	function apply(args, fn) {
-		fn.apply(null, args);
-	}
 
 	function invoke(n, fn) {
 		return fn(n);
@@ -208,7 +200,7 @@
 		return function choose(key) {
 			var fn = map[key] || map.default;
 			return fn && fn.apply(this, rest(1, arguments)) ;
-		}
+		};
 	}
 
 	if (DEBUG) {
@@ -266,7 +258,8 @@
 		return true;
 	}
 
-	function is(a, b) { return a === b; }
+	var is = Object.is
+		|| function is(a, b) { return a === b; } ;
 
 	function isDefined(value) {
 		// !!value is a fast out for non-zero numbers, non-empty strings
@@ -340,14 +333,14 @@
 		return i;
 	}
 
-	function sparseShift(array) {
-		// Shift values ignoring undefined holes
-		var value;
-		while (array.length) {
-			value = A.shift.apply(array);
-			if (value !== undefined) { return value; }
-		}
-	}
+	//function sparseShift(array) {
+	//	// Shift values ignoring undefined holes
+	//	var value;
+	//	while (array.length) {
+	//		value = A.shift.apply(array);
+	//		if (value !== undefined) { return value; }
+	//	}
+	//}
 
 	function uniqueReducer(array, value) {
 		if (array.indexOf(value) === -1) { array.push(value); }
@@ -359,14 +352,14 @@
 		return array;
 	}
 
-	function whileArray(fn, array) {
-		var values = [];
-		var n = -1;
-		while (++n < array.length && fn(array[n])) {
-			values.push(object[n]);
-		}
-		return values;
-	}
+	//function whileArray(fn, array) {
+	//	var values = [];
+	//	var n = -1;
+	//	while (++n < array.length && fn(array[n])) {
+	//		values.push(object[n]);
+	//	}
+	//	return values;
+	//}
 
 	function byGreater(a, b) {
 		return a === b ? 0 : a > b ? 1 : -1 ;
@@ -457,7 +450,7 @@
 
 		var a = [];
 		var n = i;
-		while (n--) { a[n] = args[n]; }
+		while (n--) { a[n] = object[n]; }
 		return a;
 	}
 
@@ -543,7 +536,7 @@
 
 	var assign = Object.assign;
 
-	var rpathtrimmer  = /^\[|\]$/g;
+	//var rpathtrimmer  = /^\[|\]$/g;
 	var rpathsplitter = /["']?\](?:$|\.|\[["']?)|\[["']?/;
 	var rpropselector = /(\w+)=(['"]?[\w-]+['"]?)/;
 
@@ -867,7 +860,7 @@
 
 		function cancel() {
 			// Don't permit further changes to be queued
-			schedule = noop;
+			cue = noop;
 
 			// If there is an update queued apply it now
 			if (timer) { clearTimeout(timer); }
@@ -910,7 +903,6 @@
 		}
 
 		var source = this;
-		var buffer;
 
 		if (!fn) {
 			this.shift = noop;
@@ -1255,7 +1247,7 @@
 					value = source.shift();
 					// Only increment i where an actual value has been shifted
 					if (value === undefined) { return; }
-					if (++i === n) { this.status = 'done'; }
+					if (++i === n) { source.status = 'done'; }
 					return value;
 				}
 			});
@@ -1631,7 +1623,7 @@
 		root:     curry(function nthRoot(n, x) { return Math.pow(x, 1/n); }),
 		gcd:      curry(gcd),
 		lcm:      curry(lcm),
-		todB:     function todB(n) { return 20 * Math.log10(value); },
+		todB:     function todB(n) { return 20 * Math.log10(n); },
 		toLevel:  function toLevel(n) { return Math.pow(2, n/6); },
 		toRad:    function toRad(n) { return n / angleFactor; },
 		toDeg:    function toDeg(n) { return n * angleFactor; },
@@ -1686,7 +1678,7 @@
 		denormalise: curry(function denormalise(min, max, n) { return n * (max - min) + min; }),
 
 		rangeLog:    curry(function rangeLog(min, max, n) {
-			return Fn.denormalise(min, max, Math.log(n / min) / Math.log(max / min))
+			return Fn.denormalise(min, max, Math.log(n / min) / Math.log(max / min));
 		}),
 
 		rangeLogInv: curry(function rangeLogInv(min, max, n) {
