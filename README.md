@@ -419,7 +419,6 @@ Create a buffer stream from an array or collection.
 
 ##### `ap(object)`
 ##### `chain(fn)`
-##### `choke(time)`
 ##### `chunk(n)`
 ##### `concat(source)`
 ##### `combine(fn, source1, source2, ...)`
@@ -430,11 +429,9 @@ be able to accept the same number of arguments as the number of streams
 (including the current stream).
 
 ##### `dedup()`
-##### `delay()`
 ##### `filter(fn)`
 ##### `first()`
 ##### `fold(fn, seed)`
-##### `interval(request)`
 ##### `join()`
 ##### `latest()`
 ##### `map(fn)`
@@ -443,8 +440,10 @@ be able to accept the same number of arguments as the number of streams
 ##### `take(i)`
 ##### `rest(i)`
 ##### `unique()`
-##### `delay(time)`
-##### `throttle(request)`
+
+##### `choke(time)`
+##### `clock(options)`
+##### `throttle(options)`
 
 #### Input
 
@@ -481,10 +480,6 @@ is passed into the stream.
 
 ## Constructors
 
-##### `Stream.Buffer(array)`
-
-Create a pushable buffer stream from an array of values. Alias of `Stream.from(array)`.
-
 ##### `Stream.Combine(fn, source1, source2, ...)`
 
 Takes any number of streams and combines their latest values into one stream
@@ -502,16 +497,12 @@ pushed to their respective source streams.
 Create a stream that chokes the flow of values to flow one per frame, where
 a frame is a browser animation frame.
 
-##### `Stream.Delay(duration)`
-
-Create a stream that delays the flow of pushed values by `duration` seconds.
-
-##### `Stream.Throttle()`
+##### `Stream.throttle()`
 
 Create a stream that throttles the flow of values to the latest value per frame,
 where a frame is a browser animation frame.
 
-##### `Stream.Timer()`
+##### `Stream.clock()`
 
 Create a stream that emits values at constant intervals.
 
