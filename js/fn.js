@@ -726,6 +726,10 @@
 	//
 	// Create an object with a request/cancel pair of functions that
 	// fire request(fn) callbacks at a given duration.
+	//
+	// .request()
+	// .cancel()
+	// .now()
 
 	function Timer(duration, getTime) {
 		if (typeof duration !== 'number') { throw new Error('Timer(duration) requires a duration in seconds (' + duration + ')'); }

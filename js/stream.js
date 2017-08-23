@@ -418,37 +418,51 @@
 		});
 	};
 
+
+
+
+	// Stream.throttle
+
+	var frameTimer = {
+		now:     now,
+		request: requestAnimationFrame,
+		cancel:  cancelAnimationFrame
+	};
+
 	function schedule() {
+		var timer   = this.timer;
+		var request = timer.request;
+
 		this.queue = noop;
-		var request = this.request;
-		this.id = request(this.update);
+		this.ref   = request(this.update);
 	}
 
-	function ThrottleSource(notify, stop, request, cancel) {
-		this._stop   = stop;
-		this.request = request;
-		this.cancel  = cancel;
-		this.queue   = schedule;
+	function ThrottleSource(notify, stop, timer) {
+		var source   = this;
 
+		this._stop   = stop;
+		this.timer   = timer;
+		this.queue   = schedule;
 		this.update  = function update() {
-			this.queue = schedule;
+			source.queue = schedule;
 			notify('push');
-		}.bind(this);
+		};
 	}
 
 	assign(ThrottleSource.prototype, {
 		shift: function shift() {
-			if (!this.args) { return; }
 			var value = this.value;
 			this.value = undefined;
 			return value;
 		},
 
 		stop: function stop(callLast) {
+			var timer = this.timer;
+
 			// An update is queued
 			if (this.queue === noop) {
-				this.cancel && this.cancel(this.id);
-				this.id = undefined;
+				timer.cancel && timer.cancel(this.ref);
+				this.ref = undefined;
 			}
 
 			// Don't permit further changes to be queued
@@ -469,22 +483,23 @@
 		}
 	});
 
-	Stream.throttle = function(request, cancel) {
-		request = request || requestAnimationFrame;
-		cancel  = cancel  || cancelAnimationFrame;
+	Stream.throttle = function(timer) {
+		if (typeof timer === 'function') {
+			throw new Error('Dont accept request and cancel functions anymore');
+		}
+
+		timer = typeof timer === 'number' ?
+			new Timer(timer) :
+			timer || frameTimer;
 
 		return new Stream(function(notify, stop) {
-			return new ThrottleSource(notify, stop, request, cancel);
+			return new ThrottleSource(notify, stop, timer);
 		});
 	};
 
 
 
-	var frameTimer = {
-		now:     now,
-		request: requestAnimationFrame,
-		cancel:  cancelAnimationFrame
-	};
+
 
 	function ClockSource(notify, stop, options) {
 		// requestAnimationFrame/cancelAnimationFrame cannot be invoked
@@ -599,8 +614,8 @@
 			return this.pipe(Stream.Choke(time));
 		},
 
-		throttle: function(timer) {
-			return this.pipe(Stream.throttle(timer));
+		throttle: function(request, cancel) {
+			return this.pipe(Stream.throttle(request, cancel));
 		},
 
 		clock: function(timer) {
