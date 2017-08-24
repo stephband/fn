@@ -98,8 +98,12 @@
 
 	function self() { return this; }
 
-	function invoke(n, fn) {
-		return fn(n);
+	function call(value, fn) {
+		return fn(value);
+	}
+
+	function apply(values, fn) {
+		return fn.apply(null, values);
 	}
 
 	function bind(args, fn) {
@@ -117,7 +121,7 @@
 	function pipe() {
 		var fns = arguments;
 		return function pipe(value) {
-			return A.reduce.call(fns, invoke, value);
+			return A.reduce.call(fns, call, value);
 		};
 	}
 
@@ -1609,8 +1613,8 @@
 				objTo(object, array, value);
 		}, true),
 
-		invoke: curry(function invoke(name, args, object) {
-			return object[name].apply(object, args);
+		invoke: curry(function invoke(name, values, object) {
+			return object[name].apply(object, values);
 		}, true),
 
 

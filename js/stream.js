@@ -10,7 +10,6 @@
 	var A         = Array.prototype;
 
 	var assign    = Object.assign;
-	var call      = Fn.call;
 	var curry     = Fn.curry;
 	var each      = Fn.each;
 	var latest    = Fn.latest;
@@ -24,6 +23,14 @@
 
 
 	// Functions
+
+	function call(value, fn) {
+		return fn(value);
+	}
+
+	function apply(values, fn) {
+		return fn.apply(null, values);
+	}
 
 	function isValue(n) { return n !== undefined; }
 
@@ -420,8 +427,7 @@
 
 
 
-
-	// Stream.throttle
+	// Frame timer
 
 	var frameTimer = {
 		now:     now,
@@ -429,12 +435,43 @@
 		cancel:  cancelAnimationFrame
 	};
 
+
+	// Stream timer
+
+	function StreamTimer(stream) {
+		var timer = this;
+		var fns0  = [];
+		var fns1  = [];
+		this.fns = fns0;
+
+		stream.each(function() {
+			timer.fns = fns1;
+			fns0.reduce(call, undefined);
+			fns0.length = 0;
+			fns1 = fns0;
+			fns0 = timer.fns;
+		});
+	}
+
+	assign(StreamTimer.prototype, {
+		request: function(fn) {
+			this.fns.push(fn);
+			return fn;
+		},
+
+		cancel: function(fn) {
+			remove(this.fns, fn);
+		}
+	});
+
+
+	// Stream.throttle
+
 	function schedule() {
 		var timer   = this.timer;
-		var request = timer.request;
 
 		this.queue = noop;
-		this.ref   = request(this.update);
+		this.ref   = timer.request(this.update);
 	}
 
 	function ThrottleSource(notify, stop, timer) {
@@ -490,14 +527,15 @@
 
 		timer = typeof timer === 'number' ?
 			new Timer(timer) :
-			timer || frameTimer;
+		timer instanceof Stream ?
+			new StreamTimer(timer) :
+		timer ? timer :
+			frameTimer ;
 
 		return new Stream(function(notify, stop) {
 			return new ThrottleSource(notify, stop, timer);
 		});
 	};
-
-
 
 
 
