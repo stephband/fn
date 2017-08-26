@@ -63,5 +63,5 @@
 	window.events = {
 		notify: notify,
 		mixin:  mixin
-	});
+	};
 })(this);
