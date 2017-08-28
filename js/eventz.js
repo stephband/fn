@@ -1,9 +1,14 @@
 (function(window) {
 	"use strict";
 
+	var assign  = Object.assign;
 	var $events = Symbol('events');
 
-	var mixin = {
+	function Events() {
+		this[$events] = {};
+	}
+
+	assign(Events.prototype, {
 		on: function(type, fn) {
 			var events = this[$events];
 			if (!events) { return this; }
@@ -40,28 +45,36 @@
 
 			return this;
 		}
-	};
+	});
 
-	function notify(type, object) {
-		var events = object[$events];
+	assign(Events, {
+		notify: function notify(type, value, object) {
+			var events = object[$events];
 
-		if (!events) { return; }
-		if (!events[type]) { return; }
+			if (!events) { return; }
+			
+			var listeners = events[type];
+			if (!listeners) { return; }
 
-		var n = -1;
-		var l = events[type].length;
-		var value;
+			var n = -1;
+			var l = listeners.length;
+			var value, fn;
 
-		while (++n < l) {
-			value = events[type][n](type, object);
-			if (value !== undefined) {
-				return value;
+			while (fn = listeners[++n]) {
+				fn(value);
+
+				//value = listeners[n](type, object);
+				//if (value !== undefined) {
+				//	return value;
+				//}
 			}
 		}
-	}
+	});
+
+	window.Events = Events;
 
 	window.events = {
-		notify: notify,
-		mixin:  mixin
+		notify: Events.notify,
+		mixin:  Events.prototype
 	};
 })(this);
