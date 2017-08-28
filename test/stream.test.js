@@ -2,8 +2,8 @@
 group('Stream()', function(test, log) {
 
 	var Stream = window.Stream;
-	
-	test('Stream(setup)', function(equals) {
+
+	test('Stream(setup)', function(equals, done) {
 		var i = 0;
 		var s = Stream(function setup() {
 			return {
@@ -18,9 +18,11 @@ group('Stream()', function(test, log) {
 		equals(3, s.shift());
 		equals(4, s.shift());
 		equals(undefined, s.shift());
-	});
-	
-	test('Stream.of(...)', function(equals) {
+		
+		done();
+	}, 5);
+
+	test('Stream.of(...)', function(equals, done) {
 		var i = 0;
 		var s = Stream.of(1,2,3,4);
 	
@@ -29,18 +31,21 @@ group('Stream()', function(test, log) {
 		equals(3, s.shift());
 		equals(4, s.shift());
 		equals(undefined, s.shift());
-	});
-	
-	test('.chunk()', function(equals) {
+		
+		done();
+	}, 5);
+
+	test('.chunk()', function(equals, done) {
 		var f = Stream.of(0,1,2,3,4,5,6,7,8).chunk(2);
 		equals('0,1', f.shift().toArray().join());
 		equals('2,3', f.shift().toArray().join());
 		equals('4,5', f.shift().toArray().join());
 		equals('6,7', f.shift().toArray().join());
 		equals(undefined, f.shift());
+		done();
 	});
 	
-	test('.shift()', function(equals) {
+	test('.shift()', function(equals, done) {
 		var i = 0;
 		var s = Stream(function setup() {
 			return {
@@ -55,9 +60,10 @@ group('Stream()', function(test, log) {
 		equals(3, s.shift());
 		equals(4, s.shift());
 		equals(undefined, s.shift());
+		done();
 	});
 	
-	test('.push()', function(equals) {
+	test('.push()', function(equals, done) {
 		var s = Stream.of(1,2,undefined,3,4);
 		var b = [5,6,7];
 	
@@ -73,23 +79,28 @@ group('Stream()', function(test, log) {
 		equals(6, s.shift());
 		equals(7, s.shift());
 		equals(undefined, s.shift());
+		done();
 	});
 	
-	test('.toArray()', function(equals) {
+	test('.toArray()', function(equals, done) {
 		var s1 = Stream.of();
 		equals('', s1.toArray().join());
 	
 		var s2 = Stream.from([0,1,2,3]);
 		equals('0,1,2,3', s2.toArray().join());
+
+		done();
 	});
 	
-	test('.map()', function(equals) {
+	test('.map()', function(equals, done) {
 		var s1 = Fn([0,1,2,3]);
 		var s2 = s1.map(Fn.add(1));
 		equals('1,2,3,4', s2.toArray().join());
+
+		done();
 	});
 	
-	test('.fold()', function(equals) {
+	test('.fold()', function(equals, done) {
 		var s = Stream.of(1,0,1,0).fold(Fn.add, 2);
 		equals(2, s.shift());
 		equals(3, s.shift());
@@ -97,16 +108,20 @@ group('Stream()', function(test, log) {
 		equals(4, s.shift());
 		equals(4, s.shift());
 		equals(undefined, s.shift());
+
+		done();
 	});
 	
-	test('.reduce()', function(equals) {
+	test('.reduce()', function(equals, done) {
 		var s = Stream.of(1,0,1,0);
 		var v = s.reduce(Fn.add, 2);
 		equals(4, v);
 		equals(undefined, s.shift());
+
+		done();
 	});
 	
-	test('.pipe()', function(equals) {
+	test('.pipe()', function(equals, done) {
 		var s1 = Stream.of(0,1,2,3);
 		var s2 = s1.pipe(Stream.of());
 	
@@ -211,9 +226,11 @@ group('Stream()', function(test, log) {
 		s1.push(3);
 	
 		equals('0,1', results.join());
+
+		done();
 	});
 	
-	test('.each()', function(equals) {
+	test('.each()', function(equals, done) {
 		var results1 = [];
 		var s1 = Stream.of(0,1,2,3).each(function(value) {
 			results1.push(value);
@@ -229,9 +246,11 @@ group('Stream()', function(test, log) {
 	//	});
 	//	s2.push(4,5);
 	//	equals('0,1,2,3,4,5', results2.join());
+
+		done();
 	});
 	
-	test('.partition()', function(equals) {
+	test('.partition()', function(equals, done) {
 		var s = Stream.of(
 			[0, "note", 60, 0.5],
 			[1, "note", 60, 0.5],
@@ -246,9 +265,11 @@ group('Stream()', function(test, log) {
 		equals('pitch,pitch', s.shift().map(Fn.get(1)).toArray().join());
 		equals('tempo', s.shift().map(Fn.get(1)).toArray().join());
 		equals(undefined, s.shift());
+
+		done();
 	});
 	
-	test('.join()', function(equals) {
+	test('.join()', function(equals, done) {
 		equals('0,0,1,1,1,2,3,3,3,3,3,4,4',
 			Stream.of([0,0,1,1,1],[2,3],[3,3,3,3],[4,4])
 			.join()
@@ -292,9 +313,11 @@ group('Stream()', function(test, log) {
 		s.push(7);
 		s.push(8);
 		equals([7,7,8,8].join(), s.toArray().join());
+
+		done();
 	});
 	
-	test('.merge()', function(equals) {
+	test('.merge()', function(equals, done) {
 		var s0 = Stream.of(0,1);
 		var s1 = Stream.of(2,3);
 		var s2 = Stream.of(4,5);
@@ -341,9 +364,11 @@ group('Stream()', function(test, log) {
 		equals(4, s3.shift());
 		equals(5, s3.shift());
 		equals(6, s3.shift());
+
+		done();
 	});
 	
-	test('.combine()', function(equals) {
+	test('.combine()', function(equals, done) {
 		var s0 = Stream.of(0,1);
 		var s1 = Stream.of(2,3);
 		var s2 = s0.combine(Fn.add, s1);
@@ -357,37 +382,41 @@ group('Stream()', function(test, log) {
 		equals(18, s2.shift());
 	
 		equals(undefined, s2.shift());
+
+		done();
 	});
 	
 	
-	test('.unique()', function(equals) {
+	test('.unique()', function(equals, done) {
 		equals('0,1,2,3,4', Stream.of(0,0,1,1,1,2,3,3,3,3,3,4,4).unique().toArray().join());
+
+		done();
 	});
-	
-	test('.throttle()', function(equals) {		
+
+	test('.throttle()', function(equals, done) {		
 		var buffer = Stream.of(0,1,2,3,4,5);
 		var i = 0;
-		
+
 		buffer
 		.throttle()
 		.each(function(n) {
 			++i;
 			equals(5, n);
 		});
-		
+
 		requestAnimationFrame(function() {
 			buffer.push(9);
 			buffer.push(19);
 			buffer.push(29);
 			buffer.push(5);
 		});
-	
+
 		setTimeout(function() {
-			equals(2, i, 'Test did not complete');
+			done();
 		}, 300);
-	});
-	
-	test('.throttle(time)', function(equals) {
+	}, 2);
+
+	test('.throttle(time)', function(equals, done) {
 		var buffer = Stream.of(0,1,2,3,4,5);
 		var i = 0;
 	
@@ -406,17 +435,17 @@ group('Stream()', function(test, log) {
 		}, 500);
 	
 		setTimeout(function() {
-			equals(2, i, 'Test did not complete');
+			done();
 		}, 1000);
-	});
-	
-	test('.throttle(request)', function(equals) {
+	}, 2);
+
+	test('.throttle(timer)', function(equals, done) {
 		var timer  = Fn.Timer(0.5);
 		var buffer = Stream.of(0,1,2,3,4,5);
 		var i = 0;
 	
 		buffer
-		.throttle(timer.request)
+		.throttle(timer)
 		.each(function(n) {
 			++i;
 			equals(5, n);
@@ -430,34 +459,11 @@ group('Stream()', function(test, log) {
 		});
 	
 		setTimeout(function() {
-			equals(2, i, 'Test did not complete');
+			done();
 		}, 1200);
-	});
-	
-	test('.delay(time)', function(equals) {
-		var buffer = Stream.of(0,1,2,3,4,5);
-		var i = 0;
-		var results = [];
-	
-		buffer
-		.delay(1)
-		.each(function(n) {
-			results.push(n);
-		});
-	
-		buffer.push(6);
-		buffer.push(7);
-		buffer.push(8);
-		buffer.push(9);
-	
-		equals(0, i);
-	
-		setTimeout(function() {
-			equals('0,1,2,3,4,5,6,7,8,9', results.join());
-		}, 2000);
-	});
-	
-	test('.take()', function(equals) {
+	}, 2);
+
+	test('.take()', function(equals, done) {
 		var f = Stream.of(0,1,'one',true,2,false,true,'two',3,'three').take(0);
 		equals(undefined, f.shift());
 	
@@ -479,5 +485,7 @@ group('Stream()', function(test, log) {
 	
 		f.push(0,1,2,3,4,5,6,7);
 		equals(2, n);
+		
+		done();
 	});
 });

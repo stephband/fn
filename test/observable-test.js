@@ -227,7 +227,6 @@ group('Observable()', function(test, log) {
 			//	Array.prototype.map.call(arguments, JSON.stringify)
 			//);
 			var e = expected.shift();
-console.log('>>>', e, value)
 			equals(e, value);
 		});
 	

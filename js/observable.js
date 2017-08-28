@@ -25,23 +25,22 @@
 			typeof object.length === 'number' ;
 	}
 
-	function hasItems(object) {
-		return object && object.length ;
-	}
-
 
 	// Observable
+	function trapGet(target, name, self) {
+		var value = target[name];
+		// Ignore symbols
+
+		return typeof name === 'symbol' ?
+			value :
+			Observable(value) || value ;
+	};
 
 	var arrayHandlers = {
-		get: function(target, name, self) {
-			var value = target[name];
-			// Ignore symbols
-			return typeof name === 'symbol' ? value : Observable(value) ;
-		},
+		get: trapGet,
 
 		set: function(target, name, value, receiver) {
 			var old = target[name];
-			var names = [name];
 
 			// If we are setting the same value, we're not really setting at all
 			if (old === value) { return true; }
@@ -59,40 +58,38 @@
 				target.length = value;
 
 				while (--old >= value) {
-					hasItems(observers[old]) && fire(observers[old], undefined);
+					fire(observers[old], undefined);
 				}
 			}
 			
 			// We are setting an integer string or number
 			else if (+name % 1 === 0) {
 				if (value === undefined) {
-					A.splice.call(target, name, 1);
+					if (+name < target.length) {
+						A.splice.call(target, name, 1);
+						value = target[name];
+					}
 				}
 				else {
 					target[name] = value;
 				}
-
-				hasItems(observers[name]) && fire(observers[name], Observable(target[name]));
 			}
 
 			// We are setting some other key
 			else {
 				target[name] = value;
-				hasItems(observers[name]) && fire(observers[name], Observable(value));
 			}
 
-			hasItems(observers[$update]) && fire(observers[$update], receiver);
+			fire(observers[name], Observable(value) || value);
+			fire(observers[$update], receiver);
 
+			// Return true to indicate success
 			return true;
 		}
 	};
 
 	var objectHandlers = {
-		get: function(target, name, self) {
-			var value = target[name];
-			// Ignore symbols
-			return typeof name === 'symbol' ? value : Observable(value) ;
-		},
+		get: trapGet,
 
 		set: function(target, name, value, receiver) {
 			var old = target[name];
@@ -104,14 +101,17 @@
 
 			var observers = target[$observers];
 
-			hasItems(observers[name])    && fire(observers[name], Observable(value));
-			hasItems(observers[$update]) && fire(observers[$update], receiver);
+			fire(observers[name], Observable(value) || value);
+			fire(observers[$update], receiver);
 
+			// Return true to indicate success
 			return true;
 		}
 	};
 
 	function fire(observers, value) {
+		if (!observers) { return; }
+
 		// Todo: What happens if observers are removed during this operation?
 		var n = -1;
 		while (observers[++n]) {
@@ -127,9 +127,7 @@
 	}
 
 	function Observable(object) {
-		if (!isObservable(object)) {
-			return object;
-		}
+		if (!isObservable(object)) { return; }
 
 		if (object[$observable]) {
 			return object[$observable];
@@ -149,6 +147,15 @@
 
 	// Observable.observe
 
+	function getObservers(object, name) {
+		return object[$observers][name] || (object[$observers][name] = []) ;	
+	}
+
+	function removeObserver(observers, fn) {
+		var i = observers.indexOf(fn);
+		observers.splice(i, 1);
+	}
+
 	function observePrimitive(object, fn) {
 		if (fn.value !== object) {
 			fn(object);
@@ -158,23 +165,18 @@
 		return noop;
 	}
 
-	function observeObject(array, fn) {
-		var observers =
-			array[$observers][$update] ||
-			(array[$observers][$update] = []) ;		
+	function observeObject(object, fn) {
+		var observers = getObservers(object, $update);
 
 		observers.push(fn);
-		
-		// Empty arrays report as undefined
-		//var value = array.length ? array : undefined;
-		if (array !== fn.value) {
-			fn(array);
-			fn.value = array;
+
+		if (object !== fn.value) {
+			fn(object);
+			fn.value = object;
 		}
 
-		return function() {
-			var i = observers.indexOf(fn);
-			observers.splice(i, 1);
+		return function unobserveObject() {
+			removeObserver(observers, fn);
 		};
 	}
 
@@ -193,18 +195,15 @@
 
 		var unobserveObject = observeObject(object, update);
 
-		return function() {
+		return function unobserveItem() {
 			unobserve();
 			unobserveObject();
 		};
 	}
 
 	function observeProperty(object, name, path, fn) {
+		var observers = getObservers(object, name);
 		var unobserve = noop;
-
-		var observers =
-			object[$observers][name] ||
-			(object[$observers][name] = []) ;
 
 		function update(value) {
 			unobserve();
@@ -214,10 +213,9 @@
 		observers.push(update);
 		update(object[name]);
 
-		return function() {
+		return function unobserveProperty() {
 			unobserve();
-			var i = observers.indexOf(update);
-			observers.splice(i, 1);
+			removeObserver(observers, update);
 		};
 	}
 
@@ -258,12 +256,20 @@
 
 		var observers = target[$observers];
 
-		hasItems(observers[name])    && fire(observers[name], Observable(value));
-		hasItems(observers[$update]) && fire(observers[$update], receiver);
+		fire(observers[name], Observable(value) || value);
+		fire(observers[$update], receiver);
 	}
 
-	Observable.observe = observe;
-	Observable.notify  = notify;
+	Observable.isObservable = isObservable;
+	Observable.notify       = notify;
+
+	Observable.observe = function(object, path, fn) {
+		// Coerce to string
+		path += '';
+		object = Observable(object);
+
+		return object ? observe(object, path, fn) : noop ;
+	};
 
 	// Export
 
