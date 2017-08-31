@@ -431,8 +431,8 @@
 
 	var frameTimer = {
 		now:     now,
-		request: requestAnimationFrame,
-		cancel:  cancelAnimationFrame
+		request: requestAnimationFrame.bind(window),
+		cancel:  cancelAnimationFrame.bind(window)
 	};
 
 
@@ -652,8 +652,8 @@
 			return this.pipe(Stream.Choke(time));
 		},
 
-		throttle: function(request, cancel) {
-			return this.pipe(Stream.throttle(request, cancel));
+		throttle: function(timer) {
+			return this.pipe(Stream.throttle(timer));
 		},
 
 		clock: function(timer) {
