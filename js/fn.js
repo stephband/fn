@@ -804,8 +804,8 @@
 	// the context and arguments from the latest invocation.
 
 	function Throttle(fn, request, cancel) {
-		request = request || requestFrame;
-		cancel  = cancel  || cancelFrame;
+		request = request || window.requestAnimationFrame;
+		cancel  = cancel  || window.cancelAnimationFrame;
 
 		var queue = schedule;
 		var context, args, id;
