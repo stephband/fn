@@ -283,7 +283,7 @@
 
 	function toArray(object) {
 		if (object.toArray) { return object.toArray(); }
-		
+
 		// Speed test for array conversion:
 		// https://jsperf.com/nodelist-to-array/27
 
@@ -659,7 +659,7 @@
 		// `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
 		return ((a * t + b) * t + c) * t;
 	}
-	
+
 	function sampleCubicBezierDerivative(a, b, c, t) {
 		return (3 * a * t + 2 * b) * t + c;
 	}
@@ -765,10 +765,10 @@
 
 				// Add fn to queue
 				fns.push(fn);
-				
+
 				// If the timer is cued do nothing
 				if (id) { return; }
-				
+
 				var t1 = getTime();
 
 				// Set the timer and return something truthy
@@ -823,7 +823,7 @@
 		function stop(callLast) {
 			// If there is an update queued apply it now
 			//if (callLast !== false && queue === noop) { update(); }
-			
+
 			// An update is queued
 			if (queue === noop && id !== undefined) {
 				cancel(id);
@@ -981,16 +981,11 @@
 			});
 		},
 
-		buffer: function() {
+		unshift: function() {
 			// Create an unshift buffer, such that objects can be inserted
 			// back into the stream at will with stream.unshift(object).
 			var source = this;
 			var buffer = toArray(arguments);
-
-			this.unshift = function(object) {
-				if (object === undefined) { return; }
-				buffer.unshift(object);
-			};
 
 			return create(this, function() {
 				return (buffer.length ? buffer : source).shift() ;
@@ -1181,10 +1176,12 @@
 
 		fold: function(fn, seed) {
 			var i = 0;
-			return this.map(function fold(value) {
+			return this
+			.map(function fold(value) {
 				seed = fn(seed, value, i++);
 				return seed;
-			}).buffer(seed);
+			})
+			.unshift(seed);
 		},
 
 		partition: function(fn) {
@@ -1199,7 +1196,7 @@
 				var stream = Stream.of().on('pull', shiftPull);
 				stream.key = key;
 				streams.set(key, stream);
-				return stream;	
+				return stream;
 			}
 
 			function shiftPull(type, pullStream) {
@@ -1775,7 +1772,7 @@
 		radToDeg: deprecate(noop, 'radToDeg() is now toDeg()'),
 
 		nthRoot:  curry(
-			deprecate(function nthRoot(n, x) { return Math.pow(x, 1/n); }, 
+			deprecate(function nthRoot(n, x) { return Math.pow(x, 1/n); },
 			'nthRoot(n, x) is now simply root(n, x)'), false, 2),
 
 		while: curry(deprecate(function(fn, object) {
