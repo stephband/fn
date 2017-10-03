@@ -977,16 +977,11 @@
 			});
 		},
 
-		buffer: function() {
+		unshift: function() {
 			// Create an unshift buffer, such that objects can be inserted
 			// back into the stream at will with stream.unshift(object).
 			var source = this;
 			var buffer = toArray(arguments);
-
-			this.unshift = function(object) {
-				if (object === undefined) { return; }
-				buffer.unshift(object);
-			};
 
 			return create(this, function() {
 				return (buffer.length ? buffer : source).shift() ;
@@ -1177,10 +1172,12 @@
 
 		fold: function(fn, seed) {
 			var i = 0;
-			return this.map(function fold(value) {
+			return this
+			.map(function fold(value) {
 				seed = fn(seed, value, i++);
 				return seed;
-			}).buffer(seed);
+			})
+			.unshift(seed);
 		},
 
 		partition: function(fn) {
