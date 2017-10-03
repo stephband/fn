@@ -102,10 +102,6 @@
 		return fn(value);
 	}
 
-	function apply(values, fn) {
-		return fn.apply(null, values);
-	}
-
 	function bind(args, fn) {
 		return function() {
 			fn.apply(this, concat(arguments, args));
@@ -283,7 +279,7 @@
 
 	function toArray(object) {
 		if (object.toArray) { return object.toArray(); }
-		
+
 		// Speed test for array conversion:
 		// https://jsperf.com/nodelist-to-array/27
 
@@ -659,7 +655,7 @@
 		// `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
 		return ((a * t + b) * t + c) * t;
 	}
-	
+
 	function sampleCubicBezierDerivative(a, b, c, t) {
 		return (3 * a * t + 2 * b) * t + c;
 	}
@@ -765,10 +761,10 @@
 
 				// Add fn to queue
 				fns.push(fn);
-				
+
 				// If the timer is cued do nothing
 				if (id) { return; }
-				
+
 				var t1 = getTime();
 
 				// Set the timer and return something truthy
@@ -823,7 +819,7 @@
 		function stop(callLast) {
 			// If there is an update queued apply it now
 			//if (callLast !== false && queue === noop) { update(); }
-			
+
 			// An update is queued
 			if (queue === noop && id !== undefined) {
 				cancel(id);
@@ -1199,7 +1195,7 @@
 				var stream = Stream.of().on('pull', shiftPull);
 				stream.key = key;
 				streams.set(key, stream);
-				return stream;	
+				return stream;
 			}
 
 			function shiftPull(type, pullStream) {
@@ -1494,8 +1490,6 @@
 		throttle: Throttle,
 		wait:     Wait,
 
-//		apply:    curry(apply),
-
 
 		// Logic
 
@@ -1775,14 +1769,8 @@
 		radToDeg: deprecate(noop, 'radToDeg() is now toDeg()'),
 
 		nthRoot:  curry(
-			deprecate(function nthRoot(n, x) { return Math.pow(x, 1/n); }, 
+			deprecate(function nthRoot(n, x) { return Math.pow(x, 1/n); },
 			'nthRoot(n, x) is now simply root(n, x)'), false, 2),
-
-		while: curry(deprecate(function(fn, object) {
-			return object.while ?
-				object.while(fn) :
-				whileArray(fn, object) ;
-		}, 'while(fn, object) is marked for removal, use take(i) ??'), true, 2),
 
 		Throttle: deprecate(Throttle, 'Throttle(fn, time) removed, is now throttle(fn, time)'),
 		Wait: deprecate(Wait, 'Wait(fn, time) removed, is now wait(fn, time)'),
