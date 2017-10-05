@@ -102,10 +102,6 @@
 		return fn(value);
 	}
 
-	function apply(values, fn) {
-		return fn.apply(null, values);
-	}
-
 	function bind(args, fn) {
 		return function() {
 			fn.apply(this, concat(arguments, args));
@@ -1490,8 +1486,6 @@
 		throttle: Throttle,
 		wait:     Wait,
 
-//		apply:    curry(apply),
-
 
 		// Logic
 
@@ -1773,12 +1767,6 @@
 		nthRoot:  curry(
 			deprecate(function nthRoot(n, x) { return Math.pow(x, 1/n); },
 			'nthRoot(n, x) is now simply root(n, x)'), false, 2),
-
-		while: curry(deprecate(function(fn, object) {
-			return object.while ?
-				object.while(fn) :
-				whileArray(fn, object) ;
-		}, 'while(fn, object) is marked for removal, use take(i) ??'), true, 2),
 
 		Throttle: deprecate(Throttle, 'Throttle(fn, time) removed, is now throttle(fn, time)'),
 		Wait: deprecate(Wait, 'Wait(fn, time) removed, is now wait(fn, time)'),
