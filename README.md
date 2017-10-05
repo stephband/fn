@@ -77,7 +77,7 @@ in the same chain of parameters.
 By default a curried function expects immutable objects to be passed in. If a
 function expects only primitives there's no problem, but if it is to operate on
 objects that may change shape – or if it is a function with side effects –
-switch on mutability by passing `true` as the second parameter. 
+switch on mutability by passing `true` as the second parameter.
 
     var fn2 = curry(fn1, true);
 
@@ -99,7 +99,7 @@ Returns a function that calls a function at the property of `object` that
 matches the result of calling `fn` (with all arguments). `overload` is curried.
 
 	var overloadTypes = overload(function() {
-	   return map(toType, arguments).join(' '); 
+	   return map(toType, arguments).join(' ');
     });
 
     var fn = overloadTypes({
@@ -352,6 +352,9 @@ Creates a functor from an array or collection.
 //##### `buffer(object)`
 ##### `chain(fn)`
 ##### `chunk(n)`
+
+Splits values into functors of length `n`.
+
 ##### `clone()`
 ##### `concat(list)`
 ##### `dedup()`
@@ -362,7 +365,15 @@ Creates a functor from an array or collection.
 ##### `latest()`
 ##### `map(fn)`
 ##### `partition(fn)`
-//##### `sort(fn)`
+
+Splits values into streams, where all values in a stream share the return
+value of `fn(value)`.
+
+##### `split(fn)`
+
+Splits values into functors, where a new functor is created whenever the
+predicate `fn(value)` returns true.
+
 ##### `take(i)`
 ##### `rest(i)`
 ##### `unique()`

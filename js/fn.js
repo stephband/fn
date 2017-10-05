@@ -1186,7 +1186,6 @@
 
 		partition: function(fn) {
 			var source = this;
-			var shift  = this.shift;
 			var buffer = [];
 			var streams = new Map();
 
@@ -1220,7 +1219,7 @@
 			return create(this, function shiftStream() {
 				if (buffer.length) { return buffer.shift(); }
 
-				var value = shift();
+				var value = source.shift();
 				if (value === undefined) { return; }
 
 				var key    = fn(value);
