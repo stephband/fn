@@ -50,7 +50,8 @@
 	};
 
 	Pool.snapshot = function() {
-		return Fn(loggers)
+		return Fn
+		.from(loggers)
 		.map(call)
 		.toJSON();
 	};

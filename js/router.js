@@ -1,8 +1,8 @@
 (function(window) {
 	"use strict";
-	
+
 	var debug  = true;
-	
+
 	var Fn      = window.Fn;
 	var map     = Fn.map;
 	var Stream  = window.Stream;
@@ -30,7 +30,7 @@
 		var keys = Object.keys(reducers);
 
 		if (debug) {
-			var isFunctions = Fn(keys)
+			var isFunctions = Fn.from(keys)
 			.map(function(key) { return reducers[key]; })
 			.each(function(fn) {
 				if (typeof fn === "function") { return; }
@@ -56,10 +56,10 @@
 	function isNavigation(e) {
 		// Already handled
 		if (e.defaultPrevented) { return; }
-	
+
 		// Not primary button
 		if (!dom.isPrimaryButton(e)) { return; }
-	
+
 		var node = dom.closest('a[href]', e.target);
 
 		// Not in a link
@@ -124,7 +124,7 @@
 					// anything else that dont have no scrollRestoration.
 				}
 			},
-			
+
 			get: function() {
 				return history.scrollRestoration === 'manual';
 			}

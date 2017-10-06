@@ -1,6 +1,6 @@
 (function(window) {
 	"use strict";
-	
+
 	var assign = Object.assign;
 	var Fn     = window.Fn;
 	var Stream = window.Stream;
@@ -20,7 +20,7 @@
 		var keys = Object.keys(reducers);
 
 		if (debug) {
-			var isFunctions = Fn(keys)
+			var isFunctions = Fn.from(keys)
 			.map(function(key) { return reducers[key]; })
 			.each(function(fn) {
 				if (typeof fn === "function") { return; }

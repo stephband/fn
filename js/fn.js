@@ -902,6 +902,7 @@
 	}
 
 	function Fn(fn) {
+		// Accept constructor without `new`
 		if (!this || !Fn.prototype.isPrototypeOf(this)) {
 			return new Fn(fn);
 		}
@@ -909,54 +910,35 @@
 		var source = this;
 
 		if (!fn) {
-			this.shift = noop;
-			this.status = 'done';
+			source.status = 'done';
 			return;
 		}
 
-		if (typeof fn === "function") {
-			this.shift = fn;
+		var value = fn();
+
+		if (value === undefined) {
+			source.status = 'done';
 			return;
 		}
 
-		// fn is an object with a shift function
-		if (typeof fn.shift === "function" && fn.length === undefined) {
-			this.shift = function shift() {
-				var value = fn.shift();
-				if (fn.status === "done" || fn.length === 0) { source.status = 'done'; }
-				return value;
-			};
-			return;
-		}
-
-		// fn is an iterator
-		if (typeof fn.next === "function") {
-			this.shift = function shift() {
-				var result = fn.next();
-				if (result.done) { source.status = 'done'; }
-				return result.value;
-			};
-			return;
-		}
-
-		// fn is an array or array-like object. Iterate over it.
-		var i = -1;
 		this.shift = function shift() {
-			if (++i === fn.length - 1) {
+			if (source.status === 'done') { return; }
+
+			var v = value;
+
+			// Where the next value is undefined mark the functor as done
+			value = fn();
+			if (value === undefined) {
 				source.status = 'done';
-				return fn[i];
 			}
 
-			if (i >= fn.length) {
-				return;
-			}
-
-			// Ignore holes
-			return fn[i] === undefined ? shift() : fn[i] ;
+			return v;
 		};
 	}
 
 	assign(Fn.prototype, {
+		shift: noop,
+
 		// Input
 
 		of: function() {
@@ -1016,45 +998,56 @@
 
 			this.shift = function() {
 				var value;
+
 				if (buffer1.length) {
 					value = buffer1.shift();
+
 					if (!buffer1.length && doneFlag) {
 						source.status = 'done';
 					}
+
+					return value;
 				}
-				else if (!doneFlag) {
+
+				if (!doneFlag) {
 					value = shift();
-					if (!buffer2.length) { clone.status = source.status; }
+
 					if (source.status === 'done') {
 						doneFlag = true;
 					}
-					if (value !== undefined) { buffer2.push(value); }
+
+					if (value !== undefined) {
+						buffer2.push(value);
+					}
+
+					return value;
 				}
-				return value;
 			};
 
-			var clone = new Fn(function() {
-				if (clone.status === 'done') { return; }
-
+			var clone = new Fn(function shiftClone() {
 				var value;
 
 				if (buffer2.length) {
-					value = buffer2.shift();
-					if (!buffer2.length && doneFlag) {
-						clone.status = 'done';
-					}
+					return buffer2.shift();
+					//if (!buffer2.length && doneFlag) {
+					//	clone.status = 'done';
+					//}
 				}
-				else if (!doneFlag) {
+
+				if (!doneFlag) {
 					value = shift();
-					clone.status = source.status;
+
 					if (source.status === 'done') {
 						doneFlag = true;
 						source.status = undefined;
 					}
-					if (value !== undefined) { buffer1.push(value); }
-				}
 
-				return value;
+					if (value !== undefined) {
+						buffer1.push(value);
+					}
+
+					return value;
+				}
 			});
 
 			return clone;
@@ -1458,8 +1451,43 @@
 
 		// Constructors
 
-		of: function() { return new Fn(arguments); },
-		from: function(object) { return new Fn(object); },
+		of: function() { return Fn.from(arguments); },
+
+		from: function(object) {
+			// object is an object with a shift function
+			if (typeof object.shift === "function" && object.length === undefined) {
+				return new Fn(function shiftObject() {
+					return object.shift();
+				});
+			}
+
+			// object is an iterator
+			if (typeof object.next === "function") {
+				return new Fn(function shiftIterator() {
+					var result = object.next();
+
+					// Ignore undefined holes in iterator results
+					return result.done ?
+						result.value :
+					result.value === undefined ?
+						shiftIterator() :
+						result.value ;
+				});
+			}
+
+			// object is an array or array-like object. Iterate over it without
+			// mutating it.
+			var i = -1;
+
+			return new Fn(function shiftArray() {
+				// Ignore undefined holes in arrays
+				return ++i >= object.length ?
+					undefined :
+				object[i] === undefined ?
+					shiftArray() :
+					object[i] ;
+			});
+		},
 
 		Timer:    Timer,
 
