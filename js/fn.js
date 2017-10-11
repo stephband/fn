@@ -1750,7 +1750,6 @@
 			return 1 - Math.pow(1 - x, e);
 		}),
 
-
 		// Strings
 
 		append:      curry(append),
