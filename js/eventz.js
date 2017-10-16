@@ -52,13 +52,12 @@
 			var events = object[$events];
 
 			if (!events) { return; }
-			
+
 			var listeners = events[type];
 			if (!listeners) { return; }
 
 			var n = -1;
-			var l = listeners.length;
-			var value, fn;
+			var fn;
 
 			while (fn = listeners[++n]) {
 				fn(value);
