@@ -15,6 +15,7 @@
 	var N = Number.prototype;
 	var O = Object.prototype;
 	var S = String.prototype;
+	var assign = Object.assign;
 
 
 	// Define
@@ -258,8 +259,7 @@
 		return true;
 	}
 
-	var is = Object.is
-		|| function is(a, b) { return a === b; } ;
+	var is = Object.is || function is(a, b) { return a === b; } ;
 
 	function isDefined(value) {
 		// !!value is a fast out for non-zero numbers, non-empty strings
@@ -400,14 +400,15 @@
 
 	function each(fn, object) {
 		// A stricter version of .forEach, where the callback fn
-		// gets only one argument.
+		// gets a single argument and no context.
+		var l, n;
 
 		if (typeof object.each === 'function') {
 			object.each(fn);
 		}
 		else {
-			var l = object.length;
-			var n = -1;
+			l = object.length;
+			n = -1;
 			while (++n < l) { fn(object[n]); }
 		}
 
@@ -534,13 +535,7 @@
 
 	// Objects
 
-	var assign = Object.assign;
-
-	//var rpathtrimmer  = /^\[|\]$/g;
-	var rpathsplitter = /["']?\](?:$|\.|\[["']?)|\[["']?/;
-	var rpropselector = /(\w+)=(['"]?[\w-]+['"]?)/;
-
-	function isObject(obj) { return obj instanceof Object; }
+	var rpath  = /\[?([-\w]+)(?:=(['"])?([-\w]+)\2)?\]?\.?/g;
 
 	function get(key, object) {
 		// Todo? Support WeakMaps and Maps and other map-like objects with a
@@ -556,55 +551,98 @@
 			(object[key] = value) ;
 	}
 
-	function select(object, selector) {
-		var selection = rpropselector.exec(selector);
-
-		return selection ?
-			findByProperty(selection[1], object, JSON.parse(selection[2])) :
-			get(selector, object) ;
-	}
-
-	function splitPath(path) {
-		// Split path, making sure whitespace is topped and tailed
-		var array = path.split(rpathsplitter);
-		if (array[0] === '') { array.shift(); }
-		if (array[array.length - 1] === '') { array.pop(); }
-		return array;
-	}
-
-	function findByProperty(name, array, value) {
-		// Find first matching object in array
+	function findByProperty(key, value, array) {
+		var l = array.length;
 		var n = -1;
 
-		while (++n < array.length) {
-			if (array[n] && array[n][name] === value) {
+		while (++n < l) {
+			if (array[n][key] === value) {
 				return array[n];
 			}
 		}
 	}
 
-	function objFrom(object, array) {
-		var key = array.shift();
-		var value = select(object, key);
+	function getRegexPathThing(regex, path, object, fn) {
+		var tokens = regex.exec(path);
 
-		return array.length === 0 ? value :
-			isDefined(value) ? objFrom(value, array) :
-			value ;
-	}
-
-	function objTo(root, array, value) {
-		var key = array.shift();
-
-		if (array.length === 0) {
-			set(key, root, value);
-			return value;
+		if (!tokens) {
+			throw new Error('Fn.getPath(path, object): invalid path "' + path + '"');
 		}
 
-		var object = get(key, root);
-		if (!isObject(object)) { object = {}; }
+		var key      = tokens[1];
+		var property = tokens[3] ?
+			findByProperty(key, tokens[2] ?
+				tokens[3] :
+				parseFloat(tokens[3]),
+			object) :
+			object[key] ;
 
-		set(key, root, object);
-		return objTo(object, array, value) ;
+		return fn(regex, path, property);
+	}
+
+	function getRegexPath(regex, path, object) {
+		return regex.lastIndex === path.length ?
+			object :
+		!(object && typeof object === 'object') ?
+			undefined :
+		getRegexPathThing(regex, path, object, getRegexPath) ;
+	}
+
+	function setRegexPath(regex, path, object, thing) {
+		var tokens = regex.exec(path);
+
+		if (!tokens) {
+			throw new Error('Fn.getPath(path, object): invalid path "' + path + '"');
+		}
+
+		var key = tokens[1];
+
+		if (regex.lastIndex === path.length) {
+			// Cannot set to [prop=value] selector
+			if (tokens[3]) {
+				throw new Error('Fn.setPath(path, object): invalid path "' + path + '"');
+			}
+
+			return object[key] = thing;
+		}
+
+		var value = tokens[3] ?
+			findByProperty(key, tokens[2] ?
+				tokens[3] :
+				parseFloat(tokens[3]), object
+			) :
+			object[key] ;
+
+		if (!(value && typeof value === 'object')) {
+			value = {};
+
+			if (tokens[3]) {
+				if (object.push) {
+					value[key] = tokens[2] ?
+						tokens[3] :
+						parseFloat(tokens[3]) ;
+
+					object.push(value);
+				}
+				else {
+					throw new Error('Not supported');
+				}
+			}
+
+			set(key, object, value);
+		}
+
+		return setRegexPath(regex, path, value, thing);
+	}
+
+	function getPath(path, object) {
+		rpath.lastIndex = 0;
+		return getRegexPath(rpath, path, object) ;
+	}
+
+	function setPath(path, object, value) {
+		rpath.lastIndex = 0;
+		return setRegexPath(rpath, path, object, value);
 	}
 
 
@@ -739,7 +777,7 @@
 		getTime = getTime || now;
 
 		var fns = [];
-		var id  = undefined;
+		var id;
 		var t0  = -Infinity;
 
 		function frame() {
@@ -851,11 +889,10 @@
 
 	function Wait(fn, time) {
 		var timer, context, args;
-
-		function cue() {
+		var cue = function cue() {
 			if (timer) { clearTimeout(timer); }
 			timer = setTimeout(update, (time || 0) * 1000);
-		}
+		};
 
 		function update() {
 			timer = false;
@@ -1611,25 +1648,11 @@
 
 		// Objects
 
-		assign: curry(assign, true, 2),
-		get:    curry(get, true),
-		set:    curry(set, true),
-
-		getPath: curry(function getPath(path, object) {
-			return object && (object.get ? object.get(path) :
-				typeof path === 'number' ? object[path] :
-				path === '' || path === '.' ? object :
-				objFrom(object, splitPath(path))) ;
-		}, true),
-
-		setPath: curry(function setPath(path, object, value) {
-			if (object.set) { object.set(path, value); }
-			if (typeof path === 'number') { return object[path] = value; }
-			var array = splitPath(path);
-			return array.length === 1 ?
-				(object[path] = value) :
-				objTo(object, array, value);
-		}, true),
+		assign:    curry(assign, true, 2),
+		get:       curry(get, true),
+		set:       curry(set, true),
+		getPath:   curry(getPath, true),
+		setPath:   curry(setPath, true),
 
 		invoke: curry(function invoke(name, values, object) {
 			return object[name].apply(object, values);

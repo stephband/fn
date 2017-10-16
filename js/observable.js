@@ -13,12 +13,12 @@
 	var $observers   = Symbol('observers');
 	var $update      = Symbol('update');
 
-	var rname        = /^\[?([-\w]+)(?:=(['"])([-\w]+)\2)?\]?\.?/g;
-
+	///^\[?([-\w]+)(?:=(['"])([-\w]+)\2)?\]?\.?/g;
+	var rname        = /\[?([-\w]+)(?:=(['"])?([-\w]+)\2)?\]?\.?/g;
 
 	// Utils
 
-	function noop() {};
+	function noop() {}
 
 	function isArrayLike(object) {
 		return object.hasOwnProperty('length') &&
@@ -34,7 +34,7 @@
 		return typeof name === 'symbol' ?
 			value :
 			Observable(value) || value ;
-	};
+	}
 
 	var arrayHandlers = {
 		get: trapGet,
@@ -54,14 +54,14 @@
 					//target.length = value;
 					return true;
 				}
-				
+
 				target.length = value;
 
 				while (--old >= value) {
 					fire(observers[old], undefined);
 				}
 			}
-			
+
 			// We are setting an integer string or number
 			else if (+name % 1 === 0) {
 				if (value === undefined) {
@@ -148,7 +148,7 @@
 	// Observable.observe
 
 	function getObservers(object, name) {
-		return object[$observers][name] || (object[$observers][name] = []) ;	
+		return object[$observers][name] || (object[$observers][name] = []) ;
 	}
 
 	function removeObserver(observers, fn) {
@@ -184,7 +184,7 @@
 		var unobserve = noop;
 
 		function isMatch(item) {
-			return item[key] == match;
+			return item[key] === match;
 		}
 
 		function update(array) {
@@ -238,7 +238,12 @@
 		}
 
 		var name  = tokens[1];
-		var match = tokens[3];
+		var match = tokens[3] && (
+			tokens[2] ?
+				tokens[3] :
+				parseFloat(tokens[3])
+		);
+
 		path = path.slice(rname.lastIndex);
 
 		return match ?
@@ -247,17 +252,9 @@
 	}
 
 	function notify(object, path) {
-		var old = target[name];
-
-		// If we are setting the same value, we're not really setting at all
-		if (old === value) { return true; }
-
-		target[name] = value;
-
-		var observers = target[$observers];
-
-		fire(observers[name], Observable(value) || value);
-		fire(observers[$update], receiver);
+		var observers = object[$observers];
+		fire(observers[path], object[$observable]);
+		fire(observers[$update], object);
 	}
 
 	Observable.isObservable = isObservable;
