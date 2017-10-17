@@ -80,12 +80,14 @@
 		var i = -1;
 		var l = listeners.length;
 		var params, result;
-
+console.log(4.1, l)
 		while (++i < l && result !== false) {
 			params = args.concat(listeners[i][1]);
+console.log(4.2, typeof listeners[i][0], Fn.toClass(listeners[i][0]), listeners[i][0].toString())
 			result = listeners[i][0].apply(object, params);
+console.log(4.3, result)
 		}
-
+console.log(4.4);
 		return result;
 	}
 
@@ -226,11 +228,13 @@
 
 		trigger: function(e) {
 			var events = getListeners(this);
+console.log(1)
 			// Copy delegates. We may be about to mutate the delegates list.
 			var delegates = getDelegates(this).slice();
+console.log(2)
 			var args = slice(arguments);
 			var type, target, i, l;
-
+console.log(3)
 			if (typeof e === 'string') {
 				type = e;
 				target = this;
@@ -239,7 +243,7 @@
 				type = e.type;
 				target = e.target;
 			}
-
+console.log(4)
 			if (events[type]) {
 				args[0] = target;
 
@@ -247,12 +251,13 @@
 				// while we're triggering the callbacks. If a handler
 				// returns false stop the madness.
 				if (triggerListeners(this, events[type].slice(), args) === false) {
+console.log(10);
 					return this;
 				}
 			}
-
+console.log(5)
 			if (!delegates.length) { return this; }
-
+console.log(6)
 			i = -1;
 			l = delegates.length;
 			args[0] = eventObject;
@@ -264,11 +269,11 @@
 				eventObject.type = type;
 				eventObject.target = target;
 			}
-
+console.log(7)
 			while (++i < l) {
 				delegates[i].trigger.apply(delegates[i], args);
 			}
-
+console.log(8)
 			// Return this for chaining
 			return this;
 		}

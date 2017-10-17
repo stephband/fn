@@ -29,8 +29,8 @@
 	// Observable
 	function trapGet(target, name, self) {
 		var value = target[name];
+console.trace('GET', name)
 		// Ignore symbols
-
 		return typeof name === 'symbol' ?
 			value :
 			Observable(value) || value ;
@@ -40,6 +40,12 @@
 		get: trapGet,
 
 		set: function(target, name, value, receiver) {
+			// We are setting a symbol
+			if (typeof name === 'symbol') {
+				target[name] = value;
+				return true;
+			}
+
 			var old = target[name];
 
 			// If we are setting the same value, we're not really setting at all
