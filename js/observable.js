@@ -7,11 +7,14 @@
 	}
 
 	var A            = Array.prototype;
+	var assign       = Object.assign;
 	var isExtensible = Object.isExtensible;
 
 	var $observable  = Symbol('observable');
 	var $observers   = Symbol('observers');
 	var $update      = Symbol('update');
+
+	var nothing      = Object.freeze([]);
 
 	///^\[?([-\w]+)(?:=(['"])([-\w]+)\2)?\]?\.?/g;
 	var rname        = /\[?([-\w]+)(?:=(['"])?([-\w]+)\2)?\]?\.?/g;
@@ -29,12 +32,14 @@
 	// Observable
 	function trapGet(target, name, self) {
 		var value = target[name];
-console.trace('GET', name)
+
 		// Ignore symbols
 		return typeof name === 'symbol' ?
 			value :
 			Observable(value) || value ;
 	}
+
+	//var change = {};
 
 	var arrayHandlers = {
 		get: trapGet,
@@ -52,6 +57,7 @@ console.trace('GET', name)
 			if (old === value) { return true; }
 
 			var observers = target[$observers];
+			var change;
 
 			// We are setting length
 			if (name === 'length') {
@@ -61,7 +67,11 @@ console.trace('GET', name)
 					return true;
 				}
 
-				target.length = value;
+				change = {
+					index:   value,
+					removed: A.splice.call(target, value),
+					added:   nothing,
+				};
 
 				while (--old >= value) {
 					fire(observers[old], undefined);
@@ -70,14 +80,27 @@ console.trace('GET', name)
 
 			// We are setting an integer string or number
 			else if (+name % 1 === 0) {
+				name = +name;
 				if (value === undefined) {
-					if (+name < target.length) {
-						A.splice.call(target, name, 1);
+					if (name < target.length) {
+						change = {
+							index:   name,
+							removed: A.splice.call(target, name, 1),
+							added:   nothing
+						};
+
 						value = target[name];
+					}
+					else {
+						return true;
 					}
 				}
 				else {
-					target[name] = value;
+					change = {
+						index:   name,
+						removed: A.splice.call(target, name, 1, value),
+						added:   [value]
+					};
 				}
 			}
 
@@ -87,7 +110,11 @@ console.trace('GET', name)
 			}
 
 			fire(observers[name], Observable(value) || value);
-			fire(observers[$update], receiver);
+			fire(observers[$update], receiver, change);
+
+			//change.index = 0;
+			//change.removed.length = 0;
+			//change.added.length = 0;
 
 			// Return true to indicate success
 			return true;
@@ -115,13 +142,14 @@ console.trace('GET', name)
 		}
 	};
 
-	function fire(observers, value) {
+	function fire(observers, value, record) {
 		if (!observers) { return; }
 
 		// Todo: What happens if observers are removed during this operation?
+		// Bad things, I'll wager.
 		var n = -1;
 		while (observers[++n]) {
-			observers[n](value);
+			observers[n](value, record);
 		}
 	}
 
@@ -154,7 +182,8 @@ console.trace('GET', name)
 	// Observable.observe
 
 	function getObservers(object, name) {
-		return object[$observers][name] || (object[$observers][name] = []) ;
+		return object[$observers][name]
+			|| (object[$observers][name] = []);
 	}
 
 	function removeObserver(observers, fn) {
@@ -163,9 +192,9 @@ console.trace('GET', name)
 	}
 
 	function observePrimitive(object, fn) {
-		if (fn.value !== object) {
-			fn(object);
+		if (object !== fn.value) {
 			fn.value = object;
+			fn(object);
 		}
 
 		return noop;
@@ -173,12 +202,19 @@ console.trace('GET', name)
 
 	function observeObject(object, fn) {
 		var observers = getObservers(object, $update);
+		var old       = fn.value;
 
 		observers.push(fn);
 
 		if (object !== fn.value) {
-			fn(object);
+//console.log('REMOVE', fn.value);
 			fn.value = object;
+//console.log('ADD', fn.value);
+			fn(object, {
+				index:   0,
+				removed: old ? old : nothing,
+				added:   object
+			});
 		}
 
 		return function unobserveObject() {
@@ -272,6 +308,30 @@ console.trace('GET', name)
 		object = Observable(object);
 
 		return object ? observe(object, path, fn) : noop ;
+	};
+
+	Observable.filter = function(fn, array) {
+		var subset = Observable([]);
+
+		Observable.observe(array, '', function() {
+			var filtered = array.filter(fn);
+			assign(subset, filtered);
+			subset.length = filtered.length;
+		});
+
+		return subset;
+	};
+
+	Observable.map = function(fn, array) {
+		var subset = Observable([]);
+
+		Observable.observe(array, '', function(observable) {
+			var filtered = array.map(fn);
+			assign(subset, filtered);
+			subset.length = filtered.length;
+		});
+
+		return subset;
 	};
 
 	// Export
