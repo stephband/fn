@@ -1384,11 +1384,10 @@
 		// Consumers
 
 		each: function(fn) {
-			var value = this.shift();
+			var value;
 
-			while (value !== undefined) {
+			while ((value = this.shift()) !== undefined) {
 				fn.call(this, value);
-				value = this.shift();
 			}
 
 			return this;

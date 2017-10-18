@@ -3,6 +3,7 @@
 
 	var Fn         = window.Fn;
 	var Stream     = window.Stream;
+	var Observable = window.Observable;
 
 	// Dont import it yet - we may be about to overwrite it with our back-fill
 	// for browsers without Proxy.
@@ -13,10 +14,10 @@
 	var noop       = Fn.noop;
 	var setPath    = Fn.setPath;
 
-	function ObserveSource(stop, observable, path) {
-		this.observable = observable;
+	function ObserveSource(end, object, path) {
+		this.observable = Observable(object);
 		this.path       = path;
-		this.stop       = stop;
+		this.end        = end;
 	}
 
 	ObserveSource.prototype = {
@@ -32,25 +33,22 @@
 
 		stop: function() {
 			this.unobserve();
-			this.stop();
+			this.end();
 		},
 
 		unobserve: noop
 	};
 
 	Stream.observe = curry(function(path, object) {
-		var Observable = window.Observable;
-		var observable = Observable(object);
-
 		return new Stream(function setup(notify, stop) {
-			var source = new ObserveSource(stop, observable, path);
+			var source = new ObserveSource(stop, object, path);
 
 			function update(v) {
 				source.value = v === undefined ? null : v ;
 				notify('push');
 			}
 
-			source.unobserve = Observable.observe(observable, path, update);
+			source.unobserve = Observable.observe(object, path, update);
 			return source;
 		});
 	});

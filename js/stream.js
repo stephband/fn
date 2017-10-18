@@ -283,7 +283,7 @@
 				var source = data.source;
 				var listen = data.listen;
 				source.off('push', listen);
-				source.off('push', notify);						
+				source.off('push', notify);
 			}, this._store);
 
 			this._stop(this._hot ? 1 : 0);
@@ -365,7 +365,7 @@
 
 	Stream.Merge = function(source1, source2) {
 		var args = arguments;
-	
+
 		return new Stream(function setup(notify, stop) {
 			return new MergeSource(notify, stop, Array.from(args));
 		});
@@ -377,7 +377,7 @@
 	Stream.Events = function(type, node) {
 		return new Stream(function setup(notify, stop) {
 			var buffer = [];
-	
+
 			function update(value) {
 				buffer.push(value);
 				notify('push');
