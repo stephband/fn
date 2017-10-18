@@ -1,5 +1,6 @@
 
 .test-section {
+	position: relative;
 	display: inline-block;
 	vertical-align: top;
 	width: calc(50% - 1.40625rem);
