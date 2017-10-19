@@ -117,7 +117,6 @@
 		}
 
 		var stream  = this;
-		var args    = arguments;
 		var getSource;
 
 		var promise = new Promise(function(resolve, reject) {
