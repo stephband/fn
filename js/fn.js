@@ -1490,6 +1490,23 @@
 		of: function() { return Fn.from(arguments); },
 
 		from: function(object) {
+			var i;
+
+			// object is an array or array-like object. Iterate over it without
+			// mutating it.
+			if (typeof object.length === 'number') {
+				i = -1;
+
+				return new Fn(function shiftArray() {
+					// Ignore undefined holes in arrays
+					return ++i >= object.length ?
+						undefined :
+					object[i] === undefined ?
+						shiftArray() :
+						object[i] ;
+				});
+			}
+
 			// object is an object with a shift function
 			if (typeof object.shift === "function" && object.length === undefined) {
 				return new Fn(function shiftObject() {
@@ -1511,18 +1528,7 @@
 				});
 			}
 
-			// object is an array or array-like object. Iterate over it without
-			// mutating it.
-			var i = -1;
-
-			return new Fn(function shiftArray() {
-				// Ignore undefined holes in arrays
-				return ++i >= object.length ?
-					undefined :
-				object[i] === undefined ?
-					shiftArray() :
-					object[i] ;
-			});
+			throw new Error('Fn: from(object) object is not a list of a known kind (array, functor, stream, iterator).')
 		},
 
 		Timer:    Timer,
