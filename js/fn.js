@@ -393,9 +393,7 @@
 	var isIn = flip(contains);
 
 	function map(fn, object) {
-		return object.map ?
-			object.map(fn) :
-			A.map.call(object, fn) ;
+		return object && object.map ? object.map(fn) : A.map.call(object, fn) ;
 	}
 
 	function each(fn, object) {
@@ -531,6 +529,10 @@
 	function sort(fn, object) {
 		return object.sort ? object.sort(fn) : A.sort.call(object, fn);
 	}
+
+	var tap = curry(function tap(fn, object) {
+		return object === undefined ? undefined : (fn(object), object) ;
+	});
 
 
 	// Objects
@@ -1418,11 +1420,7 @@
 
 		tap: function(fn) {
 			// Overwrite shift to copy values to tap fn
-			this.shift = Fn.compose(function(value) {
-				if (value !== undefined) { fn(value); }
-				return value;
-			}, this.shift);
-
+			this.shift = Fn.compose(tap(fn), this.shift);
 			return this;
 		},
 
@@ -1641,6 +1639,7 @@
 		last:      last,
 		latest:    latest,
 		map:       curry(map, true),
+		tap:       curry(tap),
 		reduce:    curry(reduce, true),
 		remove:    curry(remove, true),
 		rest:      curry(rest, true),
