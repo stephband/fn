@@ -532,7 +532,7 @@
 
 	var tap = curry(function tap(fn, object) {
 		return object === undefined ? undefined : (fn(object), object) ;
-	});
+	}, true);
 
 
 	// Objects
