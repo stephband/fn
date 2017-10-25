@@ -55,6 +55,8 @@ body > .grid-block + .grid-block {
     margin-top: 0;
 }
 
+.text-2,  h2   { font-size: 1.5rem;    line-height: 1.5rem; }
+.text-3,  h3   { font-size: 1.375rem;  line-height: 1.5rem; }
 .text-8,  body { font-size: 0.9375rem; line-height: 1.5rem; font-weight: 300; }
 .text-10, code {
     font-family: 'Roboto Mono', monospace;
@@ -156,4 +158,8 @@ h5, .text-5 {
 
 pre {
     white-space: pre;
+}
+
+.dot-indent {
+    text-indent: -0.625em;
 }
