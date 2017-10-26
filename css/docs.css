@@ -57,11 +57,15 @@ body > .grid-block + .grid-block {
 
 .text-2,  h2   { font-size: 1.5rem;    line-height: 1.5rem; }
 .text-3,  h3   { font-size: 1.375rem;  line-height: 1.5rem; }
+.text-4,  h4   { font-size: 0.9375rem; line-height: 1.5rem; font-weight: 600; }
 .text-8,  body { font-size: 0.9375rem; line-height: 1.5rem; font-weight: 300; }
 .text-10, code {
     font-family: 'Roboto Mono', monospace;
     font-size: 1.0625rem;
 }
+
+.text-4 + p, h4 + p { margin-top: 0; }
+p + .text-4, p + h4 { margin-top: 1.5rem; }
 
 a.block {
     position: relative;
