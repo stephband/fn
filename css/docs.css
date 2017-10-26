@@ -21,7 +21,7 @@ body > .grid-block + .grid-block {
     min-height: 2.25rem;
     padding-left: 0.9375rem;
     padding-right: 0.9375rem;
-    color: #444444;
+    /*color: #444444;*/
 }
 
 .toggle-block.active {
@@ -96,7 +96,7 @@ a.block:hover {
 code {
     font-size: 14px;
     font-weight: 400;
-    color:#5e686d;
+    /*color:#5e686d;*/
     background-color: #e9eaea;
     padding-left: 3px;
     padding-right: 3px;
@@ -115,6 +115,7 @@ code {
 }
 
 a {
+    color; inherit;
     text-decoration: none;
     padding-bottom: 2px;
     border-bottom: 2px solid transparent;
@@ -139,7 +140,7 @@ a:hover {
 .text-5 code {
     font-size: inherit;
     font-weight: 400;
-    color: #444;
+    color: inherit;
     background-color: transparent;
     padding: 0;
     margin: 0;
