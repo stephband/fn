@@ -1,5 +1,5 @@
  body {
-    padding-top: 1.5rem;
+    padding-top: 1.875rem;
     padding-bottom: 2.25rem;
     color: #141B1E;
 }
@@ -9,6 +9,11 @@
         padding-top: 1.875rem;
         padding-bottom: 3.75rem;
     }
+}
+
+body > .grid-block {
+    margin-left: auto;
+    margin-right: auto;
 }
 
 body > .grid-block + .grid-block {
