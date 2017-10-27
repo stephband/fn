@@ -85,7 +85,7 @@ a.block:hover {
     padding-right: 0.75rem;
     width: calc(100% + 0.75rem + 0.9375rem);
     color: white;
-    background-color: #141B1E;
+    background-color: #272a2b;
     border-radius: 0;
     border-bottom-left-radius: 0;
     margin-top: 18px;
@@ -101,7 +101,7 @@ code {
     font-size: 14px;
     font-weight: 400;
     /*color:#5e686d;*/
-    background-color: #e9eaea;
+    background-color: rgba(0,0,0,0.086);
     padding-left: 3px;
     padding-right: 3px;
     margin-left: -1px;
