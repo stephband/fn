@@ -6,18 +6,21 @@
 		return;
 	}
 
-	var A            = Array.prototype;
-	var assign       = Object.assign;
-	var isExtensible = Object.isExtensible;
+	var EventTarget    = window.EventTarget;
 
-	var $observable  = Symbol('observable');
-	var $observers   = Symbol('observers');
-	var $update      = Symbol('update');
+	var A              = Array.prototype;
+	var assign         = Object.assign;
+	var isFrozen       = Object.isFrozen;
+	var getPrototypeOf = Object.getPrototypeOf;
 
-	var nothing      = Object.freeze([]);
+	var $observable    = Symbol('observable');
+	var $observers     = Symbol('observers');
+	var $update        = Symbol('update');
+
+	var nothing        = Object.freeze([]);
 
 	///^\[?([-\w]+)(?:=(['"])([-\w]+)\2)?\]?\.?/g;
-	var rname        = /\[?([-\w]+)(?:=(['"])?([-\w]+)\2)?\]?\.?/g;
+	var rname          = /\[?([-\w]+)(?:=(['"])?([-\w]+)\2)?\]?\.?/g;
 
 	// Utils
 
@@ -34,8 +37,7 @@
 		var value = target[name];
 
 		// Ignore symbols
-		return typeof name === 'symbol' ?
-			value :
+		return typeof name === 'symbol' ? value :
 			Observable(value) || value ;
 	}
 
@@ -153,29 +155,60 @@
 		}
 	}
 
-	function isObservable(object) {
-		return object
-			&& typeof object === 'object'
-			&& isExtensible(object)
-			&& !(object instanceof Date) ;
+	// The TypedArray prototype is not accessible directly
+	var TA = getPrototypeOf(Float32Array.prototype);
+
+	function isTypedArray(object) {
+		return TA.isPrototypeOf(object);
 	}
 
-	function Observable(object) {
-		if (!isObservable(object)) { return; }
+	function isMap(object) {
+		return TA.isPrototypeOf(object);
+	}
 
-		if (object[$observable]) {
-			return object[$observable];
-		}
+	function isObservable(object) {
+		// Many built-in objects and DOM objects bork when calling their
+		// methods via a proxy. They should be considered not observable.
+		// I wish there were a way of whitelisting rather than
+		// blacklisting, but it would seem not.
 
-		var observable = new Proxy(object, isArrayLike(object) ?
+		return object
+			// Reject primitives, null and other frozen objects
+			&& !isFrozen(object)
+			// Reject DOM nodes, Web Audio context and nodes, MIDI inputs,
+			// XMLHttpRequests, which all inherit from EventTarget
+			&& !EventTarget.prototype.isPrototypeOf(object)
+			// Reject dates
+			&& !(object instanceof Date)
+			// Reject regex
+			&& !(object instanceof RegExp)
+			// Reject maps
+			&& !(object instanceof Map)
+			&& !(object instanceof WeakMap)
+			// Reject sets
+			&& !(object instanceof Set)
+			&& !(object instanceof WeakSet)
+			// Reject TypedArrays
+			&& !(isTypedArray(object)) ;
+	}
+
+	function createProxy(object) {
+		var proxy = new Proxy(object, isArrayLike(object) ?
 			arrayHandlers :
 			objectHandlers
 		);
 
 		object[$observers]  = {};
-		object[$observable] = observable;
+		object[$observable] = proxy;
 
-		return observable;
+		return proxy;
+	}
+
+	function Observable(object) {
+		return !object ? undefined :
+			object[$observable] ? object[$observable] :
+			!isObservable(object) ? undefined :
+		createProxy(object) ;
 	}
 
 
@@ -207,9 +240,7 @@
 		observers.push(fn);
 
 		if (object !== fn.value) {
-//console.log('REMOVE', fn.value);
 			fn.value = object;
-//console.log('ADD', fn.value);
 			fn(object, {
 				index:   0,
 				removed: old ? old : nothing,
