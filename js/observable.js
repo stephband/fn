@@ -292,15 +292,31 @@
 		};
 	}
 
-	function observe(object, path, fn) {
-		if (!path.length) {
-			return isObservable(object) ?
-				observeObject(object, fn) :
-				observePrimitive(object, fn) ;
+	function callbackItem(object, key, match, path, fn) {
+		function isMatch(item) {
+			return item[key] === match;
 		}
 
+		var value = array && A.find.call(array, isMatch);
+		return observe(Observable(value) || value, path, fn);
+	}
+
+	function callbackProperty(object, name, path, fn) {
+		return observe(Observable(object[name]) || object[name], path, fn);
+	}
+
+	function observe(object, path, fn) {
 		if (!(object && typeof object === 'object')) {
 			return observePrimitive(undefined, fn);
+		}
+
+		if (!path.length) {
+			// We can assume the full isObservable() check has been done, as
+			// this function is either called from Object.observe or from
+			// the proxy callbacks
+			return object && object[$observable] ?
+				observeObject(object, fn) :
+				observePrimitive(object, fn) ;
 		}
 
 		rname.lastIndex = 0;
@@ -319,9 +335,13 @@
 
 		path = path.slice(rname.lastIndex);
 
-		return match ?
-			observeItem(object, name, match, path, fn) :
-			observeProperty(object, name, path, fn) ;
+		return object[$observable] ?
+			match ?
+				callbackItem(object, name, match, path, fn) :
+				callbackProperty(object, name, path, fn) :
+			match ?
+				observeItem(object, name, match, path, fn) :
+				observeProperty(object, name, path, fn) ;
 	}
 
 	function notify(object, path) {
@@ -334,11 +354,8 @@
 	Observable.notify       = notify;
 
 	Observable.observe = function(object, path, fn) {
-		// Coerce to string
-		path += '';
-		object = Observable(object);
-
-		return object ? observe(object, path, fn) : noop ;
+		// Coerce path to string
+		return observe(Observable(object) || object, path + '', fn);
 	};
 
 	Observable.filter = function(fn, array) {
