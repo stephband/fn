@@ -306,17 +306,16 @@
 	}
 
 	function observe(object, path, fn) {
-		if (!(object && typeof object === 'object')) {
-			return observePrimitive(undefined, fn);
-		}
-
 		if (!path.length) {
 			// We can assume the full isObservable() check has been done, as
-			// this function is either called from Object.observe or from
-			// the proxy callbacks
+			// this function is only called internally or from Object.observe
 			return object && object[$observable] ?
 				observeObject(object, fn) :
 				observePrimitive(object, fn) ;
+		}
+
+		if (!(object && typeof object === 'object')) {
+			return observePrimitive(undefined, fn);
 		}
 
 		rname.lastIndex = 0;
@@ -337,11 +336,11 @@
 
 		return object[$observable] ?
 			match ?
-				callbackItem(object, name, match, path, fn) :
-				callbackProperty(object, name, path, fn) :
-			match ?
 				observeItem(object, name, match, path, fn) :
-				observeProperty(object, name, path, fn) ;
+				observeProperty(object, name, path, fn) :
+			match ?
+				callbackItem(object, name, match, path, fn) :
+				callbackProperty(object, name, path, fn) ;
 	}
 
 	function notify(object, path) {
