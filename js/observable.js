@@ -10,6 +10,7 @@
 
 	var A              = Array.prototype;
 	var assign         = Object.assign;
+	var define         = Object.defineProperties;
 	var isFrozen       = Object.isFrozen;
 	var getPrototypeOf = Object.getPrototypeOf;
 
@@ -198,8 +199,10 @@
 			objectHandlers
 		);
 
-		object[$observers]  = {};
-		object[$observable] = proxy;
+		define(object, {
+			[$observers]:  { value: {} },
+			[$observable]: { value: proxy }
+		});
 
 		return proxy;
 	}
