@@ -8,20 +8,22 @@
 
 	var EventTarget    = window.EventTarget;
 
-	var A              = Array.prototype;
 	var assign         = Object.assign;
 	var define         = Object.defineProperties;
 	var isFrozen       = Object.isFrozen;
 	var getPrototypeOf = Object.getPrototypeOf;
+
+	// The TypedArray prototype is not accessible directly
+	var A              = Array.prototype;
+	var TA             = getPrototypeOf(Float32Array.prototype);
 
 	var $observable    = Symbol('observable');
 	var $observers     = Symbol('observers');
 	var $update        = Symbol('update');
 
 	var nothing        = Object.freeze([]);
-
-	///^\[?([-\w]+)(?:=(['"])([-\w]+)\2)?\]?\.?/g;
 	var rname          = /\[?([-\w]+)(?:=(['"])?([-\w]+)\2)?\]?\.?/g;
+
 
 	// Utils
 
@@ -32,8 +34,56 @@
 			typeof object.length === 'number' ;
 	}
 
+	function isObservable(object) {
+		// Many built-in objects and DOM objects bork when calling their
+		// methods via a proxy. They should be considered not observable.
+		// I wish there were a way of whitelisting rather than
+		// blacklisting, but it would seem not.
 
-	// Observable
+		return object
+			// Reject primitives, null and other frozen objects
+			&& !isFrozen(object)
+			// Reject DOM nodes, Web Audio context and nodes, MIDI inputs,
+			// XMLHttpRequests, which all inherit from EventTarget
+			&& !EventTarget.prototype.isPrototypeOf(object)
+			// Reject dates
+			&& !(object instanceof Date)
+			// Reject regex
+			&& !(object instanceof RegExp)
+			// Reject maps
+			&& !(object instanceof Map)
+			&& !(object instanceof WeakMap)
+			// Reject sets
+			&& !(object instanceof Set)
+			&& !(object instanceof WeakSet)
+			// Reject TypedArrays
+			&& !TA.isPrototypeOf(object) ;
+	}
+
+	function getObservers(object, name) {
+		return object[$observers][name]
+			|| (object[$observers][name] = []);
+	}
+
+	function removeObserver(observers, fn) {
+		var i = observers.indexOf(fn);
+		observers.splice(i, 1);
+	}
+
+	function fire(observers, value, record) {
+		if (!observers) { return; }
+
+		// Todo: What happens if observers are removed during this operation?
+		// Bad things, I'll wager.
+		var n = -1;
+		while (observers[++n]) {
+			observers[n](value, record);
+		}
+	}
+
+
+	// Proxy
+
 	function trapGet(target, name, self) {
 		var value = target[name];
 
@@ -41,8 +91,6 @@
 		return typeof name === 'symbol' ? value :
 			Observable(value) || value ;
 	}
-
-	//var change = {};
 
 	var arrayHandlers = {
 		get: trapGet,
@@ -115,10 +163,6 @@
 			fire(observers[name], Observable(value) || value);
 			fire(observers[$update], receiver, change);
 
-			//change.index = 0;
-			//change.removed.length = 0;
-			//change.added.length = 0;
-
 			// Return true to indicate success
 			return true;
 		}
@@ -133,65 +177,22 @@
 			// If we are setting the same value, we're not really setting at all
 			if (old === value) { return true; }
 
+			var observers = target[$observers];
+			var change = {
+				name:    name,
+				removed: target[name],
+				added:   value
+			};
+
 			target[name] = value;
 
-			var observers = target[$observers];
-
 			fire(observers[name], Observable(value) || value);
-			fire(observers[$update], receiver);
+			fire(observers[$update], receiver, change);
 
 			// Return true to indicate success
 			return true;
 		}
 	};
-
-	function fire(observers, value, record) {
-		if (!observers) { return; }
-
-		// Todo: What happens if observers are removed during this operation?
-		// Bad things, I'll wager.
-		var n = -1;
-		while (observers[++n]) {
-			observers[n](value, record);
-		}
-	}
-
-	// The TypedArray prototype is not accessible directly
-	var TA = getPrototypeOf(Float32Array.prototype);
-
-	function isTypedArray(object) {
-		return TA.isPrototypeOf(object);
-	}
-
-	function isMap(object) {
-		return TA.isPrototypeOf(object);
-	}
-
-	function isObservable(object) {
-		// Many built-in objects and DOM objects bork when calling their
-		// methods via a proxy. They should be considered not observable.
-		// I wish there were a way of whitelisting rather than
-		// blacklisting, but it would seem not.
-
-		return object
-			// Reject primitives, null and other frozen objects
-			&& !isFrozen(object)
-			// Reject DOM nodes, Web Audio context and nodes, MIDI inputs,
-			// XMLHttpRequests, which all inherit from EventTarget
-			&& !EventTarget.prototype.isPrototypeOf(object)
-			// Reject dates
-			&& !(object instanceof Date)
-			// Reject regex
-			&& !(object instanceof RegExp)
-			// Reject maps
-			&& !(object instanceof Map)
-			&& !(object instanceof WeakMap)
-			// Reject sets
-			&& !(object instanceof Set)
-			&& !(object instanceof WeakSet)
-			// Reject TypedArrays
-			&& !(isTypedArray(object)) ;
-	}
 
 	function createProxy(object) {
 		var proxy = new Proxy(object, isArrayLike(object) ?
@@ -207,25 +208,8 @@
 		return proxy;
 	}
 
-	function Observable(object) {
-		return !object ? undefined :
-			object[$observable] ? object[$observable] :
-			!isObservable(object) ? undefined :
-		createProxy(object) ;
-	}
 
-
-	// Observable.observe
-
-	function getObservers(object, name) {
-		return object[$observers][name]
-			|| (object[$observers][name] = []);
-	}
-
-	function removeObserver(observers, fn) {
-		var i = observers.indexOf(fn);
-		observers.splice(i, 1);
-	}
+	// observe
 
 	function observePrimitive(object, fn) {
 		if (object !== fn.value) {
@@ -300,7 +284,7 @@
 			return item[key] === match;
 		}
 
-		var value = array && A.find.call(array, isMatch);
+		var value = object && A.find.call(object, isMatch);
 		return observe(Observable(value) || value, path, fn);
 	}
 
@@ -346,19 +330,31 @@
 				callbackProperty(object, name, path, fn) ;
 	}
 
-	function notify(object, path) {
-		var observers = object[$observers];
-		fire(observers[path], object[$observable]);
-		fire(observers[$update], object);
+
+	// Observable
+
+	function Observable(object) {
+		return !object ? undefined :
+			object[$observable] ? object[$observable] :
+			!isObservable(object) ? undefined :
+		createProxy(object) ;
 	}
 
 	Observable.isObservable = isObservable;
-	Observable.notify       = notify;
+
+	Observable.notify = function notify(object, path) {
+		var observers = object[$observers];
+		fire(observers[path], object[$observable]);
+		fire(observers[$update], object);
+	};
 
 	Observable.observe = function(object, path, fn) {
 		// Coerce path to string
 		return observe(Observable(object) || object, path + '', fn);
 	};
+
+
+	// Experimental
 
 	Observable.filter = function(fn, array) {
 		var subset = Observable([]);
@@ -383,6 +379,7 @@
 
 		return subset;
 	};
+
 
 	// Export
 
