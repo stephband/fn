@@ -9,6 +9,7 @@
 	var EventTarget    = window.EventTarget;
 
 	var assign         = Object.assign;
+	var define         = Object.defineProperties;
 	var isFrozen       = Object.isFrozen;
 	var getPrototypeOf = Object.getPrototypeOf;
 
@@ -199,8 +200,10 @@
 			objectHandlers
 		);
 
-		object[$observers]  = {};
-		object[$observable] = proxy;
+		define(object, {
+			[$observers]:  { value: {} },
+			[$observable]: { value: proxy }
+		});
 
 		return proxy;
 	}
@@ -290,6 +293,7 @@
 	}
 
 	function observe(object, path, fn) {
+console.log('<', path.length, path)
 		if (!path.length) {
 			// We can assume the full isObservable() check has been done, as
 			// this function is only called internally or from Object.observe
@@ -346,6 +350,7 @@
 	};
 
 	Observable.observe = function(object, path, fn) {
+console.log(' ', path.length, path);
 		// Coerce path to string
 		return observe(Observable(object) || object, path + '', fn);
 	};
