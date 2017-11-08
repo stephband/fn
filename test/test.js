@@ -26,6 +26,10 @@
 		}
 	});
 
+	var browser = /firefox/i.test(navigator.userAgent) ? 'FF' :
+		document.documentMode ? 'IE' :
+		'standard' ;
+
 	function createSection(html, name) {
 		var section = document.createElement('section');
 		section.setAttribute('class', 'test-section');
@@ -39,7 +43,7 @@
 
 		div.innerHTML = html;
 		section.appendChild(title);
-		section.appendChild(div);		
+		section.appendChild(div);
 		document.body.appendChild(section);
 
 		return {
@@ -66,18 +70,28 @@
 
 	function equals(expected, value, message) {
 		if (!Fn.equals(value, expected)) {
-			console.trace('%c' +
-				('Test: ' + 
-				'Expected ' + JSON.stringify(expected) + ', ' +
-				'received ' + JSON.stringify(value) + '.' +
-				( message ? ' ' + message : '')),
-				'color: #ee8833; font-weight: 700;'
-			);
+			var string = ('Test: ' +
+			'Expected ' + JSON.stringify(expected) + ', ' +
+			'received ' + JSON.stringify(value) + '.' +
+			( message ? ' ' + message : ''));
+
+			if (browser === 'IE') {
+				console.log(string);
+				console.trace();
+			}
+			else {
+				console.trace('%c' + string, 'color: #ee8833; font-weight: 700;');
+			}
 		}
 	}
 
 	function group(name, fn, template) {
-		console.group('%c' + name, 'color: #ffffff; background-color: #222222; padding: 0.25em 0.5em; border-radius: 0.25em; font-weight: 300;');
+		if (browser === 'IE') {
+			console.group(name);
+		}
+		else {
+			console.group('%c' + name, 'color: #ffffff; background-color: #222222; padding: 0.25em 0.5em; border-radius: 0.25em; font-weight: 300;');
+		}
 
 		var nodes = template && domify(template, name);
 		var tests = [];
@@ -107,9 +121,15 @@
 	}
 
 	function stopped() {
-		console.trace('%c' +
-			'Test failed: assertion recieved after test stopped with done().'
-		);
+		if (browser === 'IE') {
+			console.log('Test failed: assertion recieved after test stopped with done().');
+			console.trace();
+		}
+		else {
+			console.trace('%c' +
+				'Test failed: assertion recieved after test stopped with done().'
+			);
+		}
 	}
 
 	function test(name, fn, n, next) {
@@ -127,16 +147,27 @@
 			eq = stopped;
 
 			if (n !== undefined && i !== n) {
-				console.log('%c✘ ' + name, 'color: #ee8833; font-weight: 300;');
-				console.trace('%c' +
-					'Test failed: ' + 
-					'expected ' + n + ' assertions, ' +
-					'received ' + i,
-					'color: #ee8833; font-weight: 700;'
-				);
+				var string = 'Test failed: ' +
+				'expected ' + n + ' assertions, ' +
+				'received ' + i;
+
+				if (browser === 'IE') {
+					console.log('✘ ' + name);
+					console.log(string)
+					console.trace();
+				}
+				else {
+					console.log('%c✘ ' + name, 'color: #ee8833; font-weight: 300;');
+					console.trace('%c' + string, 'color: #ee8833; font-weight: 700;');
+				}
 			}
 			else {
-				console.log('%c✔ ' + name, 'color: #6f9940; font-weight: 300;');
+				if (browser === 'IE') {
+					console.log('✔ ' + name);
+				}
+				else {
+					console.log('%c✔ ' + name, 'color: #6f9940; font-weight: 300;');
+				}
 			}
 
 			next();
