@@ -39,7 +39,7 @@
 
 		div.innerHTML = html;
 		section.appendChild(title);
-		section.appendChild(div);		
+		section.appendChild(div);
 		document.body.appendChild(section);
 
 		return {
@@ -66,13 +66,15 @@
 
 	function equals(expected, value, message) {
 		if (!Fn.equals(value, expected)) {
-			console.trace('%c' +
-				('Test: ' + 
+			// You cant pass arguments to console.trace() in IE
+			console.log('%c' +
+				('Test: ' +
 				'Expected ' + JSON.stringify(expected) + ', ' +
 				'received ' + JSON.stringify(value) + '.' +
 				( message ? ' ' + message : '')),
 				'color: #ee8833; font-weight: 700;'
 			);
+			console.trace();
 		}
 	}
 
@@ -129,7 +131,7 @@
 			if (n !== undefined && i !== n) {
 				console.log('%c✘ ' + name, 'color: #ee8833; font-weight: 300;');
 				console.trace('%c' +
-					'Test failed: ' + 
+					'Test failed: ' +
 					'expected ' + n + ' assertions, ' +
 					'received ' + i,
 					'color: #ee8833; font-weight: 700;'

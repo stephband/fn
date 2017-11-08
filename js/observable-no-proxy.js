@@ -5,16 +5,62 @@
 	var assign      = Object.assign;
 	var define      = Object.defineProperties;
 	var _observe    = window.observe;
+	var isFrozen    = function(object) {
+		// IE isFrozen does not accept primitives or null
+		return object && typeof object === 'object' && Object.isFrozen(object);
+	};
 
 	var $original   = Symbol('original');
 	var $observable = Symbol('observable');
 	var $observers  = Symbol('observers');
 	var $update     = Symbol('update');
 
-	var rname       = /^\[?([-\w]+)(?:=(['"])([-\w]+)\2)?\]?\.?/g;
+	//var rname       = /^\[?([-\w]+)(?:=(['"])([-\w]+)\2)?\]?\.?/g;
+	var rname       = /\[?([-\w]+)(?:=(['"])?([-\w]+)\2)?\]?\.?/g;
 
 
-	// Array proxy
+	// Utils
+
+	function noop() {}
+
+	function isArrayLike(object) {
+		return typeof object === 'object'
+			&& object.hasOwnProperty('length')
+			&& typeof object.length === 'number' ;
+	}
+
+	function isObservable(object) {
+		// Many built-in objects and DOM objects bork when calling their
+		// methods via a proxy. They should be considered not observable.
+		// I wish there were a way of whitelisting rather than
+		// blacklisting, but it would seem not.
+
+		return object
+			// Reject primitives, null and other frozen objects
+			&& !isFrozen(object)
+			// Reject DOM nodes, Web Audio context and nodes, MIDI inputs,
+			// XMLHttpRequests, which all inherit from EventTarget
+			// && !EventTarget.prototype.isPrototypeOf(object)
+			// Reject dates
+			&& !(object instanceof Date)
+			// Reject regex
+			&& !(object instanceof RegExp)
+			// Reject maps
+			// && !(object instanceof Map)
+			// && !(object instanceof WeakMap)
+			// Reject sets
+			// && !(object instanceof Set)
+			// && !(object instanceof WeakSet)
+			// Reject TypedArrays
+			// && !TA.isPrototypeOf(object) ;
+	}
+
+	function hasItems(object) {
+		return object && object.length ;
+	}
+
+
+	// Proxy
 
 	function ArrayProxy(array) {
 		this[$observable] = this;
@@ -77,6 +123,7 @@
 			var value = A.push.apply(array, arguments);
 			assign(this, array);
 			this.length = array.length;
+console.log('PUSH', JSON.stringify(arguments));
 			notify(this, '');
 			return value;
 		},
@@ -111,23 +158,6 @@
 
 
 
-
-
-	// Utils
-
-	function noop() {};
-
-	function isArrayLike(object) {
-		return typeof object === 'object'
-			&& object.hasOwnProperty('length')
-			&& typeof object.length === 'number' ;
-	}
-
-	function hasItems(object) {
-		return object && object.length ;
-	}
-
-
 	// Observable
 
 	function fire(observers, value) {
@@ -138,24 +168,20 @@
 		}
 	}
 
-	function Observable(object) {
-		if (!object || typeof object !== 'object' || object instanceof Date) {
-			return object;
-		}
-
-		if (object[$observable]) {
-			return object[$observable];
-		}
-
-		if (isArrayLike(object)) {
+	function createProxy(object) {
+		//if (isArrayLike(object)) {
 			object[$observers]  = {};
 			var observable = new ArrayProxy(object);
 			object[$observable] = observable;
-
 			return observable;
-		}
+		//}
+	}
 
-		return object;
+	function Observable(object) {
+		return !object ? undefined :
+			object[$observable] ? object[$observable] :
+			!isObservable(object) ? undefined :
+		createProxy(object) ;
 	}
 
 
@@ -175,10 +201,10 @@
 console.log('>>', array);
 		var observers =
 			array[$observers][$update] ||
-			(array[$observers][$update] = []) ;		
+			(array[$observers][$update] = []) ;
 
 		observers.push(fn);
-		
+
 		// Empty arrays report as undefined
 		//var value = array.length ? array : undefined;
 		if (array !== fn.value) {
@@ -234,6 +260,7 @@ console.log('>>', array);
 	}
 
 	function observe(object, path, fn) {
+console.log('<', path.length, path);
 		if (!path.length) {
 			return object && isArrayLike(object) ?
 				observeArray(object, fn) :
@@ -260,11 +287,14 @@ console.log('>>', array);
 			observeProperty(object, name, path, fn) ;
 	}
 
-	function notify(object, path) {
-		var name       = path;
-		var old        = object[name];
+	function notify(object, name) {
+		//var old        = object[name];
 		var observable = object[$observable];
 		var observers  = object[$observers];
+console.log('NOTIFY', name, observers[$update].length);
+
+
+
 
 		if (name.length) {
 			hasItems(observers[name]) && fire(observers[name], Observable(object[name]));
@@ -274,7 +304,14 @@ console.log('>>', array);
 	}
 
 	Observable.noproxy = true;
-	Observable.observe = observe;
+	Observable.observe = function(object, path, fn) {
+console.log(' ', path.length, path);
+		return observe(Observable(object) || object, path + '', fn);
+	};
+
+	Observable.observe = function() {
+
+	};
 	Observable.notify  = notify;
 
 	// Export
