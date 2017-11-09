@@ -1,26 +1,19 @@
 (function(window) {
 	"use strict";
 
-	if (!window.Proxy) {
-		console.warn('Proxy constructor not found. This version of Observable cannot be used.');
-		return;
-	}
-
-	var EventTarget    = window.EventTarget;
-
 	var assign         = Object.assign;
-	var define         = Object.defineProperties;
+	var define         = Object.defineProperty;
 	var isFrozen       = Object.isFrozen;
 	var getPrototypeOf = Object.getPrototypeOf;
 
-	// The TypedArray prototype is not accessible directly
 	var A              = Array.prototype;
-	var TA             = getPrototypeOf(Float32Array.prototype);
 
+	var $original      = Symbol('original');
 	var $observable    = Symbol('observable');
 	var $observers     = Symbol('observers');
 	var $update        = Symbol('update');
 
+	var DOMObject      = window.EventTarget || window.Node;
 	var nothing        = Object.freeze([]);
 	var rname          = /\[?([-\w]+)(?:=(['"])?([-\w]+)\2)?\]?\.?/g;
 
@@ -30,8 +23,9 @@
 	function noop() {}
 
 	function isArrayLike(object) {
-		return object.hasOwnProperty('length') &&
-			typeof object.length === 'number' ;
+		return object
+		&& object.hasOwnProperty('length')
+		&& typeof object.length === 'number' ;
 	}
 
 	function isObservable(object) {
@@ -45,7 +39,7 @@
 			&& !isFrozen(object)
 			// Reject DOM nodes, Web Audio context and nodes, MIDI inputs,
 			// XMLHttpRequests, which all inherit from EventTarget
-			&& !EventTarget.prototype.isPrototypeOf(object)
+			&& !DOMObject.prototype.isPrototypeOf(object)
 			// Reject dates
 			&& !(object instanceof Date)
 			// Reject regex
@@ -55,9 +49,9 @@
 			&& !(object instanceof WeakMap)
 			// Reject sets
 			&& !(object instanceof Set)
-			&& !(object instanceof WeakSet)
-			// Reject TypedArrays
-			&& !TA.isPrototypeOf(object) ;
+			&& !(window.WeakSet ? object instanceof WeakSet : false)
+			// Reject TypedArrays and DataViews
+			&& !ArrayBuffer.isView(object) ;
 	}
 
 	function getObservers(object, name) {
@@ -84,129 +78,238 @@
 
 	// Proxy
 
-	function trapGet(target, name, self) {
-		var value = target[name];
+	var createProxy = window.Proxy ? (function() {
+		function trapGet(target, name, self) {
+			var value = target[name];
 
-		// Ignore symbols
-		return typeof name === 'symbol' ? value :
-			Observable(value) || value ;
-	}
+			// Ignore symbols
+			return typeof name === 'symbol' ? value :
+				Observable(value) || value ;
+		}
 
-	var arrayHandlers = {
-		get: trapGet,
+		var arrayHandlers = {
+			get: trapGet,
 
-		set: function(target, name, value, receiver) {
-			// We are setting a symbol
-			if (typeof name === 'symbol') {
-				target[name] = value;
-				return true;
-			}
-
-			var old = target[name];
-
-			// If we are setting the same value, we're not really setting at all
-			if (old === value) { return true; }
-
-			var observers = target[$observers];
-			var change;
-
-			// We are setting length
-			if (name === 'length') {
-				if (value >= target.length) {
-					// Don't allow array length to grow like this
-					//target.length = value;
+			set: function(target, name, value, receiver) {
+				// We are setting a symbol
+				if (typeof name === 'symbol') {
+					target[name] = value;
 					return true;
 				}
 
-				change = {
-					index:   value,
-					removed: A.splice.call(target, value),
-					added:   nothing,
-				};
+				var old = target[name];
 
-				while (--old >= value) {
-					fire(observers[old], undefined);
-				}
-			}
+				// If we are setting the same value, we're not really setting at all
+				if (old === value) { return true; }
 
-			// We are setting an integer string or number
-			else if (+name % 1 === 0) {
-				name = +name;
-				if (value === undefined) {
-					if (name < target.length) {
-						change = {
-							index:   name,
-							removed: A.splice.call(target, name, 1),
-							added:   nothing
-						};
+				var observers = target[$observers];
+				var change;
 
-						value = target[name];
-					}
-					else {
+				// We are setting length
+				if (name === 'length') {
+					if (value >= target.length) {
+						// Don't allow array length to grow like this
+						//target.length = value;
 						return true;
 					}
-				}
-				else {
+
 					change = {
-						index:   name,
-						removed: A.splice.call(target, name, 1, value),
-						added:   [value]
+						index:   value,
+						removed: A.splice.call(target, value),
+						added:   nothing,
 					};
+
+					while (--old >= value) {
+						fire(observers[old], undefined);
+					}
 				}
-			}
 
-			// We are setting some other key
-			else {
+				// We are setting an integer string or number
+				else if (+name % 1 === 0) {
+					name = +name;
+					if (value === undefined) {
+						if (name < target.length) {
+							change = {
+								index:   name,
+								removed: A.splice.call(target, name, 1),
+								added:   nothing
+							};
+
+							value = target[name];
+						}
+						else {
+							return true;
+						}
+					}
+					else {
+						change = {
+							index:   name,
+							removed: A.splice.call(target, name, 1, value),
+							added:   [value]
+						};
+					}
+				}
+
+				// We are setting some other key
+				else {
+					target[name] = value;
+				}
+
+				fire(observers[name], Observable(value) || value);
+				fire(observers[$update], receiver, change);
+
+				// Return true to indicate success
+				return true;
+			}
+		};
+
+		var objectHandlers = {
+			get: trapGet,
+
+			set: function(target, name, value, receiver) {
+				var old = target[name];
+
+				// If we are setting the same value, we're not really setting at all
+				if (old === value) { return true; }
+
+				var observers = target[$observers];
+				var change = {
+					name:    name,
+					removed: target[name],
+					added:   value
+				};
+
 				target[name] = value;
+
+				fire(observers[name], Observable(value) || value);
+				fire(observers[$update], receiver, change);
+
+				// Return true to indicate success
+				return true;
 			}
+		};
 
-			fire(observers[name], Observable(value) || value);
-			fire(observers[$update], receiver, change);
+		return function createProxy(object) {
+			var proxy = new Proxy(object, isArrayLike(object) ?
+				arrayHandlers :
+				objectHandlers
+			);
 
-			// Return true to indicate success
-			return true;
+			define(object, $observers, { value: {} });
+			define(object, $observable, { value: proxy });
+
+			return proxy;
+		};
+	})() : (function() {
+		// Code for IE, whihc does not support Proxy
+
+		function ArrayProxy(array) {
+			this[$observable] = this;
+			this[$original]   = array;
+			this[$observers]  = array[$observers];
+
+			assign(this, array);
+			this.length = array.length;
 		}
-	};
 
-	var objectHandlers = {
-		get: trapGet,
+		define(ArrayProxy.prototype, 'length', {
+			set: function(length) {
+				var array = this[$original];
 
-		set: function(target, name, value, receiver) {
-			var old = target[name];
+				if (length >= array.length) { return; }
 
-			// If we are setting the same value, we're not really setting at all
-			if (old === value) { return true; }
+				while (--array.length > length) {
+					this[array.length] = undefined;
+				}
 
-			var observers = target[$observers];
-			var change = {
-				name:    name,
-				removed: target[name],
-				added:   value
-			};
+				this[array.length] = undefined;
 
-			target[name] = value;
+				//console.log('LENGTH', length, array.length, JSON.stringify(this))
 
-			fire(observers[name], Observable(value) || value);
-			fire(observers[$update], receiver, change);
+				//array.length = length;
+				notify(this, '');
+			},
 
-			// Return true to indicate success
-			return true;
-		}
-	};
+			get: function() {
+				return this[$original].length;
+			},
 
-	function createProxy(object) {
-		var proxy = new Proxy(object, isArrayLike(object) ?
-			arrayHandlers :
-			objectHandlers
-		);
-
-		define(object, {
-			[$observers]:  { value: {} },
-			[$observable]: { value: proxy }
+			configurable: true
 		});
 
-		return proxy;
-	}
+		assign(ArrayProxy.prototype, {
+			filter:  function() { return A.filter.apply(this[$original], arguments); },
+			find:    function() { return A.find.apply(this[$original], arguments); },
+			map:     function() { return A.map.apply(this[$original], arguments); },
+			reduce:  function() { return A.reduce.apply(this[$original], arguments); },
+			concat:  function() { return A.concat.apply(this[$original], arguments); },
+			slice:   function() { return A.slice.apply(this[$original], arguments); },
+			some:    function() { return A.some.apply(this[$original], arguments); },
+			indexOf: function() { return A.indexOf.apply(this[$original], arguments); },
+			forEach: function() { return A.forEach.apply(this[$original], arguments); },
+			toJSON:  function() { return this[$original]; },
+
+			sort: function() {
+				A.sort.apply(this[$original], arguments);
+				assign(this, array);
+				this.length = array.length;
+				notify(this, '');
+				return this;
+			},
+
+			push: function() {
+				var array = this[$original];
+				var value = A.push.apply(array, arguments);
+				assign(this, array);
+				this.length = array.length;
+				console.log('PUSH', JSON.stringify(arguments));
+				notify(this, '');
+				return value;
+			},
+
+			pop: function() {
+				var array = this[$original];
+				var value = A.pop.apply(array, arguments);
+				assign(this, array);
+				this.length = array.length;
+				notify(this, '');
+				return value;
+			},
+
+			shift: function() {
+				var array = this[$original];
+				var value = A.shift.apply(array, arguments);
+				assign(this, array);
+				this.length = array.length;
+				notify(this, '');
+				return value;
+			},
+
+			splice: function() {
+				var array = this[$original];
+				var value = A.splice.apply(array, arguments);
+				assign(this, array);
+				this.length = array.length;
+				notify(this, '');
+				return value;
+			}
+		});
+
+		return function createNoProxy(object) {
+			var proxy;
+
+			if (isArrayLike(object)) {
+				define(object, $observers, { value: {} });
+				proxy = isArrayLike(object) ? new ArrayProxy(object) : object ;
+			}
+			else {
+				proxy = object;
+			}
+
+			define(object, $observable, { value: proxy });
+			return proxy;
+		};
+	})() ;
 
 
 	// observe
@@ -261,7 +364,7 @@
 		};
 	}
 
-	function observeProperty(object, name, path, fn) {
+	var observeProperty = window.Proxy ? function observeProperty(object, name, path, fn) {
 		var observers = getObservers(object, name);
 		var unobserve = noop;
 
@@ -277,7 +380,22 @@
 			unobserve();
 			removeObserver(observers, update);
 		};
-	}
+	} : function observePropertyNoProxy(object, name, path, fn) {
+		var unobserve = noop;
+
+		function update(value) {
+			unobserve();
+			unobserve = observe(value, path, fn);
+		}
+
+		var _unobserve = window.observe(object[$observable] || object, name, update);
+		update(object[name]);
+
+		return function() {
+			unobserve();
+			_unobserve();
+		};
+	} ;
 
 	function callbackItem(object, key, match, path, fn) {
 		function isMatch(item) {
@@ -293,11 +411,13 @@
 	}
 
 	function observe(object, path, fn) {
-console.log('<', path.length, path)
 		if (!path.length) {
 			// We can assume the full isObservable() check has been done, as
 			// this function is only called internally or from Object.observe
-			return object && object[$observable] ?
+			//
+			// The object[$observers] check is for IE - it checks whether the
+			// object is observable for muteability.
+			return object && object[$observable] && object[$observers] ?
 				observeObject(object, fn) :
 				observePrimitive(object, fn) ;
 		}
@@ -350,11 +470,9 @@ console.log('<', path.length, path)
 	};
 
 	Observable.observe = function(object, path, fn) {
-console.log(' ', path.length, path);
 		// Coerce path to string
 		return observe(Observable(object) || object, path + '', fn);
 	};
-
 
 	// Experimental
 
