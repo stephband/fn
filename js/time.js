@@ -168,6 +168,8 @@
 			var date = this.toDate();
 
 			if (!isDefined(day)) {
+				if (grain === 'ms') { return this; }
+
 				date.setUTCMilliseconds(0);
 				if (grain === 's') { return new Time(date); }
 
@@ -178,7 +180,7 @@
 				if (grain === 'h') { return new Time(date); }
 
 				date.setUTCHours(0);
-				if (grain === 'd') { return new Time(date); }
+				if (grain === 'day') { return new Time(date); }
 
 				// Todo: .floor('week')
 				//date.setUTCHours(0);
@@ -188,7 +190,7 @@
 				if (grain === 'month') { return new Time(date); }
 
 				date.setUTCMonth(0);
-				if (grain === 'y') { return new Time(date); }
+				if (grain === 'year') { return new Time(date); }
 
 				date.setUTCFullYear(0);
 				return new Time(date);
