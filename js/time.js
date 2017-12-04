@@ -169,16 +169,16 @@
 
 			if (!isDefined(day)) {
 				date.setUTCMilliseconds(0);
-				if (grain === 'second') { return new Time(date); }
+				if (grain === 's') { return new Time(date); }
 
 				date.setUTCSeconds(0);
-				if (grain === 'minute') { return new Time(date); }
+				if (grain === 'm') { return new Time(date); }
 
 				date.setUTCMinutes(0);
-				if (grain === 'hour') { return new Time(date); }
+				if (grain === 'h') { return new Time(date); }
 
 				date.setUTCHours(0);
-				if (grain === 'day') { return new Time(date); }
+				if (grain === 'd') { return new Time(date); }
 
 				// Todo: .floor('week')
 				//date.setUTCHours(0);
@@ -188,7 +188,7 @@
 				if (grain === 'month') { return new Time(date); }
 
 				date.setUTCMonth(0);
-				if (grain === 'year') { return new Time(date); }
+				if (grain === 'y') { return new Time(date); }
 
 				date.setUTCFullYear(0);
 				return new Time(date);
@@ -267,7 +267,7 @@
 	// not exist. For consistency, it's probably best not to change
 	// the results of these operations with Symbol.toPrimitive after
 	// all.
-	// 
+	//
 	// +Time()          type: "number"   method: valueOf
 	// Time() * 4       type: "number"   method: valueOf
 	// Time() + 4       type: "default"  method: valueOf
