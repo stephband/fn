@@ -537,7 +537,8 @@
 
 	// Objects
 
-	var rpath  = /\[?([-\w]+)(?:=(['"])?([-\w]+)\2)?\]?\.?/g;
+
+	var rpath  = /\[?([-\w]+)(?:=(['"])([^\2]+)\2|(true|false)|((?:\d*\.)?\d+))?\]?\.?/g;
 
 	function get(key, object) {
 		// Todo? Support WeakMaps and Maps and other map-like objects with a
@@ -573,9 +574,10 @@
 
 		var key      = tokens[1];
 		var property = tokens[3] ?
-			findByProperty(key, tokens[2] ?
-				tokens[3] :
-				parseFloat(tokens[3]),
+			findByProperty(key,
+				tokens[2] ? tokens[3] :
+				tokens[4] ? Boolean(tokens[4]) :
+				parseFloat(tokens[5]),
 			object) :
 			object[key] ;
 
@@ -609,9 +611,10 @@
 		}
 
 		var value = tokens[3] ?
-			findByProperty(key, tokens[2] ?
-				tokens[3] :
-				parseFloat(tokens[3]), object
+			findByProperty(key,
+				tokens[2] ? tokens[3] :
+				tokens[4] ? Boolean(tokens[4]) :
+				parseFloat(tokens[5])
 			) :
 			object[key] ;
 
