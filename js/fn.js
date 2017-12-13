@@ -1589,8 +1589,8 @@
 
 		isGreater: curry(function byGreater(a, b) { return b > a ; }),
 
-		by: curry(function by(property, a, b) {
-			return byGreater(a[property], b[property]);
+		by: curry(function by(fn, a, b) {
+			return byGreater(fn(a), fn(b));
 		}, true),
 
 		byGreater: curry(byGreater),
