@@ -11,7 +11,7 @@ group('Observable()', function(test, log) {
 
 		var data = {a: {b: {c: 1}}};
 		var o    = Observable(data);
-	
+
 		observe(o, 'a.b.c', function(value, change) {
 			var e = expected.shift();
 			equals(e, value);
@@ -36,7 +36,7 @@ group('Observable()', function(test, log) {
 
 		done();
 	}, 10);
-	
+
 	test("observe 'a.b[d=\"4\"]'", function(equals, done) {
 		var expected = [
 			{"d":4,"n":1},
@@ -50,7 +50,7 @@ group('Observable()', function(test, log) {
 
 		var data = {a: {b: [{d: 4, n: 1}]}};
 		var o    = Observable(data);
-	
+
 		observe(o, 'a.b[d="4"]', function(value) {
 			//console.log.apply(
 			//	console,
@@ -59,7 +59,7 @@ group('Observable()', function(test, log) {
 //console.log('<<', value)
 			equals(expected.shift(), value);
 		});
-	
+
 		o.a = {b: [{d: 4, n: 2}]};
 		o.a.b.length = 0;
 		o.a.b = undefined;
@@ -82,11 +82,11 @@ group('Observable()', function(test, log) {
 
 		var data = {a: {b: [{d: 4, n: 1}]}};
 		var o    = Observable(data);
-	
+
 		observe(o, 'a.b[d="4"].n', function(value, change) {
 			equals(expected.shift(), value);
 		});
-	
+
 		o.a = {b: [{d: 4, n: 2}]};
 		o.a.b.length = 0;
 		o.a.b = undefined;
@@ -111,18 +111,18 @@ group('Observable()', function(test, log) {
 		observe(o, '[0]', function(value) {
 			equals(expected.shift(), value);
 		});
-	
+
 		o.push(0);
 		o.push(1);
 		o.push(2);
-		
+
 		o.length = 0;
 
 		o.push(1);
-	
+
 		o.length = 0;
 		o.length = 0;
-		
+
 		o.push(0);
 
 		done();
@@ -188,7 +188,7 @@ group('Observable()', function(test, log) {
 
 		var data = {};
 		var o    = Observable(data);
-	
+
 		observe(o, '', function(value, change) {
 			//console.log.apply(
 			//	console,
@@ -197,7 +197,7 @@ group('Observable()', function(test, log) {
 
 			equals(expected.shift(), value);
 		});
-	
+
 		o.a = 0;
 		o.b = 1;
 		o.a = 2;
@@ -218,9 +218,10 @@ group('Observable()', function(test, log) {
 			[0]
 		];
 
-		var data = [];
-		var o    = Observable(data);
-	
+		var lengths = [0, 1, 2, 3, 1, 2, 3, 0, 1];
+
+		var o = Observable([]);
+
 		observe(o, '', function(value, change) {
 			//console.log.apply(
 			//	console,
@@ -229,23 +230,32 @@ group('Observable()', function(test, log) {
 			var e = expected.shift();
 			equals(e, value);
 		});
-	
+
+		observe(o, 'length', function(value, change) {
+			//console.log.apply(
+			//	console,
+			//	Array.prototype.map.call(arguments, JSON.stringify)
+			//);
+			var e = lengths.shift();
+			equals(e, value);
+		});
+
 		o[0] = 0;
 		o[1] = 1;
 		o[2] = 2;
-		
+
 		o.length = 1;
-	
+
 		o[1] = 1;
 		o[2] = 2;
-	
+
 		o.length = 0;
 		o.length = 0;
-		
+
 		o[0] = 0;
 
 		done();
-	}, 9);
+	}, 18);
 
 	test("observe '[0]'", function(equals, done) {
 		var expected = [0, undefined, 1, undefined, 0];
@@ -256,18 +266,18 @@ group('Observable()', function(test, log) {
 		observe(o, '[0]', function(value, change) {
 			equals(expected.shift(), value);
 		});
-	
+
 		o[0] = 0;
 		o[1] = 1;
 		o[2] = 2;
-		
+
 		o.length = 0;
 
 		o[0] = 1;
-	
+
 		o.length = 0;
 		o.length = 0;
-		
+
 		o[0] = 0;
 
 		done();
@@ -293,7 +303,7 @@ group('Observable()', function(test, log) {
 
 		o.a.length = 0;
 		o.a.length = 0;
-		
+
 		o.a[0] = {n: 0};
 
 		done();

@@ -98,6 +98,7 @@
 				}
 
 				var old = target[name];
+				var length = target.length;
 
 				// If we are setting the same value, we're not really setting at all
 				if (old === value) { return true; }
@@ -127,6 +128,7 @@
 				// We are setting an integer string or number
 				else if (+name % 1 === 0) {
 					name = +name;
+
 					if (value === undefined) {
 						if (name < target.length) {
 							change = {
@@ -153,6 +155,10 @@
 				// We are setting some other key
 				else {
 					target[name] = value;
+				}
+
+				if (target.length !== length) {
+					fire(observers.length, target.length);
 				}
 
 				fire(observers[name], Observable(value) || value);
