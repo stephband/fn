@@ -465,6 +465,19 @@
 		array.splice(n, 0, object);
 	}
 
+	function update(fn, target, array) {
+		return array.reduce(function(target, obj2) {
+			var obj1 = target.find(compose(Fn.is(fn(obj2)), fn));
+			if (obj1) {
+				assign(obj1, obj2);
+			}
+			else {
+				insert(fn, target, obj2);
+			}
+			return target;
+		}, target);
+	}
+
 	function remove(array, value) {
 		if (array.remove) { array.remove(value); }
 		var i = array.indexOf(value);
@@ -537,7 +550,8 @@
 
 	// Objects
 
-	var rpath  = /\[?([-\w]+)(?:=(['"])?([-\w]+)\2)?\]?\.?/g;
+
+	var rpath  = /\[?([-\w]+)(?:=(['"])([^\2]+)\2|(true|false)|((?:\d*\.)?\d+))?\]?\.?/g;
 
 	function get(key, object) {
 		// Todo? Support WeakMaps and Maps and other map-like objects with a
@@ -573,9 +587,10 @@
 
 		var key      = tokens[1];
 		var property = tokens[3] ?
-			findByProperty(key, tokens[2] ?
-				tokens[3] :
-				parseFloat(tokens[3]),
+			findByProperty(key,
+				tokens[2] ? tokens[3] :
+				tokens[4] ? Boolean(tokens[4]) :
+				parseFloat(tokens[5]),
 			object) :
 			object[key] ;
 
@@ -609,9 +624,10 @@
 		}
 
 		var value = tokens[3] ?
-			findByProperty(key, tokens[2] ?
-				tokens[3] :
-				parseFloat(tokens[3]), object
+			findByProperty(key,
+				tokens[2] ? tokens[3] :
+				tokens[4] ? Boolean(tokens[4]) :
+				parseFloat(tokens[5])
 			) :
 			object[key] ;
 
@@ -1573,8 +1589,8 @@
 
 		isGreater: curry(function byGreater(a, b) { return b > a ; }),
 
-		by: curry(function by(property, a, b) {
-			return byGreater(a[property], b[property]);
+		by: curry(function by(fn, a, b) {
+			return byGreater(fn(a), fn(b));
 		}, true),
 
 		byGreater: curry(byGreater),
@@ -1648,6 +1664,7 @@
 		take:      curry(take, true),
 		unite:     curry(unite, true),
 		unique:    unique,
+		update:    curry(update, true),
 
 
 		// Objects
