@@ -674,7 +674,8 @@
 		return string2 + string1;
 	}
 
-	function prepad(chars, n, string) {
+	function prepad(chars, n, value) {
+		var string = value + '';
 		var i = -1;
 		var pre = '';
 
@@ -686,7 +687,9 @@
 		return string.slice(string.length - n);
 	}
 
-	function postpad(chars, n, string) {
+	function postpad(chars, n, value) {
+		var string = value + '';
+
 		while (string.length < n) {
 			string = string + chars;
 		}
