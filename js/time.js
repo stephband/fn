@@ -2,8 +2,8 @@
 	"use strict";
 
 	// Be generous with the input we accept.
-	var rdate     = /^(-)?(\d{4})(?:-(\d+))?(?:-(\d+))?$/;
-	var rtime     = /^(-)?(\d+):(\d+)(?::(\d+(?:\.\d+)?))?$/;
+	var rdiff = /^(-)?(\d{4})(?:-(\d+))?(?:-(\d+))?$/;
+	var rtime = /^(-)?(\d+):(\d+)(?::(\d+(?:\.\d+)?))?$/;
 	//var rdatetime = /^(-)?(\d+)-(0[0-9]|1[12])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):([0-5][0-9])(?::([0-5][0-9](?:\.\d+)?))?/;
 	//var rtimezone = /(?:Z|[+-]\d{2}:\d{2})$/;
 	//var rnonzeronumbers = /[1-9]/;
@@ -95,7 +95,7 @@
 	}
 
 	function addDateToDate(time, date) {
-		var tokens = rdate.exec(time) ;
+		var tokens = rdiff.exec(time) ;
 
 		if (!tokens) { throw new Error('Time: "' + time + '" does not parse as date.'); }
 
@@ -153,7 +153,7 @@
 				// Accept time in seconds
 				typeof time === "number" ? time + this.timestamp :
 				// Accept date string
-				rdate.test(time) ? +addDateToDate(time, this.toDate()) / 1000 :
+				rdiff.test(time) ? +addDateToDate(time, this.toDate()) / 1000 :
 				// Accept time string
 				+addTimeToDate(time, this.toDate()) / 1000
 			);
@@ -287,6 +287,10 @@
 	// }
 
 	Object.assign(Time, {
+		of: function of(time) {
+			return new Time(time);
+		},
+
 		now: function() {
 			return Time(new Date());
 		},
@@ -347,5 +351,80 @@
 		enumerable: true
 	});
 
+
+
+
+	// Local times
+	//
+	// Don't parse date strings with the JS Date object. It has variable
+	// time zone behaviour. Set up our own parsing.
+	//
+	// Accept BC dates by including leading '-'.
+	// (Year 0000 is 1BC, -0001 is 2BC.)
+	// Limit months to 01-12
+	// Limit dates to 01-31
+
+	var rdate = /^(-?\d{4})(?:-(0[1-9]|1[012])(?:-(0[1-9]|[12]\d|3[01]))?)?/;
+
+	function execDate(fn) {
+		return function exec(string) {
+			var parts = rdate.exec(string) ;
+			if (!parts) { throw new Error('Invalid date ' + string); }
+			return fn(
+				// Year
+				parseInt(parts[1], 10),
+				// Month, 0-indexed for the Date constructor
+				parts[2] ? parseInt(parts[2], 10) - 1 : 0,
+				// Date
+				parts[3] ? parseInt(parts[3], 10) : 1
+			);
+		};
+	};
+
+	var dateFromLocal = execDate(function dateFromLocal(year, month, date) {
+		return new Date(year, month, date);
+	});
+
+	var dateFromUTC = execDate(function dateFromUTC(year, month, date) {
+		return new Date(Date.UTC(year, month, date));
+	});
+
+	function subtractDate(t, d1, d2) {
+		var y1 = d1.getFullYear();
+		var m1 = d1.getMonth();
+		var y2 = d2.getFullYear();
+		var m2 = d2.getMonth();
+
+		if (y1 === y2 && m1 === m2) {
+			return t + d1.getDate() - d2.getDate() ;
+		}
+
+		t += d1.getDate() ;
+
+		// Set to last date of previous month
+		d1.setDate(0);
+
+		return subtractDate(t, d1, d2);
+	}
+
+	Object.assign(Time, {
+		dateFromLocal: dateFromLocal,
+		dateFromUTC:   dateFromUTC,
+
+		dateDiff: function(date1, date2) {
+			var d1 = typeof date1 === 'string' ? dateFromLocal(date1) : date1 ;
+			var d2 = typeof date2 === 'string' ? dateFromLocal(date2) : date2 ;
+
+			return d1 > d2 ?
+				// 3rd argument mutates, so make sure we get a clean date if we
+				// have not just made one.
+				subtractDate(0, d1, d2 === date2 ? new Date(d2.getFullYear(), d2.getMonth(), d2.getDate()) : d2) * -1 :
+				subtractDate(0, d2, d1 === date1 ? new Date(d1.getFullYear(), d1.getMonth(), d1.getDate()) : d1) ;
+		}
+	});
+
+
 	window.Time = Time;
+
+
 })(this);
