@@ -443,6 +443,10 @@
 		return a;
 	}
 
+	function slice(n, m, object) {
+		return object.slice ? object.slice(n, m) : A.slice.call(object, n, m);
+	}
+
 	function take(i, object) {
 		if (object.slice) { return object.slice(0, i); }
 		if (object.take)  { return object.take(i); }
@@ -674,7 +678,8 @@
 		return string2 + string1;
 	}
 
-	function prepad(chars, n, string) {
+	function prepad(chars, n, value) {
+		var string = value + '';
 		var i = -1;
 		var pre = '';
 
@@ -686,7 +691,9 @@
 		return string.slice(string.length - n);
 	}
 
-	function postpad(chars, n, string) {
+	function postpad(chars, n, value) {
+		var string = value + '';
+
 		while (string.length < n) {
 			string = string + chars;
 		}
@@ -1842,9 +1849,7 @@
 		Throttle: deprecate(Throttle, 'Throttle(fn, time) removed, is now throttle(fn, time)'),
 		Wait: deprecate(Wait, 'Wait(fn, time) removed, is now wait(fn, time)'),
 
-		slice: curry(deprecate(function slice(n, m, object) {
-			return object.slice ? object.slice(n, m) : A.slice.call(object, n, m);
-		}, 'slice(n, m, object) is removed in favour of take(n) or rest(n)'), true, 3),
+		slice: curry(slice, true, 3),
 
 		returnThis: deprecate(self, 'returnThis() is now self()'),
 
