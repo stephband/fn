@@ -1,6 +1,8 @@
 (function(window) {
 	"use strict";
 
+	var Fn = window.Fn;
+
 	// Be generous with the input we accept.
 	var rdiff = /^(-)?(\d{4})(?:-(\d+))?(?:-(\d+))?$/;
 	var rtime = /^(-)?(\d+):(\d+)(?::(\d+(?:\.\d+)?))?$/;
@@ -10,8 +12,10 @@
 
 	var days = { mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 0 };
 
+
 	// Duration of year, in seconds
-	var year = 365.25 * 24 * 60 * 60;
+	var year  = 365.25 * 24 * 60 * 60;
+	var today = new Date();
 
 	function createOrdinals(ordinals) {
 		var array = [], n = 0;
@@ -53,6 +57,12 @@
 		// !!value is a fast out for non-zero numbers, non-empty strings
 		// and other objects, the rest checks for 0, '', etc.
 		return !!value || (value !== undefined && value !== null && !Number.isNaN(value));
+	}
+
+	var dayMap = [6,0,1,2,3,4,5];
+
+	function toDay(date) {
+		return dayMap[date.getDay()];
 	}
 
 //	function createDate(value) {
@@ -166,6 +176,7 @@
 				days[grain] ;
 
 			var date = this.toDate();
+			var diff;
 
 			if (!isDefined(day)) {
 				if (grain === 'ms') { return this; }
@@ -182,9 +193,17 @@
 				date.setUTCHours(0);
 				if (grain === 'day') { return new Time(date); }
 
-				// Todo: .floor('week')
-				//date.setUTCHours(0);
-				//if (grain === 'week') { return new Time(date); }
+				if (grain === 'week') {
+					date.setDate(date.getDate() - toDay(date));
+					return new Time(date);
+				}
+
+				if (grain === 'fortnight') {
+					var week = Time.now().floor('mon').date;
+					diff = Fn.mod(14, Time.dateDiff(week, date));
+					date.setUTCDate(date.getUTCDate() - diff);
+					return new Time(date);
+				}
 
 				date.setUTCDate(1);
 				if (grain === 'month') { return new Time(date); }
@@ -201,7 +220,7 @@
 			// If we are on the specified day, return this date
 			if (day === currentDay) { return this; }
 
-			var diff = currentDay - day;
+			diff = currentDay - day;
 
 			if (diff < 0) { diff = diff + 7; }
 
@@ -379,7 +398,7 @@
 				parts[3] ? parseInt(parts[3], 10) : 1
 			);
 		};
-	};
+	}
 
 	var dateFromLocal = execDate(function dateFromLocal(year, month, date) {
 		return new Date(year, month, date);
@@ -389,22 +408,22 @@
 		return new Date(Date.UTC(year, month, date));
 	});
 
-	function subtractDate(t, d1, d2) {
+	function dateDiff(t, d1, d2) {
 		var y1 = d1.getFullYear();
 		var m1 = d1.getMonth();
 		var y2 = d2.getFullYear();
 		var m2 = d2.getMonth();
 
 		if (y1 === y2 && m1 === m2) {
-			return t + d1.getDate() - d2.getDate() ;
+			return t + d2.getDate() - d1.getDate() ;
 		}
 
-		t += d1.getDate() ;
+		t += d2.getDate() ;
 
 		// Set to last date of previous month
-		d1.setDate(0);
+		d2.setDate(0);
 
-		return subtractDate(t, d1, d2);
+		return dateDiff(t, d1, d2);
 	}
 
 	Object.assign(Time, {
@@ -415,16 +434,15 @@
 			var d1 = typeof date1 === 'string' ? dateFromLocal(date1) : date1 ;
 			var d2 = typeof date2 === 'string' ? dateFromLocal(date2) : date2 ;
 
-			return d1 > d2 ?
+			return d2 > d1 ?
 				// 3rd argument mutates, so make sure we get a clean date if we
 				// have not just made one.
-				subtractDate(0, d1, d2 === date2 ? new Date(d2.getFullYear(), d2.getMonth(), d2.getDate()) : d2) * -1 :
-				subtractDate(0, d2, d1 === date1 ? new Date(d1.getFullYear(), d1.getMonth(), d1.getDate()) : d1) ;
+				dateDiff(0, d1, d2 === date2 ? new Date(d2.getFullYear(), d2.getMonth(), d2.getDate()) : d2) :
+				dateDiff(0, d2, d1 === date1 ? new Date(d1.getFullYear(), d1.getMonth(), d1.getDate()) : d1) * -1 ;
 		}
 	});
 
 
 	window.Time = Time;
-
 
 })(this);

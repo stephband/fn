@@ -1691,7 +1691,16 @@
 
 		add:      curry(function add(a, b) { return b + a; }),
 		multiply: curry(function mul(a, b) { return b * a; }),
-		mod:      curry(function mod(a, b) { return b % a; }),
+
+		mod:      curry(function mod(d, n) {
+			// JavaScript's modulu operator uses Euclidean division, but for
+			// stuff that cycles through 0 the symmetrics of floored division
+			// are more useful.
+			// https://en.wikipedia.org/wiki/Modulo_operation
+			var value = n % d;
+			return value < 0 ? value + d : value ;
+		}),
+
 		min:      curry(function min(a, b) { return a > b ? b : a ; }),
 		max:      curry(function max(a, b) { return a < b ? b : a ; }),
 		pow:      curry(function pow(n, x) { return Math.pow(x, n); }),
