@@ -18,6 +18,7 @@
 	var nothing   = Fn.nothing;
 	var rest      = Fn.rest;
 	var throttle  = Fn.throttle;
+	var wait      = Fn.wait;
 	var Timer     = Fn.Timer;
 	var toArray   = Fn.toArray;
 
@@ -41,7 +42,7 @@
 	function checkSource(source) {
 		// Check for .shift()
 		if (!source.shift) {
-			throw new Error('Stream: Source must create an object with .shift() ' + Source);
+			throw new Error('Stream: Source must create an object with .shift() ' + source);
 		}
 	}
 
@@ -402,16 +403,18 @@
 
 	Stream.Choke = function(time) {
 		return new Stream(function setup(notify, done) {
-			var buffer = [];
-			var update = Wait(function() {
+			var value;
+			var update = wait(function() {
 				// Get last value and stick it in buffer
-				buffer[0] = arguments[arguments.length - 1];
+				value = arguments[arguments.length - 1];
 				notify('push');
 			}, time);
 
 			return {
 				shift: function() {
-					return buffer.shift();
+					var v = value;
+					value = undefined;
+					return v;
 				},
 
 				push: update,
