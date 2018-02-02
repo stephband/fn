@@ -443,6 +443,91 @@
 	});
 
 
+
+
+
+
+
+	// Render local times for any arbitrary time region
+
+	var options = {
+		// Time zone
+		timeZone: 'UTC',
+		// Use specified locale matcher
+		formatMatcher: 'basic',
+		// Use 24 hour clock
+		hour12:  false,
+		// Format string components
+		weekday: 'short',
+		year:    'numeric',
+		month:   '2-digit',
+		day:     '2-digit',
+		hour:    '2-digit',
+		minute:  '2-digit',
+		second:  '2-digit'
+	};
+
+	var rusdate = /\w+|\d+/g;
+	var componentKeys = ['weekday', 'year', 'month', 'day', 'hour', 'minute', 'second'];
+
+	function matchEach(regex, fn, text) {
+		var match = regex.exec(text);
+
+		return match ? (
+			fn.apply(null, match),
+			matchEach(regex, fn, text)
+		) :
+		undefined ;
+	}
+
+	function toLocaleString(timezone, date) {
+		options.timeZone = timezone;
+		var string = date.toLocaleString('en-US', options);
+		return string;
+	}
+
+	function toLocaleComponents(timezone, date) {
+		var localedate = toLocaleString(timezone, date);
+		var i          = 0;
+		var components = {};
+
+		matchEach(rusdate, function(value) {
+			components[componentKeys[i++]] = value.toLowercase();
+		}, localedate);
+
+		return components;
+	}
+
+	var rletter = /(th|ms|[YZMDdHhmsz]{1,4}|[a-zA-Z])/g;
+
+	var formats = {
+		YYYY: function(data)       { return data.year; },
+		YY:   function(data)       { return ('0' + data.year).slice(-2); },
+		MM:   function(data)       { return data.month; },
+		MMM:  function(data, lang) { return this.MMMM(data, lang).slice(0,3); },
+		MMMM: function(data, lang) { return locales[lang].months[data.month - 1]; },
+		D:    function(data)       { return '' + data.day; },
+		DD:   function(data)       { return data.day; },
+		ddd:  function(data, lang) { return this.dddd(data, lang).slice(0,3); },
+		dddd: function(data, lang) { return locales[lang].days[data.day]; },
+		HH:   function(data)       { return data.hour; },
+		hh:   function(data)       { return ('0' + data.hour % 12).slice(-2); },
+		mm:   function(data)       { return data.minute; },
+		ss:   function(data)       { return data.second; },
+		//sss:  function(data)       { return (date.second + date.getMilliseconds() / 1000 + '').replace(/^\d\.|^\d$/, function($0){ return '0' + $0; }); },
+		//ms:   function(data)       { return '' + date.getMilliseconds(); },
+	};
+
+	Time.formatDate = function formatDate(string, timezone, lang, date) {
+		var components = toLocaleComponents(timezone, date);
+		return string.replace(rletter, function($0, $1) {
+			return formats[$1] ? formats[$1](components, lang) : $1 ;
+		});
+	};
+
+
+	// Export
+
 	window.Time = Time;
 
 })(this);
