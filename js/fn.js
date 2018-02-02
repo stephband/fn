@@ -125,9 +125,27 @@
 	function cache(fn) {
 		var map = new Map();
 
-		return function cached(object) {
-			if (arguments.length > 1) {
-				throw new Error('Fn: Cached function called with ' + arguments.length + ' arguments. Accepts exactly 1.');
+		return function cache(object) {
+			if (DEBUG && arguments.length > 1) {
+				throw new Error('Fn: cache() called with ' + arguments.length + ' arguments. Accepts exactly 1.');
+			}
+
+			if (map.has(object)) {
+				return map.get(object);
+			}
+
+			var value = fn(object);
+			map.set(object, value);
+			return value;
+		};
+	}
+
+	function weakCache(fn) {
+		var map = new WeakMap();
+
+		return function weakCache(object) {
+			if (DEBUG && arguments.length > 1) {
+				throw new Error('Fn: weakCache() called with ' + arguments.length + ' arguments. Accepts exactly 1.');
 			}
 
 			if (map.has(object)) {
@@ -1567,20 +1585,20 @@
 
 		// Functions
 
-		id:       id,
-		noop:     noop,
-		self:     self,
-
-		cache:    cache,
-		compose:  compose,
-		curry:    curry,
-		choose:   choose,
-		flip:     flip,
-		once:     once,
-		overload: curry(overload),
-		pipe:     pipe,
-		throttle: Throttle,
-		wait:     Wait,
+		id:        id,
+		noop:      noop,
+		self:      self,
+		cache:     cache,
+		compose:   compose,
+		curry:     curry,
+		choose:    choose,
+		flip:      flip,
+		once:      once,
+		overload:  curry(overload),
+		pipe:      pipe,
+		throttle:  Throttle,
+		wait:      Wait,
+		weakCache: weakCache,
 
 
 		// Logic
