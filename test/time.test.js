@@ -97,4 +97,14 @@ group('Time', function(test, log) {
 
 		done();
 	});
+
+	test('.diffDateDays(date, date)', function(equals, done) {
+		var d1 = new Date();
+		var d2 = new Date();
+
+		equals(0, Time.diffDateDays(d1, d2));
+		equals(0, Time.diffDateDays('2018', '2018'));
+
+		done();
+	});
 });

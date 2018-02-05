@@ -775,15 +775,15 @@
 				diff(0, d2, d1 === date1 ? new Date(d1.getFullYear(), d1.getMonth(), d1.getDate()) : d1) * -1 ;
 		},
 
-		diffDate: curry(function(date1, date2) {
-			var d1 = typeof date1 === 'string' ? parseDate(date1) : date1 ;
-			var d2 = typeof date2 === 'string' ? parseDate(date2) : date2 ;
+		diffDateDays: curry(function(date1, date2) {
+			var d1 = parseDate(date1);
+			var d2 = parseDate(date2);
 
 			return d2 > d1 ?
 				// 3rd argument mutates, so make sure we get a clean date if we
 				// have not just made one.
-				diff(0, d1, d2 === date2 ? new Date(d2.getFullYear(), d2.getMonth(), d2.getDate()) : d2) :
-				diff(0, d2, d1 === date1 ? new Date(d1.getFullYear(), d1.getMonth(), d1.getDate()) : d1) * -1 ;
+				diff(0, d1, d2 === date2 || d1 === d2 ? cloneDate(d2) : d2) :
+				diff(0, d2, d1 === date1 || d2 === d1 ? cloneDate(d1) : d1) * -1 ;
 		}),
 
 		floorDate: curry(floor),
