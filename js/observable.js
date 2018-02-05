@@ -81,9 +81,15 @@
 	var createProxy = window.Proxy ? (function() {
 		function trapGet(target, name, self) {
 			var value = target[name];
-
+//console.log('TRAP GET', value);
 			// Ignore symbols
 			return typeof name === 'symbol' ? value :
+//				typeof value === 'function' ? function() {
+//console.log('this', this);
+//console.log('target', target);
+//console.log('arguments', arguments);
+//					value.apply(this, arguments);
+//				} :
 				Observable(value) || value ;
 		}
 

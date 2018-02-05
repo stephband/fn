@@ -12,6 +12,7 @@
 	var noop      = Fn.noop;
 	var overload  = Fn.overload;
 	var toType    = Fn.toType;
+	var toClass   = Fn.toClass;
 
 
 	// Be generous with the input we accept.
@@ -20,9 +21,6 @@
 	//var rdatetime = /^(-)?(\d+)-(0[0-9]|1[12])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):([0-5][0-9])(?::([0-5][0-9](?:\.\d+)?))?/;
 	//var rtimestringzone = /(?:Z|[+-]\d{2}:\d{2})$/;
 	//var rnonzeronumbers = /[1-9]/;
-
-	// Duration of year, in seconds
-	var year  = 365.25 * 24 * 60 * 60;
 
 	function createOrdinals(ordinals) {
 		var array = [], n = 0;
@@ -378,7 +376,29 @@
 	//                sign   year        month       day               T or -
 	var rdatediff = /^([+-])?(\d{2,})(?:-(\d{2,})(?:-(\d{2,}))?)?(?:([T-])|$)/;
 
-	var parseDate = exec(rdate, function parseDate(year, month, day, hour, minute, second, ms, zone, zoneHour, zoneMinute) {
+	var parseDate = overload(toType, {
+		number:  secondsToDate,
+		string:  exec(rdate, createDate),
+		object:  function(date) {
+			return isValidDate(date) ? date : undefined ;
+		},
+		default: noop
+	});
+
+	var parseDateLocal = overload(toType, {
+		number:  secondsToDate,
+		string:  exec(rdate, createDateLocal),
+		object:  function(date) {
+			return date instanceof Date ? date : undefined ;
+		},
+		default: noop
+	});
+
+	function isValidDate(date) {
+		return toClass(date) === "Date" && !Number.isNaN(date.getTime()) ;
+	}
+
+	function createDate(match, year, month, day, hour, minute, second, ms, zone, zoneHour, zoneMinute) {
 		// Month must be 0-indexed for the Date constructor
 		month = parseInt(month, 10) - 1;
 
@@ -397,9 +417,9 @@
 		}
 
 		return date;
-	});
+	}
 
-	var parseDateLocal = exec(rdate, function parseDateLocal(year, month, day, hour, minute, second, ms, zone) {
+	function createDateLocal(year, month, day, hour, minute, second, ms, zone) {
 		if (zone) {
 			throw new Error('Time.parseDateLocal() will not parse a string with a time zone "' + zone + '".');
 		}
@@ -414,16 +434,20 @@
 			day ?    new Date(year, month, day) :
 			month ?  new Date(year, month) :
 			new Date(year) ;
-	});
+	}
 
 	function exec(regex, fn, error) {
 		return function exec(string) {
 			var parts = regex.exec(string);
 			if (!parts && error) { throw error; }
 			return parts ?
-				fn.apply(null, parts.slice(1)) :
+				fn.apply(null, parts) :
 				undefined ;
 		};
+	}
+
+	function secondsToDate(n) {
+		return new Date(secondsToMilliseconds(n));
 	}
 
 	function setTimeZoneOffset(sign, hour, minute, date) {
@@ -443,10 +467,6 @@
 		return date;
 	}
 
-	assign(Time, {
-		parseDate:      parseDate,
-		parseDateLocal: parseDateLocal
-	});
 
 
 	// Date object formatting
@@ -584,10 +604,9 @@
 		});
 	}
 
-	assign(Time, {
-		formatDate:      curry(formatDate),
-		formatDateLocal: curry(formatDateLocal)
-	});
+	function formatDateISO(date) {
+		return JSON.stringify(parseDate(date));
+	}
 
 
 	// Time operations
@@ -694,7 +713,25 @@
 		//return this.add('-0000-00-0' + diff);
 	}
 
-	assign(Time, {
+
+
+	assign(Fn, {
+		nowDate: function() {
+			return new Date();
+		},
+
+		parseDate:      parseDate,
+		parseDateLocal: parseDateLocal,
+
+		formatDate: curry(function(string, timezone, locale, date) {
+			return string === 'ISO' ?
+				formatDateISO(parseDate(date)) :
+				formatDate(string, timezone, locale, parseDate(date)) ;
+		}),
+
+		formatDateISO: formatDateISO,
+		formatDateLocal: curry(formatDateLocal),
+
 		addDate: curry(function(diff, date) {
 			// Don't mutate the original date
 			date = cloneDate(date);
@@ -725,7 +762,7 @@
 			return date;
 		}),
 
-		clone: cloneDate,
+		cloneDate: cloneDate,
 
 		dateDiff: function(date1, date2) {
 			var d1 = typeof date1 === 'string' ? parseDate(date1) : date1 ;
@@ -870,7 +907,7 @@
 		}
 	};
 
-	function createTime(sign, hh, mm, sss) {
+	function createTime(match, sign, hh, mm, sss) {
 		var time = hoursToSeconds(parseInt(hh, 10)) + (
 			mm ? minutesToSeconds(parseInt(mm, 10)) + (
 				sss ? parseFloat(sss, 10) : 0
@@ -911,7 +948,11 @@
 		return n.toFixed(precision).replace(/\.?0+$/, '');
 	}
 
-	assign(Time, {
+	assign(Fn, {
+		nowTime: function() {
+			return window.performance.now();
+		},
+
 		parseTime: parseTime,
 
 		formatTime: curry(function(string, time) {

@@ -1,6 +1,6 @@
 
 group('Time', function(test, log) {
-	var Time = window.Time;
+	var Time = window.Fn;
 
 	test('.addDate(datetime, date)', function(equals, done) {
 		var date = new Date(Date.UTC(2018, 0, 1));
