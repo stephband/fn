@@ -226,9 +226,8 @@
 		var _curry = curry;
 
 		// Make curried functions log a pretty version of their partials
-		curry = function curry(fn, muteable) {
-			var arity  = arguments[2] || fn.length;
-
+		curry = function curry(fn, muteable, arity) {
+			arity  = arity || fn.length;
 			return setFunctionProperties('curried', arity, fn, _curry(fn, muteable, arity));
 		};
 	}

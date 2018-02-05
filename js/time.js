@@ -1,21 +1,28 @@
 (function(window) {
 	"use strict";
 
-	var Fn = window.Fn;
+	var Fn        = window.Fn;
+
+	var assign    = Object.assign;
+	var curry     = Fn.curry;
+	var choose    = Fn.choose;
+	var id        = Fn.id;
+	var isDefined = Fn.isDefined;
+	var mod       = Fn.mod;
+	var noop      = Fn.noop;
+	var overload  = Fn.overload;
+	var toType    = Fn.toType;
+
 
 	// Be generous with the input we accept.
-	var rdiff = /^(-)?(\d{4})(?:-(\d+))?(?:-(\d+))?$/;
-	var rtime = /^(-)?(\d+):(\d+)(?::(\d+(?:\.\d+)?))?$/;
+	var rdiff =       /^(-)?(\d{4})(?:-(\d+))?(?:-(\d+))?$/;
+	var rtimestring = /^(-)?(\d+):(\d+)(?::(\d+(?:\.\d+)?))?$/;
 	//var rdatetime = /^(-)?(\d+)-(0[0-9]|1[12])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):([0-5][0-9])(?::([0-5][0-9](?:\.\d+)?))?/;
-	//var rtimezone = /(?:Z|[+-]\d{2}:\d{2})$/;
+	//var rtimestringzone = /(?:Z|[+-]\d{2}:\d{2})$/;
 	//var rnonzeronumbers = /[1-9]/;
-
-	var days = { mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 0 };
-
 
 	// Duration of year, in seconds
 	var year  = 365.25 * 24 * 60 * 60;
-	var today = new Date();
 
 	function createOrdinals(ordinals) {
 		var array = [], n = 0;
@@ -27,7 +34,7 @@
 		return array;
 	}
 
-	var locales = {
+	var langs = {
 		'en': {
 			days:     ('Sunday Monday Tuesday Wednesday Thursday Friday Saturday').split(' '),
 			months:   ('January February March April May June July August September October November December').split(' '),
@@ -53,17 +60,6 @@
 		}
 	};
 
-	function isDefined(value) {
-		// !!value is a fast out for non-zero numbers, non-empty strings
-		// and other objects, the rest checks for 0, '', etc.
-		return !!value || (value !== undefined && value !== null && !Number.isNaN(value));
-	}
-
-	var dayMap = [6,0,1,2,3,4,5];
-
-	function toDay(date) {
-		return dayMap[date.getDay()];
-	}
 
 //	function createDate(value) {
 //		// Test the Date constructor to see if it is parsing date
@@ -91,7 +87,7 @@
 //	}
 
 	function addTimeToDate(time, date) {
-		var tokens = rtime.exec(time) ;
+		var tokens = rtimestring.exec(time) ;
 
 		if (!tokens) { throw new Error('Time: "' + time + '" does not parse as time.'); }
 
@@ -136,7 +132,7 @@
 				// Accept date objects.
 				time instanceof Date ? +time / 1000 :
 				// Accept time strings
-				rtime.test(time) ? +addTimeToDate(time, new Date(0)) / 1000 :
+				rtimestring.test(time) ? +addTimeToDate(time, new Date(0)) / 1000 :
 				// Accept date strings
 				+new Date(time) / 1000
 		});
@@ -199,7 +195,7 @@
 				}
 
 				if (grain === 'fortnight') {
-					var week = Time.now().floor('mon').date;
+					var week = Time.nowTime().floor('mon').date;
 					diff = Fn.mod(14, Time.dateDiff(week, date));
 					date.setUTCDate(date.getUTCDate() - diff);
 					return new Time(date);
@@ -229,11 +225,11 @@
 
 		render: (function() {
 			// Todo: this regex should be stricter
-			var rletter = /(th|ms|[YZMDdHhmsz]{1,4}|[a-zA-Z])/g;
+			var rtoken = /(th|ms|[YZMDdHhmsz]{1,4}|[a-zA-Z])/g;
 
 			return function render(string, lang) {
 				var date = this.toDate();
-				return string.replace(rletter, function($0, $1) {
+				return string.replace(rtoken, function($0, $1) {
 					return Time.format[$1] ? Time.format[$1](date, lang) : $1 ;
 				});
 			};
@@ -310,8 +306,8 @@
 			return new Time(time);
 		},
 
-		now: function() {
-			return Time(new Date());
+		nowTime: function() {
+			return new Time(new Date());
 		},
 
 		format: {
@@ -319,13 +315,14 @@
 			YY:   function(date)       { return ('0' + date.getFullYear() % 100).slice(-2); },
 			MM:   function(date)       { return ('0' + (date.getMonth() + 1)).slice(-2); },
 			MMM:  function(date, lang) { return this.MMMM(date, lang).slice(0,3); },
-			MMMM: function(date, lang) { return locales[lang || Time.lang].months[date.getMonth()]; },
+			MMMM: function(date, lang) { return langs[lang || Time.lang].months[date.getMonth()]; },
 			D:    function(date)       { return '' + date.getDate(); },
 			DD:   function(date)       { return ('0' + date.getDate()).slice(-2); },
 			ddd:  function(date, lang) { return this.dddd(date, lang).slice(0,3); },
-			dddd: function(date, lang) { return locales[lang || Time.lang].days[date.getDay()]; },
+			dddd: function(date, lang) { return langs[lang || Time.lang].days[date.getDay()]; },
+			hh:   function(date)       { return ('0' + date.getHours()).slice(-2); },
+			//hh:   function(date)       { return ('0' + date.getHours() % 12).slice(-2); },
 			HH:   function(date)       { return ('0' + date.getHours()).slice(-2); },
-			hh:   function(date)       { return ('0' + date.getHours() % 12).slice(-2); },
 			mm:   function(date)       { return ('0' + date.getMinutes()).slice(-2); },
 			ss:   function(date)       { return ('0' + date.getSeconds()).slice(-2); },
 			sss:  function(date)       { return (date.getSeconds() + date.getMilliseconds() / 1000 + '').replace(/^\d\.|^\d$/, function($0){ return '0' + $0; }); },
@@ -337,34 +334,18 @@
 				return (date.getTimezoneOffset() < 0 ? '+' : '-') +
 					 ('0' + Math.round(100 * Math.abs(date.getTimezoneOffset()) / 60)).slice(-4) ;
 			},
-			th:   function(date, lang) { return locales[lang || Time.lang].ordinals[date.getDate()]; },
+			th:   function(date, lang) { return langs[lang || Time.lang].ordinals[date.getDate()]; },
 			n:    function(date) { return +date; },
 			ZZ:   function(date) { return -date.getTimezoneOffset() * 60; }
 		},
 
-		locales: locales,
-
-		secToMs:     function(n) { return n * 1000; },
-		secToMins:   function(n) { return n / 60; },
-		secToHours:  function(n) { return n / 3600; },
-		secToDays:   function(n) { return n / 86400; },
-		secToWeeks:  function(n) { return n / 604800; },
-		secToMonths: function(n) { return n / (year / 12); },
-		secToYears:  function(n) { return n / year; },
-
-		msToSec:     function(n) { return n / 1000; },
-		minsToSec:   function(n) { return n * 60; },
-		hoursToSec:  function(n) { return n * 3600; },
-		daysToSec:   function(n) { return n * 86400; },
-		weeksToSec:  function(n) { return n * 604800; },
-		monthsToSec: function(n) { return n * (year / 12); },
-		yearsToSec:  function(n) { return n * year; }
+		locales: langs
 	});
 
 	Object.defineProperty(Time, 'lang', {
 		get: function() {
 			var lang = document.documentElement.lang;
-			return lang && Time.locales[lang] ? lang : 'en';
+			return lang && langs[lang] ? lang : 'en';
 		},
 
 		enumerable: true
@@ -373,7 +354,17 @@
 
 
 
-	// Local times
+
+
+
+
+
+
+
+
+
+
+	// Date string parsing
 	//
 	// Don't parse date strings with the JS Date object. It has variable
 	// time zone behaviour. Set up our own parsing.
@@ -383,92 +374,157 @@
 	// Limit months to 01-12
 	// Limit dates to 01-31
 
-	var rdate = /^(-?\d{4})(?:-(0[1-9]|1[012])(?:-(0[1-9]|[12]\d|3[01]))?)?/;
+	var rdate     = /^(-?\d{4})(?:-(0[1-9]|1[012])(?:-(0[1-9]|[12]\d|3[01])(?:T([01]\d|2[0-3])(?::([0-5]\d)(?::([0-5]\d)(?:.(\d+))?)?)?)?)?)?([+-]([01]\d|2[0-3]):?([0-5]\d)?|Z)?$/;
+	//                sign   year        month       day               T or -
+	var rdatediff = /^([+-])?(\d{2,})(?:-(\d{2,})(?:-(\d{2,}))?)?(?:([T-])|$)/;
 
-	function execDate(fn) {
+	var parseDate = exec(rdate, function parseDate(year, month, day, hour, minute, second, ms, zone, zoneHour, zoneMinute) {
+		// Month must be 0-indexed for the Date constructor
+		month = parseInt(month, 10) - 1;
+
+		var date = new Date(
+			ms ?     Date.UTC(year, month, day, hour, minute, second, ms) :
+			second ? Date.UTC(year, month, day, hour, minute, second) :
+			minute ? Date.UTC(year, month, day, hour, minute) :
+			hour ?   Date.UTC(year, month, day, hour) :
+			day ?    Date.UTC(year, month, day) :
+			month ?  Date.UTC(year, month) :
+			Date.UTC(year)
+		);
+
+		if (zone && (zoneHour !== '00' || (zoneMinute !== '00' && zoneMinute !== undefined))) {
+			setTimeZoneOffset(zone[0], zoneHour, zoneMinute, date);
+		}
+
+		return date;
+	});
+
+	var parseDateLocal = exec(rdate, function parseDateLocal(year, month, day, hour, minute, second, ms, zone) {
+		if (zone) {
+			throw new Error('Time.parseDateLocal() will not parse a string with a time zone "' + zone + '".');
+		}
+
+		// Month must be 0-indexed for the Date constructor
+		month = parseInt(month, 10) - 1;
+
+		return ms ?  new Date(year, month, day, hour, minute, second, ms) :
+			second ? new Date(year, month, day, hour, minute, second) :
+			minute ? new Date(year, month, day, hour, minute) :
+			hour ?   new Date(year, month, day, hour) :
+			day ?    new Date(year, month, day) :
+			month ?  new Date(year, month) :
+			new Date(year) ;
+	});
+
+	function exec(regex, fn, error) {
 		return function exec(string) {
-			var parts = rdate.exec(string) ;
-			if (!parts) { throw new Error('Invalid date ' + string); }
-			return fn(
-				// Year
-				parseInt(parts[1], 10),
-				// Month, 0-indexed for the Date constructor
-				parts[2] ? parseInt(parts[2], 10) - 1 : 0,
-				// Date
-				parts[3] ? parseInt(parts[3], 10) : 1
-			);
+			var parts = regex.exec(string);
+			if (!parts && error) { throw error; }
+			return parts ?
+				fn.apply(null, parts.slice(1)) :
+				undefined ;
 		};
 	}
 
-	var dateFromLocal = execDate(function dateFromLocal(year, month, date) {
-		return new Date(year, month, date);
-	});
-
-	var dateFromUTC = execDate(function dateFromUTC(year, month, date) {
-		return new Date(Date.UTC(year, month, date));
-	});
-
-	function dateDiff(t, d1, d2) {
-		var y1 = d1.getFullYear();
-		var m1 = d1.getMonth();
-		var y2 = d2.getFullYear();
-		var m2 = d2.getMonth();
-
-		if (y1 === y2 && m1 === m2) {
-			return t + d2.getDate() - d1.getDate() ;
+	function setTimeZoneOffset(sign, hour, minute, date) {
+		if (sign === '+') {
+			date.setUTCHours(date.getUTCHours() - parseInt(hour, 10));
+			if (minute) {
+				date.setUTCMinutes(date.getUTCMinutes() - parseInt(minute, 10));
+			}
+		}
+		else if (sign === '-') {
+			date.setUTCHours(date.getUTCHours() + parseInt(hour, 10));
+			if (minute) {
+				date.setUTCMinutes(date.getUTCMinutes() + parseInt(minute, 10));
+			}
 		}
 
-		t += d2.getDate() ;
-
-		// Set to last date of previous month
-		d2.setDate(0);
-
-		return dateDiff(t, d1, d2);
+		return date;
 	}
 
-	Object.assign(Time, {
-		dateFromLocal: dateFromLocal,
-		dateFromUTC:   dateFromUTC,
-
-		dateDiff: function(date1, date2) {
-			var d1 = typeof date1 === 'string' ? dateFromLocal(date1) : date1 ;
-			var d2 = typeof date2 === 'string' ? dateFromLocal(date2) : date2 ;
-
-			return d2 > d1 ?
-				// 3rd argument mutates, so make sure we get a clean date if we
-				// have not just made one.
-				dateDiff(0, d1, d2 === date2 ? new Date(d2.getFullYear(), d2.getMonth(), d2.getDate()) : d2) :
-				dateDiff(0, d2, d1 === date1 ? new Date(d1.getFullYear(), d1.getMonth(), d1.getDate()) : d1) * -1 ;
-		}
+	assign(Time, {
+		parseDate:      parseDate,
+		parseDateLocal: parseDateLocal
 	});
 
 
+	// Date object formatting
+	//
+	// Use the internationalisation methods for turning a date into a UTC or
+	// locale string, the date object for turning them into a local string.
 
+	var dateFormatters = {
+		YYYY: function(date)       { return ('000' + date.getFullYear()).slice(-4); },
+		YY:   function(date)       { return ('0' + date.getFullYear() % 100).slice(-2); },
+		MM:   function(date)       { return ('0' + (date.getMonth() + 1)).slice(-2); },
+		MMM:  function(date, lang) { return this.MMMM(date, lang).slice(0,3); },
+		MMMM: function(date, lang) { return langs[lang || Time.lang].months[date.getMonth()]; },
+		D:    function(date)       { return '' + date.getDate(); },
+		DD:   function(date)       { return ('0' + date.getDate()).slice(-2); },
+		ddd:  function(date, lang) { return this.dddd(date, lang).slice(0,3); },
+		dddd: function(date, lang) { return langs[lang || Time.lang].days[date.getDay()]; },
+		hh:   function(date)       { return ('0' + date.getHours()).slice(-2); },
+		//hh:   function(date)       { return ('0' + date.getHours() % 12).slice(-2); },
+		mm:   function(date)       { return ('0' + date.getMinutes()).slice(-2); },
+		ss:   function(date)       { return ('0' + date.getSeconds()).slice(-2); },
+		sss:  function(date)       { return (date.getSeconds() + date.getMilliseconds() / 1000 + '').replace(/^\d\.|^\d$/, function($0){ return '0' + $0; }); },
+		ms:   function(date)       { return '' + date.getMilliseconds(); },
 
+		// Experimental
+		am:   function(date) { return date.getHours() < 12 ? 'am' : 'pm'; },
+		zz:   function(date) {
+			return (date.getTimezoneOffset() < 0 ? '+' : '-') +
+				 ('0' + Math.round(100 * Math.abs(date.getTimezoneOffset()) / 60)).slice(-4) ;
+		},
+		th:   function(date, lang) { return langs[lang || Time.lang].ordinals[date.getDate()]; },
+		n:    function(date) { return +date; },
+		ZZ:   function(date) { return -date.getTimezoneOffset() * 60; }
+	};
 
+	var componentFormatters = {
+		YYYY: function(data)       { return data.year; },
+		YY:   function(data)       { return ('0' + data.year).slice(-2); },
+		MM:   function(data)       { return data.month; },
+		MMM:  function(data, lang) { return this.MMMM(data, lang).slice(0,3); },
+		MMMM: function(data, lang) { return langs[lang].months[data.month - 1]; },
+		D:    function(data)       { return parseInt(data.day, 10) + ''; },
+		DD:   function(data)       { return data.day; },
+		ddd:  function(data, lang) { return data.weekday.slice(0,3); },
+		dddd: function(data, lang) { return data.weekday; },
+		hh:   function(data)       { return data.hour; },
+		//hh:   function(data)       { return ('0' + data.hour % 12).slice(-2); },
+		mm:   function(data)       { return data.minute; },
+		ss:   function(data)       { return data.second; },
+		//sss:  function(data)       { return (date.second + date.getMilliseconds() / 1000 + '').replace(/^\d\.|^\d$/, function($0){ return '0' + $0; }); },
+		//ms:   function(data)       { return '' + date.getMilliseconds(); },
+	};
 
-
-	// Render local times for any arbitrary time region
+	var componentKeys = {
+		// Components, in order of appearance in the locale string
+		'en-US': ['weekday', 'month', 'day', 'year', 'hour', 'minute', 'second']
+	};
 
 	var options = {
 		// Time zone
-		timeZone: 'UTC',
+		timeZone:      'UTC',
 		// Use specified locale matcher
 		formatMatcher: 'basic',
 		// Use 24 hour clock
-		hour12:  false,
+		hour12:        false,
 		// Format string components
-		weekday: 'short',
-		year:    'numeric',
-		month:   '2-digit',
-		day:     '2-digit',
-		hour:    '2-digit',
-		minute:  '2-digit',
-		second:  '2-digit'
+		weekday:       'long',
+		year:          'numeric',
+		month:         '2-digit',
+		day:           '2-digit',
+		hour:          '2-digit',
+		minute:        '2-digit',
+		second:        '2-digit',
+		//timeZoneName:  'short'
 	};
 
+	var rtoken  = /([YZMDdhmswz]{2,4}|\+-)/g;
 	var rusdate = /\w+|\d+/g;
-	var componentKeys = ['weekday', 'year', 'month', 'day', 'hour', 'minute', 'second'];
 
 	function matchEach(regex, fn, text) {
 		var match = regex.exec(text);
@@ -480,53 +536,440 @@
 		undefined ;
 	}
 
-	function toLocaleString(timezone, date) {
-		options.timeZone = timezone;
-		var string = date.toLocaleString('en-US', options);
+	function toLocaleString(timezone, locale, date) {
+		options.timeZone = timezone || 'UTC';
+		var string = date.toLocaleString(locale, options);
 		return string;
 	}
 
-	function toLocaleComponents(timezone, date) {
-		var localedate = toLocaleString(timezone, date);
-		var i          = 0;
+	function toLocaleComponents(timezone, locale, date) {
+		var localedate = toLocaleString(timezone, locale, date);
 		var components = {};
+		var keys       = componentKeys[locale];
+		var i          = 0;
 
 		matchEach(rusdate, function(value) {
-			components[componentKeys[i++]] = value.toLowercase();
+			components[keys[i++]] = value;
 		}, localedate);
 
 		return components;
 	}
 
-	var rletter = /(th|ms|[YZMDdHhmsz]{1,4}|[a-zA-Z])/g;
+	function formatDateLocal(string, locale, date) {
+		var formatters = dateFormatters;
+		var lang = locale.slice(0, 2);
 
-	var formats = {
-		YYYY: function(data)       { return data.year; },
-		YY:   function(data)       { return ('0' + data.year).slice(-2); },
-		MM:   function(data)       { return data.month; },
-		MMM:  function(data, lang) { return this.MMMM(data, lang).slice(0,3); },
-		MMMM: function(data, lang) { return locales[lang].months[data.month - 1]; },
-		D:    function(data)       { return '' + data.day; },
-		DD:   function(data)       { return data.day; },
-		ddd:  function(data, lang) { return this.dddd(data, lang).slice(0,3); },
-		dddd: function(data, lang) { return locales[lang].days[data.day]; },
-		HH:   function(data)       { return data.hour; },
-		hh:   function(data)       { return ('0' + data.hour % 12).slice(-2); },
-		mm:   function(data)       { return data.minute; },
-		ss:   function(data)       { return data.second; },
-		//sss:  function(data)       { return (date.second + date.getMilliseconds() / 1000 + '').replace(/^\d\.|^\d$/, function($0){ return '0' + $0; }); },
-		//ms:   function(data)       { return '' + date.getMilliseconds(); },
-	};
-
-	Time.formatDate = function formatDate(string, timezone, lang, date) {
-		var components = toLocaleComponents(timezone, date);
-		return string.replace(rletter, function($0, $1) {
-			return formats[$1] ? formats[$1](components, lang) : $1 ;
+		// Use date formatters to get time as current local time
+		return string.replace(rtoken, function($0) {
+			return formatters[$0] ? formatters[$0](date, lang) : $0 ;
 		});
+	}
+
+	function formatDate(string, timezone, locale, date) {
+		if (timezone === 'local') {
+			return formatDateLocal(string, locale, date);
+		}
+
+		// Derive lang from locale
+		var lang = locale.slice(0,2);
+
+		// Todo: only en-US supported for the time being
+		locale = 'en-US';
+
+		var data    = toLocaleComponents(timezone, locale, date);
+		var formats = componentFormatters;
+
+		return string.replace(rtoken, function($0) {
+			return formats[$0] ? formats[$0](data, lang) : $0 ;
+		});
+	}
+
+	assign(Time, {
+		formatDate:      curry(formatDate),
+		formatDateLocal: curry(formatDateLocal)
+	});
+
+
+	// Time operations
+
+	var days   = {
+		mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 0
 	};
+
+	var dayMap = [6,0,1,2,3,4,5];
+
+	function toDay(date) {
+		return dayMap[date.getDay()];
+	}
+
+	function cloneDate(date) {
+		return new Date(+date);
+	}
+
+	function addDateComponents(sign, yy, mm, dd, date) {
+		date.setUTCFullYear(date.getUTCFullYear() + sign * parseInt(yy, 10));
+
+		if (!mm) { return; }
+		date.setUTCMonth(date.getUTCMonth() + sign * parseInt(mm, 10));
+
+		if (!dd) { return; }
+		date.setUTCDate(date.getUTCDate() + sign * parseInt(dd, 10));
+	}
+
+	function diff(t, d1, d2) {
+		var y1 = d1.getUTCFullYear();
+		var m1 = d1.getUTCMonth();
+		var y2 = d2.getUTCFullYear();
+		var m2 = d2.getUTCMonth();
+
+		if (y1 === y2 && m1 === m2) {
+			return t + d2.getUTCDate() - d1.getUTCDate() ;
+		}
+
+		t += d2.getUTCDate() ;
+
+		// Set to last date of previous month
+		d2.setUTCDate(0);
+
+		return diff(t, d1, d2);
+	}
+
+	function floor(grain, date) {
+		// Clone date before mutating it
+		date = cloneDate(date);
+
+		// Take a day string or number, find the last matching day
+		var day = typeof grain === 'number' ?
+			grain :
+			days[grain] ;
+
+		var diff, week;
+
+		if (!isDefined(day)) {
+			if (grain === 'ms') { return date; }
+
+			date.setUTCMilliseconds(0);
+			if (grain === 'second') { return date; }
+
+			date.setUTCSeconds(0);
+			if (grain === 'minute') { return date; }
+
+			date.setUTCMinutes(0);
+			if (grain === 'hour') { return date; }
+
+			date.setUTCHours(0);
+			if (grain === 'day') { return date; }
+
+			if (grain === 'week') {
+				date.setDate(date.getDate() - toDay(date));
+				return date;
+			}
+
+			if (grain === 'fortnight') {
+				week = floor('mon', new Date());
+				diff = Fn.mod(14, Time.dateDiff(week, date));
+				date.setUTCDate(date.getUTCDate() - diff);
+				return date;
+			}
+
+			date.setUTCDate(1);
+			if (grain === 'month') { return date; }
+
+			date.setUTCMonth(0);
+			if (grain === 'year') { return date; }
+
+			date.setUTCFullYear(0);
+			return date;
+		}
+
+		//var currentDay = date.getUTCDay();
+
+		// If we are on the specified day, return this date
+		//if (day === currentDay) { return this; }
+
+		//diff = currentDay - day;
+
+		//if (diff < 0) { diff = diff + 7; }
+
+		//return this.add('-0000-00-0' + diff);
+	}
+
+	assign(Time, {
+		addDate: curry(function(diff, date) {
+			// Don't mutate the original date
+			date = cloneDate(date);
+
+			// First parse the date portion diff and add that to date
+			var tokens = rdatediff.exec(diff) ;
+			var sign = 1;
+
+			if (tokens) {
+				sign = tokens[1] === '-' ? -1 : 1 ;
+				addDateComponents(sign, tokens[2], tokens[3], tokens[4], date);
+
+				// If there is no 'T' separator go no further
+				if (!tokens[5]) { return date; }
+
+				// Prepare diff for time parsing
+				diff = diff.slice(tokens[0].length);
+
+				// Protect against parsing a stray sign before time
+				if (diff[0] === '-') { return date; }
+			}
+
+			// Then parse the time portion and add that to date
+			var time = parseTimeDiff(diff);
+			if (time === undefined) { return; }
+
+			date.setTime(date.getTime() + sign * time * 1000);
+			return date;
+		}),
+
+		clone: cloneDate,
+
+		dateDiff: function(date1, date2) {
+			var d1 = typeof date1 === 'string' ? parseDate(date1) : date1 ;
+			var d2 = typeof date2 === 'string' ? parseDate(date2) : date2 ;
+
+			return d2 > d1 ?
+				// 3rd argument mutates, so make sure we get a clean date if we
+				// have not just made one.
+				diff(0, d1, d2 === date2 ? new Date(d2.getFullYear(), d2.getMonth(), d2.getDate()) : d2) :
+				diff(0, d2, d1 === date1 ? new Date(d1.getFullYear(), d1.getMonth(), d1.getDate()) : d1) * -1 ;
+		},
+
+		diffDate: curry(function(date1, date2) {
+			var d1 = typeof date1 === 'string' ? parseDate(date1) : date1 ;
+			var d2 = typeof date2 === 'string' ? parseDate(date2) : date2 ;
+
+			return d2 > d1 ?
+				// 3rd argument mutates, so make sure we get a clean date if we
+				// have not just made one.
+				diff(0, d1, d2 === date2 ? new Date(d2.getFullYear(), d2.getMonth(), d2.getDate()) : d2) :
+				diff(0, d2, d1 === date1 ? new Date(d1.getFullYear(), d1.getMonth(), d1.getDate()) : d1) * -1 ;
+		}),
+
+		floorDate: curry(floor),
+
+		toDay: toDay,
+
+		toTimestamp: function(date) {
+			return date.getTime() / 1000;
+		}
+	});
+
+
+
+
+	// Time
+
+	var precision = 9;
+
+	function millisecondsToSeconds(n) { return n / 1000; }
+	function minutesToSeconds(n) { return n * 60; }
+	function hoursToSeconds(n) { return n * 3600; }
+	function daysToSeconds(n) { return n * 86400; }
+	function weeksToSeconds(n) { return n * 604800; }
+
+	function secondsToMilliseconds(n) { return n * 1000; }
+	function secondsToMinutes(n) { return n / 60; }
+	function secondsToHours(n) { return n / 3600; }
+	function secondsToDays(n) { return n / 86400; }
+	function secondsToWeeks(n) { return n / 604800; }
+
+	function prefix(n) {
+		return n >= 10 ? '' : '0';
+	}
+
+	// Hours:   00-23 - 24 should be allowed according to spec
+	// Minutes: 00-59 -
+	// Seconds: 00-60 - 60 is allowed, denoting a leap second
+
+	//var rtime   = /^([+-])?([01]\d|2[0-3])(?::([0-5]\d)(?::([0-5]\d|60)(?:.(\d+))?)?)?$/;
+	//                sign   hh       mm           ss
+	var rtime     = /^([+-])?(\d{2,}):([0-5]\d)(?::((?:[0-5]\d|60)(?:.\d+)?))?$/;
+	var rtimediff = /^([+-])?(\d{2,}):(\d{2,})(?::(\d{2,}(?:.\d+)?))?$/;
+
+	var parseTime = overload(toType, {
+		number:  id,
+		string:  exec(rtime, createTime),
+		default: function(object) {
+			throw new Error('parseTime() does not accept objects of type ' + (typeof object));
+		}
+	});
+
+	var parseTimeDiff = overload(toType, {
+		number:  id,
+		string:  exec(rtimediff, createTime),
+		default: function(object) {
+			throw new Error('parseTime() does not accept objects of type ' + (typeof object));
+		}
+	});
+
+	var floorTime = choose({
+		week:   function(time) { return time - mod(604800, time); },
+		day:    function(time) { return time - mod(86400, time); },
+		hour:   function(time) { return time - mod(3600, time); },
+		minute: function(time) { return time - mod(60, time); },
+		second: function(time) { return time - mod(1, time); }
+	});
+
+	var timeFormatters = {
+		'+-': function sign(time) {
+			return time < 0 ? '-' : '' ;
+		},
+
+		www: function www(time) {
+			time = time < 0 ? -time : time;
+			var weeks = Math.floor(secondsToWeeks(time));
+			return prefix(weeks) + weeks;
+		},
+
+		dd: function dd(time) {
+			time = time < 0 ? -time : time;
+			var days = Math.floor(secondsToDays(time));
+			return prefix(days) + days;
+		},
+
+		hhh: function hhh(time) {
+			time = time < 0 ? -time : time;
+			var hours = Math.floor(secondsToHours(time));
+			return prefix(hours) + hours;
+		},
+
+		hh: function hh(time) {
+			time = time < 0 ? -time : time;
+			var hours = Math.floor(secondsToHours(time % 86400));
+			return prefix(hours) + hours;
+		},
+
+		mm: function mm(time) {
+			time = time < 0 ? -time : time;
+			var minutes = Math.floor(secondsToMinutes(time % 3600));
+			return prefix(minutes) + minutes;
+		},
+
+		ss: function ss(time) {
+			time = time < 0 ? -time : time;
+			var seconds = Math.floor(time % 60);
+			return prefix(seconds) + seconds ;
+		},
+
+		sss: function sss(time) {
+			time = time < 0 ? -time : time;
+			var seconds = time % 60;
+			return prefix(seconds) + toMaxDecimals(precision, seconds);
+		},
+
+		ms: function ms(time) {
+			time = time < 0 ? -time : time;
+			var ms = Math.floor(secondsToMilliseconds(time % 1));
+			return ms >= 100 ? ms :
+				ms >= 10 ? '0' + ms :
+				'00' + ms ;
+		}
+	};
+
+	function createTime(sign, hh, mm, sss) {
+		var time = hoursToSeconds(parseInt(hh, 10)) + (
+			mm ? minutesToSeconds(parseInt(mm, 10)) + (
+				sss ? parseFloat(sss, 10) : 0
+			) : 0
+		);
+
+		return sign === '-' ? -time : time ;
+	}
+
+	function formatTime(string, time) {
+		return string.replace(rtoken, function($0) {
+			return timeFormatters[$0] ? timeFormatters[$0](time) : $0 ;
+		}) ;
+	}
+
+	function formatTimeISO(time) {
+		var sign = time < 0 ? '-' : '' ;
+
+		if (time < 0) { time = -time; }
+
+		var hours = Math.floor(time / 3600);
+		var hh = prefix(hours) + hours ;
+		time = time % 3600;
+		if (time === 0) { return sign + hh + ':00'; }
+
+		var minutes = Math.floor(time / 60);
+		var mm = prefix(minutes) + minutes ;
+		time = time % 60;
+		if (time === 0) { return sign + hh + ':' + mm; }
+
+		var sss = prefix(time) + toMaxDecimals(precision, time);
+		return sign + hh + ':' + mm + ':' + sss;
+	}
+
+	function toMaxDecimals(precision, n) {
+		// Make some effort to keep rounding errors under control by fixing
+		// decimals and lopping off trailing zeros
+		return n.toFixed(precision).replace(/\.?0+$/, '');
+	}
+
+	assign(Time, {
+		parseTime: parseTime,
+
+		formatTime: curry(function(string, time) {
+			return string === 'ISO' ?
+				formatTimeISO(parseTime(time)) :
+				formatTime(string, parseTime(time)) ;
+		}),
+
+		formatTimeISO: function(time) {
+			// Undefined causes problems by outputting dates full of NaNs
+			return time === undefined ? undefined : formatTimeISO(time);
+		},
+
+		addTime: curry(function(time1, time2) {
+			return parseTime(time2) + parseTimeDiff(time1);
+		}),
+
+		subTime: curry(function(time1, time2) {
+			return parseTime(time2) - parseTimeDiff(time1);
+		}),
+
+		diffTime: curry(function(time1, time2) {
+			return parseTime(time1) - parseTime(time2);
+		}),
+
+		floorTime: curry(function(token, time) {
+			return floorTime(token, parseTime(time));
+		}),
+
+		secondsToMilliseconds: secondsToMilliseconds,
+		secondsToMinutes:      secondsToMinutes,
+		secondsToHours:        secondsToHours,
+		secondsToDays:         secondsToDays,
+		secondsToWeeks:        secondsToWeeks,
+
+		millisecondsToSeconds: millisecondsToSeconds,
+		minutesToSeconds:      minutesToSeconds,
+		hoursToSeconds:        hoursToSeconds,
+		daysToSeconds:         daysToSeconds,
+		weeksToSeconds:        weeksToSeconds,
+	});
 
 
 	// Export
+
+	/* A bad idea, probably, extending Date.prototype. Tempting, though.
+
+	assign(Date.prototype, {
+		add: function(datetime) {
+			return addDate(datetime, this);
+		},
+
+		floor: function(token) {
+			return floorDate(token, this);
+		}
+	});
+
+	*/
 
 	window.Time = Time;
 
