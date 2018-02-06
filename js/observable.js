@@ -24,6 +24,7 @@
 
 	function isArrayLike(object) {
 		return object
+		&& typeof object !== 'function'
 		&& object.hasOwnProperty('length')
 		&& typeof object.length === 'number' ;
 	}
@@ -84,7 +85,7 @@
 //console.log('TRAP GET', value);
 			// Ignore symbols
 			return typeof name === 'symbol' ? value :
-//				typeof value === 'function' ? function() {
+//				typeof value === 'function' ? MethodProxy(value) :
 //console.log('this', this);
 //console.log('target', target);
 //console.log('arguments', arguments);
@@ -199,6 +200,12 @@
 				// Return true to indicate success
 				return true;
 			}
+
+//			apply: function(target, context, args) {
+//console.log('MethodProxy', target, context, args);
+//debugger;
+//				return Reflect.apply(target, context, args);
+//			}
 		};
 
 		return function createProxy(object) {
