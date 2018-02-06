@@ -294,7 +294,7 @@
 	}
 
 	function formatDateTimeISO(date) {
-		return JSON.stringify(parseDate(date));
+		return JSON.stringify(parseDate(date)).slice(1,-1);
 	}
 
 
