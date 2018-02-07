@@ -95,6 +95,8 @@
 
 	function noop() {}
 
+	function args() { return arguments; }
+
 	function id(object) { return object; }
 
 	function self() { return this; }
@@ -110,8 +112,8 @@
 	}
 
 	function compose(fn2, fn1) {
-		return function composed(n) {
-			return fn2(fn1(n));
+		return function compose() {
+			return fn2(fn1.apply(null, arguments));
 		};
 	}
 
@@ -330,6 +332,10 @@
 
 
 	// Arrays
+
+	function nth(n, object) {
+		return object[n];
+	}
 
 	function sortedSplice(array, fn, value) {
 		// Splices value into array at position determined by result of fn,
@@ -1586,6 +1592,7 @@
 
 		id:        id,
 		noop:      noop,
+		args:      args,
 		self:      self,
 		cache:     cache,
 		compose:   compose,
@@ -1593,6 +1600,7 @@
 		choose:    choose,
 		flip:      flip,
 		once:      once,
+		nth:       curry(nth),
 		overload:  curry(overload),
 		pipe:      pipe,
 		throttle:  Throttle,
