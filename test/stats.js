@@ -16,6 +16,7 @@
 
     Stats.log = function() {
         console.table(map);
+        return JSON.stringify(map);
     };
 
     window.Stats = Stats;
