@@ -212,11 +212,12 @@
 	var componentKeys = {
 		// Components, in order of appearance in the locale string
 		'en-US': ['weekday', 'month', 'day', 'year', 'hour', 'minute', 'second'],
-		// "lundi 12/02/2018 à 18:54:09" (different in IE/Edge, of course)
-		'fr': ['weekday', 'day', 'month', 'year', 'hour', 'minute', 'second'],
-		// "lundi 12/02/2018 à 18:54:09" (different in IE/Edge, of course)
-		'de': ['weekday', 'day', 'month', 'year', 'hour', 'minute', 'second']
+		// fr: "lundi 12/02/2018 à 18:54:09" (different in IE/Edge, of course)
+		// de: "Montag, 12.02.2018, 19:28:39" (different in IE/Edge, of course)
+		default: ['weekday', 'day', 'month', 'year', 'hour', 'minute', 'second']
 	};
+
+
 
 	var options = {
 		// Time zone
@@ -258,7 +259,7 @@
 	function toLocaleComponents(timezone, locale, date) {
 		var localedate = toLocaleString(timezone, locale, date);
 		var components = {};
-		var keys       = componentKeys[locale];
+		var keys       = componentKeys[locale] || componentKeys.default;
 		var i          = 0;
 
 		matchEach(rusdate, function(value) {
