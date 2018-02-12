@@ -271,7 +271,9 @@
 		var lang = locale ? locale.slice(0,2) : document.documentElement.lang ;
 
 		// Todo: only en-US and fr supported for the time being
-		locale = locale === 'en' ? 'en-US' : locale;
+		locale = locale === 'en' ? 'en-US' :
+			locale ? locale :
+			'en-US';
 
 		var data    = toLocaleComponents(timezone, locale, date);
 		var formats = componentFormatters;
