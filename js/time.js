@@ -212,8 +212,10 @@
 	var componentKeys = {
 		// Components, in order of appearance in the locale string
 		'en-US': ['weekday', 'month', 'day', 'year', 'hour', 'minute', 'second'],
-		// "lundi 12/02/2018 à 18:54:09"
-		'fr': ['weekday', 'day', 'month', 'year', 'hour', 'minute', 'second']
+		// "lundi 12/02/2018 à 18:54:09" (different in IE/Edge, of course)
+		'fr': ['weekday', 'day', 'month', 'year', 'hour', 'minute', 'second'],
+		// "lundi 12/02/2018 à 18:54:09" (different in IE/Edge, of course)
+		'de': ['weekday', 'day', 'month', 'year', 'hour', 'minute', 'second']
 	};
 
 	var options = {
