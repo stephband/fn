@@ -181,7 +181,9 @@
 			}) ;
 
 		return function partial(object) {
-			return arguments.length === 1 ?
+			return arguments.length === 0 ?
+				partial :
+			arguments.length === 1 ?
 				memo(object) :
 			arguments.length === arity ?
 				fn.apply(null, arguments) :
