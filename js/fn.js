@@ -797,13 +797,10 @@
 
 	// Time
 
-	var now = window.performance && window.performance.now ? function now() {
-		// Return time in seconds
-		return window.performance.now() / 1000;
-	} : function now() {
+	function now() {
 		// Return time in seconds
 		return +new Date() / 1000;
-	} ;
+	}
 
 	var requestFrame = window.requestAnimationFrame;
 
