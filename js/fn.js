@@ -973,6 +973,20 @@
 		return wait;
 	}
 
+	// Choke or wait? A simpler implementation without cancel(), I leave this here for reference...
+//	function choke(seconds, fn) {
+//		var timeout;
+//
+//		function update(context, args) {
+//			fn.apply(context, args);
+//		}
+//
+//		return function choke() {
+//			clearTimeout(timeout);
+//			timeout = setTimeout(update, seconds * 1000, this, arguments);
+//		};
+//	}
+
 
 	// Fn
 
@@ -1603,6 +1617,7 @@
 		nth:       curry(nth),
 		overload:  curry(overload),
 		pipe:      pipe,
+		choke:     choke,
 		throttle:  Throttle,
 		wait:      Wait,
 		weakCache: weakCache,
