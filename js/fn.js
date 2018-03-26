@@ -181,7 +181,9 @@
 			}) ;
 
 		return function partial(object) {
-			return arguments.length === 1 ?
+			return arguments.length === 0 ?
+				partial :
+			arguments.length === 1 ?
 				memo(object) :
 			arguments.length === arity ?
 				fn.apply(null, arguments) :
@@ -795,13 +797,10 @@
 
 	// Time
 
-	var now = window.performance && window.performance.now ? function now() {
-		// Return time in seconds
-		return window.performance.now() / 1000;
-	} : function now() {
+	function now() {
 		// Return time in seconds
 		return +new Date() / 1000;
-	} ;
+	}
 
 	var requestFrame = window.requestAnimationFrame;
 

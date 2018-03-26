@@ -199,7 +199,7 @@
 		MMMM: function(data, lang) { return langs[lang].months[data.month - 1]; },
 		D:    function(data)       { return parseInt(data.day, 10) + ''; },
 		DD:   function(data)       { return data.day; },
-		ddd:  function(data, lang) { return data.weekday.slice(0,3); },
+		ddd:  function(data)       { return data.weekday.slice(0,3); },
 		dddd: function(data, lang) { return data.weekday; },
 		hh:   function(data)       { return data.hour; },
 		//hh:   function(data)       { return ('0' + data.hour % 12).slice(-2); },
@@ -211,8 +211,13 @@
 
 	var componentKeys = {
 		// Components, in order of appearance in the locale string
-		'en-US': ['weekday', 'month', 'day', 'year', 'hour', 'minute', 'second']
+		'en-US': ['weekday', 'month', 'day', 'year', 'hour', 'minute', 'second'],
+		// fr: "lundi 12/02/2018 à 18:54:09" (different in IE/Edge, of course)
+		// de: "Montag, 12.02.2018, 19:28:39" (different in IE/Edge, of course)
+		default: ['weekday', 'day', 'month', 'year', 'hour', 'minute', 'second']
 	};
+
+
 
 	var options = {
 		// Time zone
@@ -233,7 +238,7 @@
 	};
 
 	var rtoken  = /([YZMDdhmswz]{2,4}|\+-)/g;
-	var rusdate = /\w+|\d+/g;
+	var rusdate = /\w{3,}|\d+/g;
 
 	function matchEach(regex, fn, text) {
 		var match = regex.exec(text);
@@ -254,7 +259,7 @@
 	function toLocaleComponents(timezone, locale, date) {
 		var localedate = toLocaleString(timezone, locale, date);
 		var components = {};
-		var keys       = componentKeys[locale];
+		var keys       = componentKeys[locale] || componentKeys.default;
 		var i          = 0;
 
 		matchEach(rusdate, function(value) {
@@ -268,8 +273,10 @@
 		// Derive lang from locale
 		var lang = locale ? locale.slice(0,2) : document.documentElement.lang ;
 
-		// Todo: only en-US supported for the time being
-		locale = 'en-US';
+		// Todo: only en-US and fr supported for the time being
+		locale = locale === 'en' ? 'en-US' :
+			locale ? locale :
+			'en-US';
 
 		var data    = toLocaleComponents(timezone, locale, date);
 		var formats = componentFormatters;

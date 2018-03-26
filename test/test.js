@@ -174,5 +174,5 @@
 		});
 	}
 
-	window.group = group;
+	window.testGroup = window.group = group;
 })(this);
