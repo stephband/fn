@@ -1616,7 +1616,7 @@
 		nth:       curry(nth),
 		overload:  curry(overload),
 		pipe:      pipe,
-		choke:     choke,
+		//choke:     choke,
 		throttle:  Throttle,
 		wait:      Wait,
 		weakCache: weakCache,
