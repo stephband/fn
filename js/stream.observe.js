@@ -52,4 +52,4 @@
 			return source;
 		});
 	});
-})(this);
+})(window);

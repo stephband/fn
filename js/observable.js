@@ -524,4 +524,4 @@
 
 	window.Observable = Observable;
 
-})(this);
+})(window);

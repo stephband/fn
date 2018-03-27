@@ -729,4 +729,4 @@
 
 	window.Stream = Stream;
 
-})(this);
+})(window);

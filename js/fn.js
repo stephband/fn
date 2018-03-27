@@ -1,7 +1,7 @@
 (function(window) {
 	if (!window.console || !window.console.log) { return; }
 	console.log('Fn          - https://github.com/stephband/fn');
-})(this);
+})(window);
 
 (function(window) {
 	"use strict";
@@ -1927,4 +1927,4 @@
 			)
 		}
 	});
-})(this);
+})(window);
