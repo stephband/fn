@@ -700,4 +700,4 @@
 		daysToSeconds:         daysToSeconds,
 		weeksToSeconds:        weeksToSeconds,
 	});
-})(this);
+})(window);

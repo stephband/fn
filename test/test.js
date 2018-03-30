@@ -175,4 +175,4 @@
 	}
 
 	window.testGroup = window.group = group;
-})(this);
+})(window);
