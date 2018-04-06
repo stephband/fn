@@ -695,7 +695,7 @@
 			return this;
 		},
 
-		off: function(type, fn) {
+		off: function off(type, fn) {
 			var events = this[$events];
 			if (!events) { return this; }
 

@@ -10,23 +10,28 @@ import overload from './modules/overload.js';
 import _rest    from './modules/rest.js';
 import { get as _get, set as _set } from './modules/get.js';
 
-export default window.Fn;
+var Fn = window.Fn;
+
+export default Fn;
 
 export const rest      = curry(_rest);
 export const get       = curry(_get);
 export const set       = curry(_set);
 export const sum       = Fn.add;
+export const assign    = Fn.assign;
 export const getPath   = Fn.getPath;
 export const id        = Fn.id;
 export const noop      = Fn.noop;
 export const nothing   = Fn.nothing;
 export const args      = Fn.args;
 export const self      = Fn.self;
+export const toString  = Fn.toString;
 export const cache     = Fn.cache;
 export const compose   = Fn.compose;
 //export const curry     = Fn.curry;
 //export const choose    = Fn.choose;
 export const flip      = Fn.flip;
+export const is        = Fn.is;
 export const once      = Fn.once;
 export const nth       = Fn.nth;
 //export const overload  = Fn.overload;
