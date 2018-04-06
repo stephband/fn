@@ -71,8 +71,8 @@
 	function equals(expected, value, message) {
 		if (!Fn.equals(value, expected)) {
 			var string = ('Test: ' +
-			'Expected ' + JSON.stringify(expected) + ', ' +
-			'received ' + JSON.stringify(value) + '.' +
+			'Expected ' + (JSON.stringify(expected) || typeof value) + ', ' +
+			'received ' + (JSON.stringify(value) || typeof value) + '.' +
 			( message ? ' ' + message : ''));
 
 			if (browser === 'IE') {
