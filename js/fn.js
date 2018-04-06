@@ -1,6 +1,6 @@
 (function(window) {
 	if (!window.console || !window.console.log) { return; }
-	console.log('Fn          - https://github.com/stephband/fn');
+	window.console.log('Fn          - https://github.com/stephband/fn');
 })(window);
 
 (function(window) {
