@@ -416,7 +416,7 @@ observe('a.b[0]', fn, object);
 	<script src="http://stephen.band/dom/dist/dom-nodeps.js"></script>
 	<script src="http://stephen.band/dom/js/dom.root.js"></script>
 
-	<script src="test/test.js"></script>
+	<!--script src="test/test.js"></script>
 
 	<script src="test/fn.utils.test.js"></script>
 	<script src="test/fn.test.js"></script>
@@ -429,6 +429,8 @@ observe('a.b[0]', fn, object);
 	<script src="test/time.test.js"></script>
 	<!--script src="test/router.test.js"></script-->
 
+<script src="modules/exec.js"></script>
+
 	<script>
 		var in1 = document.getElementById('1');
 		var in2 = document.getElementById('2');
@@ -440,8 +442,5 @@ observe('a.b[0]', fn, object);
 
 		st3.each(Fn.set('value', in3));
 	</script>
-
-	<!--script type="module" src="index.js"></script-->
-	<script type="module" src="app.js"></script>
 </body>
 </html>
