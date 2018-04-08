@@ -21,6 +21,7 @@ export const sum       = Fn.add;
 export const assign    = Fn.assign;
 export const getPath   = Fn.getPath;
 export const id        = Fn.id;
+export const isDefined = Fn.isDefined;
 export const noop      = Fn.noop;
 export const nothing   = Fn.nothing;
 export const args      = Fn.args;
