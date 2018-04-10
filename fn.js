@@ -10,7 +10,7 @@ import overload from './modules/overload.js';
 import _rest    from './modules/rest.js';
 import { get as _get, set as _set } from './modules/get.js';
 
-var Fn = window.Fn;
+var Fn     = window.Fn;
 
 export default Fn;
 
@@ -45,5 +45,6 @@ export const limit       = Fn.limit;
 export const pow         = Fn.pow;
 export const toCartesian = Fn.toCartesian;
 export const toPolar     = Fn.toPolar;
+export const Stream      = window.Stream;
 
 export { choose, curry, overload }

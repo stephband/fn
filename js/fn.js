@@ -325,7 +325,9 @@
 	}
 
 	function toInt(object) {
-		return parseInt(object, 10);
+		return object === undefined ?
+			undefined :
+			parseInt(object, 10);
 	}
 
 	function toString(object) {
