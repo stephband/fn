@@ -40,6 +40,7 @@ export const pipe      = Fn.pipe;
 export const throttle  = Fn.Throttle;
 export const wait      = Fn.Wait;
 export const weakCache = Fn.weakCache;
+export const update    = Fn.update;
 
 export const limit       = Fn.limit;
 export const pow         = Fn.pow;
