@@ -237,8 +237,9 @@
 		//timeZoneName:  'short'
 	};
 
-	var rtoken  = /([YZMDdhmswz]{2,4}|\+-)/g;
-	var rusdate = /\w{3,}|\d+/g;
+	var rtoken    = /([YZMDdhmswz]{2,4}|\+-)/g;
+	var rusdate   = /\w{3,}|\d+/g;
+	var rdatejson = /^"(-?\d{4,}-\d\d-\d\d)/;
 
 	function matchEach(regex, fn, text) {
 		var match = regex.exec(text);
@@ -297,7 +298,7 @@
 	}
 
 	function formatDateISO(date) {
-		return JSON.stringify(parseDate(date)).slice(1,11);
+		return rdatejson.exec(JSON.stringify(parseDate(date)))[1];
 	}
 
 	function formatDateTimeISO(date) {
@@ -325,37 +326,55 @@
 		date.setUTCFullYear(date.getUTCFullYear() + sign * parseInt(yy, 10));
 
 		if (!mm) { return; }
-		date.setUTCMonth(date.getUTCMonth() + sign * parseInt(mm, 10));
+
+		// Adding and subtracting months can give weird results with the JS
+		// date object. For example, taking a montha way from 2018-03-31 results
+		// in 2018-03-03 (or the 31st of February), whereas adding a month on to
+		// 2018-05-31 results in the 2018-07-01 (31st of June).
+		//
+		// To mitigate this weirdness track the target month and roll days back
+		// until the month is correct, like Python's relativedelta utility:
+		// https://dateutil.readthedocs.io/en/stable/relativedelta.html#examples
+		var month       = date.getUTCMonth();
+		var monthDiff   = sign * parseInt(mm, 10);
+		var monthTarget = mod(12, month + monthDiff);
+
+		date.setUTCMonth(month + monthDiff);
+
+		// If the month is too far in the future scan backwards through
+		// months until it fits. Setting date to 0 means setting to last
+		// day of previous month.
+		while (date.getUTCMonth() > monthTarget) { date.setUTCDate(0); }
 
 		if (!dd) { return; }
+
 		date.setUTCDate(date.getUTCDate() + sign * parseInt(dd, 10));
 	}
 
-	function addDate(diff, date) {
+	function addDate(duration, date) {
 		// Don't mutate the original date
 		date = cloneDate(date);
 
-		// First parse the date portion diff and add that to date
-		var tokens = rdatediff.exec(diff) ;
+		// First parse the date portion duration and add that to date
+		var tokens = rdatediff.exec(duration) ;
 		var sign = 1;
 
 		if (tokens) {
 			sign = tokens[1] === '-' ? -1 : 1 ;
-
 			addDateComponents(sign, tokens[2], tokens[3], tokens[4], date);
 
 			// If there is no 'T' separator go no further
 			if (!tokens[5]) { return date; }
 
-			// Prepare diff for time parsing
-			diff = diff.slice(tokens[0].length);
+			// Prepare duration for time parsing
+			duration = duration.slice(tokens[0].length);
 
 			// Protect against parsing a stray sign before time
-			if (diff[0] === '-') { return date; }
+			if (duration[0] === '-') { return date; }
 		}
 
 		// Then parse the time portion and add that to date
-		var time = parseTimeDiff(diff);
+		var time = parseTimeDiff(duration);
 		if (time === undefined) { return; }
 
 		date.setTime(date.getTime() + sign * time * 1000);
@@ -376,7 +395,6 @@
 
 		// Set to last date of previous month
 		d2.setUTCDate(0);
-//debugger;
 		return diff(t, d1, d2);
 	}
 
@@ -461,23 +479,6 @@
 			return new Date();
 		},
 
-		parseDate:      parseDate,
-		parseDateLocal: parseDateLocal,
-
-		formatDate: curry(function(string, timezone, locale, date) {
-			return string === 'ISO' ?
-				formatDateISO(parseDate(date)) :
-			timezone === 'local' ?
-				formatDateLocal(string, locale, date) :
-			formatDate(string, timezone, locale, parseDate(date)) ;
-		}),
-
-		formatDateISO:     formatDateISO,
-
-		formatDateTimeISO: formatDateTimeISO,
-
-		formatDateLocal: curry(formatDateLocal),
-
 		addDate: curry(function(diff, date) {
 			return addDate(diff, parseDate(date));
 		}),
@@ -494,7 +495,20 @@
 			return floorDate(token, parseDate(date));
 		}),
 
-		toDay: toDay,
+		formatDate: curry(function(string, timezone, locale, date) {
+			return string === 'ISO' ?
+				formatDateISO(parseDate(date)) :
+			timezone === 'local' ?
+				formatDateLocal(string, locale, date) :
+			formatDate(string, timezone, locale, parseDate(date)) ;
+		}),
+
+		formatDateISO:     formatDateISO,
+		formatDateTimeISO: formatDateTimeISO,
+		formatDateLocal:   curry(formatDateLocal),
+		parseDate:         parseDate,
+		parseDateLocal:    parseDateLocal,
+		toDay:             toDay,
 
 		toTimestamp: function(date) {
 			return date.getTime() / 1000;
