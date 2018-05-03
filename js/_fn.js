@@ -18,58 +18,18 @@
 	var assign = Object.assign;
 
 
-	// Define
-
-	var nothing = Object.freeze(Object.defineProperties([], {
-		shift: { value: noop }
-	}));
-
-
 	// Constant for converting radians to degrees
 	var angleFactor = 180 / Math.PI;
 
 
-	// Feature test
 
-	var isFunctionLengthDefineable = (function() {
-		var fn = function() {};
-
-		try {
-			// Can't do this on Safari - length non configurable :(
-			Object.defineProperty(fn, 'length', { value: 2 });
-		}
-		catch(e) {
-			return false;
-		}
-
-		return fn.length === 2;
-	})();
 
 
 	// Debug helpers
 
-	function setFunctionProperties(text, parity, fn1, fn2) {
-		// Make the string representation of fn2 display parameters of fn1
-		fn2.toString = function() {
-			return /function\s*[\w\d]*\s*\([,\w\d\s]*\)/.exec(fn1.toString()) + ' { [' + text + '] }';
-		};
 
-		// Where possible, define length so that curried functions show how
-		// many arguments they are yet expecting
-		if (isFunctionLengthDefineable) {
-			Object.defineProperty(fn2, 'length', { value: parity });
-		}
 
-		return fn2;
-	}
 
-	function deprecate(fn, message) {
-		// Recall any function and log a depreciation warning
-		return function deprecate() {
-			console.warn('Deprecation warning: ' + message);
-			return fn.apply(this, arguments);
-		};
-	}
 
 	function debug() {
 		if (!window.console) { return fn; }
@@ -93,112 +53,14 @@
 
 	// Functional functions
 
-	function noop() {}
-
-	function args() { return arguments; }
-
-	function id(object) { return object; }
-
-	function self() { return this; }
-
-	function call(value, fn) {
-		return fn(value);
-	}
-
 	function bind(args, fn) {
 		return function() {
 			fn.apply(this, concat(arguments, args));
 		};
 	}
 
-	function compose(fn2, fn1) {
-		return function compose() {
-			return fn2(fn1.apply(null, arguments));
-		};
-	}
-
-	function pipe() {
-		var fns = arguments;
-		return function pipe(value) {
-			return A.reduce.call(fns, call, value);
-		};
-	}
-
-	function cache(fn) {
-		var map = new Map();
-
-		return function cache(object) {
-			if (DEBUG && arguments.length > 1) {
-				throw new Error('Fn: cache() called with ' + arguments.length + ' arguments. Accepts exactly 1.');
-			}
-
-			if (map.has(object)) {
-				return map.get(object);
-			}
-
-			var value = fn(object);
-			map.set(object, value);
-			return value;
-		};
-	}
-
-	function weakCache(fn) {
-		var map = new WeakMap();
-
-		return function weakCache(object) {
-			if (DEBUG && arguments.length > 1) {
-				throw new Error('Fn: weakCache() called with ' + arguments.length + ' arguments. Accepts exactly 1.');
-			}
-
-			if (map.has(object)) {
-				return map.get(object);
-			}
-
-			var value = fn(object);
-			map.set(object, value);
-			return value;
-		};
-	}
-
 	function applyFn(fn, args) {
 		return typeof fn === 'function' ? fn.apply(null, args) : fn ;
-	}
-
-	function curry(fn, muteable, arity) {
-		arity = arity || fn.length;
-
-		var memo = arity === 1 ?
-			// Don't cache if `muteable` flag is true
-			muteable ? fn : cache(fn) :
-
-			// It's ok to always cache intermediate memos, though
-			cache(function(object) {
-				return curry(function() {
-					var args = [object];
-					args.push.apply(args, arguments);
-					return fn.apply(null, args);
-				}, muteable, arity - 1) ;
-			}) ;
-
-		return function partial(object) {
-			return arguments.length === 0 ?
-				partial :
-			arguments.length === 1 ?
-				memo(object) :
-			arguments.length === arity ?
-				fn.apply(null, arguments) :
-			arguments.length > arity ?
-				applyFn(fn.apply(null, A.splice.call(arguments, 0, arity)), arguments) :
-			applyFn(memo(object), A.slice.call(arguments, 1)) ;
-		};
-	}
-
-	function once(fn) {
-		return function once() {
-			var value = fn.apply(this, arguments);
-			fn = noop;
-			return value;
-		};
 	}
 
 	function flip(fn) {
@@ -207,34 +69,7 @@
 		};
 	}
 
-	function overload(fn, map) {
-		return typeof map.get === 'function' ?
-			function overload() {
-				var key = fn.apply(null, arguments);
-				return map.get(key).apply(this, arguments);
-			} :
-			function overload() {
-				var key = fn.apply(null, arguments);
-				return (map[key] || map.default).apply(this, arguments);
-			} ;
-	}
 
-	function choose(map) {
-		return function choose(key) {
-			var fn = map[key] || map.default;
-			return fn && fn.apply(this, rest(1, arguments)) ;
-		};
-	}
-
-	if (DEBUG) {
-		var _curry = curry;
-
-		// Make curried functions log a pretty version of their partials
-		curry = function curry(fn, muteable, arity) {
-			arity  = arity || fn.length;
-			return setFunctionProperties('curried', arity, fn, _curry(fn, muteable, arity));
-		};
-	}
 
 
 	// Types
@@ -256,90 +91,20 @@
 		int:       /^(-?\d+)$/
 	};
 
-	function equals(a, b) {
-		// Fast out if references are for the same object
-		if (a === b) { return true; }
 
-		// Or if values are not objects
-		if (a === null ||
-			b === null ||
-			typeof a !== 'object' ||
-			typeof b !== 'object') {
-			return false;
-		}
 
-		var akeys = Object.keys(a);
-		var bkeys = Object.keys(b);
 
-		// Are their enumerable keys different?
-		if (akeys.length !== bkeys.length) { return false; }
 
-		var n = akeys.length;
 
-		while (n--) {
-			if (!equals(a[akeys[n]], b[akeys[n]])) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	var is = Object.is || function is(a, b) { return a === b; } ;
-
-	function isDefined(value) {
-		// !!value is a fast out for non-zero numbers, non-empty strings
-		// and other objects, the rest checks for 0, '', etc.
-		return !!value || (value !== undefined && value !== null && !Number.isNaN(value));
-	}
 
 	function isNot(a, b) { return a !== b; }
 
-	function toType(object) {
-		return typeof object;
-	}
 
-	function toClass(object) {
-		return O.toString.apply(object).slice(8, -1);
-	}
 
-	function toArray(object) {
-		if (object.toArray) { return object.toArray(); }
 
-		// Speed test for array conversion:
-		// https://jsperf.com/nodelist-to-array/27
-
-		var array = [];
-		var l = object.length;
-		var i;
-
-		if (typeof object.length !== 'number') { return array; }
-
-		array.length = l;
-
-		for (i = 0; i < l; i++) {
-			array[i] = object[i];
-		}
-
-		return array;
-	}
-
-	function toInt(object) {
-		return object === undefined ?
-			undefined :
-			parseInt(object, 10);
-	}
-
-	function toString(object) {
-		return object.toString();
-	}
 
 
 	// Arrays
-
-	function nth(n, object) {
-		return object[n];
-	}
 
 	function sortedSplice(array, fn, value) {
 		// Splices value into array at position determined by result of fn,
@@ -449,14 +214,6 @@
 		return object.filter ?
 			object.filter(fn) :
 			A.filter.call(object, fn) ;
-	}
-
-	function last(array) {
-		if (typeof array.length === 'number') {
-			return array[array.length - 1];
-		}
-
-		// Todo: handle Fns and Streams
 	}
 
 	function reduce(fn, seed, object) {
@@ -1489,24 +1246,13 @@
 
 		// Functions
 
-		id:        id,
-		noop:      noop,
-		args:      args,
-		self:      self,
-		cache:     cache,
-		compose:   compose,
-		curry:     curry,
-		choose:    choose,
+
 		flip:      flip,
-		once:      once,
-		nth:       curry(nth),
-		overload:  curry(overload),
-		pipe:      pipe,
+
+		//pipe:      pipe,
 		//choke:     choke,
 		throttle:  Throttle,
 		wait:      Wait,
-		weakCache: weakCache,
-
 
 		// Logic
 
@@ -1539,9 +1285,6 @@
 
 		// Types
 
-		toType:    toType,
-		toClass:   toClass,
-		toArray:   toArray,
 		toString:  toString,
 		toInt:     toInt,
 		toFloat:   parseFloat,
@@ -1602,19 +1345,6 @@
 		unite:     curry(unite, true),
 		unique:    unique,
 		update:    curry(update, true),
-
-
-		// Objects
-
-		assign:    curry(assign, true, 2),
-		//get:       curry(get, true),
-		//set:       curry(set, true),
-		//getPath:   curry(getPath, true),
-		//setPath:   curry(setPath, true),
-
-		invoke: curry(function invoke(name, values, object) {
-			return object[name].apply(object, values);
-		}, true),
 
 
 		// Numbers
@@ -1777,7 +1507,6 @@
 		// Debugging
 
 		debug:        debug,
-		deprecate:    deprecate,
 
 
 		// Deprecated
