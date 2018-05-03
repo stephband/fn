@@ -1,3 +1,5 @@
+const DEBUG = false;
+
 export default function cache(fn) {
     var map = new Map();
 

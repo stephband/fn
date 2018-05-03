@@ -7,19 +7,33 @@
         "url": "http://stephen.band",
         "twitter": "stephband"
     },
-    "licenses": [{"url":"http://unlicense.org/"}],
+    "licenses": [
+        {
+            "url": "http://unlicense.org/"
+        }
+    ],
     "files": [
-    	"js/fn.js"
+        "js/fn.js"
     ],
     "main": "js/fn.js",
     "description": "A library of functions, functors and streams.",
-    "keywords": ["browser","web","library","functional","stream","js","javascript"],
+    "keywords": [
+        "browser",
+        "web",
+        "library",
+        "functional",
+        "stream",
+        "js",
+        "javascript"
+    ],
     "homepage": "http://stephen.band/fn",
     "docs": "http://github.com/stephband/fn",
     "devDependencies": {
         "eslint": "^4.4.1",
+        "rollup": "^0.58.2"
     },
     "scripts": {
-        "lint": "eslint js/*.js"
+        "lint": "eslint js/*.js",
+        "build-closure": "rollup fn.js --o dist/fn.js --f iife --n Fn"
     }
 }

@@ -193,22 +193,7 @@
 		return object && object.map ? object.map(fn) : A.map.call(object, fn) ;
 	}
 
-	function each(fn, object) {
-		// A stricter version of .forEach, where the callback fn
-		// gets a single argument and no context.
-		var l, n;
 
-		if (typeof object.each === 'function') {
-			object.each(fn);
-		}
-		else {
-			l = object.length;
-			n = -1;
-			while (++n < l) { fn(object[n]); }
-		}
-
-		return object;
-	}
 
 	function filter(fn, object) {
 		return object.filter ?
@@ -343,14 +328,6 @@
 
 	// Strings
 
-	function prepend(string1, string2) {
-		return string1 + string2;
-	}
-
-	function append(string1, string2) {
-		return string2 + string1;
-	}
-
 	function prepad(chars, n, value) {
 		var string = value + '';
 		var i = -1;
@@ -440,91 +417,10 @@
 
 	// Time
 
-	function now() {
-		// Return time in seconds
-		return +new Date() / 1000;
-	}
-
 	var requestFrame = window.requestAnimationFrame;
 
-	var resolved = Promise.resolve();
-
-	function requestTick(fn) {
-		resolved.then(fn);
-		return true;
-	}
 
 
-	// Timer
-	//
-	// Create an object with a request/cancel pair of functions that
-	// fire request(fn) callbacks at a given duration.
-	//
-	// .request()
-	// .cancel()
-	// .now()
-
-	function Timer(duration, getTime) {
-		if (typeof duration !== 'number') { throw new Error('Timer(duration) requires a duration in seconds (' + duration + ')'); }
-
-		// Optional second argument is a function that returns
-		// current time (in seconds)
-		getTime = getTime || now;
-
-		var fns = [];
-		var id;
-		var t0  = -Infinity;
-
-		function frame() {
-			var n = fns.length;
-
-			id = undefined;
-			t0 = getTime();
-
-			while (n--) {
-				fns.shift()(t0);
-			}
-		}
-
-		return {
-			now: getTime,
-
-			request: function(fn) {
-				if (typeof fn !== 'function') { throw new Error('fn is not a function.'); }
-
-				// Add fn to queue
-				fns.push(fn);
-
-				// If the timer is cued do nothing
-				if (id) { return; }
-
-				var t1 = getTime();
-
-				// Set the timer and return something truthy
-				if (t0 + duration > t1) {
-					id = setTimeout(frame, (t0 + duration - t1) * 1000);
-				}
-				else {
-					requestTick(frame) ;
-				}
-
-				// Use the fn reference as the request id, because why not
-				return fn;
-			},
-
-			cancel: function(fn) {
-				var i = fns.indexOf(fn);
-				if (i === -1) { return; }
-
-				fns.splice(i, 1);
-
-				if (!fns.length) {
-					clearTimeout(id);
-					id = undefined;
-				}
-			}
-		};
-	}
 
 
 	// Throttle
@@ -576,673 +472,13 @@
 	}
 
 
-	// Wait
-	//
-	// Returns a function that waits for `time` seconds without being invoked
-	// before calling `fn` using the context and arguments from the latest
-	// invocation
-
-	function Wait(fn, time) {
-		var timer, context, args;
-		var cue = function cue() {
-			if (timer) { clearTimeout(timer); }
-			timer = setTimeout(update, (time || 0) * 1000);
-		};
-
-		function update() {
-			timer = false;
-			fn.apply(context, args);
-		}
-
-		function cancel() {
-			// Don't permit further changes to be queued
-			cue = noop;
-
-			// If there is an update queued apply it now
-			if (timer) { clearTimeout(timer); }
-		}
-
-		function wait() {
-			// Store the latest context and arguments
-			context = this;
-			args = arguments;
-
-			// Cue the update
-			cue();
-		}
-
-		wait.cancel = cancel;
-		return wait;
-	}
-
-	// Choke or wait? A simpler implementation without cancel(), I leave this here for reference...
-//	function choke(seconds, fn) {
-//		var timeout;
-//
-//		function update(context, args) {
-//			fn.apply(context, args);
-//		}
-//
-//		return function choke() {
-//			clearTimeout(timeout);
-//			timeout = setTimeout(update, seconds * 1000, this, arguments);
-//		};
-//	}
-
 
 	// Fn
-
-	function isDone(source) {
-		return source.length === 0 || source.status === 'done' ;
-	}
-
-	function latest(source) {
-		var value = source.shift();
-		return value === undefined ? arguments[1] : latest(source, value) ;
-	}
-
-	function create(object, fn) {
-		var functor = Object.create(object);
-		functor.shift = fn;
-		return functor;
-	}
-
-	function Fn(fn) {
-		// Accept constructor without `new`
-		if (!this || !Fn.prototype.isPrototypeOf(this)) {
-			return new Fn(fn);
-		}
-
-		var source = this;
-
-		if (!fn) {
-			source.status = 'done';
-			return;
-		}
-
-		var value = fn();
-
-		if (value === undefined) {
-			source.status = 'done';
-			return;
-		}
-
-		this.shift = function shift() {
-			if (source.status === 'done') { return; }
-
-			var v = value;
-
-			// Where the next value is undefined mark the functor as done
-			value = fn();
-			if (value === undefined) {
-				source.status = 'done';
-			}
-
-			return v;
-		};
-	}
-
-	assign(Fn.prototype, {
-		shift: noop,
-
-		// Input
-
-		of: function() {
-			// Delegate to the constructor's .of()
-			return this.constructor.of.apply(this.constructor, arguments);
-		},
-
-		// Transform
-
-		ap: function(object) {
-			var shift = this.shift;
-
-			return create(this, function ap() {
-				var fn = shift();
-				return fn === undefined ?
-					undefined :
-					object.map(fn) ;
-			});
-		},
-
-		unshift: function() {
-			// Create an unshift buffer, such that objects can be inserted
-			// back into the stream at will with stream.unshift(object).
-			var source = this;
-			var buffer = toArray(arguments);
-
-			return create(this, function() {
-				return (buffer.length ? buffer : source).shift() ;
-			});
-		},
-
-		catch: function(fn) {
-			var source = this;
-
-			return create(this, function() {
-				try {
-					return source.shift();
-				}
-				catch(e) {
-					return fn(e);
-				}
-			});
-		},
-
-		chain: function(fn) {
-			return this.map(fn).join();
-		},
-
-		clone: function() {
-			var source  = this;
-			var shift   = this.shift;
-			var buffer1 = [];
-			var buffer2 = [];
-			var doneFlag = false;
-
-			// Messy. But it works. Just.
-
-			this.shift = function() {
-				var value;
-
-				if (buffer1.length) {
-					value = buffer1.shift();
-
-					if (!buffer1.length && doneFlag) {
-						source.status = 'done';
-					}
-
-					return value;
-				}
-
-				if (!doneFlag) {
-					value = shift();
-
-					if (source.status === 'done') {
-						doneFlag = true;
-					}
-
-					if (value !== undefined) {
-						buffer2.push(value);
-					}
-
-					return value;
-				}
-			};
-
-			var clone = new Fn(function shiftClone() {
-				var value;
-
-				if (buffer2.length) {
-					return buffer2.shift();
-					//if (!buffer2.length && doneFlag) {
-					//	clone.status = 'done';
-					//}
-				}
-
-				if (!doneFlag) {
-					value = shift();
-
-					if (source.status === 'done') {
-						doneFlag = true;
-						source.status = undefined;
-					}
-
-					if (value !== undefined) {
-						buffer1.push(value);
-					}
-
-					return value;
-				}
-			});
-
-			return clone;
-		},
-
-		concat: function() {
-			var sources = toArray(arguments);
-			var source  = this;
-
-			var stream  = create(this, function concat() {
-				if (source === undefined) {
-					stream.status = 'done';
-					return;
-				}
-
-				if (isDone(source)) {
-					source = sources.shift();
-					return concat();
-				}
-
-				var value = source.shift();
-
-				stream.status = sources.length === 0 && isDone(source) ?
-					'done' : undefined ;
-
-				return value;
-			});
-
-			return stream;
-		},
-
-		dedup: function() {
-			var v;
-			return this.filter(function(value) {
-				var old = v;
-				v = value;
-				return old !== value;
-			});
-		},
-
-		filter: function(fn) {
-			var source = this;
-
-			return create(this, function filter() {
-				var value;
-				while ((value = source.shift()) !== undefined && !fn(value));
-				return value;
-			});
-		},
-
-		first: function() {
-			var source = this;
-			return create(this, once(function first() {
-				source.status = 'done';
-				return source.shift();
-			}));
-		},
-
-		join: function() {
-			var source = this;
-			var buffer = nothing;
-
-			return create(this, function join() {
-				var value = buffer.shift();
-				if (value !== undefined) { return value; }
-				buffer = source.shift();
-				if (buffer !== undefined) { return join(); }
-				buffer = nothing;
-			});
-		},
-
-		latest: function() {
-			var source = this;
-			return create(this, function shiftLast() {
-				return latest(source);
-			});
-		},
-
-		map: function(fn) {
-			return create(this, compose(function map(object) {
-				return object === undefined ? undefined : fn(object) ;
-			}, this.shift));
-		},
-
-		chunk: function(n) {
-			var source = this;
-			var buffer = [];
-
-			return create(this, n ?
-				// If n is defined batch into arrays of length n.
-				function shiftChunk() {
-					var value, _buffer;
-
-					while (buffer.length < n) {
-						value = source.shift();
-						if (value === undefined) { return; }
-						buffer.push(value);
-					}
-
-					if (buffer.length >= n) {
-						_buffer = buffer;
-						buffer = [];
-						return Fn.of.apply(Fn, _buffer);
-					}
-				} :
-
-				// If n is undefined or 0, batch all values into an array.
-				function shiftChunk() {
-					buffer = source.toArray();
-					// An empty array is equivalent to undefined
-					return buffer.length ? buffer : undefined ;
-				}
-			);
-		},
-
-		fold: function(fn, seed) {
-			var i = 0;
-			return this
-			.map(function fold(value) {
-				seed = fn(seed, value, i++);
-				return seed;
-			})
-			.unshift(seed);
-		},
-
-		partition: function(fn) {
-			var source = this;
-			var buffer = [];
-			var streams = new Map();
-
-			fn = fn || Fn.id;
-
-			function createPart(key, value) {
-				var stream = Stream.of().on('pull', shiftPull);
-				stream.key = key;
-				streams.set(key, stream);
-				return stream;
-			}
-
-			function shiftPull(type, pullStream) {
-				var value  = source.shift();
-				if (value === undefined) { return; }
-
-				var key    = fn(value);
-				var stream = streams.get(key);
-
-				if (stream === pullStream) { return value; }
-
-				if (stream === undefined) {
-					stream = createPart(key, value);
-					buffer.push(stream);
-				}
-
-				stream.push(value);
-				return shiftPull(type, pullStream);
-			}
-
-			return create(this, function shiftStream() {
-				if (buffer.length) { return buffer.shift(); }
-
-				var value = source.shift();
-				if (value === undefined) { return; }
-
-				var key    = fn(value);
-				var stream = streams.get(key);
-
-				if (stream === undefined) {
-					stream = createPart(key, value);
-					stream.push(value);
-					return stream;
-				}
-
-				stream.push(value);
-				return shiftStream();
-			});
-		},
-
-		reduce: function reduce(fn, seed) {
-			return this.fold(fn, seed).latest().shift();
-		},
-
-		take: function(n) {
-			var source = this;
-			var i = 0;
-
-			return create(this, function take() {
-				var value;
-
-				if (i < n) {
-					value = source.shift();
-					// Only increment i where an actual value has been shifted
-					if (value === undefined) { return; }
-					if (++i === n) { source.status = 'done'; }
-					return value;
-				}
-			});
-		},
-
-		sort: function(fn) {
-			fn = fn || Fn.byGreater ;
-
-			var source = this;
-			var buffer = [];
-
-			return create(this, function sort() {
-				var value;
-
-				while((value = source.shift()) !== undefined) {
-					sortedSplice(buffer, fn, value);
-				}
-
-				return buffer.shift();
-			});
-		},
-
-		split: function(fn) {
-			var source = this;
-			var buffer = [];
-
-			return create(this, function split() {
-				var value = source.shift();
-				var temp;
-
-				if (value === undefined) {
-					if (buffer.length) {
-						temp = buffer;
-						buffer = [];
-						return temp;
-					}
-
-					return;
-				}
-
-				if (fn(value)) {
-					temp = buffer;
-					buffer = [value];
-					return temp.length ? temp : split() ;
-				}
-
-				buffer.push(value);
-				return split();
-			});
-		},
-
-		syphon: function(fn) {
-			var shift   = this.shift;
-			var buffer1 = [];
-			var buffer2 = [];
-
-			this.shift = function() {
-				if (buffer1.length) { return buffer1.shift(); }
-
-				var value;
-
-				while ((value = shift()) !== undefined && fn(value)) {
-					buffer2.push(value);
-				}
-
-				return value;
-			};
-
-			return create(this, function filter() {
-				if (buffer2.length) { return buffer2.shift(); }
-
-				var value;
-
-				while ((value = shift()) !== undefined && !fn(value)) {
-					buffer1.push(value);
-				}
-
-				return value;
-			});
-		},
-
-		rest: function(i) {
-			var source = this;
-
-			return create(this, function rest() {
-				while (i-- > 0) { source.shift(); }
-				return source.shift();
-			});
-		},
-
-		unique: function() {
-			var source = this;
-			var values = [];
-
-			return create(this, function unique() {
-				var value = source.shift();
-
-				return value === undefined ? undefined :
-					values.indexOf(value) === -1 ? (values.push(value), value) :
-					unique() ;
-			});
-		},
-
-		// Consumers
-
-		each: function(fn) {
-			var value;
-
-			while ((value = this.shift()) !== undefined) {
-				fn.call(this, value);
-			}
-
-			return this;
-		},
-
-		find: function(fn) {
-			return this
-			.filter(fn)
-			.first()
-			.shift();
-		},
-
-		next: function() {
-			return {
-				value: this.shift(),
-				done:  this.status
-			};
-		},
-
-		pipe: function(stream) {
-			// Target must be evented
-			if (!stream || !stream.on) {
-				throw new Error('Fn: Fn.pipe(object) object must be a stream. (' + stream + ')');
-			}
-
-			return stream.on('pull', this.shift);
-		},
-
-		tap: function(fn) {
-			// Overwrite shift to copy values to tap fn
-			this.shift = Fn.compose(tap(fn), this.shift);
-			return this;
-		},
-
-		toJSON: function() {
-			return this.reduce(arrayReducer, []);
-		},
-
-		toString: function() {
-			return this.reduce(prepend, '');
-		},
-
-
-		// Deprecated
-
-		process: deprecate(function(fn) {
-			return fn(this);
-		}, '.process() is deprecated'),
-
-		last: deprecate(function() {
-			var source = this;
-			return create(this, function shiftLast() {
-				return latest(source);
-			});
-		}, '.last() is now .latest()'),
-	});
-
-	Fn.prototype.toArray = Fn.prototype.toJSON;
-
-	// Todo: As of Nov 2016 fantasy land spec requires namespaced methods:
-	//
-	// equals: 'fantasy-land/equals',
-	// lte: 'fantasy-land/lte',
-	// concat: 'fantasy-land/concat',
-	// empty: 'fantasy-land/empty',
-	// map: 'fantasy-land/map',
-	// contramap: 'fantasy-land/contramap',
-	// ap: 'fantasy-land/ap',
-	// of: 'fantasy-land/of',
-	// alt: 'fantasy-land/alt',
-	// zero: 'fantasy-land/zero',
-	// reduce: 'fantasy-land/reduce',
-	// traverse: 'fantasy-land/traverse',
-	// chain: 'fantasy-land/chain',
-	// chainRec: 'fantasy-land/chainRec',
-	// extend: 'fantasy-land/extend',
-	// extract: 'fantasy-land/extract',
-	// bimap: 'fantasy-land/bimap',
-	// promap: 'fantasy-land/promap'
-
-
-	if (window.Symbol) {
-		// A functor is it's own iterator
-		Fn.prototype[Symbol.iterator] = function() {
-			return this;
-		};
-	}
 
 
 	// Export
 
 	window.Fn = assign(Fn, {
-
-		// Constructors
-
-		of: function() { return Fn.from(arguments); },
-
-		from: function(object) {
-			var i;
-
-			// object is an array or array-like object. Iterate over it without
-			// mutating it.
-			if (typeof object.length === 'number') {
-				i = -1;
-
-				return new Fn(function shiftArray() {
-					// Ignore undefined holes in arrays
-					return ++i >= object.length ?
-						undefined :
-					object[i] === undefined ?
-						shiftArray() :
-						object[i] ;
-				});
-			}
-
-			// object is an object with a shift function
-			if (typeof object.shift === "function" && object.length === undefined) {
-				return new Fn(function shiftObject() {
-					return object.shift();
-				});
-			}
-
-			// object is an iterator
-			if (typeof object.next === "function") {
-				return new Fn(function shiftIterator() {
-					var result = object.next();
-
-					// Ignore undefined holes in iterator results
-					return result.done ?
-						result.value :
-					result.value === undefined ?
-						shiftIterator() :
-						result.value ;
-				});
-			}
-
-			throw new Error('Fn: from(object) object is not a list of a known kind (array, functor, stream, iterator).')
-		},
-
-		Timer:    Timer,
-
-
-		// Objects
-
-		nothing:  nothing,
-
 
 		// Functions
 
@@ -1252,7 +488,6 @@
 		//pipe:      pipe,
 		//choke:     choke,
 		throttle:  Throttle,
-		wait:      Wait,
 
 		// Logic
 
@@ -1284,10 +519,6 @@
 
 
 		// Types
-
-		toString:  toString,
-		toInt:     toInt,
-		toFloat:   parseFloat,
 
 		toPlainText: function toPlainText(string) {
 			return string
@@ -1327,13 +558,12 @@
 		concat:    curry(concat, true),
 		contains:  curry(contains, true),
 		diff:      curry(diff, true),
-		each:      curry(each, true),
 		filter:    curry(filter, true),
 		find:      curry(find, true),
 		insert:    curry(insert, true),
 		intersect: curry(intersect, true),
 		last:      last,
-		latest:    latest,
+		//latest:    latest,
 		map:       curry(map, true),
 		tap:       curry(tap),
 		reduce:    curry(reduce, true),
@@ -1349,30 +579,9 @@
 
 		// Numbers
 
-		add:      curry(function add(a, b) { return b + a; }),
-		multiply: curry(function mul(a, b) { return b * a; }),
-
-		mod:      curry(function mod(d, n) {
-			// JavaScript's modulu operator uses Euclidean division, but for
-			// stuff that cycles through 0 the symmetrics of floored division
-			// are more useful.
-			// https://en.wikipedia.org/wiki/Modulo_operation
-			var value = n % d;
-			return value < 0 ? value + d : value ;
-		}),
-
-		min:      curry(function min(a, b) { return a > b ? b : a ; }),
-		max:      curry(function max(a, b) { return a < b ? b : a ; }),
-		pow:      curry(function pow(n, x) { return Math.pow(x, n); }),
-		exp:      curry(function exp(n, x) { return Math.pow(n, x); }),
-		log:      curry(function log(n, x) { return Math.log(x) / Math.log(n); }),
-		root:     curry(function nthRoot(n, x) { return Math.pow(x, 1/n); }),
 		gcd:      curry(gcd),
 		lcm:      curry(lcm),
-		todB:     function todB(n) { return 20 * Math.log10(n); },
-		toLevel:  function toLevel(n) { return Math.pow(2, n/6); },
-		toRad:    function toRad(n) { return n / angleFactor; },
-		toDeg:    function toDeg(n) { return n * angleFactor; },
+
 
 		factorise: function factorise(n, d) {
 			// Reduce a fraction by finding the Greatest Common Divisor and
@@ -1413,21 +622,9 @@
 			];
 		},
 
-		toFixed:  curry(function toFixed(n, value) {
-			if (isNaN(value)) {
-				throw new Error('Fn.toFixed does not accept NaN.');
-			}
-
-			return N.toFixed.call(value, n);
-		}),
-
 		limit:    curry(function limit(min, max, n) { return n > max ? max : n < min ? min : n ; }),
 
 		wrap:     curry(function wrap(min, max, n) { return (n < min ? max : min) + (n - min) % (max - min); }),
-
-		normalise:   curry(function normalise(min, max, n) { return (n - min) / (max - min); }),
-
-		denormalise: curry(function denormalise(min, max, n) { return n * (max - min) + min; }),
 
 		rangeLog:    curry(function rangeLog(min, max, n) {
 			return Fn.denormalise(min, max, Math.log(n / min) / Math.log(max / min));
@@ -1478,18 +675,11 @@
 
 		// Strings
 
-		append:      curry(append),
-		prepend:     curry(prepend),
 		postpad:     curry(postpad),
 		prepad:      curry(prepad),
 		match:       curry(function match(regex, string) { return regex.test(string); }),
 		exec:        curry(function parse(regex, string) { return regex.exec(string) || undefined; }),
 		replace:     curry(function replace(regex, fn, string) { return string.replace(regex, fn); }),
-
-		slugify: function slugify(string) {
-			if (typeof string !== 'string') { return; }
-			return string.trim().toLowerCase().replace(/[\W_]/g, '-');
-		},
 
 
 		// Regexp
@@ -1499,8 +689,6 @@
 
 		// Time
 
-		now:          now,
-		requestTick:  requestTick,
 		requestFrame: requestFrame,
 
 

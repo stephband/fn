@@ -1,13 +1,13 @@
 
-import curry     from '../modules/curry.js';
-import choose    from '../modules/choose.js';
-import id        from '../modules/id.js';
-import isDefined from '../modules/is-defined.js';
-import mod       from '../modules/mod.js';
-import noop      from '../modules/noop.js';
-import overload  from '../modules/overload.js';
-import toType    from '../modules/to-type.js';
-import toClass   from '../modules/to-class.js';
+import { mod }   from '../maths/core.js';
+import curry     from '../curry.js';
+import choose    from '../choose.js';
+import id        from '../id.js';
+import isDefined from '../is-defined.js';
+import noop      from '../noop.js';
+import overload  from '../overload.js';
+import toType    from '../to-type.js';
+import toClass   from '../to-class.js';
 
 const assign = Object.assign;
 

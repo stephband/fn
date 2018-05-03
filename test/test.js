@@ -1,13 +1,10 @@
 
+import { id, overload, noop as done, equals as _equals } from '../fn.js';
+
 (function(window) {
 	"use strict";
 
 	var A        = Array.prototype;
-	var Fn       = window.Fn;
-
-	var id       = Fn.id;
-	var overload = Fn.overload;
-	var done     = Fn.noop;
 
 	var rcomment = /\s*\/\*([\s\S]*)\*\/\s*/;
 
@@ -69,7 +66,7 @@
 	}
 
 	function equals(expected, value, message) {
-		if (!Fn.equals(value, expected)) {
+		if (!_equals(value, expected)) {
 			var string = ('Test: ' +
 			'Expected ' + (JSON.stringify(expected) || typeof value) + ', ' +
 			'received ' + (JSON.stringify(value) || typeof value) + '.' +
