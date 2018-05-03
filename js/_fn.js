@@ -177,15 +177,7 @@
 		toArray(array1).concat(Array.isArray(array2) ? array2 : toArray(array2)) ;
 	}
 
-	function contains(value, object) {
-		return object.includes ?
-			object.includes(value) :
-		object.contains ?
-			object.contains(value) :
-		A.includes ?
-			A.includes.call(object, value) :
-			A.indexOf.call(object, value) !== -1 ;
-	}
+
 
 	var isIn = flip(contains);
 
@@ -497,14 +489,6 @@
 		isIn:      curry(isIn, true),
 		isNot:     curry(isNot),
 
-		and: curry(function and(a, b) { return !!(a && b); }),
-
-		not: function not(a) { return !a; },
-
-		or: curry(function or(a, b) { return a || b; }),
-
-		xor: curry(function or(a, b) { return (a || b) && (!!a !== !!b); }),
-
 		isGreater: curry(function byGreater(a, b) { return b > a ; }),
 
 		by: curry(function by(fn, a, b) {
@@ -556,7 +540,6 @@
 		// Collections
 
 		concat:    curry(concat, true),
-		contains:  curry(contains, true),
 		diff:      curry(diff, true),
 		filter:    curry(filter, true),
 		find:      curry(find, true),
@@ -621,8 +604,6 @@
 				Math.cos(a) * d
 			];
 		},
-
-		limit:    curry(function limit(min, max, n) { return n > max ? max : n < min ? min : n ; }),
 
 		wrap:     curry(function wrap(min, max, n) { return (n < min ? max : min) + (n - min) % (max - min); }),
 

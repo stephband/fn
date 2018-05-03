@@ -34,8 +34,13 @@ export { default as Stream }      from './modules/stream.js';
 export { default as Timer }       from './modules/timer.js';
 export { default as Pool }        from './modules/pool.js';
 
+export function not(a) { return !a; };
 export const toFloat = parseFloat;
+export const and     = curry(function and(a, b) { return !!(a && b); });
+export const or      = curry(function or(a, b) { return a || b; });
+export const xor     = curry(function or(a, b) { return (a || b) && (!!a !== !!b); });
 
+import _contains    from './modules/contains.js';
 import _each        from './modules/each.js';
 import _equals      from './modules/equals.js';
 import _get         from './modules/get.js';
@@ -49,8 +54,8 @@ import _set         from './modules/set.js';
 import _toFixed     from './modules/to-fixed.js';
 import { getPath as _getPath, setPath as _setPath } from './modules/paths.js';
 
-
 export const assign      = curry(Object.assign, true, 2);
+export const contains    = curry(_contains, true);
 export const define      = curry(Object.defineProperties, true, 2);
 export const equals      = curry(_equals, true);
 export const get         = curry(_get, true);
@@ -75,6 +80,7 @@ export const prepend     = curry(_prepend);
 
 export { default as slugify } from './modules/strings/slugify.js';
 
+
 /* Numbers */
 
 import * as maths   from './modules/maths/core.js';
@@ -91,6 +97,7 @@ export const pow         = curry(maths.pow);
 export const exp         = curry(maths.exp);
 export const log         = curry(maths.log);
 export const root        = curry(maths.root);
+export const limit       = curry(maths.limit);
 export const normalise   = curry(_normalise);
 export const denormalise = curry(_denormalise);
 
