@@ -12,20 +12,20 @@ function importModule(path) {
 		(promises[path] = new Promise((resolve, reject) => {
 			const script = document.createElement("script");
 			const key    = ++window._moduleImportN + '-' + path;
-		
+
 			callbacks[key] = function(module) {
 				resolve(module);
 				delete callbacks[path];
 				script.remove();
 			};
-		
+
 			script.type = "module";
 			script.textContent = `
 				import * as module from "${path}";
 				window._moduleImportCallbacks["${key}"](module);
 			`;
-		
-			document.body.appendChild(script);	
+
+			document.body.appendChild(script);
 		}));
 }
 
