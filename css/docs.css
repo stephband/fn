@@ -82,7 +82,8 @@ a.block:hover {
     border-bottom: 1px solid #999999;
 }
 
-.js.block {
+.js.block,
+code.block {
     font-size: 0.75rem;
     margin-left: -0.8125rem;
     padding-left: 0.8125rem;
@@ -90,7 +91,7 @@ a.block:hover {
     padding-bottom: 9px;
     padding-right: 0.75rem;
     width: calc(100% + 0.75rem + 0.9375rem);
-    color: white;
+    /*color: white;*/
     background-color: #272a2b;
     border-radius: 0;
     border-bottom-left-radius: 0;
@@ -99,9 +100,16 @@ a.block:hover {
     box-shadow: inset -18px 4px 110px -20px rgba(0,0,0,0.1);
 }
 
-.js.block + p {
+code.block {
+    white-space: pre;
+}
+
+.js.block + p,
+.html-code.block + p {
     margin-top: 1.125rem;
 }
+
+
 
 code {
     font-size: 14px;

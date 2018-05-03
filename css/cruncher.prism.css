@@ -1,0 +1,15 @@
+.html-code .tag                       { color: #fc6827; }
+.html-code .attr-name                 { color: #f5a623; }
+.html-code .attr-value                { color: #B2CB3A; }
+.html-code .attr-value > .punctuation { color: #f5a623; }
+.html-code .property                  { color: #63ACDD; }
+.html-code .property > .variable      { color: #b7d6e7; }
+
+.html-code            { color: white; }
+
+.js-code              { color: #b7d6e7; }
+.js-code .keyword     { color: #63ACDD; }
+.js-code .operator    { color: #63ACDD; }
+.js-code .number      { color: #FE267E; }
+.js-code .punctuation { color: #5E7F8F; }
+.js-code .comment     { color: #405660; }
