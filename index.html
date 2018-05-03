@@ -408,6 +408,13 @@ observe('a.b[0]', fn, object);
 	<script src="js/stream.observe.js"></script>
 	<script src="js/pool.js"></script>
 	<script src="js/time.js"></script>
+	<script type="module">
+		import parse from './js/parse.js'
+		import { parseTag } from './js/parse.js'
+
+		console.log('HELLo')
+		window.parseTag = parseTag;
+	</script>
 
 	<!--script src="js/store.js"></script-->
 	<!--script src="js/router.js"></script-->
