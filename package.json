@@ -1,7 +1,7 @@
 {
     "name": "fn",
     "title": "Fn",
-    "version": "1.1.2",
+    "version": "1.2.0",
     "author": {
         "name": "Stephen Band",
         "url": "http://stephen.band",
@@ -15,7 +15,8 @@
     "files": [
         "js/fn.js"
     ],
-    "main": "js/fn.js",
+    "main": "dist/fn-cjs.js",
+    "module": "fn.js",
     "description": "A library of functions, functors and streams.",
     "keywords": [
         "browser",
@@ -34,6 +35,7 @@
     },
     "scripts": {
         "lint": "eslint js/*.js",
-        "build-closure": "rollup fn.js --o dist/fn.js --f iife --n Fn"
+        "build-cjs": "rollup fn.js --o dist/fn-cjs-1.2.0.js --f cjs",
+        "build-closure": "rollup fn.js --o dist/fn-iife-1.2.0.js --f iife --n Fn"
     }
 }
