@@ -1,5 +1,11 @@
-const DEBUG = true;
+import cache from './cache.js';
 
+const DEBUG = true;
+const A     = Array.prototype;
+
+function applyFn(fn, args) {
+    return typeof fn === 'function' ? fn.apply(null, args) : fn ;
+}
 
 function curry(fn, muteable, arity) {
     arity = arity || fn.length;

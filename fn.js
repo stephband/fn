@@ -12,7 +12,6 @@ export { default as compose }     from './modules/compose.js';
 export { default as deprecate }   from './modules/deprecate.js';
 export { default as id }          from './modules/id.js';
 export { default as isDefined }   from './modules/is-defined.js';
-export { default as last }        from './modules/last.js';
 export { default as latest }      from './modules/latest.js';
 export { default as noop }        from './modules/noop.js';
 export { default as nothing }     from './modules/nothing.js';
@@ -40,34 +39,58 @@ export const and     = curry(function and(a, b) { return !!(a && b); });
 export const or      = curry(function or(a, b) { return a || b; });
 export const xor     = curry(function or(a, b) { return (a || b) && (!!a !== !!b); });
 
-import _contains    from './modules/contains.js';
 import _each        from './modules/each.js';
 import _equals      from './modules/equals.js';
 import _get         from './modules/get.js';
 import _is          from './modules/is.js';
 import _invoke      from './modules/invoke.js';
 import _parse       from './modules/parse.js';
-import _rest        from './modules/rest.js';
-import _remove      from './modules/remove.js';
 import _set         from './modules/set.js';
 import _toFixed     from './modules/to-fixed.js';
 import { getPath as _getPath, setPath as _setPath } from './modules/paths.js';
 
 export const assign      = curry(Object.assign, true, 2);
-export const contains    = curry(_contains, true);
 export const define      = curry(Object.defineProperties, true, 2);
 export const equals      = curry(_equals, true);
 export const get         = curry(_get, true);
 export const is          = curry(_is, true);
 export const invoke      = curry(_invoke, true);
 export const parse       = curry(_parse);
-export const remove      = curry(_remove, true);
-export const rest        = curry(_rest, true);
 export const set         = curry(_set, true);
 export const toFixed     = curry(_toFixed);
 export const getPath     = curry(_getPath, true);
 export const setPath     = curry(_setPath, true);
 
+
+/* Lists */
+
+import * as lists   from './modules/lists/core.js';
+export { default as last } from './modules/lists/last.js';
+import _rest        from './modules/lists/rest.js';
+import _remove      from './modules/lists/remove.js';
+import _take        from './modules/lists/take.js';
+import _unique      from './modules/lists/unique.js';
+import _update      from './modules/lists/update.js';
+import _diff        from './modules/lists/diff.js';
+import _intersect   from './modules/lists/intersect.js';
+import _unite       from './modules/lists/unite.js';
+
+export const contains    = curry(lists.contains, true);
+export const filter      = curry(lists.filter, true);
+export const find        = curry(lists.find, true);
+export const insert      = curry(lists.insert, true);
+export const map         = curry(lists.map, true);
+export const reduce      = curry(lists.reduce, true);
+export const remove      = curry(_remove, true);
+export const rest        = curry(_rest, true);
+export const slice       = curry(lists.slice, true);
+export const take        = curry(_take, true);
+export const unique      = curry(_unique, true);
+export const update      = curry(_update, true);
+
+export const diff        = curry(_diff, true);
+export const intersect   = curry(_intersect, true);
+export const unite       = curry(_unite, true);
 
 /* Strings */
 
@@ -91,6 +114,9 @@ import _normalise   from './modules/maths/normalise.js';
 import _denormalise from './modules/maths/denormalise.js';
 
 export { todB, toLevel, toRad, toDeg } from './modules/maths/core.js';
+export { default as toPolar }     from './modules/maths/to-polar.js';
+export { default as toCartesian } from './modules/maths/to-cartesian.js';
+
 export const add         = curry(maths.add);
 export const multiply    = curry(maths.multiply);
 export const min         = curry(maths.min);
@@ -103,7 +129,6 @@ export const root        = curry(maths.root);
 export const limit       = curry(maths.limit);
 export const normalise   = curry(_normalise);
 export const denormalise = curry(_denormalise);
-
 
 /* Time */
 

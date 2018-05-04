@@ -1,4 +1,4 @@
-import rest from './rest.js';
+import rest from './lists/rest.js';
 
 export default function choose(map) {
     return function choose(key) {

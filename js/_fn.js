@@ -59,10 +59,6 @@
 		};
 	}
 
-	function applyFn(fn, args) {
-		return typeof fn === 'function' ? fn.apply(null, args) : fn ;
-	}
-
 	function flip(fn) {
 		return function(a, b) {
 			return fn(b, a);
@@ -139,10 +135,7 @@
 	//	}
 	//}
 
-	function uniqueReducer(array, value) {
-		if (array.indexOf(value) === -1) { array.push(value); }
-		return array;
-	}
+
 
 	function arrayReducer(array, value) {
 		array.push(value);
@@ -181,78 +174,7 @@
 
 	var isIn = flip(contains);
 
-	function map(fn, object) {
-		return object && object.map ? object.map(fn) : A.map.call(object, fn) ;
-	}
 
-
-
-	function filter(fn, object) {
-		return object.filter ?
-			object.filter(fn) :
-			A.filter.call(object, fn) ;
-	}
-
-	function reduce(fn, seed, object) {
-		return object.reduce ?
-			object.reduce(fn, seed) :
-			A.reduce.call(object, fn, seed);
-	}
-
-	function rest(i, object) {
-		if (object.slice) { return object.slice(i); }
-		if (object.rest)  { return object.rest(i); }
-
-		var a = [];
-		var n = object.length - i;
-		while (n--) { a[n] = object[n + i]; }
-		return a;
-	}
-
-	function slice(n, m, object) {
-		return object.slice ? object.slice(n, m) : A.slice.call(object, n, m);
-	}
-
-	function take(i, object) {
-		if (object.slice) { return object.slice(0, i); }
-		if (object.take)  { return object.take(i); }
-
-		var a = [];
-		var n = i;
-		while (n--) { a[n] = object[n]; }
-		return a;
-	}
-
-	function find(fn, object) {
-		return A.find.call(object, fn);
-	}
-
-	function insert(fn, array, object) {
-		var n = -1;
-		var l = array.length;
-		var value = fn(object);
-		while(++n < l && fn(array[n]) <= value);
-		array.splice(n, 0, object);
-	}
-
-	function update(fn, target, array) {
-		return array.reduce(function(target, obj2) {
-			var obj1 = target.find(compose(Fn.is(fn(obj2)), fn));
-			if (obj1) {
-				assign(obj1, obj2);
-			}
-			else {
-				insert(fn, target, obj2);
-			}
-			return target;
-		}, target);
-	}
-
-	function remove(array, value) {
-		if (array.remove) { array.remove(value); }
-		var i = array.indexOf(value);
-		if (i !== -1) { array.splice(i, 1); }
-	}
 
 	function split(fn, object) {
 		if (object.split && typeof object !== 'string') { return object.split(fn); }
@@ -267,46 +189,6 @@
 		}
 
 		return array;
-	}
-
-	function diff(array, object) {
-		var values = toArray(array);
-
-		return filter(function(value) {
-			var i = values.indexOf(value);
-			if (i === -1) { return true; }
-			values.splice(i, 1);
-			return false;
-		}, object)
-		.concat(values);
-	}
-
-	function intersect(array, object) {
-		var values = toArray(array);
-
-		return filter(function(value) {
-			var i = values.indexOf(value);
-			if (i === -1) { return false; }
-			values.splice(i, 1);
-			return true;
-		}, object);
-	}
-
-	function unite(array, object) {
-		var values = toArray(array);
-
-		return map(function(value) {
-			var i = values.indexOf(value);
-			if (i > -1) { values.splice(i, 1); }
-			return value;
-		}, object)
-		.concat(values);
-	}
-
-	function unique(object) {
-		return object.unique ?
-			object.unique() :
-			reduce(uniqueReducer, [], object) ;
 	}
 
 	function sort(fn, object) {
@@ -389,53 +271,7 @@
 
 
 
-	// Throttle
-	//
-	// Returns a function that calls `fn` once on the next timer frame, using
-	// the context and arguments from the latest invocation.
 
-	function Throttle(fn, request, cancel) {
-		request = request || window.requestAnimationFrame;
-		cancel  = cancel  || window.cancelAnimationFrame;
-
-		var queue = schedule;
-		var context, args, id;
-
-		function schedule() {
-			queue = noop;
-			id = request(update);
-		}
-
-		function update() {
-			queue = schedule;
-			fn.apply(context, args);
-		}
-
-		function stop(callLast) {
-			// If there is an update queued apply it now
-			//if (callLast !== false && queue === noop) { update(); }
-
-			// An update is queued
-			if (queue === noop && id !== undefined) {
-				cancel(id);
-			}
-
-			// Don't permit further changes to be queued
-			queue = noop;
-		}
-
-		function throttle() {
-			// Store the latest context and arguments
-			context = this;
-			args    = arguments;
-
-			// Queue the update
-			queue();
-		}
-
-		throttle.cancel = stop;
-		return throttle;
-	}
 
 
 
@@ -457,9 +293,6 @@
 
 		// Logic
 
-		equals:    curry(equals),
-		is:        curry(is),
-		isDefined: isDefined,
 		isIn:      curry(isIn, true),
 		isNot:     curry(isNot),
 
@@ -516,19 +349,12 @@
 		concat:    curry(concat, true),
 		diff:      curry(diff, true),
 		filter:    curry(filter, true),
-		find:      curry(find, true),
-		insert:    curry(insert, true),
 		intersect: curry(intersect, true),
-		last:      last,
-		//latest:    latest,
 		map:       curry(map, true),
 		tap:       curry(tap),
 		reduce:    curry(reduce, true),
-		remove:    curry(remove, true),
-		//rest:      curry(rest, true),
 		sort:      curry(sort, true),
 		split:     curry(split, true),
-		take:      curry(take, true),
 		unite:     curry(unite, true),
 		unique:    unique,
 		update:    curry(update, true),
@@ -551,32 +377,6 @@
 			// Returns a random number with a bell curve probability centred
 			// around 0 and limits -1 to 1.
 			return Math.random() + Math.random() - 1;
-		},
-
-		toPolar: function toPolar(cartesian) {
-			var x = cartesian[0];
-			var y = cartesian[1];
-
-			return [
-				// Distance
-				x === 0 ?
-					Math.abs(y) :
-				y === 0 ?
-					Math.abs(x) :
-					Math.sqrt(x*x + y*y) ,
-				// Angle
-				Math.atan2(x, y)
-			];
-		},
-
-		toCartesian: function toCartesian(polar) {
-			var d = polar[0];
-			var a = polar[1];
-
-			return [
-				Math.sin(a) * d ,
-				Math.cos(a) * d
-			];
 		},
 
 		wrap:     curry(function wrap(min, max, n) { return (n < min ? max : min) + (n - min) % (max - min); }),
@@ -679,14 +479,5 @@
 		overloadTypes: curry(deprecate(overload, 'overloadTypes(map) is now overload(fn, map)'), true, 2)(function() {
 			return A.map.call(arguments, toType).join(' ');
 		})
-	});
-
-	Object.defineProperties(Fn, {
-		empty: {
-			get: deprecate(
-				function() { return nothing; },
-				'Fn.empty is now Fn.nothing'
-			)
-		}
 	});
 })(window);
