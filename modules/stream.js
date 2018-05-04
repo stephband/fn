@@ -1,12 +1,12 @@
 
-import each    from './each.js';
-import latest  from './latest.js';
-import noop    from './noop.js';
-import now     from './now.js';
-import Timer   from './timer.js';
-import toArray from './to-array.js';
-import choke   from './choke.js';
-import Fn      from './functor.js';
+import { each } from './lists/core.js';
+import latest   from './latest.js';
+import noop     from './noop.js';
+import now      from './now.js';
+import Timer    from './timer.js';
+import toArray  from './to-array.js';
+import choke    from './choke.js';
+import Fn       from './functor.js';
 
 var debug     = false;
 var A         = Array.prototype;

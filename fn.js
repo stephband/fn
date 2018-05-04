@@ -44,7 +44,6 @@ export const and     = curry(function and(a, b) { return !!(a && b); });
 export const or      = curry(function or(a, b) { return a || b; });
 export const xor     = curry(function or(a, b) { return (a || b) && (!!a !== !!b); });
 
-import _each        from './modules/each.js';
 import _equals      from './modules/equals.js';
 import _get         from './modules/get.js';
 import _is          from './modules/is.js';
@@ -84,6 +83,7 @@ export { default as unique } from './modules/lists/unique.js';
 
 export const concat      = curry(lists.concat, true);
 export const contains    = curry(lists.contains, true);
+export const each        = curry(lists.each, true);
 export const filter      = curry(lists.filter, true);
 export const find        = curry(lists.find, true);
 export const insert      = curry(lists.insert, true);

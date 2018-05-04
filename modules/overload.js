@@ -5,7 +5,9 @@ export default function overload(fn, map) {
             return map.get(key).apply(this, arguments);
         } :
         function overload() {
-            var key = fn.apply(null, arguments);
-            return (map[key] || map.default).apply(this, arguments);
+            const key     = fn.apply(null, arguments);
+            const handler = (map[key] || map.default);
+            if (!handler) { throw new Error('overload() no handler for "' + key + '"'); }
+            return handler.apply(this, arguments);
         } ;
 }
