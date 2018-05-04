@@ -1,6 +1,6 @@
 const DEBUG = true;
 
-/*
+
 function curry(fn, muteable, arity) {
     arity = arity || fn.length;
 
@@ -29,17 +29,17 @@ function curry(fn, muteable, arity) {
         applyFn(memo(object), A.slice.call(arguments, 1)) ;
     };
 }
-*/
 
-function curry(fn) {
-    var parity = fn.length;
+/*
+function curry(fn, muteable, arity) {
+    arity = arity || fn.length;
     return function curried() {
-        return arguments.length >= parity ?
+        return arguments.length >= arity ?
             fn.apply(null, arguments) :
             curried.bind(null, ...arguments) ;
     };
 }
-
+*/
 
 if (DEBUG) {
     const _curry = curry;

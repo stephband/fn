@@ -46,7 +46,6 @@ import _equals      from './modules/equals.js';
 import _get         from './modules/get.js';
 import _is          from './modules/is.js';
 import _invoke      from './modules/invoke.js';
-import _nth         from './modules/nth.js';
 import _parse       from './modules/parse.js';
 import _rest        from './modules/rest.js';
 import _remove      from './modules/remove.js';
@@ -61,7 +60,6 @@ export const equals      = curry(_equals, true);
 export const get         = curry(_get, true);
 export const is          = curry(_is, true);
 export const invoke      = curry(_invoke, true);
-export const nth         = curry(_nth);
 export const parse       = curry(_parse);
 export const remove      = curry(_remove, true);
 export const rest        = curry(_rest, true);
@@ -75,8 +73,13 @@ export const setPath     = curry(_setPath, true);
 
 import _append      from './modules/strings/append.js';
 import _prepend     from './modules/strings/prepend.js';
-export const append      = curry(_append, true);
+import _prepad      from './modules/strings/prepad.js';
+import _postpad     from './modules/strings/postpad.js';
+
+export const append      = curry(_append);
 export const prepend     = curry(_prepend);
+export const prepad      = curry(_prepad);
+export const postpad     = curry(_postpad);
 
 export { default as slugify } from './modules/strings/slugify.js';
 
