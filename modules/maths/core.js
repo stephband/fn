@@ -20,6 +20,10 @@ export function limit(min, max, n) {
     return n > max ? max : n < min ? min : n ;
 };
 
+export function wrap(min, max, n) {
+    return (n < min ? max : min) + (n - min) % (max - min);
+};
+
 export function todB(n) { return 20 * Math.log10(n); };
 export function toLevel(n) { return Math.pow(2, n/6); };
 export function toRad(n) { return n / angleFactor; };

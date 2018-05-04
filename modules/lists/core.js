@@ -16,6 +16,21 @@ export function reduce(fn, seed, object) {
         A.reduce.call(object, fn, seed);
 }
 
+export function concat(array2, array1) {
+    // A.concat only works with arrays - it does not flatten array-like
+    // objects. We need a robust concat that will glue any old thing
+    // together.
+    return Array.isArray(array1) ?
+        // 1 is an array. Convert 2 to an array if necessary
+        array1.concat(Array.isArray(array2) ? array2 : toArray(array2)) :
+
+    array1.concat ?
+        // It has it's own concat method. Lets assume it's robust
+        array1.concat(array2) :
+    // 1 is not an array, but 2 is
+    toArray(array1).concat(Array.isArray(array2) ? array2 : toArray(array2)) ;
+};
+
 export function contains(value, object) {
     return object.includes ?
         object.includes(value) :

@@ -1,7 +1,4 @@
-(function(window) {
-	if (!window.console || !window.console.log) { return; }
-	window.console.log('Fn          - https://github.com/stephband/fn');
-})(window);
+
 
 (function(window) {
 	"use strict";
@@ -155,21 +152,6 @@
 		return a === b ? 0 : a > b ? 1 : -1 ;
 	}
 
-	function concat(array2, array1) {
-		// A.concat only works with arrays - it does not flatten array-like
-		// objects. We need a robust concat that will glue any old thing
-		// together.
-		return Array.isArray(array1) ?
-			// 1 is an array. Convert 2 to an array if necessary
-			array1.concat(Array.isArray(array2) ? array2 : toArray(array2)) :
-
-		array1.concat ?
-			// It has it's own concat method. Lets assume it's robust
-			array1.concat(array2) :
-		// 1 is not an array, but 2 is
-		toArray(array1).concat(Array.isArray(array2) ? array2 : toArray(array2)) ;
-	}
-
 
 
 	var isIn = flip(contains);
@@ -287,10 +269,6 @@
 
 		flip:      flip,
 
-		//pipe:      pipe,
-		//choke:     choke,
-		throttle:  Throttle,
-
 		// Logic
 
 		isIn:      curry(isIn, true),
@@ -310,14 +288,6 @@
 
 
 		// Types
-
-		toPlainText: function toPlainText(string) {
-			return string
-			// Decompose string to normalized version
-			.normalize('NFD')
-			// Remove accents
-			.replace(/[\u0300-\u036f]/g, '');
-		},
 
 		toStringType: (function(regex, types) {
 			return function toStringType(string) {
@@ -346,18 +316,9 @@
 
 		// Collections
 
-		concat:    curry(concat, true),
-		diff:      curry(diff, true),
-		filter:    curry(filter, true),
-		intersect: curry(intersect, true),
-		map:       curry(map, true),
 		tap:       curry(tap),
-		reduce:    curry(reduce, true),
 		sort:      curry(sort, true),
 		split:     curry(split, true),
-		unite:     curry(unite, true),
-		unique:    unique,
-		update:    curry(update, true),
 
 
 		// Numbers
@@ -378,8 +339,6 @@
 			// around 0 and limits -1 to 1.
 			return Math.random() + Math.random() - 1;
 		},
-
-		wrap:     curry(function wrap(min, max, n) { return (n < min ? max : min) + (n - min) % (max - min); }),
 
 		rangeLog:    curry(function rangeLog(min, max, n) {
 			return Fn.denormalise(min, max, Math.log(n / min) / Math.log(max / min));
@@ -435,10 +394,6 @@
 		replace:     curry(function replace(regex, fn, string) { return string.replace(regex, fn); }),
 
 
-		// Regexp
-
-		rspaces: /\s+/,
-
 
 		// Time
 
@@ -453,31 +408,6 @@
 		// Deprecated
 
 		bind:     deprecate(bind, 'Review bind: it doesnt do what you think'),
-		dB:       deprecate(noop, 'dB() is now todB()'),
-		degToRad: deprecate(noop, 'degToRad() is now toRad()'),
-		radToDeg: deprecate(noop, 'radToDeg() is now toDeg()'),
 
-		nthRoot:  curry(
-			deprecate(function nthRoot(n, x) { return Math.pow(x, 1/n); },
-			'nthRoot(n, x) is now simply root(n, x)'), false, 2),
-
-		Throttle: deprecate(Throttle, 'Throttle(fn, time) removed, is now throttle(fn, time)'),
-		Wait: deprecate(Wait, 'Wait(fn, time) removed, is now wait(fn, time)'),
-
-		slice: curry(slice, true, 3),
-
-		returnThis: deprecate(self, 'returnThis() is now self()'),
-
-		run: curry(deprecate(function apply(values, fn) {
-			return fn.apply(null, values);
-		}, 'run() is now apply()'), true, 2),
-
-		overloadLength: curry(deprecate(overload, 'overloadLength(map) is now overload(fn, map)'), true, 2)(function() {
-			return arguments.length;
-		}),
-
-		overloadTypes: curry(deprecate(overload, 'overloadTypes(map) is now overload(fn, map)'), true, 2)(function() {
-			return A.map.call(arguments, toType).join(' ');
-		})
 	});
 })(window);

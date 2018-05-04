@@ -70,7 +70,6 @@ export const setPath     = curry(_setPath, true);
 /* Lists */
 
 import * as lists   from './modules/lists/core.js';
-export { default as last } from './modules/lists/last.js';
 import _rest        from './modules/lists/rest.js';
 import _remove      from './modules/lists/remove.js';
 import _take        from './modules/lists/take.js';
@@ -80,6 +79,10 @@ import _diff        from './modules/lists/diff.js';
 import _intersect   from './modules/lists/intersect.js';
 import _unite       from './modules/lists/unite.js';
 
+export { default as last } from './modules/lists/last.js';
+export { default as unique } from './modules/lists/unique.js';
+
+export const concat      = curry(lists.concat, true);
 export const contains    = curry(lists.contains, true);
 export const filter      = curry(lists.filter, true);
 export const find        = curry(lists.find, true);
@@ -88,9 +91,8 @@ export const map         = curry(lists.map, true);
 export const reduce      = curry(lists.reduce, true);
 export const remove      = curry(_remove, true);
 export const rest        = curry(_rest, true);
-export const slice       = curry(lists.slice, true);
+export const slice       = curry(lists.slice, true, 3);
 export const take        = curry(_take, true);
-export const unique      = curry(_unique, true);
 export const update      = curry(_update, true);
 
 export const diff        = curry(_diff, true);
@@ -99,6 +101,7 @@ export const unite       = curry(_unite, true);
 
 /* Strings */
 
+export { default as toPlainText } from './modules/strings/to-plain-text.js';
 import _append      from './modules/strings/append.js';
 import _prepend     from './modules/strings/prepend.js';
 import _prepad      from './modules/strings/prepad.js';
@@ -132,6 +135,7 @@ export const exp         = curry(maths.exp);
 export const log         = curry(maths.log);
 export const root        = curry(maths.root);
 export const limit       = curry(maths.limit);
+export const wrap        = curry(maths.wrap);
 export const normalise   = curry(_normalise);
 export const denormalise = curry(_denormalise);
 
