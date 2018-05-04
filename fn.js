@@ -1,4 +1,8 @@
 
+if (window.console && window.console.log) {
+    window.console.log('Fn          - https://github.com/stephband/fn');
+}
+
 import './js/observable.js';
 
 import curry from './modules/curry.js';
