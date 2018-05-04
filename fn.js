@@ -21,6 +21,7 @@ export { default as overload }    from './modules/overload.js';
 export { default as pipe }        from './modules/pipe.js';
 export { default as requestTick } from './modules/request-tick.js';
 export { default as self }        from './modules/self.js';
+export { default as throttle }    from './modules/throttle.js';
 export { default as toArray }     from './modules/to-array.js';
 export { default as toClass }     from './modules/to-class.js';
 export { default as toInt }       from './modules/to-int.js';
@@ -133,18 +134,3 @@ export const denormalise = curry(_denormalise);
 /* Time */
 
 export * from './modules/time/core.js';
-
-
-/*
-export const sum       = Fn.add;
-export const flip      = Fn.flip;
-export const throttle  = Fn.Throttle;
-export const wait      = Fn.Wait;
-export const update    = Fn.update;
-
-export const limit       = Fn.limit;
-export const pow         = Fn.pow;
-export const toCartesian = Fn.toCartesian;
-export const toPolar     = Fn.toPolar;
-export const Stream      = window.Stream;
-*/
