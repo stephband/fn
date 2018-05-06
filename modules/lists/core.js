@@ -1,9 +1,15 @@
 import curry from '../curry.js';
 const A = Array.prototype;
 
-export const by = curry(function by(fn, a, b) {
-    return fn(b) > fn(a);
-}, true);
+export function by(fn, a, b) {
+    const fna = fn(a);
+    const fnb = fn(b);
+    return fnb === fna ? 0 : fna > fnb ? 1 : -1 ;
+};
+
+export function byAlphabet(a, b) {
+    return S.localeCompare.call(a, b);
+};
 
 export function each(fn, object) {
     // A stricter version of .forEach, where the callback fn

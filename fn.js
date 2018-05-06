@@ -78,9 +78,11 @@ import _diff        from './modules/lists/diff.js';
 import _intersect   from './modules/lists/intersect.js';
 import _unite       from './modules/lists/unite.js';
 
-export { by }                from './modules/lists/core.js';
 export { default as last }   from './modules/lists/last.js';
 export { default as unique } from './modules/lists/unique.js';
+
+export const by          = curry(lists.by, true);
+export const byAlphabet  = curry(lists.byAlphabet);
 
 export const concat      = curry(lists.concat, true);
 export const contains    = curry(lists.contains, true);
@@ -102,7 +104,6 @@ export const unite       = curry(_unite, true);
 
 /* Strings */
 
-export { default as toPlainText } from './modules/strings/to-plain-text.js';
 import _append      from './modules/strings/append.js';
 import _prepend     from './modules/strings/prepend.js';
 import _prepad      from './modules/strings/prepad.js';
@@ -113,17 +114,22 @@ export const prepend     = curry(_prepend);
 export const prepad      = curry(_prepad);
 export const postpad     = curry(_postpad);
 
-export { default as slugify } from './modules/strings/slugify.js';
+export { default as slugify }      from './modules/strings/slugify.js';
+export { default as toPlainText }  from './modules/strings/to-plain-text.js';
+export { default as toStringType } from './modules/strings/to-string-type.js';
 
 
 /* Numbers */
 
-import * as maths   from './modules/maths/core.js';
-import _normalise   from './modules/maths/normalise.js';
-import _denormalise from './modules/maths/denormalise.js';
+import * as maths      from './modules/maths/core.js';
+import _normalise      from './modules/maths/normalise.js';
+import _denormalise    from './modules/maths/denormalise.js';
 import _exponentialOut from './modules/maths/exponential-out.js';
+import _cubicBezier    from './modules/maths/cubic-bezier.js';
+import _rangeLog       from './modules/maths/range-log.js';
+import _rangeLogInv    from './modules/maths/range-log-inv.js';
 
-export { todB, toLevel, toRad, toDeg } from './modules/maths/core.js';
+export { gaussian, todB, toLevel, toRad, toDeg } from './modules/maths/core.js';
 export { default as toPolar }     from './modules/maths/to-polar.js';
 export { default as toCartesian } from './modules/maths/to-cartesian.js';
 
@@ -135,12 +141,17 @@ export const mod         = curry(maths.mod);
 export const pow         = curry(maths.pow);
 export const exp         = curry(maths.exp);
 export const log         = curry(maths.log);
+export const gcd         = curry(maths.gcd);
+export const lcm         = curry(maths.lcm);
 export const root        = curry(maths.root);
 export const limit       = curry(maths.limit);
 export const wrap        = curry(maths.wrap);
+export const cubicBezier = curry(_cubicBezier);
 export const normalise   = curry(_normalise);
 export const denormalise = curry(_denormalise);
 export const exponentialOut = curry(_exponentialOut);
+export const rangeLog    = curry(_rangeLog);
+export const rangeLogInv = curry(_rangeLogInv);
 
 /* Time */
 
