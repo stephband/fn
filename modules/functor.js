@@ -3,6 +3,7 @@ import compose   from './compose.js';
 import deprecate from './deprecate.js';
 import latest    from './latest.js';
 import noop      from './noop.js';
+import toArray   from './to-array.js';
 
 const assign = Object.assign;
 
@@ -14,6 +15,19 @@ function create(object, fn) {
     var functor = Object.create(object);
     functor.shift = fn;
     return functor;
+}
+
+function arrayReducer(array, value) {
+    array.push(value);
+    return array;
+}
+
+function shiftTap(shift, fn) {
+    return function tap() {
+        var value = shift();
+        value !== undefined && fn(object);
+        return value;
+    };
 }
 
 export default function Fn(fn) {
@@ -546,7 +560,7 @@ assign(Fn.prototype, {
 
     tap: function(fn) {
         // Overwrite shift to copy values to tap fn
-        this.shift = Fn.compose(tap(fn), this.shift);
+        this.shift = shiftTap(this.shift, fn);
         return this;
     },
 

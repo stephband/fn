@@ -1,4 +1,9 @@
+import curry from '../curry.js';
 const A = Array.prototype;
+
+export const by = curry(function by(fn, a, b) {
+    return fn(b) > fn(a);
+}, true);
 
 export function each(fn, object) {
     // A stricter version of .forEach, where the callback fn

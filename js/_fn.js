@@ -134,11 +134,6 @@
 
 
 
-	function arrayReducer(array, value) {
-		array.push(value);
-		return array;
-	}
-
 	//function whileArray(fn, array) {
 	//	var values = [];
 	//	var n = -1;
@@ -177,9 +172,7 @@
 		return object.sort ? object.sort(fn) : A.sort.call(object, fn);
 	}
 
-	var tap = curry(function tap(fn, object) {
-		return object === undefined ? undefined : (fn(object), object) ;
-	}, true);
+
 
 
 	// Numbers
@@ -276,10 +269,6 @@
 
 		isGreater: curry(function byGreater(a, b) { return b > a ; }),
 
-		by: curry(function by(fn, a, b) {
-			return byGreater(fn(a), fn(b));
-		}, true),
-
 		byGreater: curry(byGreater),
 
 		byAlphabet: curry(function byAlphabet(a, b) {
@@ -316,7 +305,6 @@
 
 		// Collections
 
-		tap:       curry(tap),
 		sort:      curry(sort, true),
 		split:     curry(split, true),
 
@@ -373,19 +361,7 @@
 			return sampleCubicBezier(ay, by, cy, y);
 		}),
 
-		// Exponential functions
-		//
-		// e - exponent
-		// x - range 0-1
-		//
-		// eg.
-		// var easeInQuad   = exponential(2);
-		// var easeOutCubic = exponentialOut(3);
-		// var easeOutQuart = exponentialOut(4);
 
-		exponentialOut: curry(function exponentialOut(e, x) {
-			return 1 - Math.pow(1 - x, e);
-		}),
 
 		// Strings
 

@@ -78,7 +78,8 @@ import _diff        from './modules/lists/diff.js';
 import _intersect   from './modules/lists/intersect.js';
 import _unite       from './modules/lists/unite.js';
 
-export { default as last } from './modules/lists/last.js';
+export { by }                from './modules/lists/core.js';
+export { default as last }   from './modules/lists/last.js';
 export { default as unique } from './modules/lists/unique.js';
 
 export const concat      = curry(lists.concat, true);
@@ -120,6 +121,7 @@ export { default as slugify } from './modules/strings/slugify.js';
 import * as maths   from './modules/maths/core.js';
 import _normalise   from './modules/maths/normalise.js';
 import _denormalise from './modules/maths/denormalise.js';
+import _exponentialOut from './modules/maths/exponential-out.js';
 
 export { todB, toLevel, toRad, toDeg } from './modules/maths/core.js';
 export { default as toPolar }     from './modules/maths/to-polar.js';
@@ -138,6 +140,7 @@ export const limit       = curry(maths.limit);
 export const wrap        = curry(maths.wrap);
 export const normalise   = curry(_normalise);
 export const denormalise = curry(_denormalise);
+export const exponentialOut = curry(_exponentialOut);
 
 /* Time */
 

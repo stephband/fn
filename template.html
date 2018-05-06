@@ -36,29 +36,29 @@
 		><!--img class="block @2-grid-3/15 @2-grid-left-1/15 @3-grid-left-1/9 bottom-align" src="images/sparky-logo-dark.svg" /-->
 	</header>
 
-    <div sparky-fn="global:modules template:#module-doc" id="modules"></div>
+    <article sparky-fn="global:modules template:#module-doc" id="modules"></article>
 
     <!-- Documntation templates -->
 
-    <template data-module="fn, id, [object]">
-        <p>Returns `object`.</p>
+    <template data-module="fn id(object)">
+        <p>Returns <code class="js-code">object</code>.</p>
         <script type="text/js">id(0) // -> 0</script>
     </template>
 
-    <template data-module="fn, noop, []">
-        <p>Returns `undefined`.</p>
+    <template data-module="fn noop()">
+        <p>Returns <code class="js-code">undefined</code>.</p>
         <script type="text/js">noop() // -> undefined</script>
     </template>
 
-    <template data-module="fn, self, []">
-        <p>Returns `this`.</p>
+    <template data-module="fn self()">
+        <p>Returns <code class="js-code">this</code>.</p>
         <script type="text/js">
         self()         // -> null
         self.apply({}) // -> {}
         </script>
     </template>
 
-    <template data-module="fn, cache, [fn]">
+    <template data-module="fn cache(fn)">
         <p>Returns a function that caches output values against input values.</p>
         <script type="text/js">
         const fn = cache(function(value) {
@@ -72,8 +72,8 @@
         </script>
     </template>
 
-    <template data-module="fn, choose, [object]">
-        <p>Returns a function that calls the function at property of `object`
+    <template data-module="fn choose(object)">
+        <p>Returns a function that calls the function at property of <code class="js-code">object</code>
         that matches it's first argument. It is called with the remaining
         arguments.</p>
 
@@ -86,12 +86,12 @@
         fn('fish', a, b);   // Calls fn1(a, b)
         </script>
 
-        <p>Accepts `Map` objects as well as plain objects.</p>
+        <p>Accepts <code class="js-code">Map</code> objects as well as plain objects.</p>
     </template>
 
-    <template data-module="fn, overload, [fn, object]">
-        <p>Returns a function that calls a function at the property of `object` that
-        matches the result of calling `fn` (with all arguments).</p>
+    <template data-module="fn overload(fn, object)">
+        <p>Returns a function that calls a function at the property of <code class="js-code">object</code> that
+        matches the result of calling <code class="js-code">fn</code> (with all arguments).</p>
 
         <script type="text/js">
         var fn = overload(toType, {
@@ -103,6 +103,261 @@
         fn(1, 2);     // Calls b(1, 2)
         </script>
     </template>
+
+    <template data-module="fn curry(fn)">
+        <script type="text/js">var fn2 = curry(fn);</script>
+
+        <p>Curries <code class="js-code">fn</code>. If <code class="js-code">fn</code> normally requires 3 parameters, the curried result can
+        take those parameters in any grouping:</p>
+
+        <script type="text/js">
+        fn2(a, b, c);
+        fn2(a)(b)(c);
+        fn2(a, b)(c);
+        </script>
+
+        <!--p>If the curried function returns a curried function, that function can be called
+        in the same chain of parameters.</p>
+
+        <script type="text/js">
+        const fn = curry(function(a, b, c) {
+            var t = a + b + c;
+            return curry(function(d, e) {
+        	    return t + d + e;
+            });
+        });
+
+        fn(a, b, c, d, e);
+        </script-->
+
+        <p>By default a curried function expects immutable objects to be passed in. If a
+        function expects only primitives there's no problem, but if it is to operate on
+        objects that may change shape – or if it is a function with side effects –
+        switch on mutability by passing <code class="js-code">true</code> as the second parameter.</p>
+
+        <script type="text/js">
+        const fn2 = curry(fn1, true);
+        </script>
+
+        <p>Lastly, curry reads a function's arity from <code class="js-code">fn1.length</code>.
+        Set the arity explicitly with a third parameter:</p>
+
+        <script type="text/js">
+        const fn2 = curry(fn1, true, 3); // fn2 expects 3 parameters
+        </script>
+    </template>
+
+    <template data-module="fn pipe(fn1, fn2, ...)">
+        <p>Composes functions into a pipe. <code>fn2</code> is passed the result of <code>fn1</code>, <code>fn3</code> is passed the result of <code>fn2</code> and so on until the result of the last function is returned.</p>
+    </template>
+
+    <template data-module="fn throttle(fn, time)">
+        <p>Returns a function that calls <code>fn</code> periodically after it is called, with the latest context and arguments. By default calls are throttled to animation frames. Pass in <code>time</code> (in seconds) to use a setTimeout based timer, or pass in a custom timer object with a <code>.request()</code> function.</p>
+
+        <script type="text/js">
+        const fn = throttle(console.log, 1.5);
+
+        fn(1);    // Logs 1
+        fn(2);    // ...
+        fn(3);    // Logs 3 after 1.5 seconds
+        </script>
+    </template>
+
+    <template data-module="fn wait(fn, time)">
+        <p>Returns a function that waits for <code class="js-code">time</code> seconds without being invoked before calling <code>fn</code> using the context and arguments from its latest invocation.</p>
+
+        <script type="text/js">
+        const fn = wait(console.log, 1.5);
+
+        fn(1);    // ...
+        fn(2);    // ...
+        fn(3);    // Logs 3 after 1.5 seconds
+        </script>
+    </template>
+
+    <template data-module="fn compose(fn2, fn1)">
+        <p>Composes two functions into a single function, where `fn2` is passed the result of `fn1` and the result is returned.</p>
+
+        <script type="text/js">
+        var fn = compose(console.log, get(0));
+
+        fn(['Zero', 'One', 'Two']);  // Logs 'Zero'
+        </script>
+    </template>
+
+    <!--template data-module="fn flip(fn)">
+
+    Returns a function that calls `fn` with it's parameters in reverse order.
+    </template>
+    <template data-module="fn once(fn)">
+
+        var fn2 = Fn.once(fn1);
+
+    Calls `fn1` once, the first time `fn2` is called.
+    </template>
+
+    <template data-module="fn equals(a, b)">
+
+    Test for deep equality.
+    </template>
+    <template data-module="fn is(a, b)">
+
+    Test for referential equality.
+    </template>
+    <template data-module="fn isDefined(object)">
+
+    Test returns `false` if `object` is `null` or `undefined` or `NaN`.
+    </template>
+    <template data-module="fn isIn(array, object)">
+
+    Test for presence of `object` in `array`.
+
+    See `contains` for a flipped version of this function.
+    </template>
+    <template data-module="fn toArray(object)">
+    <template data-module="fn toClass(object)">
+    <template data-module="fn toInt(object)">
+    <template data-module="fn toFloat(object)">
+    <template data-module="fn toString(object)">
+    <template data-module="fn toType(object)">
+    <template data-module="fn toStringType(string)">
+
+        toStringType('http://cruncher.ch');  // 'url'
+        toStringType('1955-09-12');          // 'date'
+        toStringType('hello@cruncher.ch');   // 'email'
+        toStringType('42');                  // 'int'
+        toStringType('41.5');                // 'float'
+        toStringType('{}');                  // 'json'
+        toStringType('...');                 // 'string'
+    </template>
+
+    <template data-module="fn assign(source, object)">
+
+    Copies keys of `object` to `source`.
+    </template>
+    <template data-module="fn get(key, object)">
+
+    Gets property `key` of `object`, where `object` has a `get` method (eg. Map,
+    WeakMap) or where `key` is a property of object.
+    </template>
+    <template data-module="fn set(key, object, value)">
+
+    Sets property `key` of `object`, where `object` has a `set` method (eg. Map,
+    WeakMap) or where object can have `key` set on it.
+    </template>
+    <template data-module="fn invoke(name, args, object)">
+    Invokes method `name` of `object` with `args`.
+    </template>
+
+
+
+    <template data-module="fn concat(array2, array1)">
+
+    Concatenates `list2` to `list1`. More robust than Array#concat as it handles
+    arrays, array-like objects, functors and streams.
+    </template>
+    <template data-module="fn contains(object, array)"></template>
+    <template data-module="fn each(fn, array)"></template>
+    <template data-module="fn filter(fn, array)"></template>
+    <template data-module="fn find(fn, array)"></template>
+    <template data-module="fn insert(fn, array, value)"></template>
+    <template data-module="fn last(array)">
+
+    Picks the last value from an array or array-like object.
+    </template>
+    <template data-module="fn latest(stream)">
+
+    Consumes an array, functor or stream and returns the latest value.
+    </template>
+    <template data-module="fn map(fn, array)"></template>
+    <template data-module="fn reduce(fn, seed, array)"></template>
+    <template data-module="fn remove(array, object)"></template>
+    <template data-module="fn rest(i, array)">
+
+    Returns values indexed `i` and above from `array`.
+    </template>
+    <template data-module="fn sort(fn, array)"></template>
+    <template data-module="fn split(fn, array)"></template>
+    <template data-module="fn take(i)">
+
+    Returns values up to index `i` from `array`.
+    </template>
+    <template data-module="fn diff(array1, array2)"></template>
+    <template data-module="fn intersect(array1, array2)"></template>
+    <template data-module="fn unite(array1, array2)"></template>
+    <template data-module="fn unique(array)"></template>
+
+
+    <template data-module="fn add(a, b)"></template>
+    <template data-module="fn gcd(a, b)">
+
+    Returns greatest common denominator.
+    </template>
+    <template data-module="fn lcm(a, b)">
+
+    Returns lowest common multiple.
+    </template>
+    <template data-module="fn max(a, b)"></template>
+    <template data-module="fn min(a, b)"></template>
+    <template data-module="fn mod(a, b)"></template>
+    <template data-module="fn multiply(a, b)"></template>
+    <template data-module="fn exp(n, x)"></template>
+    <template data-module="fn log(n, x)"></template>
+    <template data-module="fn pow(n, x)"></template>
+    <template data-module="fn root(n, x)">
+
+    Returns the `n`th root of `x`.
+    </template>
+    <template data-module="fn toDeg(n)"></template>
+    <template data-module="fn toRad(n)"></template>
+    <template data-module="fn todB(n)">
+
+    Returns `n` as a ratio expressed in dB.
+    </template>
+    <template data-module="fn toLevel(n)">
+
+    If `n` is a ratio expressed in dB, returns linear value.
+    </template>
+    <template data-module="fn toCartesian(array)"></template>
+    <template data-module="fn toPolar(array)"></template>
+    <template data-module="fn limit(min, max, n)"></template>
+    <template data-module="fn normalise(min, max, n)">
+
+    Normalises `n` from range `min`-`max` to range 0-1.
+    </template>
+    <template data-module="fn denormalise(min, max, n)">
+
+    Denormalises `n` from range 0-1 to range `min`-`max`.
+    </template>
+    <template data-module="fn wrap(min, max, n)"></template>
+    <template data-module="fn cubicBezier(p1, p2, precision, x)"></template>
+    <template data-module="fn gaussian()">
+    Returns a random number with a bell curve probability centred around 0 with
+    limits -1 to 1.
+    </template>
+    <template data-module="fn toFixed(n, value)"></template>
+
+    <template data-module="fn append(string2, string1)"></template>
+    <template data-module="fn prepend(string1, string2)"></template>
+    <template data-module="fn slugify(string)"></template>
+
+
+    <template data-module="fn now()">
+
+    Returns `performance.now()` or date time, in seconds.
+    </template>
+    <template data-module="fn requestTick(fn)">
+
+    Calls `fn` at the end of the current tick. (This helper is often called
+    `setImmediate` in other libraries.
+    </template>
+    <template data-module="fn requestFrame(fn)">
+
+    An alias for `requestAnimationFrame(fn)`.
+    </template-->
+
+
+
 
     <!-- end of templates-->
 
@@ -155,13 +410,16 @@
         <code class="css-code block" sparky-fn="template:''"></code>
     </template>
 
+
+
+
     <script class="remove" type="module">
     // Build the document
 
     // Preprocess
 	import '../prism/prism.js';
 	import '../sparky/libs/prism/prism.sparky.js';
-    import { overload, each } from '../fn/fn.js';
+    import { overload, each, parse } from '../fn/fn.js';
     import { parseParams } from '../sparky/js/parse.js';
     import Sparky from '../sparky/sparky.js';
     import { default as dom, attribute, before, clone, create, fragmentFromTemplate, get, query, remove } from '../dom/dom.js';
@@ -171,27 +429,61 @@
     const jsTemplate    = get('js-code', document).content;
     const cssTemplate   = get('css-code', document).content;
 
+    //                             Section    name     params
+    var parseDataModule = parse(/^([^\s]*)\s+([\w]+)(\()\s*/, {
+        1: function(data, value) {
+            data.section = value;
+            return data;
+        },
+
+        2: function(data, value) {
+            data.name = value;
+            return data;
+        },
+
+        3: function(data, value, results) {
+            if (results.input[results[0].length + results.index] === ')') {
+                data.params = [];
+                results.index++;
+                return data;
+            }
+
+            data.params = parseParams([], results);
+            return data;
+        }
+    });
+
+    window.p = parseDataModule;
+
     var modules = window.modules = query('[data-module]', document)
     .map(function(template) {
-        var params   = parseParams([], attribute('data-module', template));
-        var fragment = fragmentFromTemplate(template);
+        //var params   = parseParams([], attribute('data-module', template));
+        //var params = /^([^\s]*)\s+([\w]+)\(([^)])\)/.exec(attribute('data-module', template));
+        var data      = parseDataModule({}, attribute('data-module', template));
+        data.fragment = fragmentFromTemplate(template);
 
         remove(template);
-
-        return {
-            section: params[0],
-            name:    params[1],
-            params:  params[2],
-            fragment: fragment
-        };
+        return data;
     });
+
+    function formatCode(code) {
+        var indent = (/\s*\n([ \t]*)/.exec(code) || [])[1];
+
+        return code
+        // Remove leading space and lines
+        .replace(/\s*\n[ \t]*/, '')
+        // Remove indentation
+        .replace(RegExp('\n' + indent, 'g'), '\n')
+        // Remove trailing space and lines
+        .replace(/\s*\n[ \t]*$/, '');
+    }
 
     modules.forEach(function(data) {
         query('[type]', data.fragment)
         .forEach(overload(attributeType, {
             'text/html': function(node) {
                 var html     = node.innerHTML;
-                var highlighted = Prism.highlight(html, Prism.languages.sparky);
+                var highlighted = Prism.highlight(formatCode(html), Prism.languages.sparky);
                 var code     = Sparky(clone(htmlTemplate), highlighted);
                 var fragment = create('fragment', html);
                 before(node, code[0]);
@@ -201,14 +493,14 @@
 
             'text/js': function(node) {
                 var html     = node.innerHTML;
-                var code     = Sparky(clone(jsTemplate), Prism.highlight(html, Prism.languages.js));
+                var code     = Sparky(clone(jsTemplate), Prism.highlight(formatCode(html), Prism.languages.js));
                 before(node, code[0]);
                 remove(node);
             },
 
             'text/css': function(node) {
                 var html     = node.innerHTML;
-                var code     = Sparky(clone(cssTemplate), Prism.highlight(html, Prism.languages.css));
+                var code     = Sparky(clone(cssTemplate), Prism.highlight(formatCode(html), Prism.languages.css));
                 before(node, code[0]);
                 remove(node);
             }
@@ -217,7 +509,7 @@
 
     Sparky(dom.root);
 
-    // Cleanup
+    // Cleanup. Remove things we don't want in the final document
     query('.remove, [data-module]', document).forEach(remove);
     </script>
 
