@@ -228,7 +228,9 @@ line { stroke-width: 1; stroke: inherit; }
 .grid-8 { grid-area: grid-8; }
 .grid-9 { grid-area: grid-9; }
 
-.l-grid {
+.l-grid,
+.r-grid,
+.constructor-grid {
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-areas:
         "grid-header grid-header grid-header"
@@ -244,20 +246,11 @@ line { stroke-width: 1; stroke: inherit; }
     grid-gap: 1.875rem 3.75rem;
 }
 
-.r-grid {
-    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-    grid-template-areas: ". grid-header grid-header grid-header grid-header . ."
-        ". grid-1 grid-1 grid-2 grid-2 grid-3 grid-3"
-        ". grid-4 grid-4 grid-5 grid-5 grid-6 grid-6"
-        ". grid-7 grid-7 grid-8 grid-8 grid-9 grid-9";
-    grid-gap: 1.875rem 3.75rem ;
-}
-
-@media (min-width: 75em) {
+@media (min-width: 48em) {
     .l-grid {
         grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
         grid-template-areas:
-            "grid-header grid-header grid-header grid-header grid-header . ."
+            "grid-header grid-header grid-header grid-header . . ."
             "grid-1 grid-1 grid-1 . . . ."
             "grid-2 grid-2 grid-2 grid-3 grid-3 grid-3 ."
             "grid-4 grid-4 grid-4 grid-5 grid-5 grid-5 ."
@@ -265,16 +258,30 @@ line { stroke-width: 1; stroke: inherit; }
             "grid-8 grid-8 grid-8 grid-9 grid-9 grid-9 .";
     }
 
+    .constructor-grid {
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        grid-template-areas:
+            "grid-header grid-header grid-header grid-header . . ."
+            "grid-1 grid-1 grid-1 grid-3 grid-3 grid-3 ."
+            "grid-2 grid-2 grid-2 grid-4 grid-4 grid-4 ."
+            "grid-5 grid-5 grid-5 grid-7 grid-7 grid-7 ."
+            "grid-6 grid-6 grid-6 grid-8 grid-8 grid-8 ."
+            "grid-9 grid-9 grid-9 . . . .";
+    }
+
     .r-grid {
         grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-        grid-template-areas: ". grid-header grid-header grid-header grid-header . ."
-            ". grid-1 grid-1 grid-2 grid-2 grid-3 grid-3"
-            ". grid-4 grid-4 grid-5 grid-5 grid-6 grid-6"
-            ". grid-7 grid-7 grid-8 grid-8 grid-9 grid-9";
+        grid-template-areas:
+        ". grid-header grid-header grid-header grid-header . ."
+        ". grid-1 grid-1 grid-1 . . ."
+        ". grid-2 grid-2 grid-2 grid-3 grid-3 grid-3"
+        ". grid-4 grid-4 grid-4 grid-5 grid-5 grid-5"
+        ". grid-6 grid-6 grid-6 grid-7 grid-7 grid-7"
+        ". grid-8 grid-8 grid-8 grid-9 grid-9 grid-9";
     }
 }
 
-@media (min-width: 75em) {
+@media (min-width: 72em) {
     .l-grid {
         grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
         grid-template-areas:
@@ -284,6 +291,17 @@ line { stroke-width: 1; stroke: inherit; }
             ". grid-4 grid-4 grid-4 grid-5 grid-5 grid-5 . ."
             ". grid-6 grid-6 grid-6 grid-7 grid-7 grid-7 . ."
             ". grid-8 grid-8 grid-8 grid-9 grid-9 grid-9 . .";
+    }
+
+    .constructor-grid {
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        grid-template-areas:
+            ". grid-header grid-header grid-header grid-header . . . ."
+            ". grid-1 grid-1 grid-1 grid-3 grid-3 grid-3 . ."
+            ". grid-2 grid-2 grid-2 grid-4 grid-4 grid-4 . ."
+            ". grid-5 grid-5 grid-5 grid-7 grid-7 grid-7 . ."
+            ". grid-6 grid-6 grid-6 grid-8 grid-8 grid-8 . ."
+            ". grid-9 grid-9 grid-9 . . . . .";
     }
 
     .r-grid {
@@ -304,6 +322,16 @@ line { stroke-width: 1; stroke: inherit; }
             ". grid-2 grid-2 grid-3 grid-3 grid-4 grid-4 . ."
             ". grid-5 grid-5 grid-6 grid-6 grid-7 grid-7 . ."
             ". grid-8 grid-8 grid-9 grid-9 . . . .";
+    }
+
+    .constructor-grid {
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        grid-template-areas:
+            ". grid-header grid-header grid-header grid-header . . . ."
+            ". grid-1 grid-1 grid-3 grid-3 grid-5 grid-5 . ."
+            ". grid-2 grid-2 grid-4 grid-4 grid-6 grid-6 . ."
+            ". grid-7 grid-7 grid-9 grid-9 . . . ."
+            ". grid-8 grid-8 . . . . . .";
     }
 
     .r-grid {

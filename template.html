@@ -37,23 +37,24 @@
 
     <article class="l-grid grid">
         <article class="grid-1" sparky-fn="modules:core    template:#module-doc" id="modules"></article>
-        <article class="grid-2" sparky-fn="modules:types   template:#module-doc" id="modules"></article>
-        <article class="grid-3" sparky-fn="modules:strings template:#module-doc" id="modules"></article>
-        <article class="grid-4" sparky-fn="modules:lists   template:#module-doc" id="modules"></article>
-        <article class="grid-5" sparky-fn="modules:objects template:#module-doc" id="modules"></article>
-        <article class="grid-6" sparky-fn="modules:maths   template:#module-doc" id="modules"></article>
+        <article class="grid-2" sparky-fn="modules:lists   template:#module-doc" id="modules"></article>
+        <article class="grid-3" sparky-fn="modules:maths   template:#module-doc" id="modules"></article>
+        <article class="grid-4" sparky-fn="modules:types   template:#module-doc" id="modules"></article>
+        <article class="grid-5" sparky-fn="modules:strings template:#module-doc" id="modules"></article>
+        <article class="grid-6" sparky-fn="modules:objects template:#module-doc" id="modules"></article>
         <article class="grid-7" sparky-fn="modules:dates   template:#module-doc" id="modules"></article>
         <article class="grid-8" sparky-fn="modules:times   template:#module-doc" id="modules"></article>
         <article class="grid-9" sparky-fn="modules:time    template:#module-doc" id="modules"></article>
     </article>
 
-    <article class="l-grid grid">
+    <article class="constructor-grid grid">
         <h1 class="grid-header text-2">Constructors</h1>
         <article class="grid-1" sparky-fn="modules:'Fn'       template:#module-doc" id="modules"></article>
         <article class="grid-2" sparky-fn="modules:'Fn()'     template:#module-doc" id="modules"></article>
-        <article class="grid-3" sparky-fn="modules:'Stream()' template:#module-doc" id="modules"></article>
-        <article class="grid-4" sparky-fn="modules:'Timer()'  template:#module-doc" id="modules"></article>
-        <article class="grid-5" sparky-fn="modules:'Pool()'   template:#module-doc" id="modules"></article>
+        <article class="grid-3" sparky-fn="modules:'Stream'   template:#module-doc" id="modules"></article>
+        <article class="grid-4" sparky-fn="modules:'Stream()' template:#module-doc" id="modules"></article>
+        <article class="grid-7" sparky-fn="modules:'Timer()'  template:#module-doc" id="modules"></article>
+        <article class="grid-9" sparky-fn="modules:'Pool()'   template:#module-doc" id="modules"></article>
     </article>
 
 
@@ -556,7 +557,7 @@
     </template>
 
 
-    <!-- Constructors -->
+    <!-- Functor -->
 
     <template data-module="Fn .of(value1, value2, ...)">
         <p>Creates a functor from argument values.</p>
@@ -609,9 +610,9 @@
         <p></p>
     </template>
 
-    <template data-module="Fn() .latest()">
+    <!--template data-module="Fn() .latest()">
         <p></p>
-    </template>
+    </template-->
 
     <template data-module="Fn() .map(fn)">
         <p></p>
@@ -644,7 +645,6 @@
     </template>
 
     <!--template data-module="Fn() .catch(fn)">
-
         <p>Catch errors. The callback is passed the error object, and it's return value
         is passed to the flow of values.</p>
     </div-->
@@ -685,14 +685,150 @@
         <p></p>
     </template>
 
-    <template data-module="Fn() .toString()">
+    <!--template data-module="Fn() .toString()">
+        <p></p>
+    </template-->
+
+
+
+
+    <!-- Stream -->
+
+    <template data-module="Stream .of(value1, value2, ...)">
+        <p>Creates a stream from argument values.</p>
+    </template>
+
+    <template data-module="Stream .from(list)">
+        <p>Creates a stream from a list of values, where <code class="js">list</code>
+        can be an array, an array-like object, a string, another functor or stream.</p>
+    </template>
+
+    <template data-module="Stream() .ap(object)">
         <p></p>
     </template>
 
+    <template data-module="Stream() .chain(fn)">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .chunk()">
+        <h3 class="text-5"><a href="#chunk"><code class="js">chunk(n)</code></a></h3>
+
+        <p>Splits values into functors of length  <code class="js">n</code>.</p>
+    </template>
+
+    <template data-module="Stream() .clone()">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .concat(list)">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .dedup()">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .filter(fn)">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .first()">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .fold(fn, seed)">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .join()">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .latest()">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .map(fn)">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .partition(fn)">
+        <p>Splits values into streams, where all values in a stream share the return
+        value of  <code class="js">fn(value)</code>.</p>
+    </template>
+
+    <template data-module="Stream() .split(fn)">
+        <p>Splits values into functors, where a new functor is created whenever the
+        predicate  <code class="js">fn(value)</code> returns true.</p>
+    </template>
+
+    <template data-module="Stream() .take(i)">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .rest(i)">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .unique()">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .unshift(value)">
+        <p></p>
+    </template>
+
+    <!--template data-module="Fn() .catch(fn)">
+
+        <p>Catch errors. The callback is passed the error object, and it's return value
+        is passed to the flow of values.</p>
+    </div-->
+
+    <template data-module="Stream() .each(fn)">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .find(fn)">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .next()">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .pipe(stream)">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .reduce(fn, seed)">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .shift()">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .tap(fn)">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .toArray()">
+        <p></p>
+    </template>
+
+    <template data-module="Stream() .toJSON()">
+        <p></p>
+    </template>
+
+    <!--template data-module="Stream() .toString()">
+        <p></p>
+    </template-->
 
 
 
-    <template data-module="Stream() Stream()"></template>
+
+
     <template data-module="Pool() Pool()"></template>
     <template data-module="Timer() Timer()"></template>
 
