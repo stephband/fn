@@ -676,7 +676,7 @@ export const formatTime = curry(function(string, time) {
 		formatTimeString(string, parseTime(time)) ;
 });
 
-export const formatTimeISO = function(time) {
+export function formatTimeISO(time) {
 	// Undefined causes problems by outputting dates full of NaNs
 	return time === undefined ? undefined : _formatTimeISO(time);
 };
