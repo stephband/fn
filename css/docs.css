@@ -34,10 +34,20 @@ body > .grid-block + .grid-block {
     padding-left: 0.9375rem;
     padding-right: 0.9375rem;
     /*color: #444444;*/
+    transition:
+        max-height 400ms cubic-bezier(0, 0.5, 0.33, 1),
+        margin-top 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89),
+        margin-bottom 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89);
 }
 
 .toggle-block.active {
+    margin-top: 0.9375rem;
     margin-bottom: 2.25rem;
+    max-height: 50rem;
+    transition:
+        max-height 400ms cubic-bezier(0.4, 0, 1, 0.32),
+        margin-top 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89),
+        margin-bottom 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89);
 }
 
 .toggle-block::before {
@@ -65,6 +75,10 @@ body > .grid-block + .grid-block {
 
 .toggle-block + .toggle-block {
     margin-top: 0.1875rem;
+}
+
+.toggle-block + .toggle-block.active {
+    margin-top: 1.5rem;
 }
 
 .text-2,  h2   { font-size: 1.5rem;   line-height: 1.5rem; }

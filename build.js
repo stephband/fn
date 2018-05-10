@@ -112,3 +112,25 @@ Sparky(dom.root);
 
 // Cleanup. Remove things we don't want in the final document
 query('.remove, [data-module]', document).forEach(remove);
+
+
+
+
+
+
+
+
+
+// -----
+
+// Parse comments in files
+
+axios
+.get('css/editor.css')
+.then(fn.get('data'))
+.then(function(text) {
+    var array = [];
+    text.replace(/\/\*([^\*]+)\*\//g, function($0, $1) {
+        array.push($1); return '';
+    }); return array;
+});
