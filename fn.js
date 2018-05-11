@@ -146,6 +146,7 @@ export const lcm         = curry(maths.lcm);
 export const root        = curry(maths.root);
 export const limit       = curry(maths.limit);
 export const wrap        = curry(maths.wrap);
+export const factorise   = curry(maths.factorise);
 export const cubicBezier = curry(_cubicBezier);
 export const normalise   = curry(_normalise);
 export const denormalise = curry(_denormalise);
