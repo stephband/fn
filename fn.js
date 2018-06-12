@@ -23,6 +23,7 @@ export { default as now }         from './modules/now.js';
 export { default as once }        from './modules/once.js';
 export { default as overload }    from './modules/overload.js';
 export { default as pipe }        from './modules/pipe.js';
+export { default as privates }    from './modules/privates.js';
 export { default as requestTick } from './modules/request-tick.js';
 export { default as self }        from './modules/self.js';
 export { default as throttle }    from './modules/throttle.js';
