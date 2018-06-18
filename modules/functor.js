@@ -25,7 +25,7 @@ function arrayReducer(array, value) {
 function shiftTap(shift, fn) {
     return function tap() {
         var value = shift();
-        value !== undefined && fn(object);
+        value !== undefined && fn(value);
         return value;
     };
 }
