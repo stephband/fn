@@ -4,6 +4,10 @@ export default function cache(fn) {
     var map = new Map();
 
     return function cache(object) {
+        if (DEBUG && object === ubndefined) {
+            throw new Error('Fn: weakCache() called with undefined.');
+        }
+
         if (DEBUG && arguments.length > 1) {
             throw new Error('Fn: cache() called with ' + arguments.length + ' arguments. Accepts exactly 1.');
         }
