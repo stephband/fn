@@ -3,7 +3,9 @@ import compose   from './compose.js';
 import deprecate from './deprecate.js';
 import latest    from './latest.js';
 import noop      from './noop.js';
+import prepend   from './strings/prepend.js';
 import toArray   from './to-array.js';
+
 
 const assign = Object.assign;
 
