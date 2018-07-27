@@ -33,7 +33,8 @@ export { default as toString }    from './modules/to-string.js';
 export { default as toType }      from './modules/to-type.js';
 export { default as weakCache }   from './modules/weak-cache.js';
 export { default as Functor }     from './modules/functor.js';
-export { default as Observable }  from './modules/observable.js';
+export { default as Observable }  from './modules/observe-stream.js';
+export { default as ObserveStream } from './modules/observe-stream.js';
 export { default as Stream }      from './modules/stream.js';
 export { default as Timer }       from './modules/timer.js';
 export { default as Pool }        from './modules/pool.js';
@@ -95,6 +96,7 @@ export const reduce      = curry(lists.reduce, true);
 export const remove      = curry(_remove, true);
 export const rest        = curry(_rest, true);
 export const slice       = curry(lists.slice, true, 3);
+export const sort        = curry(lists.sort, true);
 export const take        = curry(_take, true);
 export const update      = curry(_update, true);
 

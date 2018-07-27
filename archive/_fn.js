@@ -122,12 +122,6 @@
 		return array;
 	}
 
-	function sort(fn, object) {
-		return object.sort ? object.sort(fn) : A.sort.call(object, fn);
-	}
-
-
-
 
 
 

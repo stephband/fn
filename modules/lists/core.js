@@ -44,6 +44,10 @@ export function reduce(fn, seed, object) {
         A.reduce.call(object, fn, seed);
 }
 
+export function sort(fn, object) {
+    return object.sort ? object.sort(fn) : A.sort.call(object, fn);
+}
+
 export function concat(array2, array1) {
     // A.concat only works with arrays - it does not flatten array-like
     // objects. We need a robust concat that will glue any old thing
