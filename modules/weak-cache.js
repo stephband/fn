@@ -4,7 +4,7 @@ export default function weakCache(fn) {
     var map = new WeakMap();
 
     return function weakCache(object) {
-        if (DEBUG && object === ubndefined) {
+        if (DEBUG && object === undefined) {
             throw new Error('Fn: weakCache() called with undefined.');
         }
 

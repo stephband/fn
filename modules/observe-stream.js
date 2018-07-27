@@ -3,7 +3,7 @@ import Stream  from './stream.js';
 import curry   from './curry.js';
 import noop    from './noop.js';
 import { setPath } from './paths.js';
-
+import '../js/observable.js';
 const Observable = window.Observable;
 
 function ObserveSource(end, object, path) {

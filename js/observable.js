@@ -15,7 +15,18 @@
 
 	var DOMObject      = window.EventTarget || window.Node;
 	var nothing        = Object.freeze([]);
-	var rname          = /\[?([-\w]+)(?:=(['"])?([-\w]+)\2)?\]?\.?/g;
+
+	// Matches
+	//
+	// name
+	// [name]
+	// [name=value]
+	// [name='value']
+	// [name1=value1,name2=value2]
+	//
+	// Todo: replace with a proper parser. This currently supports only
+	// 2 prop/value pairs at most
+	var rname          = /\[?([-\w]+)(?:=(['"])?([-\w]+)\2\s*(?:,\s*([-\w]+)=(['"])?([-\w]+)\5)?)?\]?\.?/g;
 
 
 	// Utils
@@ -366,7 +377,15 @@
 		var unobserve = noop;
 
 		function isMatch(item) {
-			return item[key] === match;
+			let key;
+
+			for (key in match) {
+				if (item[key] !== match[key]) {
+					return false;
+				}
+			}
+
+			return true;
 		}
 
 		function update(array) {
@@ -418,7 +437,15 @@
 
 	function callbackItem(object, key, match, path, fn) {
 		function isMatch(item) {
-			return item[key] === match;
+			let key;
+
+			for (key in match) {
+				if (item[key] !== match[key]) {
+					return false;
+				}
+			}
+
+			return true;
 		}
 
 		var value = object && A.find.call(object, isMatch);
@@ -453,11 +480,31 @@
 		}
 
 		var name  = tokens[1];
-		var match = tokens[3] && (
-			tokens[2] ?
+		var match = tokens[3] && {};
+
+		if (match) {
+			// Build a match object with property/value pairs extracted with
+			// the rname regex.
+
+			// Todo: a proper parsing way of doing this. This is just hacked
+			// together to support up to '[name=value,name=value]' but no more
+
+			match[tokens[1]] = tokens[2] ?
 				tokens[3] :
-				parseFloat(tokens[3])
-		);
+				tokens[3] === 'true' ? true :
+				tokens[3] === 'false' ? false :
+				parseFloat(tokens[3]) + '' === tokens[3] ? parseFloat(tokens[3]) :
+				tokens[3] ;
+
+			if (tokens[4]) {
+				match[tokens[4]] = tokens[5] ?
+					tokens[6] :
+					tokens[6] === 'true' ? true :
+					tokens[6] === 'false' ? false :
+					parseFloat(tokens[6]) + '' === tokens[6] ? parseFloat(tokens[6]) :
+					tokens[6] ;
+			}
+		}
 
 		path = path.slice(rname.lastIndex);
 
@@ -493,6 +540,7 @@
 		return observe(Observable(object) || object, path + '', fn);
 	};
 
+
 	// Experimental
 
 	Observable.filter = function(fn, array) {
@@ -523,5 +571,64 @@
 	// Export
 
 	window.Observable = Observable;
+
+
+
+	// -----------------------------------------
+	// Pretty print Observable Proxies in devtools (omits all the proxy
+	// [[target]] nonsense).
+
+	function printObject(object) {
+		return '{' + Object.keys(object)
+		.map(function(key) {
+			return key + ': ' + (
+				(object[key] && typeof object[key] === 'object') ?
+					Array.isArray(object[key]) ?
+						'[…]' :
+					'{…}' :
+				object[key]
+			);
+		})
+		.join(', ') + '}';
+	}
+
+	window.devtoolsFormatters = [{
+    	header: function(object, config) {
+			if (config && config.observableProxyFormatter) {
+				return ['div', {}, config.key + ': ' + printObject(object)];
+			}
+
+			// Detect observable
+			if (!object[$observable] || object[$observable] !== object) {
+				return null;
+			}
+
+        	return ["div", { style: 'color: #60acc5;' }, 'Observable Proxy ' + printObject(object)];
+    	},
+
+		hasBody: function(){
+        	return true;
+    	},
+
+		body: function(object, config) {
+			var level = config ? config.level : 1 ;
+
+	        return ["div", { style: 'color: #60acc5; margin-left: ' + (14 * level) + 'px;'}].concat(Object.keys(object).map(function(key){
+	            var child;
+	            var value = object[key];
+
+	            return (value && typeof value === "object") ?
+					["div", {}, ["object", {
+						object: value,
+						config: {
+							level: level + 1,
+							key: key,
+							observableProxyFormatter: true,
+						}
+					}]] :
+					['div', { style: 'margin-left: 14px' }, (key + ": " + value)] ;
+	        }));
+		}
+	}];
 
 })(window);
