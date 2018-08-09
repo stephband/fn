@@ -1,4 +1,5 @@
-import curry from '../curry.js';
+import toArray from '../to-array.js';
+
 const A = Array.prototype;
 
 export function by(fn, a, b) {
