@@ -74,6 +74,7 @@ export const setPath     = curry(_setPath, true);
 /* Lists */
 
 import * as lists   from './modules/lists/core.js';
+import _ap          from './modules/lists/ap.js';
 import _rest        from './modules/lists/rest.js';
 import _remove      from './modules/lists/remove.js';
 import _take        from './modules/lists/take.js';
@@ -89,6 +90,7 @@ export { default as unique } from './modules/lists/unique.js';
 export const by          = curry(lists.by, true);
 export const byAlphabet  = curry(lists.byAlphabet);
 
+export const ap          = curry(_ap, true);
 export const concat      = curry(lists.concat, true);
 export const contains    = curry(lists.contains, true);
 export const each        = curry(lists.each, true);
