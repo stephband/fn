@@ -6,7 +6,7 @@ import '../sparky/libs/prism/prism.sparky.js';
 import { Functor as Fn, compose, each, get, is, overload, parse } from '../fn/fn.js';
 import { parseParams } from '../sparky/js/parse.js';
 import Sparky from '../sparky/sparky.js';
-import { default as dom, attribute, before, clone, create, fragmentFromTemplate, get as getById, query, remove } from '../dom/dom.js';
+import { attribute, before, clone, create, fragmentFromTemplate, get as getById, query, remove } from '../dom/dom.js';
 
 window.Sparky = Sparky;
 
@@ -108,7 +108,7 @@ Sparky.fn.modules = function(node, scopes, params) {
     console.log('HEY', section);
 };
 
-Sparky(dom.root);
+Sparky(document.documentElement);
 
 // Cleanup. Remove things we don't want in the final document
 query('.remove, [data-module]', document).forEach(remove);
