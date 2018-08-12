@@ -215,6 +215,29 @@ Stream.from = function(source) {
     });
 };
 
+function PromiseSource(notify, stop) {
+    const source = this;
+
+    promise
+    // Todo: Put some error handling into our streams
+    .catch(stop)
+    .then(function(value) {
+        source.value = value;
+        notify('push');
+        stop();
+    });
+}
+
+PromiseSource.shift = function() {
+    return this.value;
+};
+
+Stream.fromPromise = function(promise) {
+    return new Stream(function setup(notify, stop) {
+        return new PromiseSource(notify, stop, promise);
+    });
+};
+
 Stream.of = function() { return Stream.from(arguments); };
 
 

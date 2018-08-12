@@ -102,10 +102,7 @@ modules.forEach(function(data) {
 
 Sparky.fn.modules = function(node, scopes, params) {
     const section = params[0];
-
     return Fn.of(modules.filter(compose(is(section), get('section'))));
-
-    console.log('HEY', section);
 };
 
 Sparky(document.documentElement);
