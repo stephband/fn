@@ -177,9 +177,13 @@ export default function Stream(Source, options) {
 }
 
 
-// Stream Constructors
+// Buffer Stream
 
-function BufferSource(notify, stop, buffer) {
+function BufferSource(notify, stop, list) {
+    const buffer = list === undefined ? [] :
+        Fn.prototype.isPrototypeOf(list) ? list :
+        Array.from(list).filter(isValue) ;
+
     this._buffer = buffer;
     this._notify = notify;
     this._stop   = stop;
@@ -205,17 +209,18 @@ assign(BufferSource.prototype, {
     }
 });
 
-Stream.from = function(source) {
-    return new Stream(function setup(notify, stop) {
-        var buffer = source === undefined ? [] :
-            Fn.prototype.isPrototypeOf(source) ? source :
-            Array.from(source).filter(isValue) ;
-
-        return new BufferSource(notify, stop, buffer);
-    });
+Stream.from = function BufferStream(list) {
+    return new Stream(BufferSource, list);
 };
 
-function PromiseSource(notify, stop) {
+Stream.of = function ArgumentStream() {
+    return Stream.from(arguments);
+};
+
+
+// Promise Stream
+
+function PromiseSource(notify, stop, promise) {
     const source = this;
 
     promise
@@ -228,17 +233,67 @@ function PromiseSource(notify, stop) {
     });
 }
 
-PromiseSource.shift = function() {
-    return this.value;
+PromiseSource.prototype.shift = function() {
+    const value = this.value;
+    this.value = undefined;
+    return value;
 };
 
 Stream.fromPromise = function(promise) {
-    return new Stream(function setup(notify, stop) {
-        return new PromiseSource(notify, stop, promise);
-    });
+    return new Stream(PromiseSource, promise);
 };
 
-Stream.of = function() { return Stream.from(arguments); };
+
+// Clock Stream
+
+function ClockSource(notify, stop, options) {
+    // requestAnimationFrame/cancelAnimationFrame cannot be invoked
+    // with context, so need to be referenced.
+
+    var source  = this;
+    var request = options.request;
+
+    function frame(time) {
+        source.value = time;
+        notify('push');
+        source.value = undefined;
+        source.id    = request(frame);
+    }
+
+    this.cancel = options.cancel || noop;
+    this.end    = stop;
+
+    // Start clock
+    this.id = request(frame);
+}
+
+assign(ClockSource.prototype, {
+    shift: function shift() {
+        var value = this.value;
+        this.value = undefined;
+        return value;
+    },
+
+    stop: function stop() {
+        var cancel = this.cancel;
+        cancel(this.id);
+        this.end();
+    }
+});
+
+Stream.fromTimer = function ClockStream(timer) {
+    return new Stream(ClockSource, timer);
+};
+
+Stream.fromDuration = function(duration) {
+    return Stream.fromTimer(new Timer(duration));
+};
+
+Stream.frames = function() {
+    return Stream.fromTimer(frameTimer);
+};
+
+
 
 
 // Stream.Combine
@@ -385,31 +440,7 @@ Stream.Merge = function(source1, source2) {
 };
 
 
-// Stream.Events
 
-Stream.Events = function(type, node) {
-    return new Stream(function setup(notify, stop) {
-        var buffer = [];
-
-        function update(value) {
-            buffer.push(value);
-            notify('push');
-        }
-
-        node.addEventListener(type, update);
-
-        return {
-            shift: function() {
-                return buffer.shift();
-            },
-
-            stop: function stop() {
-                node.removeEventListener(type, update);
-                stop(buffer.length);
-            }
-        };
-    });
-};
 
 
 // Stream Timers
@@ -550,51 +581,6 @@ Stream.throttle = function(timer) {
     return new Stream(function(notify, stop) {
         return new ThrottleSource(notify, stop, timer);
     });
-};
-
-
-
-function ClockSource(notify, stop, options) {
-    // requestAnimationFrame/cancelAnimationFrame cannot be invoked
-    // with context, so need to be referenced.
-
-    var source  = this;
-    var request = options.request;
-
-    function frame(time) {
-        source.value = time;
-        notify('push');
-        source.value = undefined;
-        source.id    = request(frame);
-    }
-
-    this.cancel = options.cancel || noop;
-    this.end    = stop;
-
-    // Start clock
-    this.id = request(frame);
-}
-
-assign(ClockSource.prototype, {
-    shift: function shift() {
-        var value = this.value;
-        this.value = undefined;
-        return value;
-    },
-
-    stop: function stop() {
-        var cancel = this.cancel;
-        cancel(this.id);
-        this.end();
-    }
-});
-
-Stream.clock = function ClockStream(options) {
-    var timer = typeof options === 'number' ?
-        new Timer(options) :
-        options || frameTimer ;
-
-    return new Stream(ClockSource, timer);
 };
 
 

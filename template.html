@@ -695,18 +695,30 @@
     <!-- Stream -->
 
     <template data-module="Stream .of(value1, value2, ...)">
-        <p>Creates a stream from argument values.</p>
+        <p>Creates a buffer stream from arguments.</p>
     </template>
 
     <template data-module="Stream .from(list)">
-        <p>Creates a stream from a list of values, where <code class="js">list</code>
-        can be an array, an array-like object, a string, another functor or stream.</p>
+        <p>Creates a buffer stream from a list of values, where
+        <code class="js">list</code> can be an array, an array-like object,
+        a string, another functor or stream.</p>
     </template>
 
     <template data-module="Stream .fromPromise(promise)">
         <p>Creates a read-only stream from a promise. When the promise resolves
         with a value, the value is pushed into the stream and then the stream is
         stopped.</p>
+    </template>
+
+    <template data-module="Stream .fromTimer(timer)">
+        <p>Creates a read-only stream from a timer, where
+        <code class="js">timer</code> is an object with two methods,
+        <code class="js">request</code> and <code class="js">cancel</code>.</p>
+    </template>
+
+    <template data-module="Stream .fromDuration(duration)">
+        <p>Creates a read-only timed stream from a numeric
+        <code class="js">duration</code> given in seconds.</p>
     </template>
 
     <template data-module="Stream() .ap(object)">
