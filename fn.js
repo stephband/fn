@@ -8,6 +8,7 @@ import './js/observable.js';
 import curry from './modules/curry.js';
 
 export { curry as curry };
+export { default as print }       from './modules/print.js';
 export { default as args }        from './modules/args.js';
 export { default as cache }       from './modules/cache.js';
 export { default as choke }       from './modules/choke.js';
