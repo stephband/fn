@@ -1,6 +1,9 @@
 
+// #e2006f
+// #332256
+
 if (window.console && window.console.log) {
-    window.console.log('Fn          - https://github.com/stephband/fn');
+    window.console.log('%cFn%c          - https://github.com/stephband/fn', 'color: #e2006f; font-weight: 600;', 'color: inherit; font-weight: 400;');
 }
 
 import './js/observable.js';
