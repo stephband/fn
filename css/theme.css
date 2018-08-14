@@ -1,4 +1,30 @@
+html,
+body {
+    background-color: #f9f6ff;
+    background-color: #fbf7ff;
+    background-color: #fdf6fa;
+    background-color: #f5f3f3;
+}
+
 body {
     color: #272a2b;
     color: #c1004d;
+    color: #94003b;
+    color: #58233e;
+    color: #423275;
+    color: #351a6b;
+    color: #332256;
+}
+
+code,
+code > .params {
+    color: #e2006f;
+}
+
+.js.block,
+code.block {
+    background-color: #383244;
+    background-color: #303740;
+    background-color: #fdfcff;
+    background-color: #312b3e;
 }
