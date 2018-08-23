@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head sparky-fn="import:package.json" class="{[name]}">
+    <meta charset="utf-8" />
+    <meta name="author" content="@{[author.twitter]}" />
+    <meta name="description" content="Documentation for {[title]}. {[description]}" />
+    <meta name="viewport" content="width=device-width" />
+
+    <title>{[title]}</title>
+
+    <script>
+    document.documentElement.className = 'js';
+    window.DEBUG = true;
+    </script>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono:100,300,400,500,700" />
+    <link rel="stylesheet" href="http://stephen.band/bolt/dist/bolt.css" />
+    <link rel="stylesheet" href="http://stephen.band/dom/css/dom.css" />
+    <link rel="stylesheet" href="../fn/css/prism.cruncher.css" />
+    <link rel="stylesheet" href="../fn/css/docs.css" />
+    <link rel="stylesheet" href="../fn/css/tests.css" />
+    <link rel="stylesheet" href="css/theme.css" />
+</head>
+
+<body>
+
+    <article class="constructor-grid grid">
+        <article class="grid-1" sparky-fn="modules:'MIDI()' template:#module-doc"></article>
+        <article class="grid-2" sparky-fn="modules:'MIDI'   template:#module-doc"></article>
+    </article>
+
+    <article class="l-grid grid">
+        <h1 class="grid-header text-2">Functions</h1>
+        <section class="grid-1">
+            <article class="toggle-block block" toggleable id="{[name]}" fn="
+                docs: 'modules/args.js', 'modules/cache.js'
+                each
+                append: body
+            ">
+                <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}"><a href="#{[name]}"><code class="js">{[name]}(<span fn="get:params each">{[]}, </span>)</code></a></h3>
+            </article>
+        </section>
+        <section class="grid-2">
+
+        </section>
+    </article>
+
+    <script type="module">
+    import '../fn/docs.js';
+    import Sparky from '../sparky/sparky.js';
+
+    // Change name of attributes
+    Sparky.attributeFn     = 'fn';
+    Sparky.attributePrefix = 'sparky-';
+
+    Sparky(document.body);
+    </script>
+
+    <script type="module">
+    import '../dom/js/dom.root.js';
+    import '../dom/js/dom.toggleable.js';
+    </script>
+</body>

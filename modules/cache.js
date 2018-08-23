@@ -1,3 +1,7 @@
+/* cache(fn)
+Returns a function that caches results of calling it.
+*/
+
 const DEBUG = false;
 
 export default function cache(fn) {

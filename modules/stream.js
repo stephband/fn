@@ -244,6 +244,16 @@ Stream.fromPromise = function(promise) {
 };
 
 
+// Callback stream
+
+Stream.fromCallback = function(object, name) {
+    const stream = Stream.of();
+    const args = rest(2, arguments);
+    args.push(stream.push);
+    object[name].apply(object, args);
+    return stream;
+};
+
 // Clock Stream
 
 function ClockSource(notify, stop, options) {

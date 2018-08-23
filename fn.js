@@ -51,6 +51,7 @@ export const or      = curry(function or(a, b) { return a || b; });
 export const xor     = curry(function or(a, b) { return (a || b) && (!!a !== !!b); });
 
 import _equals      from './modules/equals.js';
+import _exec        from './modules/exec.js';
 import _get         from './modules/get.js';
 import _is          from './modules/is.js';
 import _invoke      from './modules/invoke.js';
@@ -63,6 +64,7 @@ import { getPath as _getPath, setPath as _setPath } from './modules/paths.js';
 export const assign      = curry(Object.assign, true, 2);
 export const define      = curry(Object.defineProperties, true, 2);
 export const equals      = curry(_equals, true);
+export const exec        = curry(_exec);
 export const get         = curry(_get, true);
 export const is          = curry(_is, true);
 export const invoke      = curry(_invoke, true);
@@ -168,3 +170,7 @@ export const rangeLogInv = curry(_rangeLogInv);
 /* Time */
 
 export * from './modules/time/core.js';
+
+/* Test */
+
+export { default as test } from './modules/test.js';

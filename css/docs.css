@@ -28,8 +28,8 @@ body > .grid-block + .grid-block {
 
 .toggle-block {
     font-size: 0.9375rem;
-    opacity: 1;
     visibility: visible;
+    opacity: 1;
     min-height: 2.25rem;
     padding-left: 0.9375rem;
     padding-right: 0.9375rem;
@@ -114,7 +114,9 @@ a.block:hover {
 }
 
 .js.block,
-code.block {
+code.block,
+pre > code {
+    display: block;
     font-size: 0.8125rem;
     margin-left: -0.9375rem;
     padding-left: 0.9375rem;
@@ -140,6 +142,9 @@ code.block {
     margin-top: 1.125rem;
 }
 
+pre > code .comment {
+	color: #75858c;
+}
 
 
 code {
@@ -196,12 +201,15 @@ a:hover {
 .text-5 code {
     font-size: inherit;
     font-weight: 500;
-    color: inherit;
     background-color: transparent;
     padding: 0;
     margin: 0;
     word-spacing: -0.25em;
     letter-spacing: -0.0125em;
+}
+
+.text-5 code > span {
+    color: var(--black-color);
 }
 
 h5, .text-5 {
@@ -244,6 +252,7 @@ line { stroke-width: 1; stroke: inherit; }
 }
 
 .grid-header { grid-area: grid-header; }
+.grid-0 { grid-area: grid-0; }
 .grid-1 { grid-area: grid-1; }
 .grid-2 { grid-area: grid-2; }
 .grid-3 { grid-area: grid-3; }
@@ -254,6 +263,7 @@ line { stroke-width: 1; stroke: inherit; }
 .grid-8 { grid-area: grid-8; }
 .grid-9 { grid-area: grid-9; }
 
+.\36-grid,
 .l-grid,
 .r-grid,
 .constructor-grid {
@@ -340,6 +350,14 @@ line { stroke-width: 1; stroke: inherit; }
 }
 
 @media (min-width: 90em) {
+    .\36-grid {
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        grid-template-areas:
+            ". grid-0 grid-0 grid-0 grid-0 . . . ."
+            ". grid-1 grid-1 grid-2 grid-2 grid-3 grid-3 . ."
+            ". grid-4 grid-4 grid-5 grid-5 grid-6 grid-6 . .";
+    }
+
     .l-grid {
         grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
         grid-template-areas:

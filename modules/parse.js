@@ -25,7 +25,7 @@ export default curry(function parse(regex, fns, output, string) {
     var result = regex.exec(string);
 
     if (!result) {
-        throw new Error('Sparky: unable to parse "' + string + '" with ' + regex);
+        throw new Error('Unable to parse "' + string + '" with ' + regex);
     }
 
     output = distribute(fns, output, result);
