@@ -1,4 +1,3 @@
-import curry   from '../modules/curry.js';
 import nothing from '../modules/nothing.js';
 
 function distribute(fns, object, data) {
