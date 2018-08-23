@@ -1,11 +1,11 @@
 
 // markdown library
 // https://marked.js.org/#/README.md#README.md
-import 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+import './libs/marked/marked.min.js';
 
 // Syntax highlighter
-//
-import '../prism/prism.js';
+// https://prismjs.com/
+import './libs/prism/prism.js';
 
 import { cache, concat, exec, id, invoke, last, nothing, Functor as Fn, Stream } from '../fn/fn.js';
 import Sparky from '../sparky/sparky.js';
