@@ -26,6 +26,7 @@ body > .grid-block + .grid-block {
 }
 
 .demo-block {
+    color: var(--code-fg);
     background-color: var(--code-bg);
     margin-left:  -1.875rem;
     margin-right: -1.875rem;
