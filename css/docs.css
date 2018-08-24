@@ -329,6 +329,14 @@ line { stroke-width: 1; stroke: inherit; }
     grid-gap: 3.75rem 3.75rem;
 }
 
+.\31-2-grid {
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-areas:
+        "grid-0 grid-0 grid-0 grid-0 .      .      .      .      ."
+        "grid-1 grid-1 grid-1 grid-1 grid-2 grid-2 grid-2 grid-2 .";
+    grid-gap: 3.75rem 3.75rem;
+}
+
 .site-grid {
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-areas:
@@ -350,6 +358,14 @@ line { stroke-width: 1; stroke: inherit; }
             "grid-0 grid-0 grid-0 grid-0 grid-0 grid-0 .      .      ."
             "grid-1 grid-1 grid-1 grid-2 grid-2 grid-2 .      .      ."
             "grid-3 grid-3 grid-3 grid-4 grid-4 grid-4 grid-5 grid-5 grid-5";
+    }
+
+    .\31-2-grid {
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        grid-template-areas:
+            "grid-0 grid-0 grid-0 grid-0 .      .      .      .      ."
+            "grid-1 grid-1 grid-1 grid-1 grid-2 grid-2 grid-2 grid-2 .";
+        grid-gap: 3.75rem 3.75rem;
     }
 
     .site-grid {
@@ -406,6 +422,14 @@ line { stroke-width: 1; stroke: inherit; }
             ". grid-0 grid-0 grid-0 grid-0 . . . ."
             ". grid-1 grid-1 grid-2 grid-2 . . . ."
             ". grid-3 grid-3 grid-4 grid-4 grid-5 grid-5 . .";
+    }
+
+    .\31-2-grid {
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        grid-template-areas:
+            ". grid-0 grid-0 grid-0 grid-0 .      .      . ."
+            ". grid-1 grid-1 grid-1 grid-2 grid-2 grid-2 . .";
+        grid-gap: 3.75rem 3.75rem;
     }
 
     .site-grid {
@@ -473,6 +497,14 @@ line { stroke-width: 1; stroke: inherit; }
             ". grid-0 grid-0 grid-0 grid-0 . . . ."
             ". grid-1 grid-1 grid-2 grid-2 . . . ."
             ". grid-3 grid-3 grid-4 grid-4 grid-5 grid-5 . .";
+    }
+
+    .\31-2-grid {
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        grid-template-areas:
+            ". grid-0 grid-0 grid-0 grid-0 .      .      . ."
+            ". grid-1 grid-1 grid-1 grid-2 grid-2 grid-2 . .";
+        grid-gap: 3.75rem 3.75rem;
     }
 
     .l-grid {
