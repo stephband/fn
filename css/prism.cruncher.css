@@ -1,3 +1,8 @@
+:root {
+    --code-fg: #b7d6e7;
+    --code-bg: #272a2b;
+}
+
 .html-code .tag                       { color: #fc6827; }
 .html-code .attr-name                 { color: #f5a623; }
 .html-code .attr-value                { color: #B2CB3A; }
@@ -7,7 +12,11 @@
 
 .html-code            { color: white; }
 
-pre > code              { color: #b7d6e7; }
+pre > code              {
+    color: var(--code-fg);
+    background-color: var(--code-bg);
+}
+
 pre > code .keyword     { color: #63ACDD; }
 pre > code .operator    { color: #63ACDD; }
 pre > code .number      { color: #FE267E; }
