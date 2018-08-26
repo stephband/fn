@@ -6,13 +6,13 @@
 }
 
 body > .grid + .grid {
-    margin-top: 2.8125rem;
+    margin-top: 7.5rem;
 }
 
 @media (min-width: 84em) {
     body {
         padding-top: 1.875rem;
-        padding-bottom: 3.75rem;
+        padding-bottom: 7.5rem;
     }
 }
 
