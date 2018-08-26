@@ -16,7 +16,7 @@ const fetchOptions = {
     method: 'GET'
 };
 
-const markdownOptions = {
+const markedOptions = {
     // GitHub Flavored Markdown
     gfm: true,
 
@@ -32,9 +32,11 @@ const markdownOptions = {
     smartypants: true
 };
 
+// Open comment followed by spaces
 const parseDoc = exec(/\/\*\s*/, {
-    0: exec(/^(\.)?([\w]+)(\([^\)]*\))/, {
-        0: function(data, results) {
+    // Name   (dot)(name) (brackets) OR (tag)
+    0: exec(/^(\.)?([\w]+)(\([^\)]*\))|^(<[\w-]+>)/, {
+        2: function(data, results) {
             data.push({
                 prefix: results[1],
                 name:   results[2],
@@ -44,9 +46,20 @@ const parseDoc = exec(/\/\*\s*/, {
             return data;
         },
 
+        4: function(data, results) {
+            data.push({
+                prefix: '',
+                name:   results[4],
+                params: '',
+                title:  Prism.highlight(results[4], Prism.languages['html'], 'html')
+            });
+            return data;
+        },
+
+        // Markdown    (anything) close comment
         end: exec(/^\s*([\s\S]*?)\*\//, {
             1: function(data, results) {
-                last(data).body = marked(results[1], markdownOptions);
+                last(data).body = marked(results[1], markedOptions);
                 return data;
             },
 

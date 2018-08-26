@@ -25,6 +25,35 @@ body > .grid-block + .grid-block {
     margin-top: 72px;
 }
 
+.doc-block { font-size: 0.9375rem; }
+.doc-block h4 { font-size: 0.9375rem; }
+
+.doc-block > ul {
+	/* Remove default styling from list items. */
+	list-style: none;
+	margin: 0;
+    padding: 0;
+}
+
+.doc-block > ul > li {
+	display: block;
+
+	/* Specifically remove default margin and padding from
+	   list items in case some typography rules have added
+	   these back in after the reset. */
+	margin: 0;
+	padding: 0;
+}
+
+.doc-block p + p,
+.doc-block p + h4,
+.doc-block p + ul,
+.doc-block ul + p,
+.doc-block ul + h4,
+.doc-block ul + ul { margin-top: 0.9375rem; }
+
+.doc-block h4 + ul { margin-top: 0; }
+
 .demo-block {
     color: var(--code-fg);
     background-color: var(--code-bg);
@@ -36,12 +65,16 @@ body > .grid-block + .grid-block {
     padding-bottom: 0.9375rem;
 }
 
-body > .grid + .demo-block {
-    margin-top: 5.625rem;
+body > .\31-grid + .\30-grid {
+    margin-top: 2.8125rem;
+}
+
+body > .\31-grid + .demo-block {
+    margin-top: 7.5rem;
 }
 
 body > .demo-block + .grid {
-    margin-top: 4.6875rem;
+    margin-top: 2.8125rem;
 }
 
 .hint {
@@ -58,7 +91,6 @@ body > .demo-block + .grid {
 }
 
 .toggle-block {
-    font-size: 0.9375rem;
     visibility: visible;
     opacity: 1;
     min-height: 2.25rem;
@@ -79,7 +111,7 @@ body > .demo-block + .grid {
 .toggle-block.active {
     margin-top: 0.9375rem;
     padding-bottom: 1.125rem;
-    max-height: 50rem;
+    max-height: 75rem;
     transition:
         max-height 400ms cubic-bezier(0.4, 0, 1, 0.32),
         margin-top 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89),
@@ -238,6 +270,8 @@ a:hover {
     letter-spacing: -0.0125em;
 }
 
+.text-2 + p { margin-top: 0.9375rem; }
+.text-3 code > span,
 .text-5 code > span {
     color: var(--black-color);
 }
@@ -312,6 +346,13 @@ line { stroke-width: 1; stroke: inherit; }
     grid-gap: 1.875rem 3.75rem;
 }
 
+.\30-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-areas:
+        "grid-0 grid-0 grid-0";
+    grid-gap: 1.875rem 3.75rem;
+}
+
 .\31-grid {
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-areas:
@@ -345,6 +386,12 @@ line { stroke-width: 1; stroke: inherit; }
 }
 
 @media (min-width: 48em) {
+    .\30-grid {
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        grid-template-areas:
+            ". grid-0 grid-0 grid-0 grid-0 grid-0 grid-0 . ."
+    }
+
     .\31-grid {
         grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
         grid-template-areas:
@@ -369,9 +416,9 @@ line { stroke-width: 1; stroke: inherit; }
     }
 
     .site-grid {
-        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
         grid-template-areas:
-            ". grid-1 grid-1 grid-1 grid-1 grid-1 .";
+            ". grid-1 grid-1 grid-1 grid-1 grid-1 grid-1 grid-1 .";
     }
 
     .l-grid {
@@ -409,6 +456,12 @@ line { stroke-width: 1; stroke: inherit; }
 }
 
 @media (min-width: 72em) {
+    .\30-grid {
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        grid-template-areas:
+            ". grid-0 grid-0 grid-0 grid-0 . . . ."
+    }
+
     .\31-grid {
         grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
         grid-template-areas:
@@ -475,12 +528,6 @@ line { stroke-width: 1; stroke: inherit; }
         grid-template-areas:
         ". grid-0 grid-0 grid-0 grid-0 . . . ."
         ". grid-1 grid-1 grid-1 . . . . .";
-    }
-
-    .site-grid {
-        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-        grid-template-areas:
-            ". grid-1 grid-1 grid-1 grid-1 grid-1 grid-1 grid-1 .";
     }
 
     .\36-grid {
