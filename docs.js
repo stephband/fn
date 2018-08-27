@@ -7,7 +7,7 @@ import './libs/marked/marked.min.js';
 // https://prismjs.com/
 import './libs/prism/prism.js';
 
-import { cache, concat, exec, id, invoke, last, nothing, Functor as Fn, Stream } from '../fn/fn.js';
+import { cache, concat, exec, id, invoke, last, nothing, slugify, Functor as Fn, Stream } from '../fn/fn.js';
 import Sparky from '../sparky/sparky.js';
 
 const A = Array.prototype;
@@ -38,6 +38,7 @@ const parseDoc = exec(/\/\*\s*/, {
     0: exec(/^(\.)?([\w]+)(\([^\)]*\))|^(<[\w-]+>)/, {
         2: function(data, results) {
             data.push({
+                id:     slugify(results[2] + results[3]),
                 prefix: results[1],
                 name:   results[2],
                 params: results[3],
@@ -48,6 +49,7 @@ const parseDoc = exec(/\/\*\s*/, {
 
         4: function(data, results) {
             data.push({
+                id:     slugify(results[4]),
                 prefix: '',
                 name:   results[4],
                 params: '',
@@ -76,6 +78,11 @@ const fetchDocs = cache(function(path) {
     .then(parseDoc([]));
 });
 
+function flatten(acc, array) {
+    acc.push.apply(acc, array);
+    return acc;
+}
+
 function toHTML(paths) {
     return Promise.all(paths.map(function(url) {
         const parts = url.split(/\?/);
@@ -87,10 +94,11 @@ function toHTML(paths) {
             .then(function(docs) {
                 // Gaurantee order of ids
                 return ids.map(function(id) {
-                    return docs.find(function(doc) {
+                    return docs.filter(function(doc) {
                         return doc.name === id;
                     });
-                });
+                })
+                .reduce(flatten, []);
             }) :
             fetchDocs(path) ;
     }))
