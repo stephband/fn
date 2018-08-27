@@ -111,7 +111,7 @@ body > .demo-block + .grid {
 .toggle-block.active {
     margin-top: 0.9375rem;
     padding-bottom: 1.125rem;
-    max-height: 75rem;
+    max-height: 80rem;
     transition:
         max-height 400ms cubic-bezier(0.4, 0, 1, 0.32),
         margin-top 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89),
@@ -362,11 +362,15 @@ line { stroke-width: 1; stroke: inherit; }
 }
 
 .\31-2-3-grid {
-    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
     grid-template-areas:
-        "grid-0 grid-0 grid-0 grid-0 .      .      .      .      ."
-        "grid-1 grid-1 grid-1 grid-2 grid-2 grid-2 .      .      ."
-        "grid-3 grid-3 grid-3 grid-4 grid-4 grid-4 grid-5 grid-5 grid-5";
+        "grid-0 grid-0 grid-0 grid-0 .      ."
+        "grid-1 grid-1 grid-1 grid-1 grid-1 grid-1"
+        "grid-2 grid-2 grid-2 grid-2 grid-2 grid-2"
+        "grid-3 grid-3 grid-3 grid-3 grid-3 grid-3"
+        "grid-4 grid-4 grid-4 grid-4 grid-4 grid-4"
+        "grid-5 grid-5 grid-5 grid-5 grid-5 grid-5"
+        "grid-6 grid-6 grid-6 grid-6 grid-6 grid-6";
     grid-gap: 3.75rem 3.75rem;
 }
 
@@ -403,8 +407,9 @@ line { stroke-width: 1; stroke: inherit; }
         grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
         grid-template-areas:
             "grid-0 grid-0 grid-0 grid-0 grid-0 grid-0 .      .      ."
-            "grid-1 grid-1 grid-1 grid-2 grid-2 grid-2 .      .      ."
-            "grid-3 grid-3 grid-3 grid-4 grid-4 grid-4 grid-5 grid-5 grid-5";
+            "grid-1 grid-1 grid-1 grid-1 grid-1 grid-1 .      .      ."
+            "grid-2 grid-2 grid-2 grid-3 grid-3 grid-3 .      .      ."
+            "grid-4 grid-4 grid-4 grid-5 grid-5 grid-5 grid-6 grid-6 grid-6";
     }
 
     .\31-2-grid {
@@ -455,7 +460,7 @@ line { stroke-width: 1; stroke: inherit; }
     }
 }
 
-@media (min-width: 72em) {
+@media (min-width: 100em) {
     .\30-grid {
         grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
         grid-template-areas:
@@ -472,9 +477,10 @@ line { stroke-width: 1; stroke: inherit; }
     .\31-2-3-grid {
         grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
         grid-template-areas:
-            ". grid-0 grid-0 grid-0 grid-0 . . . ."
-            ". grid-1 grid-1 grid-2 grid-2 . . . ."
-            ". grid-3 grid-3 grid-4 grid-4 grid-5 grid-5 . .";
+            ". grid-0 grid-0 grid-0 grid-0 .      .      . ."
+            ". grid-1 grid-1 grid-1 .      .      .      . ."
+            ". grid-2 grid-2 grid-3 grid-3 .      .      . ."
+            ". grid-4 grid-4 grid-5 grid-5 grid-6 grid-6 . .";
     }
 
     .\31-2-grid {
@@ -511,67 +517,6 @@ line { stroke-width: 1; stroke: inherit; }
             ". grid-5 grid-5 grid-5 grid-7 grid-7 grid-7 . ."
             ". grid-6 grid-6 grid-6 grid-8 grid-8 grid-8 . ."
             ". grid-9 grid-9 grid-9 . . . . .";
-    }
-
-    .r-grid {
-        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-        grid-template-areas: ". . grid-header grid-header grid-header grid-header . . ."
-            ". . grid-1 grid-1 grid-2 grid-2 grid-3 grid-3 ."
-            ". . grid-4 grid-4 grid-5 grid-5 grid-6 grid-6 ."
-            ". . grid-7 grid-7 grid-8 grid-8 grid-9 grid-9 .";
-    }
-}
-
-@media (min-width: 90em) {
-    .\31-grid {
-        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-        grid-template-areas:
-        ". grid-0 grid-0 grid-0 grid-0 . . . ."
-        ". grid-1 grid-1 grid-1 . . . . .";
-    }
-
-    .\36-grid {
-        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-        grid-template-areas:
-            ". grid-0 grid-0 grid-0 grid-0 . . . ."
-            ". grid-1 grid-1 grid-2 grid-2 grid-3 grid-3 . ."
-            ". grid-4 grid-4 grid-5 grid-5 grid-6 grid-6 . .";
-    }
-
-    .\31-2-3-grid {
-        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-        grid-template-areas:
-            ". grid-0 grid-0 grid-0 grid-0 . . . ."
-            ". grid-1 grid-1 grid-2 grid-2 . . . ."
-            ". grid-3 grid-3 grid-4 grid-4 grid-5 grid-5 . .";
-    }
-
-    .\31-2-grid {
-        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-        grid-template-areas:
-            ". grid-0 grid-0 grid-0 grid-0 .      .      . ."
-            ". grid-1 grid-1 grid-1 grid-2 grid-2 grid-2 . .";
-        grid-gap: 3.75rem 3.75rem;
-    }
-
-    .l-grid {
-        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-        grid-template-areas:
-            ". grid-header grid-header grid-header grid-header . . . ."
-            ". grid-1 grid-1 grid-1 . . . . ."
-            ". grid-2 grid-2 grid-3 grid-3 grid-4 grid-4 . ."
-            ". grid-5 grid-5 grid-6 grid-6 grid-7 grid-7 . ."
-            ". grid-8 grid-8 grid-9 grid-9 . . . .";
-    }
-
-    .constructor-grid {
-        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-        grid-template-areas:
-            ". grid-header grid-header grid-header grid-header . . . ."
-            ". grid-1 grid-1 grid-3 grid-3 grid-5 grid-5 . ."
-            ". grid-2 grid-2 grid-4 grid-4 grid-6 grid-6 . ."
-            ". grid-7 grid-7 grid-9 grid-9 . . . ."
-            ". grid-8 grid-8 . . . . . .";
     }
 
     .r-grid {
