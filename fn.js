@@ -3,7 +3,7 @@
 // #332256
 
 if (window.console && window.console.log) {
-    window.console.log('%cFn%c          - https://github.com/stephband/fn', 'color: #e2006f; font-weight: 600;', 'color: inherit; font-weight: 400;');
+    window.console.log('%cFn%c          - https://github.com/stephband/fn', 'color: #de3b16; font-weight: 600;', 'color: inherit; font-weight: 400;');
 }
 
 import './js/observable.js';
@@ -53,6 +53,7 @@ export const xor     = curry(function or(a, b) { return (a || b) && (!!a !== !!b
 import _equals      from './modules/equals.js';
 import _exec        from './modules/exec.js';
 import _get         from './modules/get.js';
+import _has         from './modules/has.js';
 import _is          from './modules/is.js';
 import _invoke      from './modules/invoke.js';
 import _matches     from './modules/matches.js';
@@ -66,6 +67,7 @@ export const define      = curry(Object.defineProperties, true, 2);
 export const equals      = curry(_equals, true);
 export const exec        = curry(_exec);
 export const get         = curry(_get, true);
+export const has         = curry(_has, true);
 export const is          = curry(_is, true);
 export const invoke      = curry(_invoke, true);
 export const matches     = curry(_matches, true);

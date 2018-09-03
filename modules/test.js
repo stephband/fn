@@ -63,27 +63,28 @@ function parse(string) {
 
 function equals(expected, value, message) {
 	if (!_equals(value, expected)) {
-		var string = ('Test: ' +
-		'Expected ' + (JSON.stringify(expected) || typeof value) + ', ' +
-		'received ' + (JSON.stringify(value) || typeof value) + '.' +
-		( message ? ' ' + message : ''));
+		var string = (
+			'Expected ' + (JSON.stringify(expected) || typeof value) + ', ' +
+			'received ' + (JSON.stringify(value) || typeof value) + '.' +
+			( message ? ' ' + message : '')
+		);
 
 		if (browser === 'IE') {
 			console.log(string);
 			console.trace();
 		}
 		else {
-			console.trace('%c' + string, 'color: #ee8833; font-weight: 700;');
+			console.trace('%cTest%c %s', 'color: #6f9940; font-weight: 600;', 'color: #ee8833; font-weight: 300;', 'failed', 'expected:', (JSON.stringify(expected) || typeof value), 'received:', (JSON.stringify(value) || typeof value));
 		}
 	}
 }
 
 export default function group(name, fn, template) {
 	if (browser === 'IE') {
-		console.group(name);
+		console.log(name);
 	}
 	else {
-		console.group('%c' + name, 'color: #ffffff; background-color: #222222; padding: 0.25em 0.5em; border-radius: 0.25em; font-weight: 300;');
+		console.log('%cTest%c %s', 'color: #6f9940; font-weight: 600;', 'color: #6f9940; font-weight: 300;', name);
 	}
 
 	var nodes = template && domify(template, name);
@@ -106,9 +107,7 @@ export default function group(name, fn, template) {
 
 	fn(function test(name, fn, n) {
 		tests.push(arguments);
-	}, console.log, nodes && nodes.fixture);
-
-	console.groupEnd();
+	}, console.log.bind(console, '%cTest%c %s', 'color: #6f9940; font-weight: 600;', 'color: #b4d094; font-weight: 300;'), nodes && nodes.fixture);
 
 	next();
 }
@@ -156,10 +155,10 @@ function test(name, fn, n, next) {
 		}
 		else {
 			if (browser === 'IE') {
-				console.log('✔ ' + name);
+				console.log('✔',  + name);
 			}
 			else {
-				console.log('%c✔ ' + name, 'color: #6f9940; font-weight: 300;');
+				console.log('%c✔%c %s', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', name);
 			}
 		}
 
