@@ -48,7 +48,7 @@ export function not(a) { return !a; };
 export const toFloat = parseFloat;
 export const and     = curry(function and(a, b) { return !!(a && b); });
 export const or      = curry(function or(a, b) { return a || b; });
-export const xor     = curry(function or(a, b) { return (a || b) && (!!a !== !!b); });
+export const xor     = curry(function xor(a, b) { return (a || b) && (!!a !== !!b); });
 
 import _equals      from './modules/equals.js';
 import _exec        from './modules/exec.js';
