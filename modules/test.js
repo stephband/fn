@@ -1,5 +1,7 @@
 
-import { id, overload, noop as done, equals as _equals } from '../fn.js';
+import id from './id.js';
+import overload from './overload.js';
+import { default as _equals } from './equals.js';
 
 var A        = Array.prototype;
 var rcomment = /\s*\/\*([\s\S]*)\*\/\s*/;
