@@ -1,14 +1,14 @@
 
-import { id, overload, noop as done, equals as _equals } from '../fn.js';
+import { cache, id, overload, noop as done, equals as _equals } from '../fn.js';
 
 var A        = Array.prototype;
 var rcomment = /\s*\/\*([\s\S]*)\*\/\s*/;
 
 var domify = overload(toType, {
-	'string': createSection,
+	'string': createArticle,
 
-	'function': function(template, name) {
-		return createSection(multiline(template), name);
+	'function': function(template, name, size) {
+		return createArticle(multiline(template), name, size);
 	},
 
 	'default': function(template) {
@@ -23,24 +23,34 @@ var browser = /firefox/i.test(navigator.userAgent) ? 'FF' :
 	document.documentMode ? 'IE' :
 	'standard' ;
 
-function createSection(html, name) {
-	var section = document.createElement('section');
+const createSection = cache(function createSection() {
+	const section = document.createElement('section');
 	section.setAttribute('class', 'test-section');
+	document.body.appendChild(section);
+	return section;
+});
 
-	var title = document.createElement('h2');
+function createArticle(html, name, size) {
+	const section = createSection();
+
+	const article = document.createElement('article');
+	article.setAttribute('class', 'span-' + (size || 2) + '-test-article test-article');
+
+	const title = document.createElement('h2');
 	title.setAttribute('class', 'test-title');
 	title.innerHTML = name;
 
-	var div = document.createElement('div');
+	const div = document.createElement('div');
 	div.setAttribute('class', 'test-fixture');
 
 	div.innerHTML = html;
-	section.appendChild(title);
-	section.appendChild(div);
-	document.body.appendChild(section);
+	article.appendChild(title);
+	article.appendChild(div);
+	section.appendChild(article);
 
 	return {
 		section: section,
+		article: article,
 		title:   title,
 		fixture: div
 	};
@@ -74,12 +84,18 @@ function equals(expected, value, message) {
 			console.trace();
 		}
 		else {
-			console.trace('%cTest%c %s', 'color: #6f9940; font-weight: 600;', 'color: #ee8833; font-weight: 300;', 'failed', 'expected:', (JSON.stringify(expected) || typeof value), 'received:', (JSON.stringify(value) || typeof value));
+			console.trace(
+				'%cTest%c %s', 'color: #6f9940; font-weight: 600;', 'color: #ee8833; font-weight: 300;',
+				'failed',
+				'expected:', (JSON.stringify(expected) || typeof value),
+				'received:', (JSON.stringify(value) || typeof value),
+				message || ''
+			);
 		}
 	}
 }
 
-export default function group(name, fn, template) {
+export default function group(name, fn, template, size) {
 	if (browser === 'IE') {
 		console.log(name);
 	}
@@ -87,7 +103,7 @@ export default function group(name, fn, template) {
 		console.log('%cTest%c %s', 'color: #6f9940; font-weight: 600;', 'color: #6f9940; font-weight: 300;', name);
 	}
 
-	var nodes = template && domify(template, name);
+	var nodes = template && domify(template, name, size);
 	var tests = [];
 
 	function next() {
@@ -96,7 +112,7 @@ export default function group(name, fn, template) {
 		if (!args) {
 			// Last test has run
 			if (nodes) {
-				nodes.section.className += ' test-passed';
+				nodes.article.className += ' test-passed';
 			}
 
 			return;
