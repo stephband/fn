@@ -338,9 +338,8 @@ test('Observable()', function(test, log) {
 		done();
 	}, 7);
 
-
 	test("observe '0'", function(equals, done) {
-		var expected = [2,3,4,5,6];
+		var expected = [2,3,4,5,6,7];
 
 		var object = {
 			0: 0,
@@ -361,7 +360,8 @@ test('Observable()', function(test, log) {
 		o[3] = 4;
 		o[2] = 5;
 		o[3] = 6;
+		o[2] = 7;
 
 		done();
-	}, 5);
+	}, 6);
 });
