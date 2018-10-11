@@ -11,6 +11,7 @@ import './js/observable.js';
 import curry from './modules/curry.js';
 
 export { curry as curry };
+export * from './modules/throttle.js';
 export { default as print }       from './modules/print.js';
 export { default as args }        from './modules/args.js';
 export { default as cache }       from './modules/cache.js';
@@ -28,9 +29,7 @@ export { default as once }        from './modules/once.js';
 export { default as overload }    from './modules/overload.js';
 export { default as pipe }        from './modules/pipe.js';
 export { default as privates }    from './modules/privates.js';
-export { default as requestTick } from './modules/request-tick.js';
 export { default as self }        from './modules/self.js';
-export { default as throttle }    from './modules/throttle.js';
 export { default as toArray }     from './modules/to-array.js';
 export { default as toClass }     from './modules/to-class.js';
 export { default as toInt }       from './modules/to-int.js';
@@ -44,11 +43,16 @@ export { default as Stream }      from './modules/stream.js';
 export { default as Timer }       from './modules/timer.js';
 export { default as Pool }        from './modules/pool.js';
 
+export { default as requestTick } from './modules/request-tick.js';
+import { requestTime as _requestTime } from './modules/request-time.js';
+export const requestTime = curry(_requestTime, true, 2);
+export { cancelTime }             from './modules/request-time.js';
+
 export function not(a) { return !a; };
 export const toFloat = parseFloat;
 export const and     = curry(function and(a, b) { return !!(a && b); });
 export const or      = curry(function or(a, b) { return a || b; });
-export const xor     = curry(function or(a, b) { return (a || b) && (!!a !== !!b); });
+export const xor     = curry(function xor(a, b) { return (a || b) && (!!a !== !!b); });
 
 import _equals      from './modules/equals.js';
 import _exec        from './modules/exec.js';

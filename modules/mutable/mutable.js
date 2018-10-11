@@ -38,7 +38,7 @@ function isArrayLike(object) {
 	&& typeof object.length === 'number' ;
 }
 
-export function isObservable(object) {
+export function isMutable(object) {
 	// Many built-in objects and DOM objects bork when calling their
 	// methods via a proxy. They should be considered not observable.
 	// I wish there were a way of whitelisting rather than
@@ -99,7 +99,7 @@ function trapGet(target, name, self) {
 //console.log('arguments', arguments);
 //					value.apply(this, arguments);
 //				} :
-		Observable(value) || value ;
+		Mutable(value) || value ;
 }
 
 var arrayHandlers = {
@@ -176,7 +176,7 @@ var arrayHandlers = {
 			fire(observers.length, target.length);
 		}
 
-		fire(observers[name], Observable(value) || value);
+		fire(observers[name], Mutable(value) || value);
 		fire(observers[$update], receiver, change);
 
 		// Return true to indicate success
@@ -202,7 +202,7 @@ var objectHandlers = {
 
 		target[name] = value;
 
-		fire(observers[name], Observable(value) || value);
+		fire(observers[name], Mutable(value) || value);
 		fire(observers[$update], receiver, change);
 
 		// Return true to indicate success
@@ -321,16 +321,16 @@ function callbackItem(object, key, match, path, fn) {
 	}
 
 	var value = object && A.find.call(object, isMatch);
-	return observeThing(Observable(value) || value, path, fn);
+	return observeThing(Mutable(value) || value, path, fn);
 }
 
 function callbackProperty(object, name, path, fn) {
-	return observeThing(Observable(object[name]) || object[name], path, fn);
+	return observeThing(Mutable(object[name]) || object[name], path, fn);
 }
 
 function observeThing(object, path, fn) {
 	if (!path.length) {
-		// We can assume the full isObservable() check has been done, as
+		// We can assume the full isMutable() check has been done, as
 		// this function is only called internally or from Object.observe
 		//
 		// The object[$observers] check is for IE - it checks whether the
@@ -348,7 +348,7 @@ function observeThing(object, path, fn) {
 	var tokens = rname.exec(path);
 
 	if (!tokens) {
-		throw new Error('Observable: invalid path "' + path + '"');
+		throw new Error('Mutable: invalid path "' + path + '"');
 	}
 
 	var name  = tokens[1];
@@ -390,12 +390,12 @@ function observeThing(object, path, fn) {
 }
 
 
-// Observable
+// Mutable
 
 export function Mutable(object) {
 	return !object ? undefined :
 		object[$observable] ? object[$observable] :
-		!isObservable(object) ? undefined :
+		!isMutable(object) ? undefined :
 	createProxy(object) ;
 }
 
@@ -407,5 +407,5 @@ export function notify(object, path) {
 
 export function observe(object, path, fn) {
 	// Coerce path to string
-	return observeThing(Observable(object) || object, path + '', fn);
+	return observeThing(Mutable(object) || object, path + '', fn);
 }

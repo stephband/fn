@@ -3,10 +3,6 @@ import { Mutable as Observable, Mutable, observe } from "../modules/mutable/muta
 import test from "../modules/test.js";
 
 test('Observable()', function(test, log) {
-
-	var Observable = window.Observable;
-	var observe    = Observable.observe;
-
 	test("observe 'a.b.c'", function(equals, done) {
 		var expected = [1,2,3,4,undefined,5,[6],[7],/*[8],[8,9],*/10,{}/*,{d:11}*/];
 
@@ -341,4 +337,31 @@ test('Observable()', function(test, log) {
 
 		done();
 	}, 7);
+
+
+	test("observe '0'", function(equals, done) {
+		var expected = [2,3,4,5,6];
+
+		var object = {
+			0: 0,
+			1: 1,
+			2: 2,
+			3: 3
+		};
+
+		var o = Mutable(object);
+
+		function assert(value, change) {
+			equals(expected.shift(), value);
+		}
+
+		observe(o, '2', assert);
+		observe(o, '3', assert);
+
+		o[3] = 4;
+		o[2] = 5;
+		o[3] = 6;
+
+		done();
+	}, 5);
 });
