@@ -25,34 +25,8 @@
 	<input type="range" id="2" step="any" min="0" max="1" value="0" />
 	<input type="range" id="3" step="any" min="0" max="2" value="0" />
 
-	<script src="polyfills/number.isnan.js"></script>
-	<script src="polyfills/object.assign.js"></script>
-	<script src="js/fn.js"></script>
-	<script src="js/stream.js"></script>
-	<script src="js/pool.js"></script>
-	<!--script src="js/store.js"></script-->
-	<!--script src="js/router.js"></script-->
-
-	<script src="test/test.js"></script>
-
-	<script src="test/test.fn.utils.js"></script>
-	<script src="test/test.fn.js"></script>
-	<script src="test/test.stream.js"></script>
-	<script src="test/test.stream.stop.js"></script>
-	<script src="test/test.stream.clone.js"></script>
-	<!--script src="test/test.store.js"></script>
-	<script src="test/test.router.js"></script-->
-
-	<script>
-		var in1 = document.getElementById('1');
-		var in2 = document.getElementById('2');
-		var in3 = document.getElementById('3');
-
-		var st1 = Stream.Events('input', in1).map(Fn.getPath('target.value')).buffer(in1.value).map(parseFloat);
-		var st2 = Stream.Events('input', in2).map(Fn.getPath('target.value')).buffer(in2.value).map(parseFloat);
-		var st3 = Stream.Combine(Fn.add, st1, st2);
-
-		st3.each(Fn.set('value', in3));
+	<script type="module">
+		import "./test/observable.test.js";
 	</script>
 </body>
 </html>

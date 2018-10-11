@@ -1,10 +1,11 @@
 
-group('Observable()', function(test, log) {
+import { Mutable as Observable, Mutable, observe } from "../modules/mutable/mutable.js";
+import test from "../modules/test.js";
 
-	var assign = Object.assign;
-	var Store  = window.Store;
+test('Observable()', function(test, log) {
+
 	var Observable = window.Observable;
-	var observe = Observable.observe;
+	var observe    = Observable.observe;
 
 	test("observe 'a.b.c'", function(equals, done) {
 		var expected = [1,2,3,4,undefined,5,[6],[7],/*[8],[8,9],*/10,{}/*,{d:11}*/];
