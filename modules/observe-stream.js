@@ -1,13 +1,11 @@
 
 import Stream  from './stream.js';
-import curry   from './curry.js';
 import noop    from './noop.js';
+import { observe, Mutable } from './mutable/mutable.js';
 import { setPath } from './paths.js';
-import '../js/observable.js';
-const Observable = window.Observable;
 
 function ObserveSource(end, object, path) {
-	this.observable = Observable(object);
+	this.observable = Mutable(object);
 	this.path       = path;
 	this.end        = end;
 }
@@ -40,7 +38,7 @@ export default function(path, object) {
 			notify('push');
 		}
 
-		source.unobserve = Observable.observe(object, path, update);
+		source.unobserve = observe(object, path, update);
 		return source;
 	});
-};
+}
