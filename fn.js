@@ -6,8 +6,6 @@ if (window.console && window.console.log) {
     window.console.log('%cFn%c          - https://github.com/stephband/fn', 'color: #de3b16; font-weight: 600;', 'color: inherit; font-weight: 400;');
 }
 
-import './js/observable.js';
-
 import curry from './modules/curry.js';
 
 export { curry as curry };
