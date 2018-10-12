@@ -1,18 +1,17 @@
 
-var assign         = Object.assign;
-var define         = Object.defineProperty;
-var isFrozen       = Object.isFrozen;
-var getPrototypeOf = Object.getPrototypeOf;
+const assign         = Object.assign;
+const define         = Object.defineProperty;
+const isFrozen       = Object.isFrozen;
+const getPrototypeOf = Object.getPrototypeOf;
 
-var A              = Array.prototype;
+const A              = Array.prototype;
 
-var $original      = Symbol('original');
-var $observable    = Symbol('observable');
-var $observers     = Symbol('observers');
-var $update        = Symbol('update');
+const $observable    = Symbol('observable');
+const $observers     = Symbol('observers');
+const $update        = Symbol('update');
 
-var DOMObject      = window.EventTarget || window.Node;
-var nothing        = Object.freeze([]);
+const DOMPrototype   = (window.EventTarget || window.Node).prototype;
+const nothing        = Object.freeze([]);
 
 // Matches
 //
@@ -24,7 +23,7 @@ var nothing        = Object.freeze([]);
 //
 // Todo: replace with a proper parser. This currently supports only
 // 2 prop/value pairs at most
-var rname          = /\[?([-\w]+)(?:=(['"])?([-\w]+)\2\s*(?:,\s*([-\w]+)=(['"])?([-\w]+)\5)?)?\]?\.?/g;
+var rname = /\[?([-\w]+)(?:=(['"])?([-\w]+)\2\s*(?:,\s*([-\w]+)=(['"])?([-\w]+)\5)?)?\]?\.?/g;
 
 
 // Utils
@@ -38,7 +37,7 @@ function isArrayLike(object) {
 	&& typeof object.length === 'number' ;
 }
 
-export function isMutable(object) {
+function isMutable(object) {
 	// Many built-in objects and DOM objects bork when calling their
 	// methods via a proxy. They should be considered not observable.
 	// I wish there were a way of whitelisting rather than
@@ -49,7 +48,7 @@ export function isMutable(object) {
 		&& !isFrozen(object)
 		// Reject DOM nodes, Web Audio context and nodes, MIDI inputs,
 		// XMLHttpRequests, which all inherit from EventTarget
-		&& !DOMObject.prototype.isPrototypeOf(object)
+		&& !DOMPrototype.isPrototypeOf(object)
 		// Reject dates
 		&& !(object instanceof Date)
 		// Reject regex
@@ -231,27 +230,27 @@ function createProxy(object) {
 
 // observe
 
-function observePrimitive(object, fn) {
-	if (object !== fn.value) {
-		fn.value = object;
-		fn(object);
+function observePrimitive(primitive, data, fn) {
+	if (primitive !== data.value) {
+		data.old   = data.value;
+		data.value = primitive;
+		fn(primitive);
 	}
 
 	return noop;
 }
 
-function observeObject(object, fn) {
+function observeObject(object, data, fn) {
 	var observers = getObservers(object, $update);
-	var old       = fn.value;
-
 	observers.push(fn);
 
-	if (object !== fn.value) {
-		fn.value = object;
+	if (object !== data.value) {
+		data.old   = data.value;
+		data.value = object;
 		fn(object, {
 			index:   0,
-			removed: old ? old : nothing,
-			added:   object
+			removed: data.old ? data.old : nothing,
+			added:   data.value
 		});
 	}
 
@@ -260,42 +259,32 @@ function observeObject(object, fn) {
 	};
 }
 
-function observeItem(object, key, match, path, fn) {
+function observeSelector(object, key, isMatch, path, data, fn) {
 	var unobserve = noop;
-
-	function isMatch(item) {
-		let key;
-
-		for (key in match) {
-			if (item[key] !== match[key]) {
-				return false;
-			}
-		}
-
-		return true;
-	}
 
 	function update(array) {
 		var value = array && A.find.call(array, isMatch);
 		unobserve();
-		unobserve = observeThing(value, path, fn);
+		unobserve = observeUnknown(value, path, data, fn);
 	}
 
-	var unobserveObject = observeObject(object, update);
+	// We create an intermediate data object to go with the new update
+	// function. The original data object is passed on inside update.
+	var unobserveObject = observeObject(object, {}, update);
 
-	return function unobserveItem() {
+	return function unobserveSelector() {
 		unobserve();
 		unobserveObject();
 	};
 }
 
-function observeProperty(object, name, path, fn) {
+function observeProperty(object, name, path, data, fn) {
 	var observers = getObservers(object, name);
 	var unobserve = noop;
 
 	function update(value) {
 		unobserve();
-		unobserve = observeThing(value, path, fn);
+		unobserve = observeUnknown(value, path, data, fn);
 	}
 
 	observers.push(update);
@@ -307,41 +296,33 @@ function observeProperty(object, name, path, fn) {
 	};
 }
 
-function callbackItem(object, key, match, path, fn) {
-	function isMatch(item) {
-		let key;
-
-		for (key in match) {
-			if (item[key] !== match[key]) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
+function callbackItem(object, key, isMatch, path, data, fn) {
 	var value = object && A.find.call(object, isMatch);
-	return observeThing(Mutable(value) || value, path, fn);
+	return observeUnknown(Mutable(value) || value, path, data, fn);
 }
 
-function callbackProperty(object, name, path, fn) {
-	return observeThing(Mutable(object[name]) || object[name], path, fn);
+function callbackProperty(object, name, path, data, fn) {
+	return observeUnknown(Mutable(object[name]) || object[name], path, data, fn);
 }
 
-function observeThing(object, path, fn) {
+function isFloatString(string) {
+	// Convert to float and back to string to check if it retains
+	// the same value.
+	const float = parseFloat(string);
+	return float + '' === float;
+}
+
+function observeUnknown(object, path, data, fn) {
 	if (!path.length) {
-		// We can assume the full isMutable() check has been done, as
-		// this function is only called internally or from Object.observe
-		//
-		// The object[$observers] check is for IE - it checks whether the
-		// object is observable for muteability.
-		return object && object[$observable] && object[$observers] ?
-			observeObject(object, fn) :
-			observePrimitive(object, fn) ;
+		// We assume the full isMutable() check has been done –
+		// this function is internal
+		return object && object[$observable] ?
+			observeObject(object, data, fn) :
+			observePrimitive(object, data, fn) ;
 	}
 
 	if (!(object && typeof object === 'object')) {
-		return observePrimitive(undefined, fn);
+		return observePrimitive(undefined, data, fn);
 	}
 
 	rname.lastIndex = 0;
@@ -351,42 +332,54 @@ function observeThing(object, path, fn) {
 		throw new Error('Mutable: invalid path "' + path + '"');
 	}
 
-	var name  = tokens[1];
-	var match = tokens[3] && {};
-
-	if (match) {
-		// Build a match object with property/value pairs extracted with
-		// the rname regex.
-
-		// Todo: a proper parsing way of doing this. This is just hacked
-		// together to support up to '[name=value,name=value]' but no more
-
-		match[tokens[1]] = tokens[2] ?
-			tokens[3] :
-			tokens[3] === 'true' ? true :
-			tokens[3] === 'false' ? false :
-			parseFloat(tokens[3]) + '' === tokens[3] ? parseFloat(tokens[3]) :
-			tokens[3] ;
-
-		if (tokens[4]) {
-			match[tokens[4]] = tokens[5] ?
-				tokens[6] :
-				tokens[6] === 'true' ? true :
-				tokens[6] === 'false' ? false :
-				parseFloat(tokens[6]) + '' === tokens[6] ? parseFloat(tokens[6]) :
-				tokens[6] ;
-		}
-	}
-
+	let name  = tokens[1];
 	path = path.slice(rname.lastIndex);
 
+	// Path is a property name
+	if (!tokens[3]) {
+		return object[$observable] ?
+			observeProperty(object, name, path, data, fn) :
+			callbackProperty(object, name, path, data, fn) ;
+	}
+
+	// Path is a selector. Build a match object with property/value pairs
+	// extracted with the rname regex.
+	let match = {};
+
+	// Todo: a proper parsing way of doing this. This is just hacked
+	// together to support up to '[name=value,name=value]' but no more
+	match[tokens[1]] = tokens[2] ?
+		tokens[3] :
+		tokens[3] === 'true' ? true :
+		tokens[3] === 'false' ? false :
+		isFloatString(tokens[3]) ? parseFloat(tokens[3]) :
+		tokens[3] ;
+
+	if (tokens[4]) {
+		match[tokens[4]] = tokens[5] ?
+			tokens[6] :
+			tokens[6] === 'true' ? true :
+			tokens[6] === 'false' ? false :
+			isFloatString(tokens[6]) ? parseFloat(tokens[6]) :
+			tokens[6] ;
+	}
+
+	const isMatch = function isMatch(item) {
+		let key;
+
+		for (key in match) {
+			if (item[key] !== match[key]) {
+				return false;
+			}
+		}
+
+		return true;
+	};
+
 	return object[$observable] ?
-		match ?
-			observeItem(object, name, match, path, fn) :
-			observeProperty(object, name, path, fn) :
-		match ?
-			callbackItem(object, name, match, path, fn) :
-			callbackProperty(object, name, path, fn) ;
+		observeSelector(object, name, isMatch, path, data, fn) :
+		callbackItem(object, name, isMatch, path, data, fn) ;
+
 }
 
 
@@ -406,6 +399,7 @@ export function notify(object, path) {
 }
 
 export function observe(object, path, fn) {
+	const data = {};
 	// Coerce path to string
-	return observeThing(Mutable(object) || object, path + '', fn);
+	return observeUnknown(Mutable(object) || object, path + '', data, fn);
 }
