@@ -1,4 +1,5 @@
 
+import { $observer } from './observer.js';
 
 // -----------------------------------------
 // Pretty print Observable Proxies in devtools (omits all the proxy
@@ -25,7 +26,7 @@ window.devtoolsFormatters = [{
 		}
 
 		// Detect observable
-		if (!object[$observable] || object[$observable] !== object) {
+		if (!object[$observer] || object[$observer] !== object) {
 			return null;
 		}
 

@@ -1,11 +1,12 @@
-import { Mutable, observe } from "./mutable.js";
+import { Observer } from "./observer.js";
+import { observe } from "./observe.js";
 
 const assign = Object.assign;
 
 export function filter(fn, array) {
-	var subset = Mutable([]);
+	var subset = Observer([]);
 
-	observe(array, '', function() {
+	observe(array, '.', function() {
 		var filtered = array.filter(fn);
 		assign(subset, filtered);
 		subset.length = filtered.length;

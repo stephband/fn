@@ -1,8 +1,8 @@
 
-import cache from './cache.js';
-import id from './id.js';
-import overload from './overload.js';
-import _equals from './equals.js';
+import cache from '../cache.js';
+import id from '../id.js';
+import overload from '../overload.js';
+import _equals from '../equals.js';
 
 var A        = Array.prototype;
 var rcomment = /\s*\/\*([\s\S]*)\*\/\s*/;
