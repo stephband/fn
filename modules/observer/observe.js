@@ -7,8 +7,8 @@ const A       = Array.prototype;
 const assign  = Object.assign;
 const nothing = Object.freeze([]);
 
-//               1 .         2 .name        [    3 'quote' 4 "quote" 5 number ]
-const rpath   = /(\.\s*$)|\.?([^.[\s]+)\s*|\[(?:(\d+)|'([^']*)'|"([^"]*)")\]\s*|\[\s*/;
+//                   1 .name         [2 number  3 'quote' 4 "quote" ]
+const rpath   = /^\.?([^.[\s]+)\s*|^\[(?:(\d+)|'([^']*)'|"([^"]*)")\]\s*|^\[\s*/;
 
 function isPrimitive(object) {
     return !(object && typeof object === 'object');
@@ -121,7 +121,7 @@ function observeUnknown(object, path, data) {
     }
 
     // path is .name, [number], ['name'] or ["name"]
-    const name = tokens[2] || tokens[3] || tokens[4] || tokens[5] ;
+    const name = tokens[1] || tokens[2] || tokens[3] || tokens[4] ;
 
     if (name) {
         path = tokens.input.slice(tokens.index + tokens[0].length);
