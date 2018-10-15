@@ -25,4 +25,4 @@ export default function equals(a, b) {
     }
 
     return true;
-};
+}

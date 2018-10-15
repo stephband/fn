@@ -126,7 +126,7 @@ function observeUnknown(object, path, data) {
             readProperty(object, name, path, data) ;
     }
 
-    const isMatch = parseSelector(null, tokens);
+    const isMatch = parseSelector(tokens);
     path = tokens.input.slice(tokens.index + tokens[0].length + (tokens.consumed || 0));
 
     // path is '[key=value]'

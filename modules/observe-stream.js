@@ -30,7 +30,7 @@ ObserveSource.prototype = {
 	unobserve: noop
 };
 
-export default function(path, object) {
+export default function Observable(path, object) {
 	return new Stream(function setup(notify, stop) {
 		var source = new ObserveSource(stop, object, path);
 
