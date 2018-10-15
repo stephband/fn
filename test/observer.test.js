@@ -195,41 +195,51 @@ test('Observer()', function(test, log) {
 		done();
 	}, 14);
 
-	test("observe('a.b[d=4]', fn, object)", function(equals, done) {
+	test("observe('a.b[d=4,e=\"4\"]', fn, object)", function(equals, done) {
 		var expected = [
-			{"d":4,"n":1},
-			{"d":4,"n":2},
+			{d:4,e:"4",n:1},
+			{d:4,e:"4",n:2},
 			undefined,
-			{"d":4,"n":3},
+			{d:4,e:"4",n:3},
 			undefined,
-			{"d":4,"n":4},
+			{d:4,e:"4",n:4},
 			undefined
 		];
 
-		var data = {a: {b: [{d: 4, n: 1}]}};
+		var data = {a: {b: [{d: 4, e: "4", n: 1}]}};
 		var o    = Observer(data);
 
-		observe('a.b[d=4]', function(value) {
+		observe('a.b[d=4,e="4"]', function(value) {
 			equals(expected.shift(), value);
 		}, o);
 
-		o.a = {b: [{d: 4, n: 2}]}; // {"d":4,"n":2}
+		o.a = {b: [{d: 4, e: "4", n: 2}]}; // {"d":4,"n":2}
 		o.a.b.length = 0;          // undefined
 		o.a.b = undefined;
-		o.a.b = [{d: 4, n: 3}];    // {"d":4,"n":3}
+		o.a.b = [{d: 4, e: "4", n: 3}];    // {"d":4,"n":3}
 		o.a = undefined;           // undefined
 		o.a = {};
 		o.a.b = [];
 		o.a.b.push({d: 9});
 
-		var object = {d: 4, n: 4};
+		var object = {d: 4, e: "4", n: 4};
 		o.a.b.push(object);        // {"d":4,"n":4}
-		object.n = 5;              // {"d":4,"n":5}         Not supported
-		object.n = undefined;      // {"d":4,"n":undefined} Not supported
-		object.d = 5;              // undefined             Not supported
-		o.a.b.push({d: 3});
-		o.a.b.push({e: 30});
-		o.a.b.splice(1, 1);        // undefined
+
+		//  Mutations to the object not supported. Requires too many bindings,
+		//  array and all its objects.
+		object.n = 5;              // {"d":4,"n":5}
+		object.n = undefined;      // {"d":4,"n":undefined}
+		object.d = 5;              // undefined
+
+		// Reset
+		object.n = 4;
+		object.d = 4;
+
+		o.a.b.unshift({d: 4});
+		o.a.b.push({e: "4"});
+
+		console.log(o.a.b)
+		o.a.b.splice(2, 1);        // undefined
 
 		equals(0, expected.length);
 		done();

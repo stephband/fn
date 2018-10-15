@@ -1,5 +1,6 @@
 
 import noop from '../noop.js';
+import remove from '../lists/remove.js';
 import { getListeners, Observer, $observer } from './observer.js';
 import parseSelector from './parse-selector.js';
 
@@ -12,11 +13,6 @@ const rpath   = /^\.?([^.[\s]+)\s*|^\[(?:(\d+)|'([^']*)'|"([^"]*)")\]\s*|^\[\s*/
 
 function isPrimitive(object) {
     return !(object && typeof object === 'object');
-}
-
-function remove(objects, object) {
-    var i = objects.indexOf(object);
-    objects.splice(i, 1);
 }
 
 function observePrimitive(primitive, data) {
@@ -85,12 +81,12 @@ function observeProperty(object, name, path, data) {
 	};
 }
 
-function immutableSelector(object, isMatch, path, data) {
+function readSelector(object, isMatch, path, data) {
 	var value = object && A.find.call(object, isMatch);
 	return observeUnknown(Observer(value) || value, path, data);
 }
 
-function immutableProperty(object, name, path, data) {
+function readProperty(object, name, path, data) {
 	return observeUnknown(Observer(object[name]) || object[name], path, data);
 }
 
@@ -127,7 +123,7 @@ function observeUnknown(object, path, data) {
         path = tokens.input.slice(tokens.index + tokens[0].length);
         return object[$observer] ?
             observeProperty(object, name, path, data) :
-            immutableProperty(object, name, path, data) ;
+            readProperty(object, name, path, data) ;
     }
 
     const isMatch = parseSelector(null, tokens);
@@ -136,7 +132,7 @@ function observeUnknown(object, path, data) {
     // path is '[key=value]'
     return object[$observer] ?
         observeSelector(object, isMatch, path, data) :
-        immutableSelector(object, isMatch, path, data) ;
+        readSelector(object, isMatch, path, data) ;
 }
 
 export function observe(path, fn, object) {

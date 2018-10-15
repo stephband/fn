@@ -27,6 +27,8 @@ const fselector = {
             let key;
 
             for (key in match) {
+                console.log(key, object[key], match[key]);
+
                 if (object[key] !== match[key]) {
                     return false;
                 }

@@ -90,8 +90,8 @@ function equals(expected, value, message) {
 			console.trace(
 				'%cTest%c %s', 'color: #6f9940; font-weight: 600;', 'color: #ee8833; font-weight: 300;',
 				'failed',
-				'expected:', (JSON.stringify(expected) || typeof value),
-				'received:', (JSON.stringify(value) || typeof value),
+				'expected:', (JSON.stringify(expected) || expected),
+				'received:', (JSON.stringify(value) || value),
 				message || ''
 			);
 		}
