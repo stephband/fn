@@ -14,6 +14,29 @@ function distribute(fns, object, data) {
     return object;
 }
 
+/*
+function parse(regex, fns, acc, path) {
+    // If path is a regex result, get path from latest index
+    const string = typeof path !== 'string' ?
+        path.input.slice(path.index + path[0].length + (path.consumed || 0)) :
+        path ;
+
+    const tokens = regex.exec(string);
+    if (!tokens) {
+        throw new Error('Observer: Invalid path: ' + string + ' : ' + path.input);
+    }
+
+    let n = -1;
+    while (++n < tokens.length) {
+        acc = (tokens[n] !== undefined && fns[n]) ? fns[n](acc, tokens) : acc ;
+    }
+
+    path.consumed = tokens.index + tokens[0].length + (tokens.consumed || 0);
+
+    return acc;
+}
+*/
+
 export default curry(function parse(regex, fns, output, string) {
     var data;
 

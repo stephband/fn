@@ -237,8 +237,6 @@ test('Observer()', function(test, log) {
 
 		o.a.b.unshift({d: 4});
 		o.a.b.push({e: "4"});
-
-		console.log(o.a.b)
 		o.a.b.splice(2, 1);        // undefined
 
 		equals(0, expected.length);

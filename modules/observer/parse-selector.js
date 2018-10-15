@@ -27,8 +27,6 @@ const fselector = {
             let key;
 
             for (key in match) {
-                console.log(key, object[key], match[key]);
-
                 if (object[key] !== match[key]) {
                     return false;
                 }
@@ -58,13 +56,12 @@ function parse(regex, fns, acc, path) {
 
     const tokens = regex.exec(string);
     if (!tokens) {
-        console.log(path, string);
         throw new Error('Observer: Invalid path: ' + string + ' : ' + path.input);
     }
 
     let n = -1;
     while (++n < tokens.length) {
-        acc = (tokens[n] && fns[n]) ? fns[n](acc, tokens) : acc ;
+        acc = (tokens[n] !== undefined && fns[n]) ? fns[n](acc, tokens) : acc ;
     }
 
     path.consumed = tokens.index + tokens[0].length + (tokens.consumed || 0);
