@@ -1,4 +1,6 @@
 
+import noop from '../noop.js';
+
 export const $observer = Symbol('observer');
 
 const define       = Object.defineProperty;
@@ -9,8 +11,6 @@ const isFrozen     = Object.isFrozen;
 
 
 // Utils
-
-export function noop() {}
 
 function isArrayLike(object) {
 	return object

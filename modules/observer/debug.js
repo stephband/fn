@@ -2,7 +2,7 @@
 import { $observer } from './observer.js';
 
 // -----------------------------------------
-// Pretty print Observable Proxies in devtools (omits all the proxy
+// Pretty print Observer Proxies in devtools (omits all the proxy
 // [[target]] nonsense).
 
 function printObject(object) {
@@ -30,7 +30,7 @@ window.devtoolsFormatters = [{
 			return null;
 		}
 
-		return ["div", { style: 'color: #60acc5;' }, 'Observable Proxy ' + printObject(object)];
+		return ["div", { style: 'color: #60acc5;' }, 'Observer Proxy ' + printObject(object)];
 	},
 
 	hasBody: function(){

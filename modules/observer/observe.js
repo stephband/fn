@@ -1,5 +1,6 @@
 
-import { getListeners, Observer, $observer, noop } from './observer.js';
+import noop from '../noop.js';
+import { getListeners, Observer, $observer } from './observer.js';
 import parseSelector from './parse-selector.js';
 
 const A       = Array.prototype;
@@ -138,7 +139,7 @@ function observeUnknown(object, path, data) {
         immutableSelector(object, isMatch, path, data) ;
 }
 
-export function observe(path, object, fn) {
+export function observe(path, fn, object) {
     return observeUnknown(Observer(object) || object, path + '', {
         value: undefined,
         fn:    fn

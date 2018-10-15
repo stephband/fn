@@ -12,9 +12,9 @@ test('Observer()', function(test, log) {
 		var data = {};
 		var o    = Observer(data);
 
-		observe('', o, function(value, change) {
+		observe('', function(value, change) {
 			equals(expected.shift(), value);
-		});
+		}, o);
 
 		o.a = 0;
 		o.b = 1;
@@ -35,9 +35,9 @@ test('Observer()', function(test, log) {
 		var data = {};
 		var o    = Observer(data);
 
-		observe('.', o, function(value, change) {
+		observe('.', function(value, change) {
 			equals(expected.shift(), value);
-		});
+		}, o);
 
 		o.a = 0;
 		o.b = 1;
@@ -52,9 +52,9 @@ test('Observer()', function(test, log) {
 		var data = {};
 		var o    = Observer(data);
 
-		observe('a', o, function(value, change) {
+		observe('a', function(value, change) {
 			equals(expected.shift(), value);
-		});
+		}, o);
 
 		o.a = 0;
 		o.b = 1;
@@ -82,13 +82,13 @@ test('Observer()', function(test, log) {
 
 		var o = Observer([]);
 
-		observe('.', o, function(value, change) {
+		observe('.', function(value, change) {
 			equals(expected.shift(), value);
-		});
+		}, o);
 
-		observe('length', o, function(value, change) {
+		observe('length', function(value, change) {
 			equals(lengths.shift(), value);
-		});
+		}, o);
 
 		o[0] = 0;
 		o[1] = 1;
@@ -112,9 +112,9 @@ test('Observer()', function(test, log) {
 		var data = [];
 		var o    = Observer(data);
 
-		observe('[0]', o, function(value) {
+		observe('[0]', function(value) {
 			equals(expected.shift(), value);
-		});
+		}, o);
 
 		o.push(0);
 		o.push(1);
@@ -139,9 +139,9 @@ test('Observer()', function(test, log) {
 		var data = {a: {b: {c: 1}}};
 		var o    = Observer(data);
 
-		observe('a.b.c', o, function(value, change) {
+		observe('a.b.c', function(value, change) {
 			equals(expected.shift(), value);
-		});
+		}, o);
 
 		o.a.b.c = 2;
 		o.a.b = {c: 3};
@@ -170,9 +170,9 @@ test('Observer()', function(test, log) {
 		var data = {a: {b: {c: 1}}};
 		var o    = Observer(data);
 
-		observe('a.b.c.', o, function(value, change) {
+		observe('a.b.c.', function(value, change) {
 			equals(expected.shift(), value);
-		});
+		}, o);
 
 		o.a.b.c = 2;
 		o.a.b = {c: 3};
@@ -209,9 +209,9 @@ test('Observer()', function(test, log) {
 		var data = {a: {b: [{d: 4, n: 1}]}};
 		var o    = Observer(data);
 
-		observe('a.b[d=4]', o, function(value) {
+		observe('a.b[d=4]', function(value) {
 			equals(expected.shift(), value);
-		});
+		}, o);
 
 		o.a = {b: [{d: 4, n: 2}]}; // {"d":4,"n":2}
 		o.a.b.length = 0;          // undefined
@@ -240,7 +240,7 @@ test('Observer()', function(test, log) {
 		var o    = Observer(data);
 
 		try {
-			observe('a.b[d=4].', o, function(value) {});
+			observe('a.b[d=4].', function(value) {}, o);
 		}
 		catch(e) {
 			equals(true, true);
@@ -256,9 +256,9 @@ test('Observer()', function(test, log) {
 		var data = {a: {b: [{d: '4', n: 1}]}};
 		var o    = Observer(data);
 
-		observe('a.b[d="4"].n', o, function(value, change) {
+		observe('a.b[d="4"].n', function(value, change) {
 			equals(expected.shift(), value);
-		});
+		}, o);
 
 		o.a = {b: [{d: '4', n: 2}]};
 		o.a.b.length = 0;
@@ -282,9 +282,9 @@ test('Observer()', function(test, log) {
 		var data = { a: [] };
 		var o    = Observer(data);
 
-		observe('a[0].n', o, function(value) {
+		observe('a[0].n', function(value) {
 			equals(expected.shift(), value);
-		});
+		}, o);
 
 		var oa = Observer(o.a);
 		oa.push({n: 0});
@@ -312,9 +312,9 @@ test('Observer()', function(test, log) {
 		var data = [];
 		var o    = Observer(data);
 
-		observe('[0]', o, function(value, change) {
+		observe('[0]', function(value, change) {
 			equals(expected.shift(), value);
-		});
+		}, o);
 
 		o[0] = 0;
 		o[1] = 1;
@@ -339,9 +339,9 @@ test('Observer()', function(test, log) {
 		var data = { a: [] };
 		var o    = Observer(data);
 
-		observe('a.0.n', o, function(value, change) {
+		observe('a.0.n', function(value, change) {
 			equals(expected.shift(), value);
-		});
+		}, o);
 
 		o.a[0] = {n: 0};
 		o.a[1] = {n: 1};
@@ -366,9 +366,9 @@ test('Observer()', function(test, log) {
 		var data = { a: [] };
 		var o    = Observer(data);
 
-		observe('a[0].n', o, function(value, change) {
+		observe('a[0].n', function(value, change) {
 			equals(expected.shift(), value);
-		});
+		}, o);
 
 		o.a[0] = {n: 0};
 		o.a[1] = {n: 1};
