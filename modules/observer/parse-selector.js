@@ -70,6 +70,10 @@ function parse(regex, fns, acc, path) {
     return acc;
 }
 
-export default function parseSelector(acc, path) {
+function parseSelector(match, path) {
+    return parse(rselector, fselector, match, path);
+}
+
+export default function(path) {
     return parse(rselector, fselector, {}, path);
 }
