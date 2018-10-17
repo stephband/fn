@@ -7,7 +7,7 @@ import './libs/marked/marked.min.js';
 // https://prismjs.com/
 import './libs/prism/prism.js';
 
-import { cache, concat, exec, id, invoke, last, nothing, slugify, Functor as Fn, Stream } from '../fn/fn.js';
+import { cache, concat, exec, id, invoke, last, nothing, slugify, Fn, Stream } from '../fn/fn.js';
 import Sparky from '../sparky/sparky.js';
 
 const A = Array.prototype;
