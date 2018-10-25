@@ -1,5 +1,5 @@
 
-import { Functor as Fn, Stream } from '../fn.js';
+import { Fn, Stream } from '../fn.js';
 
 var assign = Object.assign;
 var debug  = true;
