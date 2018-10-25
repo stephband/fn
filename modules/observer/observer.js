@@ -47,8 +47,8 @@ function trapGet(target, name, self) {
 
 	// Ignore symbols
 	return typeof name === 'symbol' ?
-        target[name] :
-		Observer(target[name]) || target[name] ;
+        value :
+		Observer(value) || value ;
 }
 
 const arrayHandlers = {

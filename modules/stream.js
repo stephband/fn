@@ -256,25 +256,28 @@ Stream.fromCallback = function(object, name) {
 
 // Clock Stream
 
-function ClockSource(notify, stop, options) {
-    // requestAnimationFrame/cancelAnimationFrame cannot be invoked
-    // with context, so need to be referenced.
+const clockEventPool = [];
 
-    var source  = this;
-    var request = options.request;
+function ClockSource(notify, end, timer) {
+    const source = this;
 
-    function frame(time) {
-        source.value = time;
-        notify('push');
-        source.value = undefined;
-        source.id    = request(frame);
-    }
+    this.notify = notify;
+    this.end    = end;
+    this.timer  = timer;
 
-    this.cancel = options.cancel || noop;
-    this.end    = stop;
+    // Todo: Pool events if we are making loads of time streams
+    const event = this.event = clockEventPool.shift() || {};
+    event.stopTime = Infinity;
 
-    // Start clock
-    this.id = request(frame);
+    this.frame = (time) => {
+        // Wait until startTime
+        if (time < event.startTime) {
+            this.requestId = timer.request(this.frame);
+            return;
+        }
+
+        this.update(time);
+    };
 }
 
 assign(ClockSource.prototype, {
@@ -284,10 +287,44 @@ assign(ClockSource.prototype, {
         return value;
     },
 
-    stop: function stop() {
-        var cancel = this.cancel;
-        cancel(this.id);
-        this.end();
+    start: function(time) {
+        this.event.startTime = this.event.t2 = time || this.timer.now();
+        this.requestId       = this.timer.request(this.frame);
+    },
+
+    stop: function stop(time) {
+        this.event.stopTime = time || this.timer.now();
+
+        // If stopping during the current frame cancel future requests.
+        if (this.event.stopTime <= this.event.t2) {
+            this.timer.cancel(this.requestId);
+            this.end();
+        }
+    },
+
+    update: function(time) {
+        const event = this.event;
+        event.t1 = event.t2;
+
+        this.requestId = undefined;
+        this.value     = event;
+
+        if (time >= event.stopTime) {
+            event.t2 = event.stopTime;
+            this.notify('push');
+            this.end();
+
+            // Release event
+            clockEventPool.push(event);
+            return;
+        }
+        else {
+            event.t2 = time;
+            this.notify('push');
+            // Todo: We need this? Test.
+            this.value     = undefined;
+            this.requestId = this.timer.request(this.frame);
+        }
     }
 });
 
