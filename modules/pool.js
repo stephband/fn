@@ -1,4 +1,5 @@
 
+import Fn from './functor.js';
 import noop from './noop.js';
 
 function call(fn) {

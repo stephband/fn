@@ -6,4 +6,4 @@ export default function print() {
         console.log.apply(console, concat(arguments, args));
         return object;
     };
-};
+}

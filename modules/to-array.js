@@ -17,4 +17,4 @@ export default function toArray(object) {
     }
 
     return array;
-};
+}

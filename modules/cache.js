@@ -8,7 +8,7 @@ export default function cache(fn) {
     var map = new Map();
 
     return function cache(object) {
-        if (DEBUG && object === ubndefined) {
+        if (DEBUG && object === undefined) {
             throw new Error('Fn: weakCache() called with undefined.');
         }
 
@@ -24,4 +24,4 @@ export default function cache(fn) {
         map.set(object, value);
         return value;
     };
-};
+}

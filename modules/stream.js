@@ -3,6 +3,8 @@ import { each } from './lists/core.js';
 import latest   from './latest.js';
 import noop     from './noop.js';
 import now      from './now.js';
+import remove   from './lists/remove.js';
+import rest     from './lists/rest.js';
 import Timer    from './timer.js';
 import toArray  from './to-array.js';
 import choke    from './choke.js';
@@ -17,10 +19,6 @@ var assign    = Object.assign;
 
 function call(value, fn) {
     return fn(value);
-}
-
-function apply(values, fn) {
-    return fn.apply(null, values);
 }
 
 function isValue(n) { return n !== undefined; }
@@ -259,8 +257,6 @@ Stream.fromCallback = function(object, name) {
 const clockEventPool = [];
 
 function TimeSource(notify, end, timer) {
-    const source = this;
-
     this.notify = notify;
     this.end    = end;
     this.timer  = timer;
@@ -351,13 +347,12 @@ assign(TimeSource.prototype, {
             clockEventPool.push(event);
             return;
         }
-        else {
-            event.t2 = time;
-            this.notify('push');
-            // Todo: We need this? Test.
-            this.value     = undefined;
-            this.requestId = this.timer.request(this.frame);
-        }
+
+        event.t2 = time;
+        this.notify('push');
+        // Todo: We need this? Test.
+        this.value     = undefined;
+        this.requestId = this.timer.request(this.frame);
     }
 });
 
@@ -507,7 +502,7 @@ assign(MergeSource.prototype, {
             source.off('push', notify);
         }, sources);
 
-        stop(values.length + buffer.length);
+        stop(this._values.length + this._buffer.length);
     }
 });
 

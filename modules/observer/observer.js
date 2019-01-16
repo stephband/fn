@@ -14,8 +14,9 @@ const isFrozen     = Object.isFrozen;
 
 function isArrayLike(object) {
 	return object
-	&& typeof object !== 'function'
-	&& object.hasOwnProperty('length')
+	&& typeof object === 'object'
+	// Slows it down a bit
+	//&& object.hasOwnProperty('length')
 	&& typeof object.length === 'number' ;
 }
 
@@ -43,12 +44,10 @@ function fire(fns, value, record) {
 // Observer proxy
 
 function trapGet(target, name, self) {
-	var value = target[name];
-
 	// Ignore symbols
-	return typeof name === 'symbol' ?
-        value :
-		Observer(value) || value ;
+	return typeof name !== 'symbol'
+		&& Observer(target[name])
+		|| target[name] ;
 }
 
 const arrayHandlers = {
@@ -140,10 +139,8 @@ const objectHandlers = {
 	get: trapGet,
 
 	set: function(target, name, value, receiver) {
-		var old = target[name];
-
 		// If we are setting the same value, we're not really setting at all
-		if (old === value) { return true; }
+		if (target[name] === value) { return true; }
 
         // Set value on target
 		target[name] = value;
@@ -170,19 +167,28 @@ const objectHandlers = {
     //			}
 };
 
-function createObserver(object) {
-	var observer = new Proxy(object, isArrayLike(object) ?
+function createObserver(target) {
+	var observer = new Proxy(target, isArrayLike(target) ?
 		arrayHandlers :
 		objectHandlers
 	);
 
-	define(object, $observer, {
-        value: {
-            observer:   observer,
-            properties: {},
-            mutate:     []
-        }
-    });
+	// This is strict but slow
+	//define(target, $observer, {
+    //    value: {
+    //        observer:   observer,
+    //        properties: {},
+    //        mutate:     []
+    //    }
+    //});
+
+	// An order of magnitude faster
+	target[$observer] = {
+		target:     target,
+		observer:   observer,
+		properties: {},
+		mutate:     []
+	};
 
 	return observer;
 }
@@ -194,8 +200,11 @@ function isObservable(object) {
 	// blacklisting, but it would seem not.
 
 	return object
-		// Reject primitives, null and other frozen objects
-		&& !isFrozen(object)
+		// Reject primitives and other frozen objects
+		// This is really slow...
+		//&& !isFrozen(object)
+		// This is less safe but faster
+		&& typeof object === 'object'
 		// Reject DOM nodes, Web Audio context and nodes, MIDI inputs,
 		// XMLHttpRequests, which all inherit from EventTarget
 		&& !DOMPrototype.isPrototypeOf(object)
@@ -224,6 +233,5 @@ export function notify(object, path) {
 export function Observer(object) {
 	return !object ? undefined :
 		object[$observer] ? object[$observer].observer :
-		!isObservable(object) ? undefined :
-	createObserver(object) ;
+		isObservable(object) && createObserver(object) ;
 }

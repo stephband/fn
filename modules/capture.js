@@ -11,7 +11,7 @@ function reduce(reducers, acc, tokens) {
     // Call the close fn
     // This may be deprecated. Warn.
     if (reducers.close) {
-        console.warn('Are we keeping the close function, steve?', reducers);
+        console.warn('Are we keeping the close function, Steve?', reducers);
         acc = reducers.close(acc, tokens);
     }
 
@@ -19,13 +19,5 @@ function reduce(reducers, acc, tokens) {
 }
 
 export default function capture(regex, reducers, acc, string) {
-    const result = exec(regex, (tokens) => {
-        return reduce(reducers, acc, tokens);
-    }, string);
-
-    if (!result) {
-        //throw new Error('Cannot capture using ' + regex + ' in "' + string + '"');
-    }
-
-    return acc;
+    return exec(regex, (tokens) => reduce(reducers, acc, tokens), string);
 }
