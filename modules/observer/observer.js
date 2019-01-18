@@ -8,6 +8,7 @@ const A            = Array.prototype;
 const DOMPrototype = (window.EventTarget || window.Node).prototype;
 const nothing      = Object.freeze([]);
 const isFrozen     = Object.isFrozen;
+const isExtensible = Object.isExtensible;
 
 
 // Utils
@@ -45,7 +46,9 @@ function fire(fns, value, record) {
 
 function trapGet(target, name, self) {
 	// Ignore symbols
+	let desc;
 	return typeof name !== 'symbol'
+		&& ((desc = Object.getOwnPropertyDescriptor(target, name)), !desc || desc.writable)
 		&& Observer(target[name])
 		|| target[name] ;
 }
@@ -203,9 +206,13 @@ function isObservable(object) {
 		// Reject primitives and other frozen objects
 		// This is really slow...
 		//&& !isFrozen(object)
-		// This is less safe but faster
-		&& typeof object === 'object'
-		// Reject DOM nodes, Web Audio context and nodes, MIDI inputs,
+		// I haven't compared this, but it's necessary for audio nodes
+		// at least, but then only because we're extending with symbols...
+		// hmmm, that may need to change...
+		&& isExtensible(object)
+		// This is less safe but faster.
+		//&& typeof object === 'object'
+		// Reject DOM nodes, Web Audio context, MIDI inputs,
 		// XMLHttpRequests, which all inherit from EventTarget
 		&& !DOMPrototype.isPrototypeOf(object)
 		// Reject dates
