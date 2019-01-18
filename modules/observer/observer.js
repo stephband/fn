@@ -1,13 +1,9 @@
 
-import noop from '../noop.js';
-
 export const $observer = Symbol('observer');
 
-const define       = Object.defineProperty;
 const A            = Array.prototype;
 const DOMPrototype = (window.EventTarget || window.Node).prototype;
 const nothing      = Object.freeze([]);
-const isFrozen     = Object.isFrozen;
 const isExtensible = Object.isExtensible;
 
 
@@ -230,10 +226,13 @@ function isObservable(object) {
 }
 
 export function notify(object, path) {
-	const fns = object[$observer].properties;
+	const observer = object[$observer];
+	if (!observer) { return; }
+
+	const fns = observer.properties;
 	fire(fns[path], object[path]);
 
-    const mutate = object[$observer].mutate;
+    const mutate = observer.mutate;
 	fire(mutate, object);
 }
 
