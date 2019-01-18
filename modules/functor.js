@@ -578,12 +578,9 @@ assign(Fn.prototype, {
     },
 
     pipe: function(stream) {
-        // Target must be evented
-        if (!stream || !stream.on) {
-            throw new Error('Fn: Fn.pipe(object) object must be a stream. (' + stream + ')');
-        }
-
-        return stream.on('pull', this.shift);
+        return stream.on ?
+            stream.on('pull', this.shift) :
+            stream ;
     },
 
     tap: function(fn) {
