@@ -241,3 +241,10 @@ export function Observer(object) {
 		object[$observer] ? object[$observer].observer :
 		isObservable(object) && createObserver(object) ;
 }
+
+export function Target(object) {
+	return object
+		&& object[$observer]
+		&& object[$observer].target
+		|| object ;
+}

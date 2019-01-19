@@ -40,7 +40,7 @@ export { default as ObserveStream } from './modules/observe-stream.js';
 export { default as Stream }      from './modules/stream.js';
 export { default as Timer }       from './modules/timer.js';
 export { default as Pool }        from './modules/pool.js';
-export { Observer, notify }       from './modules/observer/observer.js';
+export { Observer, Target, notify } from './modules/observer/observer.js';
 export { observe }                from './modules/observer/observe.js';
 
 export { default as requestTick } from './modules/request-tick.js';
