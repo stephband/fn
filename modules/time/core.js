@@ -232,7 +232,7 @@ var options = {
 	//timeZoneName:  'short'
 };
 
-var rtoken    = /([YZMDdhmswz]{2,4}|\+-)/g;
+var rtoken    = /([YZMDdhmswz]{2,4}|D|\+-)/g;
 var rusdate   = /\w{3,}|\d+/g;
 var rdatejson = /^"(-?\d{4,}-\d\d-\d\d)/;
 

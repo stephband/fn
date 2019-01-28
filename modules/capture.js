@@ -9,9 +9,7 @@ function reduce(reducers, acc, tokens) {
     }
 
     // Call the close fn
-    // This may be deprecated. Warn.
     if (reducers.close) {
-        console.warn('Are we keeping the close function, Steve?', reducers);
         acc = reducers.close(acc, tokens);
     }
 
