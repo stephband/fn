@@ -1,21 +1,19 @@
 
-import noop from '../noop.js';
-
 export const $observer = Symbol('observer');
 
-const define       = Object.defineProperty;
 const A            = Array.prototype;
 const DOMPrototype = (window.EventTarget || window.Node).prototype;
 const nothing      = Object.freeze([]);
-const isFrozen     = Object.isFrozen;
+const isExtensible = Object.isExtensible;
 
 
 // Utils
 
 function isArrayLike(object) {
 	return object
-	&& typeof object !== 'function'
-	&& object.hasOwnProperty('length')
+	&& typeof object === 'object'
+	// Slows it down a bit
+	//&& object.hasOwnProperty('length')
 	&& typeof object.length === 'number' ;
 }
 
@@ -43,12 +41,12 @@ function fire(fns, value, record) {
 // Observer proxy
 
 function trapGet(target, name, self) {
-	var value = target[name];
-
 	// Ignore symbols
-	return typeof name === 'symbol' ?
-        value :
-		Observer(value) || value ;
+	let desc;
+	return typeof name !== 'symbol'
+		&& ((desc = Object.getOwnPropertyDescriptor(target, name)), !desc || desc.writable)
+		&& Observer(target[name])
+		|| target[name] ;
 }
 
 const arrayHandlers = {
@@ -140,10 +138,8 @@ const objectHandlers = {
 	get: trapGet,
 
 	set: function(target, name, value, receiver) {
-		var old = target[name];
-
 		// If we are setting the same value, we're not really setting at all
-		if (old === value) { return true; }
+		if (target[name] === value) { return true; }
 
         // Set value on target
 		target[name] = value;
@@ -170,19 +166,28 @@ const objectHandlers = {
     //			}
 };
 
-function createObserver(object) {
-	var observer = new Proxy(object, isArrayLike(object) ?
+function createObserver(target) {
+	var observer = new Proxy(target, isArrayLike(target) ?
 		arrayHandlers :
 		objectHandlers
 	);
 
-	define(object, $observer, {
-        value: {
-            observer:   observer,
-            properties: {},
-            mutate:     []
-        }
-    });
+	// This is strict but slow
+	//define(target, $observer, {
+    //    value: {
+    //        observer:   observer,
+    //        properties: {},
+    //        mutate:     []
+    //    }
+    //});
+
+	// An order of magnitude faster
+	target[$observer] = {
+		target:     target,
+		observer:   observer,
+		properties: {},
+		mutate:     []
+	};
 
 	return observer;
 }
@@ -194,9 +199,16 @@ function isObservable(object) {
 	// blacklisting, but it would seem not.
 
 	return object
-		// Reject primitives, null and other frozen objects
-		&& !isFrozen(object)
-		// Reject DOM nodes, Web Audio context and nodes, MIDI inputs,
+		// Reject primitives and other frozen objects
+		// This is really slow...
+		//&& !isFrozen(object)
+		// I haven't compared this, but it's necessary for audio nodes
+		// at least, but then only because we're extending with symbols...
+		// hmmm, that may need to change...
+		&& isExtensible(object)
+		// This is less safe but faster.
+		//&& typeof object === 'object'
+		// Reject DOM nodes, Web Audio context, MIDI inputs,
 		// XMLHttpRequests, which all inherit from EventTarget
 		&& !DOMPrototype.isPrototypeOf(object)
 		// Reject dates
@@ -214,16 +226,25 @@ function isObservable(object) {
 }
 
 export function notify(object, path) {
-	const fns = object[$observer].properties;
+	const observer = object[$observer];
+	if (!observer) { return; }
+
+	const fns = observer.properties;
 	fire(fns[path], object[path]);
 
-    const mutate = object[$observer].mutate;
+    const mutate = observer.mutate;
 	fire(mutate, object);
 }
 
 export function Observer(object) {
 	return !object ? undefined :
 		object[$observer] ? object[$observer].observer :
-		!isObservable(object) ? undefined :
-	createObserver(object) ;
+		isObservable(object) && createObserver(object) ;
+}
+
+export function Target(object) {
+	return object
+		&& object[$observer]
+		&& object[$observer].target
+		|| object ;
 }

@@ -4,4 +4,4 @@ export default function deprecate(fn, message) {
         console.warn('Deprecation warning: ' + message);
         return fn.apply(this, arguments);
     };
-};
+}

@@ -1,3 +1,5 @@
+import noop from './noop.js';
+
 // choke
 //
 // Returns a function that waits for `time` seconds without being invoked

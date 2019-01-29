@@ -1,12 +1,11 @@
-const A = Array.prototype;
+import apply from './apply.js';
+import id from './id.js';
 
-function call(value, fn) {
-    return fn(value);
-}
+const A = Array.prototype;
 
 export default function pipe() {
     const fns = arguments;
-    return function pipe(value) {
-        return A.reduce.call(fns, call, value);
-    };
-};
+    return fns.length ?
+        (value) => A.reduce.call(fns, apply, value) :
+        id ;
+}

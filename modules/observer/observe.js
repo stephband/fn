@@ -135,9 +135,32 @@ function observeUnknown(object, path, data) {
         readSelector(object, isMatch, path, data) ;
 }
 
-export function observe(path, fn, object) {
+/*
+    observe(path, fn, object)
+
+    path:
+
+    fn:
+
+    object:
+
+
+    observe(path, fn, object, initialValue)
+
+    initialValue: optional, defaults is undefined
+
+    Initial value of the path. When a path is observed the callback is called
+    immediately if the value of the path is not equal to the initialValue. In
+    the default case initialValue is undefined, so paths with a value of
+    undefined do not cause the callback to be called on setup.
+
+    If you want to force the callback to be called on setup, pass in null
+    as an initialValue. After all, in JS null is never equal to null.
+*/
+
+export function observe(path, fn, object, initialValue) {
     return observeUnknown(Observer(object) || object, path + '', {
-        value: undefined,
+        value: initialValue,
         fn:    fn
     });
 }

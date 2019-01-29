@@ -1,7 +1,7 @@
 {
     "name": "fn",
     "title": "Fn",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "author": {
         "name": "Stephen Band",
         "url": "http://stephen.band",
@@ -34,8 +34,8 @@
         "rollup": "^0.58.2"
     },
     "scripts": {
-        "lint": "eslint js/*.js",
-        "build-cjs": "rollup fn.js --o dist/fn-cjs-1.2.1.js --f cjs",
-        "build-closure": "rollup fn.js --o dist/fn-iife-1.2.1.js --f iife --n Fn"
+        "lint": "eslint modules/*.js",
+        "build-cjs": "rollup fn.js --o dist/fn-cjs-1.2.2.js --f cjs",
+        "build-closure": "rollup fn.js --o dist/fn-iife-1.2.2.js --f iife --n Fn"
     }
 }

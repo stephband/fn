@@ -6,4 +6,4 @@ export default function once(fn) {
         fn = noop;
         return value;
     };
-};
+}

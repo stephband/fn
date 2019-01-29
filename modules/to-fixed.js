@@ -8,4 +8,4 @@ export default function toFixed(n, value) {
     }
 
     return N.toFixed.call(value, n);
-};
+}

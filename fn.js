@@ -40,7 +40,7 @@ export { default as ObserveStream } from './modules/observe-stream.js';
 export { default as Stream }      from './modules/stream.js';
 export { default as Timer }       from './modules/timer.js';
 export { default as Pool }        from './modules/pool.js';
-export { Observer, notify }       from './modules/observer/observer.js';
+export { Observer, Target, notify } from './modules/observer/observer.js';
 export { observe }                from './modules/observer/observe.js';
 
 export { default as requestTick } from './modules/request-tick.js';
@@ -54,6 +54,8 @@ export const and     = curry(function and(a, b) { return !!(a && b); });
 export const or      = curry(function or(a, b) { return a || b; });
 export const xor     = curry(function xor(a, b) { return (a || b) && (!!a !== !!b); });
 
+
+
 import _equals      from './modules/equals.js';
 import _exec        from './modules/exec.js';
 import _get         from './modules/get.js';
@@ -61,12 +63,13 @@ import _has         from './modules/has.js';
 import _is          from './modules/is.js';
 import _invoke      from './modules/invoke.js';
 import _matches     from './modules/matches.js';
-import _parse       from './modules/parse.js';
+import _capture     from './modules/capture.js';
 import _set         from './modules/set.js';
 import _toFixed     from './modules/to-fixed.js';
 import { getPath as _getPath, setPath as _setPath } from './modules/paths.js';
 
 export const assign      = curry(Object.assign, true, 2);
+export const capture     = curry(_capture);
 export const define      = curry(Object.defineProperties, true, 2);
 export const equals      = curry(_equals, true);
 export const exec        = curry(_exec);
@@ -75,7 +78,7 @@ export const has         = curry(_has, true);
 export const is          = curry(_is, true);
 export const invoke      = curry(_invoke, true);
 export const matches     = curry(_matches, true);
-export const parse       = curry(_parse);
+export const parse       = curry(_capture);
 export const set         = curry(_set, true);
 export const toFixed     = curry(_toFixed);
 export const getPath     = curry(_getPath, true);

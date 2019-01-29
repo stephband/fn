@@ -7,7 +7,7 @@ import './libs/marked/marked.min.js';
 // https://prismjs.com/
 import './libs/prism/prism.js';
 
-import { cache, concat, exec, id, invoke, last, nothing, slugify, Fn, Stream } from '../fn/fn.js';
+import { cache, concat, capture, id, invoke, last, nothing, slugify, Fn, Stream } from '../fn/fn.js';
 import Sparky from '../sparky/sparky.js';
 
 const A = Array.prototype;
@@ -33,9 +33,9 @@ const markedOptions = {
 };
 
 // Open comment followed by spaces
-const parseDoc = exec(/\/\*\s*/, {
+const parseDoc = capture(/\/\*\s*/, {
     // Name   (dot)(name) (brackets) OR (tag)
-    0: exec(/^(\.)?([\w]+)(\([^\)]*\))|^(<[\w-]+>)/, {
+    0: capture(/^(\.)?([\w]+)(\([^\)]*\))|^(<[\w-]+>)/, {
         2: function(data, results) {
             data.push({
                 id:     slugify(results[2] + results[3]),
@@ -59,13 +59,13 @@ const parseDoc = exec(/\/\*\s*/, {
         },
 
         // Markdown    (anything) close comment
-        end: exec(/^\s*([\s\S]*?)\*\//, {
+        close: capture(/^\s*([\s\S]*?)\*\//, {
             1: function(data, results) {
                 last(data).body = marked(results[1], markedOptions);
                 return data;
             },
 
-            end: function(data, results) {
+            close: function(data, results) {
                 return parseDoc(data, results);
             }
         })
@@ -92,6 +92,7 @@ function toHTML(paths) {
         return ids ?
             fetchDocs(path)
             .then(function(docs) {
+                //console.log(path, ids.join(', '), docs)
                 // Gaurantee order of ids
                 return ids.map(function(id) {
                     return docs.filter(function(doc) {

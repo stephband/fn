@@ -4,6 +4,7 @@ import deprecate from './deprecate.js';
 import latest    from './latest.js';
 import noop      from './noop.js';
 import nothing   from './nothing.js';
+import once      from './once.js';
 import prepend   from './strings/prepend.js';
 import toArray   from './to-array.js';
 
@@ -577,12 +578,9 @@ assign(Fn.prototype, {
     },
 
     pipe: function(stream) {
-        // Target must be evented
-        if (!stream || !stream.on) {
-            throw new Error('Fn: Fn.pipe(object) object must be a stream. (' + stream + ')');
-        }
-
-        return stream.on('pull', this.shift);
+        return stream.on ?
+            stream.on('pull', this.shift) :
+            stream ;
     },
 
     tap: function(fn) {

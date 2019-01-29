@@ -3,6 +3,8 @@ import { each } from './lists/core.js';
 import latest   from './latest.js';
 import noop     from './noop.js';
 import now      from './now.js';
+import remove   from './lists/remove.js';
+import rest     from './lists/rest.js';
 import Timer    from './timer.js';
 import toArray  from './to-array.js';
 import choke    from './choke.js';
@@ -17,10 +19,6 @@ var assign    = Object.assign;
 
 function call(value, fn) {
     return fn(value);
-}
-
-function apply(values, fn) {
-    return fn.apply(null, values);
 }
 
 function isValue(n) { return n !== undefined; }
@@ -258,29 +256,34 @@ Stream.fromCallback = function(object, name) {
 
 const clockEventPool = [];
 
-function ClockSource(notify, end, timer) {
-    const source = this;
-
+function TimeSource(notify, end, timer) {
     this.notify = notify;
     this.end    = end;
     this.timer  = timer;
 
-    // Todo: Pool events if we are making loads of time streams
     const event = this.event = clockEventPool.shift() || {};
     event.stopTime = Infinity;
 
     this.frame = (time) => {
+        // Catch the case where stopTime has been set before or equal the
+        // end time of the previous frame, which can happen if start
+        // was scheduled via a promise, and therefore should only ever
+        // happen on the first frame: stop() catches this case thereafter
+        if (event.stopTime <= event.t2) { return; }
+
         // Wait until startTime
         if (time < event.startTime) {
-            this.requestId = timer.request(this.frame);
+            this.requestId = this.timer.request(this.frame);
             return;
         }
 
-        this.update(time);
+        // Reset frame fn without checks
+        this.frame = (time) => this.update(time);
+        this.frame(time);
     };
 }
 
-assign(ClockSource.prototype, {
+assign(TimeSource.prototype, {
     shift: function shift() {
         var value = this.value;
         this.value = undefined;
@@ -288,16 +291,42 @@ assign(ClockSource.prototype, {
     },
 
     start: function(time) {
-        this.event.startTime = this.event.t2 = time || this.timer.now();
-        this.requestId       = this.timer.request(this.frame);
+        const now = this.timer.now();
+
+        this.event.startTime = time !== undefined ? time : now ;
+        this.event.t2 = time > now ? time : now ;
+
+        // If the currentTime (the last frame time) is greater than now
+        // call the frame for up to this point, otherwise add an arbitrary
+        // frame duration to now.
+        const frameTime = this.timer.currentTime > now ?
+            this.timer.currentTime :
+            now + 0.08 ;
+
+        if (this.event.startTime > frameTime) {
+            // Schedule update on the next frame
+            this.requestId = this.timer.request(this.frame);
+        }
+        else {
+            // Run the update on the next tick, in case we schedule stop
+            // before it gets chance to fire. This also gaurantees all stream
+            // pushes are async.
+            Promise.resolve(frameTime).then(this.frame);
+        }
     },
 
     stop: function stop(time) {
+        if (this.event.startTime === undefined) {
+            // This is a bit of an arbitrary restriction. It wouldnt
+            // take much to support this.
+            throw new Error('TimeStream: Cannot call .stop() before .start()');
+        }
+
         this.event.stopTime = time || this.timer.now();
 
         // If stopping during the current frame cancel future requests.
         if (this.event.stopTime <= this.event.t2) {
-            this.timer.cancel(this.requestId);
+            this.requestId && this.timer.cancel(this.requestId);
             this.end();
         }
     },
@@ -318,18 +347,17 @@ assign(ClockSource.prototype, {
             clockEventPool.push(event);
             return;
         }
-        else {
-            event.t2 = time;
-            this.notify('push');
-            // Todo: We need this? Test.
-            this.value     = undefined;
-            this.requestId = this.timer.request(this.frame);
-        }
+
+        event.t2 = time;
+        this.notify('push');
+        // Todo: We need this? Test.
+        this.value     = undefined;
+        this.requestId = this.timer.request(this.frame);
     }
 });
 
-Stream.fromTimer = function ClockStream(timer) {
-    return new Stream(ClockSource, timer);
+Stream.fromTimer = function TimeStream(timer) {
+    return new Stream(TimeSource, timer);
 };
 
 Stream.fromDuration = function(duration) {
@@ -474,7 +502,7 @@ assign(MergeSource.prototype, {
             source.off('push', notify);
         }, sources);
 
-        stop(values.length + buffer.length);
+        stop(this._values.length + this._buffer.length);
     }
 });
 
