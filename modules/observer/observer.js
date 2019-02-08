@@ -210,7 +210,7 @@ function isObservable(object) {
 		//&& typeof object === 'object'
 		// Reject DOM nodes, Web Audio context, MIDI inputs,
 		// XMLHttpRequests, which all inherit from EventTarget
-		&& !DOMPrototype.isPrototypeOf(object)
+		//&& !DOMPrototype.isPrototypeOf(object)
 		// Reject dates
 		&& !(object instanceof Date)
 		// Reject regex

@@ -2,7 +2,8 @@
 export default function exec(regex, fn, string) {
     let data;
 
-    // If path is a regex result, get rest of string from latest index
+    // If string looks like a regex result, get rest of string
+    // from latest index
     if (string.input !== undefined && string.index !== undefined) {
         data   = string;
         string = data.input.slice(
