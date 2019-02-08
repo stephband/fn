@@ -9,7 +9,7 @@ export default function cache(fn) {
 
     return function cache(object) {
         if (DEBUG && object === undefined) {
-            throw new Error('Fn: weakCache() called with undefined.');
+            throw new Error('Fn: cache() called with undefined.');
         }
 
         if (DEBUG && arguments.length > 1) {
