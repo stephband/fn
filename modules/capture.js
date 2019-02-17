@@ -16,6 +16,10 @@ function reduce(reducers, acc, tokens) {
     return acc;
 }
 
+function reportError(regex, string) {
+    throw new Error('Cannot capture ' + regex + ' of "' + string + '"');
+}
+
 export default function capture(regex, reducers, acc, string) {
-    return exec(regex, (tokens) => reduce(reducers, acc, tokens), string);
+    return exec(regex, (tokens) => reduce(reducers, acc, tokens), reducers.catch ? () => reducers.catch(acc) : reportError, string) ;
 }
