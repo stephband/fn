@@ -1,6 +1,14 @@
 
 import exec from './exec.js';
 
+function error(regex, reducers, string) {
+    if (string.input !== undefined && string.index !== undefined) {
+        string = string.input;
+    }
+
+    throw new Error('Cannot capture() in invalid string "' + string + '"');
+}
+
 function reduce(reducers, acc, tokens) {
     let n = -1;
 
@@ -8,18 +16,22 @@ function reduce(reducers, acc, tokens) {
         acc = (tokens[n] !== undefined && reducers[n]) ? reducers[n](acc, tokens) : acc ;
     }
 
-    // Call the close fn
-    if (reducers.close) {
-        acc = reducers.close(acc, tokens);
-    }
-
-    return acc;
-}
-
-function reportError(regex, string) {
-    throw new Error('Cannot capture ' + regex + ' of "' + string + '"');
+    // Call the optional close fn
+    return reducers.close ?
+        reducers.close(acc, tokens) :
+        acc ;
 }
 
 export default function capture(regex, reducers, acc, string) {
-    return exec(regex, (tokens) => reduce(reducers, acc, tokens), reducers.catch ? () => reducers.catch(acc) : reportError, string) ;
+    const output = exec(regex, (tokens) => reduce(reducers, acc, tokens), string);
+
+    // If tokens is undefined exec has failed apply regex to string
+    return output === undefined ?
+        // If there is a catch function, call it, otherwise error out
+        reducers.catch ?
+            reducers.catch(acc, string) :
+            error(regex, reducers, string) :
+
+        // Return the accumulator
+        output ;
 }

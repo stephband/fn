@@ -1,5 +1,5 @@
 
-export default function exec(regex, fn, fail, string) {
+export default function exec(regex, fn, string) {
     let data;
 
     // If string looks like a regex result, get rest of string
@@ -13,11 +13,9 @@ export default function exec(regex, fn, fail, string) {
         );
     }
 
+    // Look for tokens
     const tokens = regex.exec(string);
-
-    if (!tokens) {
-        return fail(regex, string);
-    }
+    if (!tokens) { return; }
 
     const output = fn(tokens);
 
