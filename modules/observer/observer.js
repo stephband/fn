@@ -225,12 +225,12 @@ function isObservable(object) {
 		&& !ArrayBuffer.isView(object) ;
 }
 
-export function notify(object, path) {
+export function notify(object, path, value) {
 	const observer = object[$observer];
 	if (!observer) { return; }
 
 	const fns = observer.properties;
-	fire(fns[path], object[path]);
+	fire(fns[path], value === undefined ? object[path] : value);
 
     const mutate = observer.mutate;
 	fire(mutate, object);
