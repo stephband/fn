@@ -1,6 +1,9 @@
 
 import { def } from './types.js';
 
+// Denormalisers take a min and max and transform a value into that range
+// from the range of a curve of a given type
+
 export const linear = def(
     'Number, Number, Number',
     (min, max, value) => value * (max - min) + min

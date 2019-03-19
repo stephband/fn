@@ -1,6 +1,9 @@
 
 import { def } from './types.js';
 
+// Normalisers take a min and max and transform a value in that range
+// to a value on the normal curve of a given type
+
 export const linear = def(
     'Number, Number, Number',
     (min, max, value) => (value - min) / (max - min)
