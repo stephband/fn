@@ -143,13 +143,15 @@ export { default as toStringType } from './modules/strings/to-string-type.js';
 
 /* Numbers */
 
+// Legacy: normalise / denormalise used to be just linear
+// but now we have multiple normalisers and denormalisers.
+// Deprecate normalise / denormalise.
+import { linear as _normalise } from './modules/normalise.js';
+import { linear as _denormalise } from './modules/denormalise.js';
+
 import * as maths      from './modules/maths/core.js';
-import _normalise      from './modules/maths/normalise.js';
-import _denormalise    from './modules/maths/denormalise.js';
 import _exponentialOut from './modules/maths/exponential-out.js';
 import _cubicBezier    from './modules/maths/cubic-bezier.js';
-import _rangeLog       from './modules/maths/range-log.js';
-import _rangeLogInv    from './modules/maths/range-log-inv.js';
 
 export { gaussian, todB, toLevel, toRad, toDeg } from './modules/maths/core.js';
 export { default as toPolar }     from './modules/maths/to-polar.js';
@@ -173,8 +175,6 @@ export const cubicBezier = curry(_cubicBezier);
 export const normalise   = curry(_normalise);
 export const denormalise = curry(_denormalise);
 export const exponentialOut = curry(_exponentialOut);
-export const rangeLog    = curry(_rangeLog);
-export const rangeLogInv = curry(_rangeLogInv);
 
 /* Time */
 
