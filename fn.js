@@ -137,6 +137,7 @@ export const prepad      = curry(_prepad);
 export const postpad     = curry(_postpad);
 
 export { default as slugify }      from './modules/strings/slugify.js';
+export { default as toCamelCase }  from './modules/strings/to-camel-case.js';
 export { default as toPlainText }  from './modules/strings/to-plain-text.js';
 export { default as toStringType } from './modules/strings/to-string-type.js';
 

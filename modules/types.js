@@ -108,22 +108,30 @@ export const checkType = DEBUG ? function checkType(type, value, file, line, mes
     }
 
     if (!defs[type](value)) {
-        throw new TypeError(message || 'Value is not of type "' + type + '": ' + value, file, line);
+        throw new Error(message || 'value not of type "' + type + '": ' + value, file, line);
     }
 } : noop ;
 
 export const checkTypes = DEBUG ? function checkTypes(types, args, file, line) {
-    types = types.split(/\s*,\s*/);
     var n = types.length;
 
     while (n--) {
-        checkType(types[n], args[n], file, line, 'Argument ' + n + ' is not of type "' + types[n] + '": ' + args[n]);
+        checkType(types[n], args[n], file, line, 'argument ' + n + ' not of type "' + types[n] + '": ' + args[n]);
     }
 } : noop ;
 
-export function def(types, fn) {
+export function def(notation, fn, file, line) {
+    // notation is of the form:
+    // 'Type, Type -> Type'
+    // Be generous with what we accept as output marker '->' or '=>'
+    var parts = notation.split(/\s*[=-]>\s*/);
+    var types = parts[0].split(/\s*,\s*/);
+    var returnType = parts[1];
+
     return DEBUG ? function() {
-        checkTypes(types, arguments);
-        return fn.apply(this, arguments);
+        checkTypes(types, arguments, file, line);
+        const output = fn.apply(this, arguments);
+        checkType(returnType, output, file, line, 'return value not of type "' + returnType + '": ' + output);
+        return output;
     } : fn ;
 }
