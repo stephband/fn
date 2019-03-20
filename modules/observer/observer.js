@@ -1,5 +1,5 @@
 
-export const $observer = Symbol('observer');
+export const $observer = Symbol('Observer');
 
 const A            = Array.prototype;
 const DOMPrototype = (window.EventTarget || window.Node).prototype;
