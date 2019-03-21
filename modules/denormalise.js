@@ -26,7 +26,7 @@ export const logarithmic = def(
 
 export const linearLogarithmic = def(
     'PositiveNumber, PositiveNumber, Number => Number',
-    (min, max, crossover, value) => {
+    (min, max, value) => {
         // The bottom 1/9th of the range is linear from 0 to min, while
         // the top 8/9ths is dB linear from min to max.
         return value <= 0.1111111111111111 ?
