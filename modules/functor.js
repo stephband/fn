@@ -376,8 +376,15 @@ assign(Fn.prototype, {
         .map(function fold(value) {
             seed = fn(seed, value, i++);
             return seed;
-        })
-        .unshift(seed);
+        });
+
+        // Why would we want this? To gaurantee a result? It's a bad idea
+        // when streaming, as you get an extra value in front...
+        //.unshift(seed);
+    },
+
+    scan: function(fn, seed) {
+        return this.map((value) => (seed = fn(seed, value)));
     },
 
     partition: function(fn) {

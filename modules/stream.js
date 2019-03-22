@@ -124,9 +124,7 @@ export default function Stream(Source, options) {
             if (n) { source = new StopSource(source, n, done); }
             else { done(); }
 
-            // Note that we cannot resolve with stream because Chrome sees
-            // it as a promise (resolving with promises is special)
-            resolve(value);
+            resolve(stream);
         }
 
         getSource = function() {
@@ -171,7 +169,9 @@ export default function Stream(Source, options) {
         return stream;
     };
 
-    this.then = promise.then.bind(promise);
+    this.toPromise = function() {
+        return promise;
+    };
 }
 
 
@@ -702,7 +702,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
             };
         });
 
-        this.then(stream.stop);
+        this.toPromise().then(stream.stop);
 
         this.shift = function() {
             if (buffer1.length) { return buffer1.shift(); }
@@ -755,6 +755,10 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     pipe: function(stream) {
         this.each(stream.push);
         return Fn.prototype.pipe.apply(this, arguments);
+    },
+
+    toPromise: function() {
+        return new Promise();
     },
 
 
