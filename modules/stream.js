@@ -106,9 +106,10 @@ export default function Stream(Source, options) {
     }
 
     var stream  = this;
-    var getSource;
+    var resolve = noop;
+    var reject  = noop;
 
-    var promise = new Promise(function(resolve, reject) {
+    //var promise = new Promise(function(resolve, reject) {
         var source;
 
         function done() {
@@ -127,7 +128,7 @@ export default function Stream(Source, options) {
             resolve(stream);
         }
 
-        getSource = function() {
+        function getSource() {
             var notify = createNotify(stream);
             source = new Source(notify, stop, options);
 
@@ -141,7 +142,7 @@ export default function Stream(Source, options) {
 
             return source;
         };
-    });
+    //});
 
     // Properties and methods
 
@@ -169,8 +170,13 @@ export default function Stream(Source, options) {
         return stream;
     };
 
-    this.toPromise = function() {
-        return promise;
+    var promise;
+
+    this.toPromise = function toPromise() {
+        return promise || (promise = new Promise((res, rej) => {
+            resolve = res;
+            reject = rej;
+        }));
     };
 }
 
