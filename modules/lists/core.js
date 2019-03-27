@@ -1,16 +1,17 @@
 import toArray from '../to-array.js';
 
 const A = Array.prototype;
+const S = String.prototype;
 
 export function by(fn, a, b) {
     const fna = fn(a);
     const fnb = fn(b);
     return fnb === fna ? 0 : fna > fnb ? 1 : -1 ;
-};
+}
 
 export function byAlphabet(a, b) {
     return S.localeCompare.call(a, b);
-};
+}
 
 export function each(fn, object) {
     // A stricter version of .forEach, where the callback fn
@@ -27,7 +28,7 @@ export function each(fn, object) {
     }
 
     return object;
-};
+}
 
 export function map(fn, object) {
     return object && object.map ? object.map(fn) : A.map.call(object, fn) ;
