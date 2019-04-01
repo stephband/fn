@@ -32,7 +32,6 @@ function fire(fns, value, record) {
 	while (fns[++n]) {
         // For OO version
         //fns[n].update(value, record);
-
 		fns[n](value, record);
 	}
 }

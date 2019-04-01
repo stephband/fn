@@ -108,41 +108,39 @@ export default function Stream(Source, options) {
     var stream  = this;
     var resolve = noop;
     var reject  = noop;
+    var source;
+    var promise;
 
-    //var promise = new Promise(function(resolve, reject) {
-        var source;
+    function done() {
+        stream.status = 'done';
+        source = doneSource;
+    }
 
-        function done() {
-            stream.status = 'done';
-            source = doneSource;
-        }
+    function stop(n, value) {
+        // Neuter events and schedule shutdown of the stream
+        // after n values
+        delete stream[$events];
 
-        function stop(n, value) {
-            // Neuter events and schedule shutdown of the stream
-            // after n values
-            delete stream[$events];
+        if (n) { source = new StopSource(source, n, done); }
+        else { done(); }
 
-            if (n) { source = new StopSource(source, n, done); }
-            else { done(); }
+        resolve(stream);
+    }
 
-            resolve(stream);
-        }
+    function getSource() {
+        var notify = createNotify(stream);
+        source = new Source(notify, stop, options);
 
-        function getSource() {
-            var notify = createNotify(stream);
-            source = new Source(notify, stop, options);
+        // Check for sanity
+        if (debug) { checkSource(source); }
 
-            // Check for sanity
-            if (debug) { checkSource(source); }
+        // Gaurantee that source has a .stop() method
+        if (!source.stop) { source.stop = noop; }
 
-            // Gaurantee that source has a .stop() method
-            if (!source.stop) { source.stop = noop; }
+        getSource = function() { return source; };
 
-            getSource = function() { return source; };
-
-            return source;
-        };
-    //});
+        return source;
+    }
 
     // Properties and methods
 
@@ -170,13 +168,13 @@ export default function Stream(Source, options) {
         return stream;
     };
 
-    var promise;
-
-    this.toPromise = function toPromise() {
-        return promise || (promise = new Promise((res, rej) => {
+    this.done = function done(fn) {
+        promise = promise || new Promise((res, rej) => {
             resolve = res;
             reject = rej;
-        }));
+        });
+
+        return promise.then(fn);
     };
 }
 
@@ -708,7 +706,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
             };
         });
 
-        this.toPromise().then(stream.stop);
+        this.done(stream.stop);
 
         this.shift = function() {
             if (buffer1.length) { return buffer1.shift(); }
@@ -762,11 +760,6 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         this.each(stream.push);
         return Fn.prototype.pipe.apply(this, arguments);
     },
-
-    toPromise: function() {
-        return new Promise();
-    },
-
 
     // Events
 
