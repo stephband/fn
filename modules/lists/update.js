@@ -1,6 +1,6 @@
 
 import compose from '../compose.js';
-import { is }  from '../../fn.js';
+import { is }  from '../../module.js';
 import { insert }  from './core.js';
 
 const assign = Object.assign;

@@ -1,5 +1,5 @@
 
-import { Fn, cache, curry, Observer, observe, noop } from '../fn.js';
+import { Fn, cache, curry, Observer, observe, noop } from '../module.js';
 
 import "./lodash.js";
 import "./platform.js";

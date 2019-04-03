@@ -144,12 +144,8 @@ export { default as toStringType } from './modules/strings/to-string-type.js';
 
 /* Numbers */
 
-// Legacy: normalise / denormalise used to be just linear
-// but now we have multiple normalisers and denormalisers.
-// Deprecate normalise / denormalise.
-import { linear as _normalise } from './modules/normalise.js';
-import { linear as _denormalise } from './modules/denormalise.js';
-import * as denormalisers from './modules/denormalise.js';
+import * as normalisers   from './modules/normalisers.js';
+import * as denormalisers from './modules/denormalisers.js';
 
 import * as maths      from './modules/maths/core.js';
 import _exponentialOut from './modules/maths/exponential-out.js';
@@ -174,10 +170,8 @@ export const limit       = curry(maths.limit);
 export const wrap        = curry(maths.wrap);
 export const factorise   = curry(maths.factorise);
 export const cubicBezier = curry(_cubicBezier);
-export const normalise   = curry(_normalise);
-export const denormalise = curry(_denormalise);
-// Temp name, factor out denormalise above
-export const denormalise_ = curry(choose(denormalisers), false, 4);
+export const normalise   = curry(choose(normalisers), false, 4);
+export const denormalise = curry(choose(denormalisers), false, 4);
 export const exponentialOut = curry(_exponentialOut);
 
 /* Time */

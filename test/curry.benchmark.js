@@ -1,5 +1,5 @@
 
-import { Fn, cache, curry } from '../fn.js';
+import { Fn, cache, curry } from '../module.js';
 
 import "./lodash.js";
 import "./platform.js";

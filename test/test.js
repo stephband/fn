@@ -1,5 +1,5 @@
 
-import { id, overload, noop as done, equals as _equals } from '../fn.js';
+import { id, overload, noop as done, equals as _equals } from '../module.js';
 
 (function(window) {
 	"use strict";

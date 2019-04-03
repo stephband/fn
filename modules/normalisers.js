@@ -36,7 +36,7 @@ export const linearLogarithmic = def(
 );
 
 
-import { cubicBezier as bezierify } from './maths/cubic-bezier.js';
+import bezierify from './maths/cubic-bezier.js';
 
 // cubicBezier
 // `begin` and `end` are objects of the form

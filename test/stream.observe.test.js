@@ -1,4 +1,4 @@
-import { Observer, Stream, test as group } from '../../fn/fn.js';
+import { Observer, Stream, test as group } from '../../fn/module.js';
 
 group('Stream.observe()', function(test, log) {
 	test('Observer.observe(object, path, fn)', function(equals, done) {
