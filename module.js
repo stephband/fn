@@ -7,14 +7,14 @@ if (window.console && window.console.log) {
 }
 
 import curry from './modules/curry.js';
+import choose from './modules/choose.js';
 
-export { curry as curry };
+export { curry, choose };
 export * from './modules/throttle.js';
 export { default as print }       from './modules/print.js';
 export { default as args }        from './modules/args.js';
 export { default as cache }       from './modules/cache.js';
 export { default as choke }       from './modules/choke.js';
-export { default as choose }      from './modules/choose.js';
 export { default as compose }     from './modules/compose.js';
 export { default as deprecate }   from './modules/deprecate.js';
 export { default as id }          from './modules/id.js';
@@ -149,6 +149,7 @@ export { default as toStringType } from './modules/strings/to-string-type.js';
 // Deprecate normalise / denormalise.
 import { linear as _normalise } from './modules/normalise.js';
 import { linear as _denormalise } from './modules/denormalise.js';
+import * as denormalisers from './modules/denormalise.js';
 
 import * as maths      from './modules/maths/core.js';
 import _exponentialOut from './modules/maths/exponential-out.js';
@@ -175,6 +176,8 @@ export const factorise   = curry(maths.factorise);
 export const cubicBezier = curry(_cubicBezier);
 export const normalise   = curry(_normalise);
 export const denormalise = curry(_denormalise);
+// Temp name, factor out denormalise above
+export const denormalise_ = curry(choose(denormalisers), false, 4);
 export const exponentialOut = curry(_exponentialOut);
 
 /* Time */
