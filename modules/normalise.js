@@ -34,3 +34,21 @@ export const linearLogarithmic = def(
             (0.1111111111111111 + (Math.log(value / min) / Math.log(max / min)) / 1.125) ;
     }
 );
+
+
+import { cubicBezier as bezierify } from './maths/cubic-bezier.js';
+
+// cubicBezier
+// `begin` and `end` are objects of the form
+// { point:  [x, y], handle: [x, y] }
+
+export const cubicBezier = def(
+    'Object, Object, Number => Number',
+    (begin, end, value) => bezierify({
+        0: linear(begin.point[0], end.point[0], begin.handle[0]),
+        1: linear(begin.point[0], end.point[0], begin.handle[0])
+    }, {
+        0: linear(begin.point[0], end.point[0], end.handle[0]),
+        1: linear(begin.point[0], end.point[0], end.handle[0])
+    }, 1, linear(begin.point[0], end.point[0], value))
+);

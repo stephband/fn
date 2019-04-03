@@ -34,3 +34,21 @@ export const linearLogarithmic = def(
             min * Math.pow(max / min, (value - 0.1111111111111111) * 1.125);
     }
 );
+
+import { linear as normalise } from './normalise.js';
+import { cubicBezier as bezierify } from './maths/cubic-bezier.js';
+
+// cubicBezier
+// `begin` and `end` are objects of the form
+// { point:  [x, y], handle: [x, y] }
+
+export const cubicBezier = def(
+    'Object, Object, Number => Number',
+    (begin, end, value) => linear(bezierify({
+        0: normalise(begin.point[0], end.point[0], begin.handle[0]),
+        1: normalise(begin.point[0], end.point[0], begin.handle[0])
+    }, {
+        0: normalise(begin.point[0], end.point[0], end.handle[0]),
+        1: normalise(begin.point[0], end.point[0], end.handle[0])
+    }, 1, value))
+);

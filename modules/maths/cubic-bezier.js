@@ -71,4 +71,4 @@ export default function cubicBezier(p1, p2, duration, x) {
 
     var y = solveCubicBezierX(ax, bx, cx, x, epsilon);
     return sampleCubicBezier(ay, by, cy, y);
-};
+}
