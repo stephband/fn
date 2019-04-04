@@ -15,8 +15,6 @@
     "files": [
         "js/fn.js"
     ],
-    "main": "dist/fn-cjs.js",
-    "module": "fn.js",
     "description": "A library of functions, functors and streams.",
     "keywords": [
         "browser",
@@ -30,12 +28,15 @@
     "homepage": "http://stephen.band/fn",
     "docs": "http://github.com/stephband/fn",
     "devDependencies": {
-        "eslint": "^4.4.1",
-        "rollup": "^0.58.2"
+        "eslint": "^5.16.0",
+        "rollup": "^1.8.0"
     },
+    "module": "module.js",
+    "main": "index.js",
     "scripts": {
         "lint": "eslint modules/*.js",
-        "build-cjs": "rollup fn.js --o dist/fn-cjs-1.3.0.js --f cjs",
-        "build-closure": "rollup fn.js --o dist/fn-iife-1.3.0.js --f iife --n Fn"
+        "build": "npm run build-cjs && npm run build-esm",
+        "build-cjs": "rollup module.js --o index.js --f cjs",
+        "build-esm": "rollup module.js --o fn.js --f esm"
     }
 }
