@@ -14,10 +14,10 @@ Removes nodes with remove-template attribute.
 import './libs/prism/prism.js';
 
 
-import { invoke, nothing } from './fn.js';
-import { query } from '../dom/dom.js';
+import { invoke, nothing } from './module.js';
+import { query } from '../dom/module.js';
 import './docs.js';
-import Sparky from '../sparky/sparky.js';
+import Sparky from '../sparky/module.js';
 
 // Change name of attributes
 Sparky.attributeFn     = 'template-fn';

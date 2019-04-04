@@ -5,7 +5,7 @@ import '../prism/prism.js';
 import '../sparky/libs/prism/prism.sparky.js';
 import { Fn, compose, each, get, is, overload, parse } from '../fn/fn.js';
 import { parseParams } from '../sparky/js/parse.js';
-import Sparky from '../sparky/sparky.js';
+import Sparky from '../sparky/module.js';
 import { attribute, before, clone, create, fragmentFromTemplate, get as getById, query, remove } from '../dom/dom.js';
 
 window.Sparky = Sparky;
