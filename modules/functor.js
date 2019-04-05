@@ -585,9 +585,8 @@ assign(Fn.prototype, {
     },
 
     pipe: function(stream) {
-        return stream.on ?
-            stream.on('pull', this.shift) :
-            stream ;
+        this.each(stream.push);
+        return stream;
     },
 
     tap: function(fn) {

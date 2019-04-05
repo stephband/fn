@@ -752,15 +752,8 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         // Flush and observe
         Fn.prototype.each.apply(source, args);
 
-        return this.on('push', function each() {
-            // Delegate to Fn#each().
-            Fn.prototype.each.apply(source, args);
-        });
-    },
-
-    pipe: function(stream) {
-        this.each(stream.push);
-        return Fn.prototype.pipe.apply(this, arguments);
+        // Delegate to Fn#each().
+        return this.on('push', () => Fn.prototype.each.apply(source, args));
     },
 
     join: function() {
