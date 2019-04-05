@@ -666,6 +666,8 @@ Stream.throttle = function(timer) {
 // Stream Methods
 
 Stream.prototype = assign(Object.create(Fn.prototype), {
+    constructor: Stream,
+
     clone: function() {
         var source  = this;
         var shift   = this.shift;
@@ -759,6 +761,12 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     pipe: function(stream) {
         this.each(stream.push);
         return Fn.prototype.pipe.apply(this, arguments);
+    },
+
+    join: function() {
+        const output = this.constructor.of();
+        this.each((input) => input.pipe(output));
+        return output;
     },
 
     // Events
