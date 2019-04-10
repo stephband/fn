@@ -149,7 +149,7 @@ export default function Stream(Source, options) {
     this.push = function push() {
         var source = getSource();
         source.push.apply(source, arguments);
-        return stream;
+        return this;
     };
 
     this.shift = function shift() {
@@ -159,13 +159,13 @@ export default function Stream(Source, options) {
     this.start = function start() {
         var source = getSource();
         source.start.apply(source, arguments);
-        return stream;
+        return this;
     };
 
     this.stop = function stop() {
         var source = getSource();
         source.stop.apply(source, arguments);
-        return stream;
+        return this;
     };
 
     this.done = function done(fn) {
