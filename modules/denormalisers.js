@@ -44,11 +44,11 @@ import bezierify from './maths/cubic-bezier.js';
 
 export const cubicBezier = def(
     'Object, Object, Number => Number',
-    (begin, end, value) => bezierify({
+    (begin, end, value) => linear(begin.point[1], end.point[1], bezierify({
         0: normalise(begin.point[0], end.point[0], begin.handle[0]),
         1: normalise(begin.point[1], end.point[1], begin.handle[1])
     }, {
         0: normalise(begin.point[0], end.point[0], end.handle[0]),
         1: normalise(begin.point[1], end.point[1], end.handle[1])
-    }, 1, value)
+    }, 1, value))
 );
