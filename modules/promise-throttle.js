@@ -1,4 +1,4 @@
-export function PromiseThrottle(fn) {
+export default function Throttle(fn) {
 	var promise, context, args;
 
 	function fire() {
@@ -9,7 +9,7 @@ export function PromiseThrottle(fn) {
 		return fn.apply(context, args);
 	}
 
-	return function request() {
+	return function throttle() {
 		// Throttle requests to next tick, usin the context and args
 		// from the latest call to request()
 		promise = promise || Promise.resolve().then(fire);
