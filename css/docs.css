@@ -9,6 +9,10 @@ body > .grid + .grid {
     margin-top: 7.5rem;
 }
 
+body > .\31-grid + .\31-2-3-grid {
+    margin-top: 1.875rem;
+}
+
 @media (min-width: 84em) {
     body {
         padding-top: 1.875rem;
