@@ -154,7 +154,7 @@ body > .demo-block + .grid {
 .text-4,  h4   { font-size: 1rem;     line-height: 1.5rem; font-weight: 600; }
 .text-8,  body { font-size: 1rem;     line-height: 1.5rem; font-weight: 300; }
 .text-10, code {
-    font-family: 'Roboto Mono', monospace;
+    font-family: 'Fira Code', 'Roboto Mono', monospace;
     font-size: 1.0625rem;
 }
 
@@ -271,6 +271,8 @@ a:hover {
 }
 
 .text-2 + p { margin-top: 0.9375rem; }
+.text-2 + pre { margin-top: 1.875rem; }
+.text-5 + p { margin-top: 0.75rem; }
 .text-3 code > span,
 .text-5 code > span {
     color: var(--black-color);
@@ -278,6 +280,18 @@ a:hover {
 
 h5, .text-5 {
     margin-bottom: 2px;
+}
+
+h4 + ul {
+    margin-top: 0;
+}
+
+ul + pre {
+    margin-top: 18px;
+}
+
+p + pre {
+    margin-top: 18px;
 }
 
 .spaced-grid-block > .block {

@@ -7,8 +7,9 @@ import './libs/marked/marked.min.js';
 // https://prismjs.com/
 import './libs/prism/prism.js';
 
-import { cache, concat, capture, id, invoke, last, nothing, slugify, Fn, Stream } from '../fn/fn.js';
-import Sparky from '../sparky/module.js';
+import { cache, concat, capture, id, invoke, last, nothing, slugify, Fn, Stream } from './module.js';
+import { fragmentFromHTML } from '../dom/module.js';
+import { functions } from '../sparky/module.js';
 
 const A = Array.prototype;
 
@@ -32,44 +33,44 @@ const markedOptions = {
     smartypants: true
 };
 
-// Open comment followed by spaces
-const parseDoc = capture(/\/\*\s*/, {
-    // Name   (dot)(name) (brackets) OR (tag)
-    0: capture(/^(\.)?([\w]+)(\([^\)]*\))|^(<[\w-]+>)/, {
-        2: function(data, results) {
-            data.push({
-                id:     slugify(results[2] + results[3]),
-                prefix: results[1],
-                name:   results[2],
-                params: results[3],
-                title:  Prism.highlight(results[0], Prism.languages['js'], 'js')
-            });
+// Open comment followed by spaces and (dot)(name) (brackets) OR (tag)
+const parseDoc = window.parseDoc = capture(/\/\*\s*(?:(\.)?([\w]+)(\([^\)]*\))|(<[\w-]+>))/, {
+    2: function(data, results) {
+        data.push({
+            id:     slugify(results[2] + results[3]),
+            prefix: results[1],
+            name:   results[2],
+            params: results[3],
+            title:  Prism.highlight((results[1] || '') + results[2] + results[3], Prism.languages['js'], 'js')
+        });
+        return data;
+    },
+
+    4: function(data, results) {
+        data.push({
+            id:     slugify(results[4]),
+            prefix: '',
+            name:   results[4],
+            params: '',
+            title:  Prism.highlight(results[4], Prism.languages['html'], 'html')
+        });
+        return data;
+    },
+
+    // Markdown    (anything) close comment
+    close: capture(/^\s*([\s\S]*?)\*\//, {
+        1: function(data, results) {
+            last(data).body = marked(results[1], markedOptions);
             return data;
         },
 
-        4: function(data, results) {
-            data.push({
-                id:     slugify(results[4]),
-                prefix: '',
-                name:   results[4],
-                params: '',
-                title:  Prism.highlight(results[4], Prism.languages['html'], 'html')
-            });
-            return data;
-        },
+        close: function(data, results) {
+            return parseDoc(data, results);
+        }
+    }),
 
-        // Markdown    (anything) close comment
-        close: capture(/^\s*([\s\S]*?)\*\//, {
-            1: function(data, results) {
-                last(data).body = marked(results[1], markedOptions);
-                return data;
-            },
-
-            close: function(data, results) {
-                return parseDoc(data, results);
-            }
-        })
-    })
+    // If there are no comments return data
+    catch: id
 });
 
 const fetchDocs = cache(function(path) {
@@ -109,9 +110,17 @@ function toHTML(paths) {
     });
 }
 
-Sparky.fn.docs = function(node, input, params) {
+functions.docs = function(node, input, params) {
     const data = toHTML(params);
     const output = Stream.of();
     data.then(output.push);
     return output;
+};
+
+functions.append = function(node, input, params) {
+    const name = params[0];
+    return input.tap((scope) => {
+        const fragment = fragmentFromHTML(scope[name]);
+        node.appendChild(fragment);
+    });
 };

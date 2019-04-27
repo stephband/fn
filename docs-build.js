@@ -17,16 +17,15 @@ import './libs/prism/prism.js';
 import { invoke, nothing } from './module.js';
 import { query } from '../dom/module.js';
 import './docs.js';
-import Sparky from '../sparky/module.js';
+import { config } from '../sparky/module.js';
 
 // Change name of attributes
-Sparky.attributeFn     = 'template-fn';
-Sparky.attributePrefix = 'sparky-';
-
-Sparky(document);
+config.attributeFn      = 'build-fn';
+config.attributeInclude = 'build-include';
+config.attributePrefix  = 'build-';
 
 setTimeout(function() {
-    query('[template-fn]', document).forEach(invoke('removeAttribute', ['template-fn']));
-    query('[remove-template]', document).forEach(invoke('remove', nothing));
+    query('[build-fn]', document).forEach(invoke('removeAttribute', ['build-fn']));
+    query('[build-remove]', document).forEach(invoke('remove', nothing));
     console.log('Document built! (this is just a cheap timeout, it may not be true)');
 }, 5000);
