@@ -2,7 +2,6 @@
 export const $observer = Symbol('Observer');
 
 const A            = Array.prototype;
-const DOMPrototype = (window.EventTarget || window.Node).prototype;
 const nothing      = Object.freeze([]);
 const isExtensible = Object.isExtensible;
 
@@ -207,9 +206,10 @@ function isObservable(object) {
 		&& isExtensible(object)
 		// This is less safe but faster.
 		//&& typeof object === 'object'
-		// Reject DOM nodes, Web Audio context, MIDI inputs,
-		// XMLHttpRequests, which all inherit from EventTarget
-		&& !DOMPrototype.isPrototypeOf(object)
+		// Reject DOM nodes
+		&& !Node.prototype.isPrototypeOf(object)
+		// Reject WebAudio context
+		&& !BaseAudioContext.prototype.isPrototypeOf(object)
 		// Reject dates
 		&& !(object instanceof Date)
 		// Reject regex
@@ -227,7 +227,6 @@ function isObservable(object) {
 export function notify(object, path, value) {
 	const observer = object[$observer];
 	if (!observer) { return; }
-
 	const fns = observer.properties;
 	fire(fns[path], value === undefined ? object[path] : value);
 
@@ -238,7 +237,9 @@ export function notify(object, path, value) {
 export function Observer(object) {
 	return !object ? undefined :
 		object[$observer] ? object[$observer].observer :
-		isObservable(object) && createObserver(object) ;
+		isObservable(object) ?
+			createObserver(object) :
+			undefined ;
 }
 
 export function Target(object) {
