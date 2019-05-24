@@ -70,7 +70,7 @@ const arrayHandlers = {
 		if (name === 'length') {
 			if (value >= target.length) {
 				// Don't allow array length to grow like this
-				//target.length = value;
+				target.length = value;
 				return true;
 			}
 
@@ -139,8 +139,9 @@ const objectHandlers = {
 		// If we are setting the same value, we're not really setting at all
 		if (target[name] === value) { return true; }
 
-        // Set value on target
+        // Set value on target, then use that as value
 		target[name] = value;
+		value = target[name];
 
         // Notify the observer
         var properties = target[$observer].properties;

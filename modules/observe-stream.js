@@ -3,12 +3,18 @@ import Stream  from './stream.js';
 import noop    from './noop.js';
 import { Observer } from './observer/observer.js';
 import { observe } from './observer/observe.js';
-import { setPath } from './paths.js';
+//import { setPath } from './paths.js';
 
-function ObserveSource(end, object, path) {
-	this.observable = Observer(object);
-	this.path       = path;
-	this.end        = end;
+function ObserveSource(notify, stop, args) {
+	this.observer = Observer(args[1]);
+	this.path     = args[0];
+	this.object   = args[1];
+	this.end      = stop;
+
+	this.unobserve = observe(this.path, (value) => {
+		this.value = value === undefined ? null : value ;
+		notify('push');
+	}, this.object);
 }
 
 ObserveSource.prototype = {
@@ -18,9 +24,11 @@ ObserveSource.prototype = {
 		return value;
 	},
 
-	push: function() {
-		setPath(this.path, this.observable, arguments[arguments.length - 1]);
-	},
+// Doesnt seem like this is at all necessary ??
+// To be able to update properties by pushing ??
+//	push: function() {
+//		setPath(this.path, this.observer, arguments[arguments.length - 1]);
+//	},
 
 	stop: function() {
 		this.unobserve();
@@ -31,15 +39,5 @@ ObserveSource.prototype = {
 };
 
 export default function Observable(path, object) {
-	return new Stream(function setup(notify, stop) {
-		var source = new ObserveSource(stop, object, path);
-
-		function update(v) {
-			source.value = v === undefined ? null : v ;
-			notify('push');
-		}
-
-		source.unobserve = observe(path, update, object);
-		return source;
-	});
+	return new Stream(ObserveSource, arguments);
 }
