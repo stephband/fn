@@ -174,7 +174,8 @@ export default function Stream(Source, options) {
             reject = rej;
         });
 
-        return promise.then(fn);
+        promise.then(fn);
+        return this;
     };
 }
 
