@@ -174,7 +174,8 @@ export default function Stream(Source, options) {
             reject = rej;
         });
 
-        return promise.then(fn);
+        promise.then(fn);
+        return this;
     };
 }
 
@@ -758,7 +759,13 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
 
     join: function() {
         const output = this.constructor.of();
-        this.each((input) => input.pipe(output));
+        this.each((input) => {
+            input.pipe ?
+                // Input is a stream
+                input.pipe(output) :
+                // Input is an array-like
+                output.push.apply(output, input) ;
+        });
         return output;
     },
 
