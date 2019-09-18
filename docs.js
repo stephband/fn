@@ -34,14 +34,20 @@ const markedOptions = {
 };
 
 // Open comment followed by spaces and (dot)(name) (brackets) OR (tag)
-const parseDoc = window.parseDoc = capture(/\/\*\s*(?:(\.)?([\w]+)(\([^\)]*\))|(<[\w-]+>))/, {
+const parseDoc = window.parseDoc = capture(/\/\*\s*(?:(\.)?([\w]+)(\([^\)]*\))?|(<[\w-]+>))/, {
     2: function(data, results) {
         data.push({
             id:     slugify(results[2] + results[3]),
             prefix: results[1],
             name:   results[2],
             params: results[3],
-            title:  Prism.highlight((results[1] || '') + results[2] + results[3], Prism.languages['js'], 'js')
+            title:  (results[3] || '') ?
+                Prism.highlight(
+                    (results[1] || '') + results[2] + results[3],
+                    Prism.languages['js'],
+                    'js'
+                ) :
+                (results[1] || '') + results[2]
         });
         return data;
     },

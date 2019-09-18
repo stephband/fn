@@ -15,7 +15,7 @@ import './libs/prism/prism.js';
 
 
 import { invoke, nothing } from './module.js';
-import { create, query } from '../dom/module.js';
+import { query } from '../dom/module.js';
 import './docs.js';
 import { config } from '../sparky/module.js';
 

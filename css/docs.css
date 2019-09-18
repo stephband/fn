@@ -236,6 +236,10 @@ code > .params {
     font-weight: 400;
 }
 
+code.property {
+    color: inherit;
+}
+
 .text-5 {
     font-size:   1rem;
     line-height: 1.5rem;
@@ -579,4 +583,15 @@ line { stroke-width: 1; stroke: inherit; }
 .grid > * > .toggle-block {
     margin-left: -0.9375rem;
     margin-right: -0.9375rem;
+}
+
+
+
+
+.note {
+    float: right;
+    clear: right;
+    width: calc(33.333333% - 1.875rem);
+    margin: 0.9375rem 0 0.9375rem 3.75rem;
+    opacity: 0.8;
 }
