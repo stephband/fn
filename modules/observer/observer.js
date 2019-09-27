@@ -210,7 +210,7 @@ function isObservable(object) {
 		// Reject DOM nodes
 		&& !Node.prototype.isPrototypeOf(object)
 		// Reject WebAudio context
-		&& !BaseAudioContext.prototype.isPrototypeOf(object)
+		&& (typeof BaseAudioContext === 'undefined' || !BaseAudioContext.prototype.isPrototypeOf(object))
 		// Reject dates
 		&& !(object instanceof Date)
 		// Reject regex
