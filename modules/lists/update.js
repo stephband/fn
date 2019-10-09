@@ -1,19 +1,24 @@
 
-import compose from '../compose.js';
-import { is }  from '../../module.js';
-import { insert }  from './core.js';
+import insert from './insert.js';
 
 const assign = Object.assign;
 
-export default function update(fn, target, array) {
-    return array.reduce(function(target, obj2) {
-        var obj1 = target.find(compose(is(fn(obj2)), fn));
-        if (obj1) {
-            assign(obj1, obj2);
-        }
-        else {
-            insert(fn, target, obj2);
-        }
-        return target;
-    }, target);
+/*
+update(fn, array, source)
+
+Compares the result of calling `fn` on `source` to the result of calling `fn`
+on objects in `array`. If a target match is found, `source` has its properties
+assigned to the target object, and if not the `source` is spliced into the
+target array (preserving a sort order based on the result of `fn(object)`).
+
+Returns the updated object – the assigned target or the source.
+*/
+
+export default function update(fn, array, source) {
+    const id  = fn(source);
+    const obj = array.find((obj) => fn(obj) === id);
+
+    return obj ?
+        assign(obj, source) :
+        insert(fn, array, source) ;
 }
