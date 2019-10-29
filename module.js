@@ -90,6 +90,7 @@ export const setPath     = curry(_setPath, true);
 
 import * as lists   from './modules/lists/core.js';
 import _ap          from './modules/lists/ap.js';
+import _insert      from './modules/lists/insert.js';
 import _rest        from './modules/lists/rest.js';
 import _remove      from './modules/lists/remove.js';
 import _take        from './modules/lists/take.js';
@@ -111,13 +112,13 @@ export const contains    = curry(lists.contains, true);
 export const each        = curry(lists.each, true);
 export const filter      = curry(lists.filter, true);
 export const find        = curry(lists.find, true);
-export const insert      = curry(lists.insert, true);
 export const map         = curry(lists.map, true);
 export const reduce      = curry(lists.reduce, true);
 export const remove      = curry(_remove, true);
 export const rest        = curry(_rest, true);
 export const slice       = curry(lists.slice, true, 3);
 export const sort        = curry(lists.sort, true);
+export const insert      = curry(_insert, true);
 export const take        = curry(_take, true);
 export const update      = curry(_update, true);
 
