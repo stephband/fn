@@ -63,7 +63,7 @@ export function concat(array2, array1) {
         array1.concat(array2) :
     // 1 is not an array, but 2 is
     toArray(array1).concat(Array.isArray(array2) ? array2 : toArray(array2)) ;
-};
+}
 
 export function contains(value, object) {
     return object.includes ?
@@ -73,7 +73,7 @@ export function contains(value, object) {
     A.includes ?
         A.includes.call(object, value) :
         A.indexOf.call(object, value) !== -1 ;
-};
+}
 
 export function find(fn, object) {
     return A.find.call(object, fn);

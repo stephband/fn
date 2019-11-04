@@ -8,10 +8,10 @@ update(fn, array, source)
 
 Compares the result of calling `fn` on `source` to the result of calling `fn`
 on objects in `array`. If a target match is found, `source` has its properties
-assigned to the target object, and if not the `source` is spliced into the
-target array (preserving a sort order based on the result of `fn(object)`).
+assigned to that target object, and if not the `source` is spliced into the
+array preserving a sort order based on the result of `fn(object)`.
 
-Returns the updated object – the assigned target or the source.
+Returns the updated object.
 */
 
 export default function update(fn, array, source) {
