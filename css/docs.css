@@ -264,7 +264,7 @@ a:hover {
     transition-duration: 0.120s;
 }
 
-.keyboard a:focus {
+.key-device a:focus {
     border-bottom: 1px solid #999999;
 }
 
