@@ -1,5 +1,5 @@
 
-export const $observer = Symbol('Observer');
+export const $observer = Symbol('observer');
 
 const A            = Array.prototype;
 const nothing      = Object.freeze([]);

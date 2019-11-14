@@ -14,11 +14,11 @@ array preserving a sort order based on the result of `fn(object)`.
 Returns the updated object.
 */
 
-export default function update(fn, array, source) {
+export default function update(fn, construct, array, source) {
     const id  = fn(source);
     const obj = array.find((obj) => fn(obj) === id);
 
     return obj ?
         assign(obj, source) :
-        insert(fn, array, source) ;
+        insert(fn, array, construct(source)) ;
 }
