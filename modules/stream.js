@@ -212,11 +212,11 @@ assign(BufferSource.prototype, {
     }
 });
 
-Stream.from = function BufferStream(list) {
+Stream.from = function(list) {
     return new Stream(BufferSource, list);
 };
 
-Stream.of = function ArgumentStream() {
+Stream.of = function() {
     return Stream.from(arguments);
 };
 
@@ -256,6 +256,7 @@ Stream.fromCallback = function(object, name) {
     object[name].apply(object, args);
     return stream;
 };
+
 
 // Clock Stream
 
