@@ -221,7 +221,9 @@ Stream.of = function() {
 };
 
 
-// Promise Stream
+/*
+.fromPromise(promise)
+*/
 
 function PromiseSource(notify, stop, promise) {
     const source = this;
@@ -247,9 +249,11 @@ Stream.fromPromise = function(promise) {
 };
 
 
-// Callback stream
+/*
+.fromPromise(name, object)
+*/
 
-Stream.fromCallback = function(object, name) {
+Stream.fromCallback = function(name, object) {
     const stream = Stream.of();
     const args = rest(2, arguments);
     args.push(stream.push);

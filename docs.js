@@ -9,7 +9,7 @@ import './libs/prism/prism.js';
 
 import { cache, concat, capture, id, invoke, last, nothing, slugify, Fn, Stream } from './module.js';
 import { fragmentFromHTML } from '../dom/module.js';
-import { functions } from '../sparky/module.js';
+import { register } from '../sparky/module.js';
 
 const A = Array.prototype;
 
@@ -116,17 +116,17 @@ function toHTML(paths) {
     });
 }
 
-functions.docs = function(node, input, params) {
+register('docs', function(node, params) {
     const data = toHTML(params);
     const output = Stream.of();
     data.then(output.push);
     return output;
-};
+});
 
-functions.append = function(node, input, params) {
+register('append', function(node, params) {
     const name = params[0];
-    return input.tap((scope) => {
+    return this.tap((scope) => {
         const fragment = fragmentFromHTML(scope[name]);
         node.appendChild(fragment);
     });
-};
+});
