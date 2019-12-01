@@ -22,6 +22,7 @@ export { default as id }          from './modules/id.js';
 export { default as isDefined }   from './modules/is-defined.js';
 export { default as latest }      from './modules/latest.js';
 export { default as noop }        from './modules/noop.js';
+export { default as not }         from './modules/not.js';
 export { default as nothing }     from './modules/nothing.js';
 export { default as now }         from './modules/now.js';
 export { default as once }        from './modules/once.js';
@@ -49,13 +50,10 @@ import { requestTime as _requestTime } from './modules/request-time.js';
 export const requestTime = curry(_requestTime, true, 2);
 export { cancelTime }             from './modules/request-time.js';
 
-export function not(a) { return !a; };
 export const toFloat = parseFloat;
 export const and     = curry(function and(a, b) { return !!(a && b); });
 export const or      = curry(function or(a, b) { return a || b; });
 export const xor     = curry(function xor(a, b) { return (a || b) && (!!a !== !!b); });
-
-
 
 import _equals      from './modules/equals.js';
 import _exec        from './modules/exec.js';

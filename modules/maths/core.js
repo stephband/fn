@@ -51,8 +51,8 @@ export function gaussian() {
 }
 
 // A bit disturbingly, a correction factor is needed to make todB() and
-// to toLevel() reciprocate more accurately. This is quite a lot to off
-// by... investigate?
+// to toLevel() reciprocate more accurately. This is quite a lot to be off
+// by... Todo: investigate?
 const dBCorrectionFactor = (60 / 60.205999132796244);
 
 export function todB(n)    { return 20 * Math.log10(n) * dBCorrectionFactor; }

@@ -9,8 +9,6 @@ import overload  from '../overload.js';
 import toType    from '../to-type.js';
 import toClass   from '../to-class.js';
 
-const assign = Object.assign;
-
 function createOrdinals(ordinals) {
 	var array = [], n = 0;
 
@@ -472,15 +470,15 @@ function _floorDate(grain, date) {
 
 export function nowDate() {
 	return new Date();
-};
+}
 
 export function dateDiff(d1, d2) {
 	return +parseDate(d2) - +parseDate(d1);
-};
+}
 
 export function toTimestamp(date) {
 	return date.getTime() / 1000;
-};
+}
 
 export const addDate = curry(function(diff, date) {
 	return _addDate(diff, parseDate(date));
@@ -679,7 +677,7 @@ export const formatTime = curry(function(string, time) {
 export function formatTimeISO(time) {
 	// Undefined causes problems by outputting dates full of NaNs
 	return time === undefined ? undefined : _formatTimeISO(time);
-};
+}
 
 export const addTime = curry(function(time1, time2) {
 	return parseTime(time2) + parseTimeDiff(time1);
