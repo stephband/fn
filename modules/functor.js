@@ -395,6 +395,7 @@ assign(Fn.prototype, {
         fn = fn || Fn.id;
 
         function createPart(key, value) {
+            // Todo: Nope, no pull
             var stream = Stream.of().on('pull', shiftPull);
             stream.key = key;
             streams.set(key, stream);

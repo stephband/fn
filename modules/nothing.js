@@ -9,6 +9,7 @@ export default Object.freeze({
     push:  noop,
 
     // Stream methods
+    start: noop,
     stop:  noop,
 
     // Make it look like an empty array

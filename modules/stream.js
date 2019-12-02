@@ -2,6 +2,7 @@
 import { each } from './lists/core.js';
 import latest   from './latest.js';
 import noop     from './noop.js';
+import nothing  from './nothing.js';
 import now      from './now.js';
 import remove   from './lists/remove.js';
 import rest     from './lists/rest.js';
@@ -9,6 +10,7 @@ import Timer    from './timer.js';
 import toArray  from './to-array.js';
 import choke    from './choke.js';
 import Fn       from './functor.js';
+import Privates from './privates.js';
 
 var debug     = false;
 var A         = Array.prototype;
@@ -37,38 +39,18 @@ function checkSource(source) {
 
 // Events
 
-var $events = Symbol('events');
-
-function notify(type, object) {
-    var events = object[$events];
-
+function notify(object) {
+    var events = Privates(object).events;
     if (!events) { return; }
-    if (!events[type]) { return; }
 
     var n = -1;
-    var l = events[type].length;
+    var l = events.length;
     var value;
 
     while (++n < l) {
-        value = events[type][n](type, object);
-        if (value !== undefined) {
-            return value;
-        }
+        value = events[n](object);
+        if (value !== undefined) { return value; }
     }
-}
-
-function createNotify(stream) {
-    var _notify = notify;
-
-    return function trigger(type) {
-        // Prevent nested events, so a 'push' event triggered while
-        // the stream is 'pull'ing will do nothing. A bit of a fudge.
-        var notify = _notify;
-        _notify = noop;
-        var value = notify(type, stream);
-        _notify = notify;
-        return value;
-    };
 }
 
 
@@ -76,12 +58,65 @@ function createNotify(stream) {
 //
 // Sources that represent stopping and stopped states of a stream
 
-var doneSource = {
-    shift: noop,
-    push:  noop,
-    start: noop,
-    stop:  noop
-};
+function createSource(stream, privates, options, Source, done) {
+    function note() {
+        notify(stream);
+    }
+
+    function stop(n) {
+        // Neuter events
+        delete privates.events;
+
+        // If no n, shut the stream down
+        if (!n) { return done(); }
+
+        // Schedule shutdown of stream after n values
+        privates.source = new StopSource(privates.source, n, done);
+    }
+
+    const source = new Source(note, stop, options);
+
+    // Check for sanity
+    if (debug) { checkSource(source); }
+
+    // Gaurantee that source has a .stop() method
+    if (!source.stop) { source.stop = noop; }
+
+    return (privates.source = source);
+}
+
+function StartSource(stream, privates, options, Source, done) {
+    this.stream   = stream;
+    this.privates = privates;
+    this.options  = options;
+    this.Source   = Source;
+
+    this.stop = () => {
+        privates.source = nothing;
+        stream.status = 'done';
+        privates.resolve();
+    };
+}
+
+assign(StartSource.prototype, {
+    create: function() {
+        return createSource(this.stream, this.privates, this.options, this.Source, this.stop);
+    },
+
+    shift: function() {
+        return this.create().shift();
+    },
+
+    push: function() {
+        const source = this.create();
+        source.push.apply(source, arguments);
+    },
+
+    start: function() {
+        const source = this.create();
+        source.start.apply(source, arguments);
+    }
+});
 
 function StopSource(source, n, done) {
     this.source = source;
@@ -89,10 +124,11 @@ function StopSource(source, n, done) {
     this.done   = done;
 }
 
-assign(StopSource.prototype, doneSource, {
+assign(StopSource.prototype, nothing, {
     shift: function() {
-        if (--this.n < 1) { this.done(); }
-        return this.source.shift();
+        return --this.n < 1 ?
+            this.done() :
+            this.source.shift() ;
     }
 });
 
@@ -105,76 +141,24 @@ export default function Stream(Source, options) {
         return new Stream(Source, options);
     }
 
-    var stream  = this;
-    var resolve = noop;
-    var reject  = noop;
-    var source;
-    var promise;
+    // Privates
 
-    function done() {
-        stream.status = 'done';
-        source = doneSource;
-    }
+    var privates = Privates(this);
 
-    function stop(n, value) {
-        // Neuter events and schedule shutdown of the stream
-        // after n values
-        delete stream[$events];
+    privates.stream  = this;
+    privates.events  = [];
+    privates.resolve = noop;
+    privates.source  = new StartSource(this, privates, options, Source);
 
-        if (n) { source = new StopSource(source, n, done); }
-        else { done(); }
-
-        resolve(stream);
-    }
-
-    function getSource() {
-        var notify = createNotify(stream);
-        source = new Source(notify, stop, options);
-
-        // Check for sanity
-        if (debug) { checkSource(source); }
-
-        // Gaurantee that source has a .stop() method
-        if (!source.stop) { source.stop = noop; }
-
-        getSource = function() { return source; };
-
-        return source;
-    }
-
-    // Properties and methods
-
-    this[$events] = {};
-
-    this.push = function push() {
-        var source = getSource();
-        source.push.apply(source, arguments);
-        return this;
-    };
+    // Methods
 
     this.shift = function shift() {
-        return getSource().shift();
+        return privates.source.shift();
     };
 
-    this.start = function start() {
-        var source = getSource();
-        source.start.apply(source, arguments);
-        return this;
-    };
-
-    this.stop = function stop() {
-        var source = getSource();
-        source.stop.apply(source, arguments);
-        return this;
-    };
-
-    this.done = function done(fn) {
-        promise = promise || new Promise((res, rej) => {
-            resolve = res;
-            reject = rej;
-        });
-
-        promise.then(fn);
+    this.push = function push() {
+        const source = privates.source;
+        source.push.apply(source, arguments);
         return this;
     };
 }
@@ -187,28 +171,26 @@ function BufferSource(notify, stop, list) {
         Fn.prototype.isPrototypeOf(list) ? list :
         Array.from(list).filter(isValue) ;
 
-    this._buffer = buffer;
-    this._notify = notify;
-    this._stop   = stop;
+    this.buffer = buffer;
+    this.notify = notify;
+    this.end    = stop;
 }
 
 assign(BufferSource.prototype, {
     shift: function() {
-        var buffer = this._buffer;
-        var notify = this._notify;
-        return buffer.length ? buffer.shift() : notify('pull') ;
+        var buffer = this.buffer;
+        return buffer.shift();
     },
 
     push: function() {
-        var buffer = this._buffer;
-        var notify = this._notify;
+        var buffer = this.buffer;
         buffer.push.apply(buffer, arguments);
-        notify('push');
+        this.notify();
     },
 
     stop: function() {
-        var buffer = this._buffer;
-        this._stop(buffer.length);
+        var buffer = this.buffer;
+        this.end(buffer.length);
     }
 });
 
@@ -222,7 +204,7 @@ Stream.of = function() {
 
 
 /*
-.fromPromise(promise)
+Stream.fromPromise(promise)
 */
 
 function PromiseSource(notify, stop, promise) {
@@ -233,7 +215,7 @@ function PromiseSource(notify, stop, promise) {
     .catch(stop)
     .then(function(value) {
         source.value = value;
-        notify('push');
+        notify();
         stop();
     });
 }
@@ -250,7 +232,7 @@ Stream.fromPromise = function(promise) {
 
 
 /*
-.fromPromise(name, object)
+Stream.fromCallback(name, object)
 */
 
 Stream.fromCallback = function(name, object) {
@@ -350,7 +332,7 @@ assign(TimeSource.prototype, {
 
         if (time >= event.stopTime) {
             event.t2 = event.stopTime;
-            this.notify('push');
+            this.notify();
             this.end();
 
             // Release event
@@ -359,16 +341,25 @@ assign(TimeSource.prototype, {
         }
 
         event.t2 = time;
-        this.notify('push');
+        this.notify();
         // Todo: We need this? Test.
         this.value     = undefined;
         this.requestId = this.timer.request(this.frame);
     }
 });
 
+
+/*
+Stream.fromTimer(timer)
+*/
+
 Stream.fromTimer = function TimeStream(timer) {
     return new Stream(TimeSource, timer);
 };
+
+/*
+Stream.fromDuration(s)
+*/
 
 Stream.fromDuration = function(duration) {
     return Stream.fromTimer(new Timer(duration));
@@ -410,8 +401,8 @@ function CombineSource(notify, stop, fn, sources) {
             object._hot = true;
         }
 
-        source.on('push', listen)
-        source.on('push', notify);
+        source.on(listen)
+        source.on(notify);
         return data;
     });
 }
@@ -435,8 +426,8 @@ assign(CombineSource.prototype, {
         each(function(data) {
             var source = data.source;
             var listen = data.listen;
-            source.off('push', listen);
-            source.off('push', notify);
+            source.off(listen);
+            source.off(notify);
         }, this._store);
 
         this._stop(this._hot ? 1 : 0);
@@ -462,7 +453,7 @@ function MergeSource(notify, stop, sources) {
     var values = [];
     var buffer = [];
 
-    function update(type, source) {
+    function update(source) {
         buffer.push(source);
     }
 
@@ -479,8 +470,8 @@ function MergeSource(notify, stop, sources) {
         values.push.apply(values, toArray(source));
 
         // Listen for incoming values
-        source.on('push', update);
-        source.on('push', notify);
+        source.on(update);
+        source.on(notify);
     }, sources);
 }
 
@@ -508,8 +499,8 @@ assign(MergeSource.prototype, {
 
         // Remove listeners
         each(function(source) {
-            source.off('push', update);
-            source.off('push', notify);
+            source.off(update);
+            source.off(notify);
         }, sources);
 
         stop(this._values.length + this._buffer.length);
@@ -525,9 +516,6 @@ Stream.Merge = function(source1, source2) {
 };
 
 
-
-
-
 // Stream Timers
 
 Stream.Choke = function(time) {
@@ -536,7 +524,7 @@ Stream.Choke = function(time) {
         var update = choke(function() {
             // Get last value and stick it in buffer
             value = arguments[arguments.length - 1];
-            notify('push');
+            notify();
         }, time);
 
         return {
@@ -613,7 +601,7 @@ function ThrottleSource(notify, stop, timer) {
     this.queue   = schedule;
     this.update  = function update() {
         source.queue = schedule;
-        notify('push');
+        notify();
     };
 }
 
@@ -669,10 +657,14 @@ Stream.throttle = function(timer) {
 };
 
 
+
 // Stream Methods
 
 Stream.prototype = assign(Object.create(Fn.prototype), {
     constructor: Stream,
+
+
+    // Mutate
 
     clone: function() {
         var source  = this;
@@ -683,7 +675,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         var stream  = new Stream(function setup(notify, stop) {
             var buffer = buffer2;
 
-            source.on('push', notify);
+            source.on(notify);
 
             return {
                 shift: function() {
@@ -693,7 +685,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
                     if (value !== undefined) { buffer1.push(value); }
                     else if (source.status === 'done') {
                         stop(0);
-                        source.off('push', notify);
+                        source.off(notify);
                     }
 
                     return value;
@@ -709,12 +701,12 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
                     }
 
                     stop(buffer.length);
-                    source.off('push', notify);
+                    source.off(notify);
                 }
             };
         });
 
-        this.done(stream.stop);
+        this.done(() => stream.stop());
 
         this.shift = function() {
             if (buffer1.length) { return buffer1.shift(); }
@@ -759,7 +751,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         Fn.prototype.each.apply(source, args);
 
         // Delegate to Fn#each().
-        return this.on('push', () => Fn.prototype.each.apply(source, args));
+        return this.on(() => Fn.prototype.each.apply(source, args));
     },
 
     join: function() {
@@ -774,40 +766,63 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         return output;
     },
 
-    // Events
 
-    on: function(type, fn) {
-        var events = this[$events];
-        if (!events) { return this; }
+    // Lifecycle
 
-        var listeners = events[type] || (events[type] = []);
-        listeners.push(fn);
+    start: function start() {
+        const source = Privates(this).source;
+        source.start.apply(source, arguments);
         return this;
     },
 
-    off: function off(type, fn) {
-        var events = this[$events];
-        if (!events) { return this; }
+    stop: function stop() {
+        const source = Privates(this).source;
+        source.stop.apply(source, arguments);
+        return this;
+    },
 
-        // Remove all handlers for all types
-        if (arguments.length === 0) {
-            Object.keys(events).forEach(off, this);
-            return this;
+    done: function done(fn) {
+        const privates = Privates(this);
+        const promise = privates.promise || (
+            privates.promise = this.status === 'done' ?
+                Promise.resolve() :
+                new Promise((resolve) => privates.resolve = resolve)
+        );
+
+        promise.then(fn);
+        return this;
+    },
+
+    on: function on(fn) {
+        if (typeof fn === 'string') {
+            throw new Error('stream.on(fn) no longer takes type');
         }
 
-        var listeners = events[type];
-        if (!listeners) { return; }
+        var events = Privates(this).events;
+        if (!events) { return this; }
 
-        // Remove all handlers for type
+        events.push(fn);
+        return this;
+    },
+
+    off: function off(fn) {
+        if (typeof fn === 'string') {
+            throw new Error('stream.off(fn) no longer takes type');
+        }
+
+        var events = Privates(this).events;
+        if (!events) { return this; }
+
+        // Remove all handlers
         if (!fn) {
-            delete events[type];
+            events.length = 0;
             return this;
         }
 
         // Remove handler fn for type
-        var n = listeners.length;
+        var n = events.length;
         while (n--) {
-            if (listeners[n] === fn) { listeners.splice(n, 1); }
+            if (events[n] === fn) { events.splice(n, 1); }
         }
 
         return this;
