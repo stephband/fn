@@ -636,7 +636,6 @@ Stream.throttle = function(timer) {
 Stream.prototype = assign(Object.create(Fn.prototype), {
     constructor: Stream,
 
-
     // Mutate
 
     clone: function() {
@@ -713,7 +712,6 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         return this.pipe(Stream.clock(timer));
     },
 
-
     // Consume
 
     each: function(fn) {
@@ -739,6 +737,58 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         return output;
     },
 
+    fold: function fold(fn, seed) {
+        var stream = this;
+
+        return new Promise(function(resolve, reject) {
+            var value;
+
+            stream
+            .scan(fn, seed)
+            .each((v) => value = v)
+            .done(() => resolve(value))
+            .catch(reject);
+        });
+    },
+
+    reduce: function reduce(fn) {
+        // Dodgy dodgy dodgy...
+
+        // If a seed value has been given we want to fold, not reduce. This is
+        // a convenience to match the semantics of the JS array.reduce method.
+        if (arguments[1]) {
+            return this.fold.apply(this, arguments);
+        }
+
+        var stream = this;
+        var value  = this.shift();
+
+        if (value === undefined) {
+            this.on(function read() {
+                value = this.shift();
+                if (value !== undefined) {
+                    this.off(read);
+
+                    stream
+                    .scan(fn, value)
+                    .each((v) => value = v);
+                }
+            });
+        }
+        else {
+            stream
+            .scan(fn, value)
+            .each((v) => value = v);
+        }
+
+        // Should error - fall through to catch - where stream has not
+        // produced any value
+        return new Promise(function(resolve, reject) {
+            stream
+            .done(() => resolve(value))
+            .catch(reject);
+        });
+    },
 
     // Lifecycle
 

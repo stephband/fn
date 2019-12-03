@@ -370,23 +370,6 @@ assign(Fn.prototype, {
         );
     },
 
-    fold: function(fn, seed) {
-        var i = 0;
-        return this
-        .map(function fold(value) {
-            seed = fn(seed, value, i++);
-            return seed;
-        });
-
-        // Why would we want this? To gaurantee a result? It's a bad idea
-        // when streaming, as you get an extra value in front...
-        //.unshift(seed);
-    },
-
-    scan: function(fn, seed) {
-        return this.map((value) => (seed = fn(seed, value)));
-    },
-
     partition: function(fn) {
         var source = this;
         var buffer = [];
@@ -441,7 +424,13 @@ assign(Fn.prototype, {
     },
 
     reduce: function reduce(fn, seed) {
-        return this.fold(fn, seed).latest().shift();
+        return this.scan(fn, seed).latest().shift();
+    },
+
+    scan: function scan(fn, seed) {
+        return this.map(function scan(value) {
+            return seed = fn(seed, value);
+        });
     },
 
     take: function(n) {
@@ -602,21 +591,7 @@ assign(Fn.prototype, {
 
     toString: function() {
         return this.reduce(prepend, '');
-    },
-
-
-    // Deprecated
-
-    process: deprecate(function(fn) {
-        return fn(this);
-    }, '.process() is deprecated'),
-
-    last: deprecate(function() {
-        var source = this;
-        return create(this, function shiftLast() {
-            return latest(source);
-        });
-    }, '.last() is now .latest()'),
+    }
 });
 
 Fn.prototype.toArray = Fn.prototype.toJSON;
