@@ -52,7 +52,18 @@ function notify(object) {
     }
 }
 
-function createSource(stream, privates, options, Source, done) {
+function consumeByCalling(array) {
+    var fn;
+    while((fn = array.shift())) { fn(); }
+}
+
+function done(stream, privates) {
+    stream.status = 'done';
+    privates.source = nothing;
+    privates.resolve();
+}
+
+function createSource(stream, privates, options, Source) {
     function note() {
         notify(stream);
     }
@@ -63,7 +74,7 @@ function createSource(stream, privates, options, Source, done) {
 
         // If no n, shut the stream down
         if (n !== undefined) {
-            privates.source = new StopSource(privates.source, n, done);
+            privates.source = new StopSource(stream, privates.source, privates, n, done);
             privates.stops && privates.stops.forEach((fn) => fn());
             privates.stops = undefined;
         }
@@ -72,7 +83,7 @@ function createSource(stream, privates, options, Source, done) {
         else {
             privates.stops && privates.stops.forEach((fn) => fn());
             privates.stops = undefined;
-            done();
+            done(stream, privates);
         }
     }
 
@@ -119,25 +130,31 @@ assign(StartSource.prototype, {
     },
 
     stop: function done() {
-        this.stream.status = 'done';
-        this.privates.source = nothing;
-        this.privates.resolve();
+        const source = this.create();
+console.log('STOP', source);
+        if (!source.stop) {
+            done(this.stream, this.privates);
+        }
+
+        source.stop.apply(source, arguments);
     }
 });
 
 
 // StopSource
 
-function StopSource(source, n, done) {
-    this.source = source;
-    this.n      = n;
-    this.done   = done;
+function StopSource(stream, source, privates, n, done) {
+    this.stream   = stream;
+    this.source   = source;
+    this.privates = privates;
+    this.n        = n;
+    this.done     = done;
 }
 
 assign(StopSource.prototype, nothing, {
     shift: function() {
         const value = this.source.shift();
-        if (--this.n < 1) { this.done(); }
+        if (--this.n < 1) { this.done(this.stream, this.privates); }
         return value;
     },
 
@@ -219,40 +236,23 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
 
     clone: function clone() {
         var source  = this;
-        var shift   = this.shift;
+        var shift   = source.shift;
         var buffer1 = [];
         var buffer2 = [];
-
         var stream  = new Stream(function setup(notify, stop) {
-            var buffer = buffer2;
-
             source.on(notify);
 
             return {
                 shift: function() {
-                    if (buffer.length) { return buffer.shift(); }
+console.log('CLONE shift', buffer1, buffer2, shift)
+                    if (buffer2.length) { return buffer2.shift(); }
                     var value = shift();
-
                     if (value !== undefined) { buffer1.push(value); }
-                    else if (source.status === 'done') {
-                        stop(0);
-                        source.off(notify);
-                    }
-
                     return value;
                 },
 
                 stop: function() {
-                    var value;
-
-                    // Flush all available values into buffer
-                    while ((value = shift()) !== undefined) {
-                        buffer.push(value);
-                        buffer1.push(value);
-                    }
-
-                    stop(buffer.length);
-                    source.off(notify);
+                    stop(buffer2.length);
                 }
             };
         });
@@ -319,7 +319,8 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     last: function last(fn) {
         const privates = Privates(this);
         privates.stops = privates.stops || [];
-        privates.stops.push(() => fn(this.latest().shift()));
+        const value = this.latest().shift();
+        value !== undefined && privates.stops.push(() => fn(value));
         return this;
     },
 
