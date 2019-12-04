@@ -201,6 +201,8 @@ export default function Stream(Source, options) {
         return privates.source.shift();
     };
 
+    // I use presence of push to check for writeability in various places,
+    // keep it as an instance method for just now
     this.push = function push() {
         const source = privates.source;
         source.push.apply(source, arguments);
