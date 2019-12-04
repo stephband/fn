@@ -7,10 +7,12 @@ import './libs/marked/marked.min.js';
 // https://prismjs.com/
 import './libs/prism/prism.js';
 
-import { cache, concat, capture, id, invoke, last, nothing, slugify, Fn, Stream } from './module.js';
+import { cache, capture, id, invoke, last, nothing, slugify, Stream } from './module.js';
 import { fragmentFromHTML } from '../dom/module.js';
 import { register } from '../sparky/module.js';
 
+const Prism = window.Prism;
+const marked = window.marked;
 const A = Array.prototype;
 
 const fetchOptions = {

@@ -2,8 +2,8 @@
 
 Runs Prism on document.
 Runs Sparky on the document.
-Removes template-fn attributes.
-Removes nodes with remove-template attribute.
+Removes build-fn attributes.
+Removes nodes with build-remove attribute.
 
 */
 
@@ -14,10 +14,10 @@ Removes nodes with remove-template attribute.
 import './libs/prism/prism.js';
 
 
-import { invoke, nothing } from './module.js';
+import { invoke, nothing, requestTick } from './module.js';
 import { query } from '../dom/module.js';
 import './docs.js';
-import { config } from '../sparky/module.js';
+import Sparky, { config } from '../sparky/module.js';
 
 // Change name of attributes
 config.attributeFn      = 'build-fn';
@@ -29,3 +29,9 @@ setTimeout(function() {
     query('[build-remove]', document).forEach(invoke('remove', nothing));
     console.log('Document built! (this is just a cheap timeout, it may not be true)');
 }, 5000);
+
+// Run Sparky on the whoooole document
+requestTick(function() {
+    console.log('Build...');
+    Sparky(document.documentElement).push({});
+});
