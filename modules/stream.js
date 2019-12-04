@@ -5,7 +5,6 @@ import noop     from './noop.js';
 import nothing  from './nothing.js';
 import now      from './now.js';
 import remove   from './lists/remove.js';
-import rest     from './lists/rest.js';
 import Timer    from './timer.js';
 import toArray  from './to-array.js';
 import choke    from './choke.js';
@@ -37,7 +36,7 @@ function checkSource(source) {
 }
 
 
-// Events
+// Sources
 
 function notify(object) {
     var events = Privates(object).events;
@@ -52,11 +51,6 @@ function notify(object) {
         if (value !== undefined) { return value; }
     }
 }
-
-
-// Sources
-//
-// Sources that represent stopping and stopped states of a stream
 
 function createSource(stream, privates, options, Source, done) {
     function note() {
@@ -93,6 +87,9 @@ function createSource(stream, privates, options, Source, done) {
     return (privates.source = source);
 }
 
+
+// StartSource
+
 function StartSource(stream, privates, options, Source) {
     this.stream   = stream;
     this.privates = privates;
@@ -128,6 +125,9 @@ assign(StartSource.prototype, {
     }
 });
 
+
+// StopSource
+
 function StopSource(source, n, done) {
     this.source = source;
     this.n      = n;
@@ -139,6 +139,42 @@ assign(StopSource.prototype, nothing, {
         const value = this.source.shift();
         if (--this.n < 1) { this.done(); }
         return value;
+    },
+
+    start: function() {
+        throw new Error('Cannot .start() stopped stream');
+    },
+
+    push: function() {
+        throw new Error('Cannot .push() to stopped stream');
+    }
+});
+
+
+// BufferSource
+
+function BufferSource(notify, stop, list) {
+    const buffer = list === undefined ? [] :
+        Fn.prototype.isPrototypeOf(list) ? list :
+        Array.from(list).filter(isValue) ;
+
+    this.buffer = buffer;
+    this.notify = notify;
+    this.stopfn = stop;
+}
+
+assign(BufferSource.prototype, {
+    shift: function() {
+        return this.buffer.shift();
+    },
+
+    push: function() {
+        this.buffer.push.apply(this.buffer, arguments);
+        this.notify();
+    },
+
+    stop: function() {
+        this.stopfn(this.buffer.length);
     }
 });
 
@@ -172,33 +208,197 @@ export default function Stream(Source, options) {
     };
 }
 
+// Stream Methods
 
-// Buffer Source
+Stream.prototype = assign(Object.create(Fn.prototype), {
+    constructor: Stream,
 
-function BufferSource(notify, stop, list) {
-    const buffer = list === undefined ? [] :
-        Fn.prototype.isPrototypeOf(list) ? list :
-        Array.from(list).filter(isValue) ;
+    // Transform
 
-    this.buffer = buffer;
-    this.notify = notify;
-    this.stopfn = stop;
-}
+    clone: function clone() {
+        var source  = this;
+        var shift   = this.shift;
+        var buffer1 = [];
+        var buffer2 = [];
 
-assign(BufferSource.prototype, {
-    shift: function() {
-        return this.buffer.shift();
+        var stream  = new Stream(function setup(notify, stop) {
+            var buffer = buffer2;
+
+            source.on(notify);
+
+            return {
+                shift: function() {
+                    if (buffer.length) { return buffer.shift(); }
+                    var value = shift();
+
+                    if (value !== undefined) { buffer1.push(value); }
+                    else if (source.status === 'done') {
+                        stop(0);
+                        source.off(notify);
+                    }
+
+                    return value;
+                },
+
+                stop: function() {
+                    var value;
+
+                    // Flush all available values into buffer
+                    while ((value = shift()) !== undefined) {
+                        buffer.push(value);
+                        buffer1.push(value);
+                    }
+
+                    stop(buffer.length);
+                    source.off(notify);
+                }
+            };
+        });
+
+        this.done(() => stream.stop());
+
+        this.shift = function() {
+            if (buffer1.length) { return buffer1.shift(); }
+            var value = shift();
+            if (value !== undefined && stream.status !== 'done') { buffer2.push(value); }
+            return value;
+        };
+
+        return stream;
     },
 
-    push: function() {
-        this.buffer.push.apply(this.buffer, arguments);
-        this.notify();
+    combine: function(fn, source) {
+        return Stream.Combine(fn, this, source);
     },
 
-    stop: function() {
-        this.stopfn(this.buffer.length);
+    join: function join() {
+        const output = this.constructor.of();
+        this.each((input) => {
+            input.pipe ?
+                // Input is a stream
+                input.pipe(output) :
+                // Input is an array-like
+                output.push.apply(output, input) ;
+        });
+        return output;
+    },
+
+    merge: function merge() {
+        var sources = toArray(arguments);
+        sources.unshift(this);
+        return Stream.Merge.apply(null, sources);
+    },
+
+    choke: function choke(time) {
+        return this.pipe(Stream.Choke(time));
+    },
+
+    throttle: function throttle(timer) {
+        return this.pipe(Stream.throttle(timer));
+    },
+
+    clock: function clock(timer) {
+        return this.pipe(Stream.clock(timer));
+    },
+
+    // Consume
+
+    each: function each(fn) {
+        var args   = arguments;
+        var source = this;
+
+        // Flush and observe
+        Fn.prototype.each.apply(source, args);
+
+        // Delegate to Fn#each().
+        return this.on(() => Fn.prototype.each.apply(source, args));
+    },
+
+    last: function last(fn) {
+        const privates = Privates(this);
+        privates.stops = privates.stops || [];
+        privates.stops.push(() => fn(this.latest().shift()));
+        return this;
+    },
+
+    fold: function fold(fn, accumulator) {
+        // Fold to promise
+        return new Promise((resolve, reject) => {
+            this
+            .scan(fn, accumulator)
+            .last(resolve)
+        });
+    },
+
+    reduce: function reduce(fn) {
+        // Support array.reduce semantics with optional seed
+        return arguments[1] ?
+            this.fold(fn, arguments[1]) :
+            this.fold((acc, value) => (acc === undefined ? value : fn(acc, value)), this.shift()) ;
+    },
+
+    // Lifecycle
+
+    start: function start() {
+        const source = Privates(this).source;
+        source.start.apply(source, arguments);
+        return this;
+    },
+
+    stop: function stop() {
+        const source = Privates(this).source;
+        source.stop.apply(source, arguments);
+        return this;
+    },
+
+    done: function done(fn) {
+        const privates = Privates(this);
+        const promise = privates.promise || (
+            privates.promise = this.status === 'done' ?
+                Promise.resolve() :
+                new Promise((resolve, reject) => assign(privates, { resolve, reject }))
+        );
+
+        promise.then(fn);
+        return this;
+    },
+
+    on: function on(fn) {
+        if (typeof fn === 'string') {
+            throw new Error('stream.on(fn) no longer takes type');
+        }
+
+        var events = Privates(this).events;
+        if (!events) { return this; }
+
+        events.push(fn);
+        return this;
+    },
+
+    off: function off(fn) {
+        if (typeof fn === 'string') {
+            throw new Error('stream.off(fn) no longer takes type');
+        }
+
+        var events = Privates(this).events;
+        if (!events) { return this; }
+
+        // Remove all handlers
+        if (!fn) {
+            events.length = 0;
+            return this;
+        }
+
+        // Remove handler fn for type
+        var n = events.length;
+        while (n--) {
+            if (events[n] === fn) { events.splice(n, 1); }
+        }
+
+        return this;
     }
 });
+
 
 /*
 Stream.from(array)
@@ -622,196 +822,3 @@ Stream.throttle = function(timer) {
         return new ThrottleSource(notify, stop, timer);
     });
 };
-
-
-
-// Stream Methods
-
-Stream.prototype = assign(Object.create(Fn.prototype), {
-    constructor: Stream,
-
-    // Mutate
-
-    clone: function() {
-        var source  = this;
-        var shift   = this.shift;
-        var buffer1 = [];
-        var buffer2 = [];
-
-        var stream  = new Stream(function setup(notify, stop) {
-            var buffer = buffer2;
-
-            source.on(notify);
-
-            return {
-                shift: function() {
-                    if (buffer.length) { return buffer.shift(); }
-                    var value = shift();
-
-                    if (value !== undefined) { buffer1.push(value); }
-                    else if (source.status === 'done') {
-                        stop(0);
-                        source.off(notify);
-                    }
-
-                    return value;
-                },
-
-                stop: function() {
-                    var value;
-
-                    // Flush all available values into buffer
-                    while ((value = shift()) !== undefined) {
-                        buffer.push(value);
-                        buffer1.push(value);
-                    }
-
-                    stop(buffer.length);
-                    source.off(notify);
-                }
-            };
-        });
-
-        this.done(() => stream.stop());
-
-        this.shift = function() {
-            if (buffer1.length) { return buffer1.shift(); }
-            var value = shift();
-            if (value !== undefined && stream.status !== 'done') { buffer2.push(value); }
-            return value;
-        };
-
-        return stream;
-    },
-
-    combine: function(fn, source) {
-        return Stream.Combine(fn, this, source);
-    },
-
-    merge: function() {
-        var sources = toArray(arguments);
-        sources.unshift(this);
-        return Stream.Merge.apply(null, sources);
-    },
-
-    choke: function(time) {
-        return this.pipe(Stream.Choke(time));
-    },
-
-    throttle: function(timer) {
-        return this.pipe(Stream.throttle(timer));
-    },
-
-    clock: function(timer) {
-        return this.pipe(Stream.clock(timer));
-    },
-
-    // Consume
-
-    each: function(fn) {
-        var args   = arguments;
-        var source = this;
-
-        // Flush and observe
-        Fn.prototype.each.apply(source, args);
-
-        // Delegate to Fn#each().
-        return this.on(() => Fn.prototype.each.apply(source, args));
-    },
-
-    last: function(fn) {
-        const privates = Privates(this);
-        privates.stops = privates.stops || [];
-        privates.stops.push(() => fn(this.latest().shift()));
-        return this;
-    },
-
-    join: function() {
-        const output = this.constructor.of();
-        this.each((input) => {
-            input.pipe ?
-                // Input is a stream
-                input.pipe(output) :
-                // Input is an array-like
-                output.push.apply(output, input) ;
-        });
-        return output;
-    },
-
-    fold: function fold(fn, seed) {
-        // Fold to promise
-        return new Promise((resolve, reject) => {
-            this
-            .scan(fn, seed)
-            .last(resolve)
-        });
-    },
-
-    reduce: function reduce(fn) {
-        // Support array.reduce semantics with optional seed
-        return arguments[1] ?
-            this.fold(fn, arguments[1]) :
-            this.fold((acc, value) => (acc === undefined ? value : fn(acc, value)), this.shift()) ;
-    },
-
-    // Lifecycle
-
-    start: function start() {
-        const source = Privates(this).source;
-        source.start.apply(source, arguments);
-        return this;
-    },
-
-    stop: function stop() {
-        const source = Privates(this).source;
-        source.stop.apply(source, arguments);
-        return this;
-    },
-
-    done: function done(fn) {
-        const privates = Privates(this);
-        const promise = privates.promise || (
-            privates.promise = this.status === 'done' ?
-                Promise.resolve() :
-                new Promise((resolve, reject) => assign(privates, { resolve, reject }))
-        );
-
-        promise.then(fn);
-        return this;
-    },
-
-    on: function on(fn) {
-        if (typeof fn === 'string') {
-            throw new Error('stream.on(fn) no longer takes type');
-        }
-
-        var events = Privates(this).events;
-        if (!events) { return this; }
-
-        events.push(fn);
-        return this;
-    },
-
-    off: function off(fn) {
-        if (typeof fn === 'string') {
-            throw new Error('stream.off(fn) no longer takes type');
-        }
-
-        var events = Privates(this).events;
-        if (!events) { return this; }
-
-        // Remove all handlers
-        if (!fn) {
-            events.length = 0;
-            return this;
-        }
-
-        // Remove handler fn for type
-        var n = events.length;
-        while (n--) {
-            if (events[n] === fn) { events.splice(n, 1); }
-        }
-
-        return this;
-    }
-});
