@@ -68,10 +68,18 @@ function createSource(stream, privates, options, Source, done) {
         delete privates.events;
 
         // If no n, shut the stream down
-        if (!n) { return done(); }
+        if (n !== undefined) {
+            privates.source = new StopSource(privates.source, n, done);
+            privates.stops && privates.stops.forEach((fn) => fn());
+            privates.stops = undefined;
+        }
 
         // Schedule shutdown of stream after n values
-        privates.source = new StopSource(privates.source, n, done);
+        else {
+            privates.stops && privates.stops.forEach((fn) => fn());
+            privates.stops = undefined;
+            done();
+        }
     }
 
     const source = new Source(note, stop, options);
@@ -90,33 +98,33 @@ function StartSource(stream, privates, options, Source) {
     this.privates = privates;
     this.options  = options;
     this.Source   = Source;
-
-    this.stop = () => {
-        stream.status = 'done';
-        privates.source = nothing;
-        privates.resolve();
-    };
 }
 
 assign(StartSource.prototype, {
     create: function() {
-        return createSource(this.stream, this.privates, this.options, this.Source, this.stop);
+        return createSource(this.stream, this.privates, this.options, this.Source, () => this.stop());
     },
 
-    shift: function() {
+    shift: function shift() {
         return this.create().shift();
     },
 
-    push: function() {
+    push: function push() {
         const source = this.create();
         if (!source.push) { throw new Error('Attempt to .push() to unpushable stream'); }
         source.push.apply(source, arguments);
     },
 
-    start: function() {
+    start: function start() {
         const source = this.create();
         if (!source.start) { throw new Error('Attempt to .start() unstartable stream'); }
         source.start.apply(source, arguments);
+    },
+
+    stop: function done() {
+        this.stream.status = 'done';
+        this.privates.source = nothing;
+        this.privates.resolve();
     }
 });
 
@@ -128,9 +136,9 @@ function StopSource(source, n, done) {
 
 assign(StopSource.prototype, nothing, {
     shift: function() {
-        return --this.n < 1 ?
-            this.done() :
-            this.source.shift() ;
+        const value = this.source.shift();
+        if (--this.n < 1) { this.done(); }
+        return value;
     }
 });
 
@@ -174,7 +182,7 @@ function BufferSource(notify, stop, list) {
 
     this.buffer = buffer;
     this.notify = notify;
-    this.end    = stop;
+    this.stopfn = stop;
 }
 
 assign(BufferSource.prototype, {
@@ -188,55 +196,41 @@ assign(BufferSource.prototype, {
     },
 
     stop: function() {
-        this.end(this.buffer.length);
+        this.stopfn(this.buffer.length);
     }
 });
+
+/*
+Stream.from(array)
+*/
 
 Stream.from = function(list) {
     return new Stream(BufferSource, list);
 };
 
-Stream.of = function() {
-    return Stream.from(arguments);
-};
-
-
 /*
 Stream.fromPromise(promise)
 */
 
-function PromiseSource(notify, stop, promise) {
-    this.stop = stop;
+Stream.fromPromise = function(promise) {
+    const stream = Stream.of();
 
     promise
     .then((value) => {
-        this.resolved = true;
-        this.value = value;
-        notify();
+        stream.push(value);
+        stream.stop();
     })
-    .catch(stop);
-}
+    .catch(() => stream.stop());
 
-PromiseSource.prototype.shift = function() {
-    this.resolved && this.stop();
-    return this.value;
+    return stream;
 };
-
-Stream.fromPromise = function(promise) {
-    return new Stream(PromiseSource, promise);
-};
-
 
 /*
-Stream.fromCallback(name, object)
+Stream.of(...values)
 */
 
-Stream.fromCallback = function(name, object) {
-    const stream = Stream.of();
-    const args = rest(2, arguments);
-    args.push(stream.push);
-    object[name].apply(object, args);
-    return stream;
+Stream.of = function() {
+    return Stream.from(arguments);
 };
 
 
@@ -725,6 +719,13 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         return this.on(() => Fn.prototype.each.apply(source, args));
     },
 
+    last: function(fn) {
+        const privates = Privates(this);
+        privates.stops = privates.stops || [];
+        privates.stops.push(() => fn(this.latest().shift()));
+        return this;
+    },
+
     join: function() {
         const output = this.constructor.of();
         this.each((input) => {
@@ -738,56 +739,19 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     },
 
     fold: function fold(fn, seed) {
-        var stream = this;
-
-        return new Promise(function(resolve, reject) {
-            var value;
-
-            stream
+        // Fold to promise
+        return new Promise((resolve, reject) => {
+            this
             .scan(fn, seed)
-            .each((v) => value = v)
-            .done(() => resolve(value))
-            .catch(reject);
+            .last(resolve)
         });
     },
 
     reduce: function reduce(fn) {
-        // Dodgy dodgy dodgy...
-
-        // If a seed value has been given we want to fold, not reduce. This is
-        // a convenience to match the semantics of the JS array.reduce method.
-        if (arguments[1]) {
-            return this.fold.apply(this, arguments);
-        }
-
-        var stream = this;
-        var value  = this.shift();
-
-        if (value === undefined) {
-            this.on(function read() {
-                value = this.shift();
-                if (value !== undefined) {
-                    this.off(read);
-
-                    stream
-                    .scan(fn, value)
-                    .each((v) => value = v);
-                }
-            });
-        }
-        else {
-            stream
-            .scan(fn, value)
-            .each((v) => value = v);
-        }
-
-        // Should error - fall through to catch - where stream has not
-        // produced any value
-        return new Promise(function(resolve, reject) {
-            stream
-            .done(() => resolve(value))
-            .catch(reject);
-        });
+        // Support array.reduce semantics with optional seed
+        return arguments[1] ?
+            this.fold(fn, arguments[1]) :
+            this.fold((acc, value) => (acc === undefined ? value : fn(acc, value)), this.shift()) ;
     },
 
     // Lifecycle
@@ -809,7 +773,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         const promise = privates.promise || (
             privates.promise = this.status === 'done' ?
                 Promise.resolve() :
-                new Promise((resolve) => privates.resolve = resolve)
+                new Promise((resolve, reject) => assign(privates, { resolve, reject }))
         );
 
         promise.then(fn);
