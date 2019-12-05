@@ -235,38 +235,40 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     // Transform
 
     clone: function clone() {
-        var source  = this;
-        var shift   = source.shift;
-        var buffer1 = [];
-        var buffer2 = [];
-        var stream  = new Stream(function setup(notify, stop) {
+        const source  = this;
+        const next    = this.shift;
+        const buffer1 = [];
+        const buffer2 = [];
+
+        function shift(bufferA, bufferB, source, next) {
+            if (bufferA.length === 0) {
+                const value = next.apply(source);
+                if (value === undefined) { return; }
+                bufferA.push(value);
+                bufferB.push(value);
+            }
+
+            return buffer1.shift();
+        }
+
+        this.shift = function() {
+            return shift(buffer1, buffer2, source, next);
+        };
+
+        return new Stream(function(notify, stop) {
             source.on(notify);
+            source.done(stop);
 
             return {
                 shift: function() {
-console.log('CLONE shift', buffer1, buffer2, shift)
-                    if (buffer2.length) { return buffer2.shift(); }
-                    var value = shift();
-                    if (value !== undefined) { buffer1.push(value); }
-                    return value;
+                    return shift(buffer2, buffer1, source, next);
                 },
 
                 stop: function() {
-                    stop(buffer2.length);
+                    stop(0);
                 }
-            };
+            }
         });
-
-        this.done(() => stream.stop());
-
-        this.shift = function() {
-            if (buffer1.length) { return buffer1.shift(); }
-            var value = shift();
-            if (value !== undefined && stream.status !== 'done') { buffer2.push(value); }
-            return value;
-        };
-
-        return stream;
     },
 
     combine: function(fn, source) {
