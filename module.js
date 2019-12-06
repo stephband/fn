@@ -16,6 +16,7 @@ export { default as print }       from './modules/print.js';
 export { default as args }        from './modules/args.js';
 export { default as argument }    from './modules/argument.js';
 export { default as cache }       from './modules/cache.js';
+export { default as call }        from './modules/call.js';
 export { default as choke }       from './modules/choke.js';
 export { default as compose }     from './modules/compose.js';
 export { default as deprecate }   from './modules/deprecate.js';
