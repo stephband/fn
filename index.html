@@ -2,7 +2,7 @@
     <meta charset="utf-8">
 
     <meta name="author" content="@stephband">
-    <meta name="description" content="Documentation for Fn. A library of functions, functors and streams.">
+    <meta name="description" content="Documentation for Fn. A library of functions, observers and streams, published as ES6 modules.">
     <meta name="viewport" content="width=device-width">
 
     <title>Fn</title>
@@ -27,9 +27,9 @@
     <link rel="stylesheet" href="css/respond.css">
 <template id="header-template" title="/fn/">
     <header class="grid" id="header">
-        <h1 class="col-1 span-7 @2-col-2">{[title]} <span class="text-6">{[version]}</span></h1>
+        <h1 class="col-1 span-3 @2-col-2">{[title]} <span class="text-6">{[version]}</span></h1>
 
-        <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3">
+        <div class="col-1 span-3 @2-col-2 @3-span-6 @4-span-5 @5-span-3">
             <p class="text-8">
                 {[description]}
             </p>
@@ -70,13 +70,28 @@
 
 <body>
     
+    <header class="grid" id="header">
+        <h1 class="col-1 span-3 @2-col-2">Fn <span class="text-6">1.3.0</span></h1>
 
-    <section class="grid" style="grid-gap: 1.875rem;">
-        <!--header class="col-1 span-7 @1-col-1 @1-span-6 @2-col-2 @4-col-2 @4-span-4 @5-col-2 @5-span-3">
+        <div class="col-1 span-3 @2-col-2 @3-span-6 @4-span-5 @5-span-3">
+            <p class="text-8">
+                A library of functions, observers and streams, published as ES6 modules.
+            </p>
+
+            <ul class="link-index index">
+                <li><strong>repo:</strong> <a href=""></a></li>
+                <li><strong>bugs:</strong> <a href=""></a></li>
+            </ul>
+        </div>
+    </header>
+
+
+    <section class="grid" style="grid-gap: 1.875rem; grid-auto-rows: min-content;">
+        <!--header class="x-1 x-span-3 @1-x-1 @1-x-span-6 @2-x-2 @4-x-2 @4-x-span-4 @5-x-2 @5-x-span-3">
             <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
         </header-->
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+        <section class="x-1 x-span-3 @1-x-1 @1-x-span-4 @2-x-1">
             <h2 class="text-1">Functions</h2>
             <h4 class="text-4">Functions</h4>
             <!--template-->
@@ -169,7 +184,12 @@ against input values in a WeakMap, such that for each input value
 
         </section>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+        <div class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-span-12">
+            The following functions are curried (where they take more than one parameter), allowing them to
+            be partially applied.
+        </div>
+
+        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @1-y-span-2 @2-x-1">
             <h4 class="text-4">Objects</h4>
             <!--template-->
     <article class="toggle-block block" toggleable="" id="argument-n">
@@ -358,7 +378,7 @@ they are equal.</p>
 
         </section>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+        <section class="x-1 x-span-3 @1-x-4 @1-x-span-3 @2-x-4">
             <h4 class="text-4">Strings</h4>
             <!--template-->
     <article class="toggle-block block" toggleable="" id="capture-regex-parts-accumulator-string">
@@ -405,7 +425,7 @@ they are equal.</p>
 
         </section>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+        <section class="x-1 x-span-3 @1-x-4 @1-x-span-3 @2-x-7">
             <h4 class="text-4">Numbers</h4>
             <!--template-->
     <article class="toggle-block block" toggleable="" id="mod-divisor-n">
@@ -496,7 +516,7 @@ around 0 with limits -1 to 1.</p>
 
         </section>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @2-x-1">
             <h4 class="text-4">Arrays</h4>
             <!--template-->
     <article class="toggle-block block" toggleable="" id="by-fn-a-b">
@@ -577,7 +597,7 @@ array (preserving a sort order based on the result of <code>fn(object)</code>).<
 
         </section>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+        <section class="x-1 x-span-3 @1-x-4 @1-x-span-3 @2-x-4">
             <h4 class="text-4">Time</h4>
             <!--template-->
     <article class="toggle-block block" toggleable="" id="parsedate-string">
@@ -680,7 +700,7 @@ array (preserving a sort order based on the result of <code>fn(object)</code>).<
 
         </section>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @2-x-7">
             <h2 class="text-2" style="font-size: 1.875rem;">Observe</h2>
             <!--template-->
     <article class="toggle-block block" toggleable="" id="observe-path-fn-object-init">
@@ -714,17 +734,17 @@ mutations, changes must be made to this proxy rather than the original
 
         </section>
 
-        <header class="col-1 span-6 @2-col-2 @2-span-4">
+        <header class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-span-12">
             <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
         </header>
 
-        <!--div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3">
+        <!--div class="x-1 x-span-3 @2-x-2 @3-x-span-6 @4-x-span-5 @5-x-span-3">
             <p>Text things</p>
         </div-->
 
-        <!--div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./modules/stream.js'"></div-->
+        <!--div class="x-1 x-span-3 @2-x-2 @3-x-span-6 @4-x-span-5 @5-x-span-3" build-fn="docs:'./modules/stream.js'"></div-->
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-2">
+        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @2-x-2 @2-x-span-2">
             <!--template-->
     <h3 class="text-4">Construct</h3>
 
@@ -788,7 +808,7 @@ the stream is stopped without value. This stream is not writeable: it has no
 
         </section>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-4 @2-span-2">
+        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @2-x-4 @2-x-span-2">
             <!--template-->
     <h3 class="text-4">Write</h3>
 
@@ -1028,7 +1048,7 @@ the stream is stopped without value. This stream is not writeable: it has no
 
         </section>
 
-        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-6 @2-span-2">
+        <section class="x-1 x-span-3 @1-x-4 @1-x-span-4 @2-x-6 @2-x-span-2">
             <!--template-->
     <h3 class="text-4">Properties</h3>
 
