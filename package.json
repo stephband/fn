@@ -29,8 +29,8 @@
     "docs": "http://github.com/stephband/fn",
     "devDependencies": {
         "eslint": "^5.16.0",
-        "rollup": "^1.8.0",
-        "puppeteer": "^1.15.0"
+        "puppeteer": "^1.20.0",
+        "rollup": "^1.27.9"
     },
     "module": "module.js",
     "main": "index.js",
