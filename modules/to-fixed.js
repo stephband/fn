@@ -1,3 +1,6 @@
+/*
+toFixed(number)
+*/
 
 const N     = Number.prototype;
 const isNaN = Number.isNaN;

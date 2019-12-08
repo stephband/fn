@@ -1,3 +1,6 @@
+/*
+exec(regex, fn, string)
+*/
 
 export default function exec(regex, fn, string) {
     let data;

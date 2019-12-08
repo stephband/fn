@@ -1,10 +1,12 @@
-import noop from './noop.js';
+/*
+choke(fn, time)
 
-// choke
-//
-// Returns a function that waits for `time` seconds without being invoked
-// before calling `fn` using the context and arguments from the latest
-// invocation
+Returns a function that waits for `time` seconds without being invoked
+before calling `fn` using the context and arguments from the latest
+invocation.
+*/
+
+import noop from './noop.js';
 
 export default function choke(fn, time) {
     var timer, context, args;

@@ -1,3 +1,7 @@
+/*
+pipe(fn1, fn2, ...)
+*/
+
 import apply from './apply.js';
 import id from './id.js';
 

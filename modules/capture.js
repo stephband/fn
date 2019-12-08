@@ -22,6 +22,12 @@ function reduce(reducers, acc, tokens) {
         acc ;
 }
 
+/*
+capture(regex, parts, accumulator, string)
+Parse `string` with `regex`, calling functions in `parts` to modify
+`accumulator`. Returns accumulator.
+*/
+
 export default function capture(regex, reducers, acc, string) {
     const output = exec(regex, (tokens) => reduce(reducers, acc, tokens), string);
 

@@ -8,8 +8,8 @@ import remove   from './lists/remove.js';
 import Timer    from './timer.js';
 import toArray  from './to-array.js';
 import choke    from './choke.js';
-import Fn       from './functor.js';
 import Privates from './privates.js';
+import Fn, { create } from './fn.js';
 
 var debug     = false;
 var A         = Array.prototype;
@@ -50,11 +50,6 @@ function notify(object) {
         value = events[n](object);
         if (value !== undefined) { return value; }
     }
-}
-
-function consumeByCalling(array) {
-    var fn;
-    while((fn = array.shift())) { fn(); }
 }
 
 function done(stream, privates) {
@@ -131,7 +126,7 @@ assign(StartSource.prototype, {
 
     stop: function done() {
         const source = this.create();
-console.log('STOP', source);
+
         if (!source.stop) {
             done(this.stream, this.privates);
         }
@@ -195,8 +190,15 @@ assign(BufferSource.prototype, {
     }
 });
 
+/* Construct */
 
-// Stream
+/*
+Stream(fn)
+Construct a new stream. The `new` keyword is opional. `fn(notify, stop)` is
+invoked when the stream is started: it must return a source object – a
+'producer' – with the method `.shift()` and optionally methods `.push()`,
+'.start()' and `.stop()`.
+*/
 
 export default function Stream(Source, options) {
     // Enable construction without the `new` keyword
@@ -232,7 +234,25 @@ export default function Stream(Source, options) {
 Stream.prototype = assign(Object.create(Fn.prototype), {
     constructor: Stream,
 
-    // Transform
+    /* Write */
+
+    /*
+    .push(value)
+    Pushes a `value` (or multiple values) into the head of the stream. If the
+    stream is not writeable, it does not have a `.push()` method.
+    */
+
+    /* Transform */
+
+    /*
+    .chunk(n)
+    Batches values into arrays of length `n`.
+    */
+
+    /*
+    .clone()
+    Creates copy of the stream.
+    */
 
     clone: function clone() {
         const source  = this;
@@ -275,17 +295,44 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         return Stream.Combine(fn, this, source);
     },
 
-    join: function join() {
-        const output = this.constructor.of();
-        this.each((input) => {
-            input.pipe ?
-                // Input is a stream
-                input.pipe(output) :
-                // Input is an array-like
-                output.push.apply(output, input) ;
-        });
-        return output;
-    },
+    /*
+    .dedup()
+    Filters out consecutive equal values.
+    */
+
+    /*
+    .filter(fn)
+    Filter values according to the truthiness of `fn(value)`.
+    */
+
+    /*
+    .flatten()
+    Flattens a stream of streams or arrays into a single stream.
+    */
+
+    /*
+    .flatMap()
+    Maps values to lists – `fn(value)` must return an array, functor, stream
+    or other type with a `.shift()` method – and flattens those lists into a
+    single stream.
+    */
+
+    /*
+    .latest()
+    When the stream has a values buffered, passes the last value
+    in the buffer.
+    */
+
+    /*
+    .map(fn)
+    Maps values to the result of `fn(value)`.
+    */
+
+    /*
+    .merge(stream)
+    Merges this stream with `stream`, which in fact may be an array, array-like
+    or functor.
+    */
 
     merge: function merge() {
         var sources = toArray(arguments);
@@ -293,19 +340,62 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         return Stream.Merge.apply(null, sources);
     },
 
-    choke: function choke(time) {
-        return this.pipe(Stream.Choke(time));
-    },
+    /*
+    .rest(n)
+    Filters the stream to the `n`th value and above.
+    */
 
-    throttle: function throttle(timer) {
-        return this.pipe(Stream.throttle(timer));
-    },
+    /*
+    .scan(fn, seed)
+    Calls `fn(accumulator, value)` and emits `accumulator` for each value
+    in the stream.
+    */
+
+    /*
+    .take(n)
+    Filters the stream to the first `n` values.
+    */
+
+    /* Delay */
+
+    /*
+    .clock(timer)
+    Emits values at the framerate of `timer`, one-per-frame. No values
+    are discarded.
+    */
 
     clock: function clock(timer) {
         return this.pipe(Stream.clock(timer));
     },
 
-    // Consume
+    /*
+    .throttle(timer)
+    Throttles values such that on each frame of `timer` the latest value
+    is emitted. Other values are discarded.
+    */
+
+    throttle: function throttle(timer) {
+        return this.pipe(Stream.throttle(timer));
+    },
+
+    /*
+    .wait(time)
+    Emits the latest value only after `time` seconds of inactivity.
+    Intermediate values are discarded.
+    */
+
+    wait: function wait(time) {
+        return this.pipe(Stream.Choke(time));
+    },
+
+
+    /* Consume */
+
+    /*
+    .each(fn)
+    Thirstilly consumes the stream, calling `fn(value)` whenever
+    a value is available.
+    */
 
     each: function each(fn) {
         var args   = arguments;
@@ -318,6 +408,12 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         return this.on(() => Fn.prototype.each.apply(source, args));
     },
 
+    /*
+    .last(fn)
+    Consumes the stream when stopped, calling `fn(value)` with the
+    last value read from the stream.
+    */
+
     last: function last(fn) {
         const privates = Privates(this);
         privates.stops = privates.stops || [];
@@ -325,6 +421,12 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         value !== undefined && privates.stops.push(() => fn(value));
         return this;
     },
+
+    ///*
+    //.fold(fn, accumulator)
+    //Consumes the stream when stopped, calling `fn(accumulator, value)`
+    //for each value in the stream. Returns a promise.
+    //*/
 
     fold: function fold(fn, accumulator) {
         // Fold to promise
@@ -335,26 +437,33 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         });
     },
 
-    reduce: function reduce(fn) {
+    /*
+    .reduce(fn, accumulator)
+    Consumes the stream when stopped, calling `fn(accumulator, value)`
+    for each value in the stream. Returns a promise that resolves to
+    the last value returned by `fn(accumulator, value)`.
+    */
+
+    reduce: function reduce(fn, accumulator) {
         // Support array.reduce semantics with optional seed
-        return arguments[1] ?
-            this.fold(fn, arguments[1]) :
+        return accumulator ?
+            this.fold(fn, accumulator) :
             this.fold((acc, value) => (acc === undefined ? value : fn(acc, value)), this.shift()) ;
     },
 
-    // Lifecycle
+    /*
+    .shift()
+    Reads a value from the stream. If no values are in the stream, returns
+    `undefined`. If this is the last value in the stream, `streams.status`
+    is `'done'`.
+    */
 
-    start: function start() {
-        const source = Privates(this).source;
-        source.start.apply(source, arguments);
-        return this;
-    },
+    /* Lifecycle */
 
-    stop: function stop() {
-        const source = Privates(this).source;
-        source.stop.apply(source, arguments);
-        return this;
-    },
+    /*
+    .done(fn)
+    Calls `fn()` after the stream is stopped and all values have been drained.
+    */
 
     done: function done(fn) {
         const privates = Privates(this);
@@ -365,6 +474,32 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         );
 
         promise.then(fn);
+        return this;
+    },
+
+    /*
+    .start()
+    If the stream's producer is startable, starts the stream.
+    */
+
+    start: function start() {
+        const source = Privates(this).source;
+        source.start.apply(source, arguments);
+        return this;
+    },
+
+    /*
+    .stop()
+    Stops the stream. No more values can be pushed to the stream and any
+    consumers added will do nothing. However, depending on the stream's source
+    the stream may yet drain any buffered values into an existing consumer
+    before entering `'done'` state. Once in `'done'` state a stream is
+    entirely inert.
+    */
+
+    stop: function stop() {
+        const source = Privates(this).source;
+        source.stop.apply(source, arguments);
         return this;
     },
 
@@ -406,7 +541,9 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
 
 
 /*
-Stream.from(array)
+Stream.from(values)
+Returns a writeable stream that consumes an array or array-like of values as
+its source.
 */
 
 Stream.from = function(list) {
@@ -415,6 +552,10 @@ Stream.from = function(list) {
 
 /*
 Stream.fromPromise(promise)
+Returns a stream that uses the given promise as it's source. When the promise
+resolves the stream is given its value and stopped. If the promise errors
+the stream is stopped without value. This stream is not writeable: it has no
+`.push()` method.
 */
 
 Stream.fromPromise = function(promise) {
@@ -428,14 +569,6 @@ Stream.fromPromise = function(promise) {
     .catch(() => stream.stop());
 
     return stream;
-};
-
-/*
-Stream.of(...values)
-*/
-
-Stream.of = function() {
-    return Stream.from(arguments);
 };
 
 
@@ -546,23 +679,37 @@ assign(TimeSource.prototype, {
 
 /*
 Stream.fromTimer(timer)
+Create a stream from a timer object. A timer object must look like:
+
+```
+{
+    request:     fn(fn), calls fn on the next frame, returns an id
+    cancel:      fn(id), cancels request with id
+    now:         fn(), returne the time
+    currentTime: time at the start of the latest frame
+}
+```
+
+This stream is not writeable: it has no `.push()` method.
 */
 
 Stream.fromTimer = function TimeStream(timer) {
     return new Stream(TimeSource, timer);
 };
 
+
 /*
-Stream.fromDuration(s)
+Stream.of(...values)
+Returns a writeable stream that uses arguments as its source.
 */
 
-Stream.fromDuration = function(duration) {
-    return Stream.fromTimer(new Timer(duration));
+Stream.of = function() {
+    return Stream.from(arguments);
 };
 
-Stream.frames = function() {
-    return Stream.fromTimer(frameTimer);
-};
+//Stream.frames = function() {
+//    return Stream.fromTimer(frameTimer);
+//};
 
 
 
@@ -644,8 +791,6 @@ Stream.Combine = function(fn) {
 
 // Stream.Merge
 
-
-
 function MergeSource(notify, stop, sources) {
     var values = [];
 
@@ -715,7 +860,6 @@ Stream.Choke = function(time) {
         };
     });
 };
-
 
 
 // Frame timer

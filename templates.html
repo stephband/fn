@@ -1,5 +1,5 @@
 
-<template id="header-template" build-remove>
+<template id="header-template">
     <header class="grid" id="header">
         <h1 class="col-1 span-7 @2-col-2">{[title]} <span class="text-6">{[version]}</span></h1>
 
@@ -16,8 +16,12 @@
     </header>
 </template>
 
-<template id="method-template" build-remove>
-    <article build-fn="each append:body" class="toggle-block block" toggleable id="{[id]}">
+<template id="title-template">
+    <h3 class="text-4">{[name]}</h3>
+</template>
+
+<template id="method-template">
+    <article build-fn="append:body" class="toggle-block block" toggleable id="{[id]}">
         <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
             <a href="#{[id]}">
                 <code build-fn="append:title" class="function language-js"></code>
@@ -26,8 +30,8 @@
     </article>
 </template>
 
-<template id="property-template" build-remove>
-    <article build-fn="each append:body" class="toggle-block block" toggleable id="{[id]}">
+<template id="property-template">
+    <article build-fn="append:body" class="toggle-block block" toggleable id="{[id]}">
         <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
             <a href="#{[id]}">
                 <code build-fn="append:title" class="property language-js"></code>
@@ -36,11 +40,11 @@
     </article>
 </template>
 
-<template id="function-template" build-remove>
-    <article build-fn="each append:body" class="toggle-block block" toggleable id="{[id]}">
+<template id="function-template">
+    <article build-fn="append:body" class="toggle-block block" toggleable id="{[id]}">
         <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
             <a href="#{[id]}">
-                <code build-fn="append:title" class="property language-js"></code>
+                <code build-fn="append:title" class="function language-js"></code>
             </a>
         </h3>
     </article>

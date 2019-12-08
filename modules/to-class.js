@@ -1,3 +1,7 @@
+/*
+toClass(object)
+*/
+
 const O = Object.prototype;
 
 export default function toClass(object) {

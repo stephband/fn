@@ -1,3 +1,8 @@
+/*
+once(fn)
+*/
+
+
 import noop from './noop.js';
 
 export default function once(fn) {

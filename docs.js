@@ -7,7 +7,7 @@ import './libs/marked/marked.min.js';
 // https://prismjs.com/
 import './libs/prism/prism.js';
 
-import { cache, capture, id, invoke, last, nothing, slugify, Stream } from './module.js';
+import { cache, capture, id, invoke, last, matches, nothing, slugify, Stream } from './module.js';
 import { fragmentFromHTML } from '../dom/module.js';
 import { register } from '../sparky/module.js';
 
@@ -35,17 +35,20 @@ const markedOptions = {
     smartypants: true
 };
 
-// Open comment followed by spaces and (dot)(name) (brackets) OR (tag)
-const parseDoc = window.parseDoc = capture(/\/\*\s*(?:(\.)?([\w]+)(\([^\)]*\))?|(<[\w-]+>))/, {
+//                Open comment followed by spaces and (dot)(name)   (brackets) OR (tag)
+const parseDoc = window.parseDoc = capture(/\/\*\s*(?:(\.)?([\w\.]+)(\([^\)]*\))?|(<[\w-]+>))/, {
     2: function(data, results) {
         data.push({
             id:     slugify(results[2] + results[3]),
             prefix: results[1],
             name:   results[2],
             params: results[3],
-            title:  (results[3] || '') ?
+            type:   results[1] ?
+                results[3] ? 'method' : 'property' :
+                results[3] ? 'function' : 'title',
+            title:  (results[3]) ?
                 Prism.highlight(
-                    (results[1] || '') + results[2] + results[3],
+                    (results[1] || '') + results[2] + (results[3] || ''),
                     Prism.languages['js'],
                     'js'
                 ) :
@@ -60,6 +63,7 @@ const parseDoc = window.parseDoc = capture(/\/\*\s*(?:(\.)?([\w]+)(\([^\)]*\))?|
             prefix: '',
             name:   results[4],
             params: '',
+            type:   'tag',
             title:  Prism.highlight(results[4], Prism.languages['html'], 'html')
         });
         return data;
@@ -86,6 +90,7 @@ const fetchDocs = cache(function(path) {
     .then(invoke('text', nothing))
     .then(parseDoc([]));
 });
+
 
 function flatten(acc, array) {
     acc.push.apply(acc, array);
@@ -118,11 +123,84 @@ function toHTML(paths) {
     });
 }
 
+
 register('docs', function(node, params) {
     const data = toHTML(params);
     const output = Stream.of();
     data.then(output.push);
     return output;
+});
+
+register('filter-method', function(node, params) {
+    return this.map(function(array) {
+        return array.reduce(function(output, data) {
+            // Remove preceeding title where it is not followed by a
+            // data of the right type
+            if (data.type !== 'method' && output[output.length - 1] && output[output.length - 1].type === 'title') {
+                --output.length;
+            }
+
+            if (data.type === 'title' || data.type === 'method') {
+                output.push(data);
+            }
+console.log(output);
+            return output;
+        }, []);
+    });
+});
+
+register('filter-function', function(node, params) {
+    return this.map(function(array) {
+        return array.reduce(function(output, data) {
+            // Remove preceeding title where it is not followed by a
+            // data of the right type
+            if (data.type !== 'function' && output[output.length - 1] && output[output.length - 1].type === 'title') {
+                --output.length;
+            }
+
+            if (data.type === 'function' || data.type === 'title') {
+                output.push(data);
+            }
+
+            return output;
+        }, []);
+    });
+});
+
+register('filter-property', function(node, params) {
+    return this.map(function(array) {
+        return array.reduce(function(output, data) {
+            // Remove preceeding title where it is not followed by a
+            // data of the right type
+            if (data.type !== 'property' && output[output.length - 1] && output[output.length - 1].type === 'title') {
+                --output.length;
+            }
+
+            if (data.type === 'property' || data.type === 'title') {
+                output.push(data);
+            }
+
+            return output;
+        }, []);
+    });
+});
+
+register('filter-tag', function(node, params) {
+    return this.map(function(array) {
+        return array.reduce(function(output, data) {
+            // Remove preceeding title where it is not followed by a
+            // data of the right type
+            if (data.type !== 'tag' && output[output.length - 1] && output[output.length - 1].type === 'title') {
+                --output.length;
+            }
+
+            if (data.type === 'tag' || data.type === 'title') {
+                output.push(data);
+            }
+
+            return output;
+        }, []);
+    });
 });
 
 register('append', function(node, params) {

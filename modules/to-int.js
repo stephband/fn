@@ -1,3 +1,7 @@
+/*
+toInt(string)
+*/
+
 export default function toInt(object) {
     return object === undefined ?
         undefined :

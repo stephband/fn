@@ -15,10 +15,15 @@ function isDone(source) {
     return source.length === 0 || source.status === 'done' ;
 }
 
-function create(object, fn) {
+export function create(object, fn) {
     var functor = Object.create(object);
     functor.shift = fn;
     return functor;
+}
+
+function stop(functor) {
+    functor.shift = noop;
+    functor.status = 'done';
 }
 
 function arrayReducer(array, value) {
@@ -57,6 +62,14 @@ function sortIndex(array, fn) {
 
     return i;
 }
+
+/* Properties */
+
+/*
+.status
+Reflects the running status of the stream. When all values have been consumed
+status is `'done'`.
+*/
 
 export default function Fn(fn) {
     // Accept constructor without `new`
@@ -143,6 +156,22 @@ assign(Fn, {
     }
 });
 
+
+function scanChunks(data, value) {
+    data.accumulator.push(value);
+    ++data.count;
+
+    if (data.count % data.n === 0) {
+        data.value = data.accumulator;
+        data.accumulator = [];
+    }
+    else {
+        data.value = undefined;
+    }
+
+    return data;
+}
+
 assign(Fn.prototype, {
     shift: noop,
 
@@ -156,13 +185,11 @@ assign(Fn.prototype, {
     // Transform
 
     ap: function(object) {
-        var shift = this.shift;
+        var stream = this;
 
         return create(this, function ap() {
-            var fn = shift();
-            return fn === undefined ?
-                undefined :
-                object.map(fn) ;
+            var fn = stream.shift();
+            return fn && object.map(fn) ;
         });
     },
 
@@ -190,8 +217,46 @@ assign(Fn.prototype, {
         });
     },
 
+    /*
+    .chain(fn)
+
+    Maps values and flattens them. The equivalent of the array
+    method `.flatMap()`.
+    */
+
     chain: function(fn) {
-        return this.map(fn).join();
+        console.warn('Stream.chain() is now Stream.flatMap()');
+        return this.map(fn).flat();
+    },
+
+    syphon: function(fn) {
+        var shift   = this.shift;
+        var buffer1 = [];
+        var buffer2 = [];
+
+        this.shift = function() {
+            if (buffer1.length) { return buffer1.shift(); }
+
+            var value;
+
+            while ((value = shift()) !== undefined && fn(value)) {
+                buffer2.push(value);
+            }
+
+            return value;
+        };
+
+        return create(this, function filter() {
+            if (buffer2.length) { return buffer2.shift(); }
+
+            var value;
+
+            while ((value = shift()) !== undefined && !fn(value)) {
+                buffer1.push(value);
+            }
+
+            return value;
+        });
     },
 
     clone: function() {
@@ -286,6 +351,12 @@ assign(Fn.prototype, {
         return stream;
     },
 
+    /*
+    .dedup()
+
+    Filters out consecutive equal values.
+    */
+
     dedup: function() {
         var v;
         return this.filter(function(value) {
@@ -294,6 +365,12 @@ assign(Fn.prototype, {
             return old !== value;
         });
     },
+
+    /*
+    .filter(fn)
+
+    Filter values according to the truthiness of `fn(value)`.
+    */
 
     filter: function(fn) {
         var source = this;
@@ -305,19 +382,21 @@ assign(Fn.prototype, {
         });
     },
 
-    first: function() {
-        var source = this;
-        return create(this, once(function first() {
-            source.status = 'done';
-            return source.shift();
-        }));
-    },
+    /*
+    .flat()
+    Flattens a list of lists into a single list.
+    */
 
     join: function() {
+        console.warn('Fn.join() is now Fn.flat() to mirror name of new Array method');
+        return this.join();
+    },
+
+    flat: function() {
         var source = this;
         var buffer = nothing;
 
-        return create(this, function join() {
+        return create(this, function flat() {
             var value = buffer.shift();
             if (value !== undefined) { return value; }
             buffer = source.shift();
@@ -326,6 +405,25 @@ assign(Fn.prototype, {
         });
     },
 
+    /*
+    .flatMap()
+    Maps values to lists – `fn(value)` must return an array, functor, stream
+    or other type with a `.shift()` method – and flattens those lists into a
+    single stream.
+    */
+
+    flatMap: function(fn) {
+        console.warn('Stream.chain() is now Stream.flatMap()');
+        return this.map(fn).flat();
+    },
+
+    /*
+    .latest()
+
+    When the stream has a values buffered, passes the last value
+    in the buffer.
+    */
+
     latest: function() {
         var source = this;
         return create(this, function shiftLast() {
@@ -333,41 +431,30 @@ assign(Fn.prototype, {
         });
     },
 
+    /*
+    .map(fn)
+    Maps values to the result of `fn(value)`.
+    */
+
     map: function(fn) {
         return create(this, compose(function map(object) {
             return object === undefined ? undefined : fn(object) ;
         }, this.shift));
     },
 
+    /*
+    .chunk(n)
+    Batches values into arrays of length `n`.
+    */
+
     chunk: function(n) {
-        var source = this;
-        var buffer = [];
-
-        return create(this, n ?
-            // If n is defined batch into arrays of length n.
-            function shiftChunk() {
-                var value, _buffer;
-
-                while (buffer.length < n) {
-                    value = source.shift();
-                    if (value === undefined) { return; }
-                    buffer.push(value);
-                }
-
-                if (buffer.length >= n) {
-                    _buffer = buffer;
-                    buffer = [];
-                    return Fn.of.apply(Fn, _buffer);
-                }
-            } :
-
-            // If n is undefined or 0, batch all values into an array.
-            function shiftChunk() {
-                buffer = source.toArray();
-                // An empty array is equivalent to undefined
-                return buffer.length ? buffer : undefined ;
-            }
-        );
+        return this
+        .scan(scanChunks, {
+            n: n,
+            count: 0,
+            accumulator: []
+        })
+        .map(get('value'));
     },
 
     partition: function(fn) {
@@ -427,11 +514,24 @@ assign(Fn.prototype, {
         return this.scan(fn, seed).latest().shift();
     },
 
-    scan: function scan(fn, seed) {
+    /*
+    .scan(fn, seed)
+
+    Calls `fn(accumulator, value)` and emits `accumulator` for each value
+    in the stream.
+    */
+
+    scan: function scan(fn, accumulator) {
         return this.map(function scan(value) {
             return seed = fn(seed, value);
         });
     },
+
+    /*
+    .take(n)
+
+    Filters the stream to the first `n` values.
+    */
 
     take: function(n) {
         var source = this;
@@ -444,7 +544,11 @@ assign(Fn.prototype, {
                 value = source.shift();
                 // Only increment i where an actual value has been shifted
                 if (value === undefined) { return; }
-                if (++i === n) { source.status = 'done'; }
+                if (++i === n) {
+                    this.push = noop;
+                    this.stop = noop;
+                    this.status = 'done';
+                }
                 return value;
             }
         });
@@ -496,35 +600,11 @@ assign(Fn.prototype, {
         });
     },
 
-    syphon: function(fn) {
-        var shift   = this.shift;
-        var buffer1 = [];
-        var buffer2 = [];
+    /*
+    .rest(n)
 
-        this.shift = function() {
-            if (buffer1.length) { return buffer1.shift(); }
-
-            var value;
-
-            while ((value = shift()) !== undefined && fn(value)) {
-                buffer2.push(value);
-            }
-
-            return value;
-        };
-
-        return create(this, function filter() {
-            if (buffer2.length) { return buffer2.shift(); }
-
-            var value;
-
-            while ((value = shift()) !== undefined && !fn(value)) {
-                buffer1.push(value);
-            }
-
-            return value;
-        });
-    },
+    Filters the stream to all values after the `n`th value.
+    */
 
     rest: function(i) {
         var source = this;
@@ -534,6 +614,12 @@ assign(Fn.prototype, {
             return source.shift();
         });
     },
+
+    /*
+    .unique()
+
+    Filters the stream to remove any value already emitted.
+    */
 
     unique: function() {
         var source = this;
@@ -574,10 +660,24 @@ assign(Fn.prototype, {
         };
     },
 
+    /*
+    .pipe(stream)
+
+    Pipes the current stream into `stream`.
+    */
+
     pipe: function(stream) {
         this.each(stream.push);
         return stream;
     },
+
+    /*
+    .tap(fn)
+
+    Calls `fn(value)` for each value in the stream without modifying
+    the stream. Note that values are only tapped when there is a
+    consumer attached to the end of the stream to suck them through.
+    */
 
     tap: function(fn) {
         // Overwrite shift to copy values to tap fn

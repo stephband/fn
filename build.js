@@ -3,7 +3,8 @@
 // Preprocess
 import '../prism/prism.js';
 import '../sparky/libs/prism/prism.sparky.js';
-import { Fn, compose, each, get, is, overload, parse } from '../fn/fn.js';
+import { Fn, compose, get, is, overload, parse } from '../fn/module.js';
+import { request } from '../dom/module.js';
 import { parseParams } from '../sparky/js/parse.js';
 import Sparky from '../sparky/module.js';
 import { attribute, before, clone, create, fragmentFromTemplate, get as getById, query, remove } from '../dom/dom.js';
@@ -19,6 +20,8 @@ const cssTemplate   = getById('css-code', document).content;
 var parseDataModule = parse(/^([^\s]*)\s+(\.)?([\w]+)(\()\s*/, {
     1: function(data, value) {
         data.section = value;
+debugger
+console.log(value);
         return data;
     },
 
@@ -122,12 +125,11 @@ query('.remove, [data-module]', document).forEach(remove);
 
 // Parse comments in files
 
-axios
-.get('css/editor.css')
-.then(fn.get('data'))
+request('get', 'css/editor.css', 'text/css', null)
 .then(function(text) {
     var array = [];
     text.replace(/\/\*([^\*]+)\*\//g, function($0, $1) {
         array.push($1); return '';
-    }); return array;
+    });
+    return array;
 });

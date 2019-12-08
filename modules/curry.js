@@ -1,3 +1,7 @@
+/*
+curry(fn [, muteable, arity])
+*/
+
 import cache from './cache.js';
 
 const DEBUG = true;
@@ -36,16 +40,14 @@ function curry(fn, muteable, arity) {
     };
 }
 
-/*
-function curry(fn, muteable, arity) {
-    arity = arity || fn.length;
-    return function curried() {
-        return arguments.length >= arity ?
-            fn.apply(null, arguments) :
-            curried.bind(null, ...arguments) ;
-    };
-}
-*/
+//function curry(fn, muteable, arity) {
+//    arity = arity || fn.length;
+//    return function curried() {
+//        return arguments.length >= arity ?
+//            fn.apply(null, arguments) :
+//            curried.bind(null, ...arguments) ;
+//    };
+//}
 
 if (DEBUG) {
     const _curry = curry;

@@ -1,5 +1,10 @@
-import id from './id.js';
-import { toLevel } from './maths/core.js';
+/*
+parseValue(units, string)
+*/
+
+
+//import id from './id.js';
+//import { toLevel } from './maths/core.js';
 
 // Be generous in what we accept, space-wise
 const runit = /^\s*(-?\d*\.?\d+)(\w+)?\s*$/;

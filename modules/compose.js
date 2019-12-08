@@ -1,3 +1,6 @@
+/*
+compose(fn2, fn1)
+*/
 
 export default function compose(fn2, fn1) {
     return function compose() {

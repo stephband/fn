@@ -1,3 +1,8 @@
+/*
+overload(fn, map)
+*/
+
+
 export default function overload(fn, map) {
     return typeof map.get === 'function' ?
         function overload() {

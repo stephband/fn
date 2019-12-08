@@ -1,3 +1,9 @@
+/*
+equals(a, b)
+Perform a deep equality comparison of `a` and `b`. Returns `true` if
+they are equal.
+*/
+
 export default function equals(a, b) {
     // Fast out if references are for the same object
     if (a === b) { return true; }

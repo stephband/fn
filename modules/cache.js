@@ -1,5 +1,8 @@
-/* cache(fn)
-Returns a function that caches results of calling it.
+/*
+cache(fn)
+Returns a function that caches the return values of `fn()`
+against input values in a map, such that for each input value
+`fn` is only ever called once.
 */
 
 const DEBUG = false;

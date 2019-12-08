@@ -168,8 +168,16 @@ body > .demo-block + .grid {
     	letter-spacing: 0;
 }
 
+.text-4 {
+    opacity: 0.5;
+}
+
 .text-4 + p, h4 + p { margin-top: 0; }
 p + .text-4, p + h4 { margin-top: 1.5rem; }
+
+.text-4 + .toggle-block {
+    margin-top: 9px;
+}
 
 a.block {
     position: relative;
@@ -335,6 +343,7 @@ line { stroke-width: 1; stroke: inherit; }
 
 .grid {
     display: grid;
+    grid-auto-columns: 1fr;
 }
 
 .grid-header { grid-area: grid-header; }

@@ -24,55 +24,78 @@
     <link rel="stylesheet" href="../dom/css/dom.css" />
     <link rel="stylesheet" href="../fn/css/prism.cruncher.css" />
     <link rel="stylesheet" href="../fn/css/tests.css" />
-    <link rel="stylesheet" href="../soundstage/css/theme.css" />
+    <link rel="stylesheet" href="css/docs.css" />
+    <link rel="stylesheet" href="css/theme.css" />
     <link rel="stylesheet" href="../soundstage/css/respond.css" />
 </head>
 
 <body>
     <template build-fn="fetch:package.json" include="/fn/templates.html#header-template"></template>
 
-    <section class="1-2-3-grid grid">
-        <header class="col-1 span-7 @1-col-1 @1-span-6 @2-col-2 @4-col-2 @4-span-4 @5-col-2 @5-span-3">
-            <h2 class="text-2" style="font-size: 1.875rem;">Soundstage()</h2>
-        </header>
+    <section class="grid">
+        <!--header class="col-1 span-7 @1-col-1 @1-span-6 @2-col-2 @4-col-2 @4-span-4 @5-col-2 @5-span-3">
+            <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
+        </header-->
 
-        <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./modules/soundstage.js?Soundstage' each append:body"></div>
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+            <h2 class="text-2" style="font-size: 1.875rem;">Functions</h2>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
-            <h3 class="text-4">Properties</h3>
-            <template build-fn="docs:'./modules/graph.js?nodes,connections','./modules/sequence.js?events,sequences','./nodes/graph.js?context','./modules/sequencer.js?time,beat,bar,tempo,meter','./nodes/play-node.js?startTime,stopTime,playing'" build-include="/fn/templates.html#property-template"></template>
+            <template build-fn="docs:
+            modules/argument.js,
+            modules/cache.js,
+            modules/call.js,
+            modules/capture.js,
+            modules/choose.js,
+            modules/compose.js,
+            modules/curry.js,
+            modules/equals.js,
+            modules/exec.js,
+            modules/get.js,
+            modules/has.js,
+            modules/id.js,
+            modules/invoke.js,
+            modules/is.js,
+            modules/is-defined.js,
+            modules/matches.js,
+            modules/noop.js,
+            modules/not.js,
+            modules/once.js,
+            modules/overload.js,
+            modules/parse-value.js,
+            modules/pipe.js,
+            modules/request-tick.js,
+            modules/self.js,
+            modules/set.js,
+            modules/to-array.js,
+            modules/to-class.js,
+            modules/to-fixed.js,
+            modules/to-int.js,
+            modules/to-string.js,
+            modules/to-type.js,
+            modules/weak-cache.js
+            filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
         </section>
 
-        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-5 @3-span-3 @5-col-7 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./modules/graph.js?create,createConnection,get','./modules/sequencer.js?start,stop','./modules/sequence.js?beatAtTime,timeAtBeat','./modules/meter.js?barAtBeat,beatAtBar','./modules/soundstage.js?timeAtDomTime,domTimeAtTime,records','./nodes/graph.js?connect,disconnect'" build-include="/fn/templates.html#method-template"></template>
-        </section>
-    </section>
-
-
-    <!-- Sections -->
-
-    <section class="1-2-3-grid grid" id="nodes-and-connections">
-        <header class="col-1 span-6 @2-col-2 @2-span-6">
-            <h2 class="text-2" style="font-size: 1.875rem;">Nodes and Connections</h2>
+        <header class="col-1 span-6 @2-col-2 @2-span-4">
+            <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
         </header>
 
-        <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3">
+        <!--div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3">
             <p>Text things</p>
-        </div>
+        </div-->
 
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'flanger'</code></h2>
+        <!--div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./modules/stream.js'"></div-->
 
-        <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/flanger.js?Flanger' each append:body"></div>
-
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @4-span-3 @5-col-5 @5-span-2">
-            <h3 class="text-4">Properties</h3>
-            <template build-fn="docs:'./nodes/flanger.js?delay,depth,feedback,frequency,dry,wet'" build-include="/fn/templates.html#property-template"></template>
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-2">
+            <template build-fn="docs:modules/stream.js filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
         </section>
 
-        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-5 @3-span-3 @5-col-7 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/graph.js?get'" build-include="/fn/templates.html#method-template"></template>
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-4 @2-span-2">
+            <template build-fn="docs:modules/stream.js filter-method each" build-include="/fn/templates.html#{[type]}-template"></template>
+        </section>
+
+        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-6 @2-span-2">
+            <template build-fn="docs:modules/fn.js filter-property each" build-include="/fn/templates.html#{[type]}-template"></template>
         </section>
     </section>
 

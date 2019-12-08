@@ -1,3 +1,7 @@
+/*
+toArray(object)
+*/
+
 export default function toArray(object) {
     if (object.toArray) { return object.toArray(); }
 
