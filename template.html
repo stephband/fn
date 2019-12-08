@@ -30,14 +30,14 @@
 </head>
 
 <body>
-    <template build-fn="fetch:package.json" include="/fn/templates.html#header-template"></template>
+    <template build-fn="fetch:package.json" build-include="/fn/templates.html#header-template"></template>
 
-    <section class="grid" style="grid-gap: 1.875rem;">
-        <!--header class="col-1 span-7 @1-col-1 @1-span-6 @2-col-2 @4-col-2 @4-span-4 @5-col-2 @5-span-3">
+    <section class="grid" style="grid-gap: 1.875rem; grid-auto-rows: min-content;">
+        <!--header class="x-1 x-span-3 @1-x-1 @1-x-span-6 @2-x-2 @4-x-2 @4-x-span-4 @5-x-2 @5-x-span-3">
             <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
         </header-->
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+        <section class="x-1 x-span-3 @1-x-1 @1-x-span-4 @2-x-1">
             <h2 class="text-1">Functions</h2>
             <h4 class="text-4">Functions</h4>
             <template build-fn="docs:
@@ -52,7 +52,12 @@
             filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
         </section>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+        <div class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-span-12">
+            The following functions are curried (where they take more than one parameter), allowing them to
+            be partially applied.
+        </div>
+
+        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @1-y-span-2 @2-x-1">
             <h4 class="text-4">Objects</h4>
             <template build-fn="docs:
             modules/argument.js,
@@ -79,17 +84,17 @@
             filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
         </section>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+        <section class="x-1 x-span-3 @1-x-4 @1-x-span-3 @2-x-4">
             <h4 class="text-4">Strings</h4>
             <template build-fn="docs:
             modules/capture.js,
             modules/exec.js,
             'modules/time.js?parseDate,parseTime',
-            modules/parse-value.js,
+            modules/parse-value.js
             filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
         </section>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+        <section class="x-1 x-span-3 @1-x-4 @1-x-span-3 @2-x-7">
             <h4 class="text-4">Numbers</h4>
             <template build-fn="docs:
             modules/maths/core.js,
@@ -99,7 +104,7 @@
             filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
         </section>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @2-x-1">
             <h4 class="text-4">Arrays</h4>
             <template build-fn="docs:
             modules/lists/core.js,
@@ -113,14 +118,14 @@
             filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
         </section>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+        <section class="x-1 x-span-3 @1-x-4 @1-x-span-3 @2-x-4">
             <h4 class="text-4">Time</h4>
             <template build-fn="docs:
             modules/time.js
             filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
         </section>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @2-x-7">
             <h2 class="text-2" style="font-size: 1.875rem;">Observe</h2>
             <template build-fn="docs:
             modules/observer/observe.js,
@@ -128,25 +133,25 @@
             filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
         </section>
 
-        <header class="col-1 span-6 @2-col-2 @2-span-4">
+        <header class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-span-12">
             <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
         </header>
 
-        <!--div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3">
+        <!--div class="x-1 x-span-3 @2-x-2 @3-x-span-6 @4-x-span-5 @5-x-span-3">
             <p>Text things</p>
         </div-->
 
-        <!--div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./modules/stream.js'"></div-->
+        <!--div class="x-1 x-span-3 @2-x-2 @3-x-span-6 @4-x-span-5 @5-x-span-3" build-fn="docs:'./modules/stream.js'"></div-->
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-2">
+        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @2-x-2 @2-x-span-2">
             <template build-fn="docs:modules/stream.js filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
         </section>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-4 @2-span-2">
+        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @2-x-4 @2-x-span-2">
             <template build-fn="docs:modules/stream.js filter-method each" build-include="/fn/templates.html#{[type]}-template"></template>
         </section>
 
-        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-6 @2-span-2">
+        <section class="x-1 x-span-3 @1-x-4 @1-x-span-4 @2-x-6 @2-x-span-2">
             <template build-fn="docs:modules/fn.js filter-property each" build-include="/fn/templates.html#{[type]}-template"></template>
         </section>
     </section>

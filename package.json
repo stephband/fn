@@ -15,7 +15,7 @@
     "files": [
         "js/fn.js"
     ],
-    "description": "A library of functions, functors and streams.",
+    "description": "A library of functions, observers and streams, published as ES6 modules.",
     "keywords": [
         "browser",
         "web",
@@ -29,6 +29,7 @@
     "docs": "http://github.com/stephband/fn",
     "devDependencies": {
         "eslint": "^5.16.0",
+        "node-sass": "^4.13.0",
         "puppeteer": "^1.20.0",
         "rollup": "^1.27.9"
     },
@@ -39,6 +40,7 @@
         "build": "npm run build-cjs && npm run build-esm",
         "build-cjs": "rollup module.js --o index.js --f cjs",
         "build-esm": "rollup module.js --o fn.js --f esm",
-        "build-docs": "node render-html.js http://localhost/fn/template.html ./index.html 8"
+        "build-docs": "node render-html.js http://localhost/fn/template.html ./index.html 8",
+        "sass": "node-sass --output-style compact --indent-type tab --indent-width 1 -o css css/respond.scss"
     }
 }
