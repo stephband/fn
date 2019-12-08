@@ -192,7 +192,7 @@ Stream(fn)
 Construct a new stream. The `new` keyword is optional. `fn(notify, stop)` is
 invoked when the stream is started: it must return a source object – a
 'producer' – with the method `.shift()` and optionally methods `.push()`,
-'.start()' and `.stop()`.
+`.start()` and `.stop()`.
 */
 
 export default function Stream(Source, options) {
