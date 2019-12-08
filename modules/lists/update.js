@@ -4,11 +4,11 @@ import insert from './insert.js';
 const assign = Object.assign;
 
 /*
-update(fn, array, source)
+update(fn, array, object)
 
-Compares the result of calling `fn` on `source` to the result of calling `fn`
-on each object in `array`. If a match is found, `source` has its properties
-assigned to that target object, and if not the `source` is spliced into the
+Compares the result of calling `fn` on `object` to the result of calling `fn`
+on each value in `array`. If a match is found, `object` has its properties
+assigned to that target, and if not the `object` is spliced into the
 array (preserving a sort order based on the result of `fn(object)`).
 
 Returns the updated object.

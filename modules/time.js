@@ -292,7 +292,7 @@ function _formatDate(string, timezone, locale, date) {
 }
 
 /*
-formatDateLocal(string, locale, date)
+formatDateLocal(format, locale, date)
 */
 
 export function formatDateLocal(string, locale, date) {

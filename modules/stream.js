@@ -16,8 +16,6 @@ var A         = Array.prototype;
 var assign    = Object.assign;
 
 
-// Functions
-
 function call(value, fn) {
     return fn(value);
 }
@@ -34,9 +32,6 @@ function checkSource(source) {
         throw new Error('Stream: Source must create an object with .shift() ' + source);
     }
 }
-
-
-// Sources
 
 function notify(object) {
     var events = Privates(object).events;
@@ -194,7 +189,7 @@ assign(BufferSource.prototype, {
 
 /*
 Stream(fn)
-Construct a new stream. The `new` keyword is opional. `fn(notify, stop)` is
+Construct a new stream. The `new` keyword is optional. `fn(notify, stop)` is
 invoked when the stream is started: it must return a source object – a
 'producer' – with the method `.shift()` and optionally methods `.push()`,
 '.start()' and `.stop()`.
@@ -542,7 +537,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
 
 /*
 Stream.from(values)
-Returns a writeable stream that consumes an array or array-like of values as
+Returns a writeable stream that consumes the array or array-like `values` as
 its source.
 */
 
@@ -552,7 +547,7 @@ Stream.from = function(list) {
 
 /*
 Stream.fromPromise(promise)
-Returns a stream that uses the given promise as it's source. When the promise
+Returns a stream that uses the given promise as its source. When the promise
 resolves the stream is given its value and stopped. If the promise errors
 the stream is stopped without value. This stream is not writeable: it has no
 `.push()` method.

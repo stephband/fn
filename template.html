@@ -32,22 +32,35 @@
 <body>
     <template build-fn="fetch:package.json" include="/fn/templates.html#header-template"></template>
 
-    <section class="grid">
+    <section class="grid" style="grid-gap: 1.875rem;">
         <!--header class="col-1 span-7 @1-col-1 @1-span-6 @2-col-2 @4-col-2 @4-span-4 @5-col-2 @5-span-3">
             <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
         </header-->
 
         <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
-            <h2 class="text-2" style="font-size: 1.875rem;">Functions</h2>
+            <h2 class="text-1">Functions</h2>
+
+            <h4 class="text-4">Functions</h4>
+
+            <template build-fn="docs:
+            modules/cache.js,
+            modules/compose.js,
+            modules/curry.js,
+            modules/choose.js,
+            modules/once.js,
+            modules/overload.js,
+            modules/pipe.js,
+            modules/weak-cache.js
+            filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+        </section>
+
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+            <h4 class="text-4">Objects</h4>
 
             <template build-fn="docs:
             modules/argument.js,
-            modules/cache.js,
             modules/call.js,
             modules/capture.js,
-            modules/choose.js,
-            modules/compose.js,
-            modules/curry.js,
             modules/equals.js,
             modules/exec.js,
             modules/get.js,
@@ -59,10 +72,7 @@
             modules/matches.js,
             modules/noop.js,
             modules/not.js,
-            modules/once.js,
-            modules/overload.js,
             modules/parse-value.js,
-            modules/pipe.js,
             modules/request-tick.js,
             modules/self.js,
             modules/set.js,
@@ -71,13 +81,12 @@
             modules/to-fixed.js,
             modules/to-int.js,
             modules/to-string.js,
-            modules/to-type.js,
-            modules/weak-cache.js
+            modules/to-type.js
             filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
         </section>
 
         <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
-            <h2 class="text-2" style="font-size: 1.875rem;">Maths</h2>
+            <h4 class="text-4">Numbers</h4>
 
             <template build-fn="docs:
             modules/maths/core.js,
@@ -88,7 +97,7 @@
         </section>
 
         <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
-            <h2 class="text-2" style="font-size: 1.875rem;">Arrays and collections</h2>
+            <h4 class="text-4">Arrays</h4>
 
             <template build-fn="docs:
             modules/lists/core.js,
@@ -103,7 +112,7 @@
         </section>
 
         <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
-            <h2 class="text-2" style="font-size: 1.875rem;">Time</h2>
+            <h4 class="text-4">Time</h4>
 
             <template build-fn="docs:
             modules/time.js

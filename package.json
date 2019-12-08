@@ -39,6 +39,6 @@
         "build": "npm run build-cjs && npm run build-esm",
         "build-cjs": "rollup module.js --o index.js --f cjs",
         "build-esm": "rollup module.js --o fn.js --f esm",
-        "build-docs": "node render-html.js http://localhost/fn/template.html ./index.html 4"
+        "build-docs": "node render-html.js http://localhost/fn/template.html ./index.html 8"
     }
 }

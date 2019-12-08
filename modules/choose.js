@@ -1,17 +1,18 @@
 /*
 choose(fn, map)
-Returns a function that passes its first argument to `fn(argument)`,
-which must return an object key that is then used to select a function
-in `map` to invoke with the remaining arguments.
+Returns a function that takes its first argument as a key and uses it
+to select a function in `map` which is invoked with the remaining arguments.
 
 Where `map` has a function `default`, that function is run when a key
 is not found, otherwise unfound keys will error.
+
 ```
-choose((o) => (o ? 'yes' : 'no'), {
-    yes:     fn,
-    no:      fn,
-    default: fn
+var fn = choose({
+    'fish':  function fn1(a, b) {...},
+    'chips': function fn2(a, b) {...}
 });
+
+fn('fish', a, b);   // Calls fn1(a, b)
 ```
 */
 
