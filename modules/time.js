@@ -1,13 +1,12 @@
 
-import { mod }   from '../maths/core.js';
-import curry     from '../curry.js';
-import choose    from '../choose.js';
-import id        from '../id.js';
-import isDefined from '../is-defined.js';
-import noop      from '../noop.js';
-import overload  from '../overload.js';
-import toType    from '../to-type.js';
-import toClass   from '../to-class.js';
+import { mod }   from './maths/core.js';
+import curry     from './curry.js';
+import choose    from './choose.js';
+import id        from './id.js';
+import isDefined from './is-defined.js';
+import overload  from './overload.js';
+import toType    from './to-type.js';
+import toClass   from './to-class.js';
 
 function createOrdinals(ordinals) {
 	var array = [], n = 0;
@@ -60,22 +59,34 @@ var rdate     = /^(-?\d{4})(?:-(0[1-9]|1[012])(?:-(0[1-9]|[12]\d|3[01])(?:T([01]
 //                sign   year        month       day               T or -
 var rdatediff = /^([+-])?(\d{2,})(?:-(\d{2,})(?:-(\d{2,}))?)?(?:([T-])|$)/;
 
-var parseDate = overload(toType, {
+/*
+parseDate(string)
+*/
+
+export const parseDate = overload(toType, {
 	number:  secondsToDate,
 	string:  exec(rdate, createDate),
 	object:  function(date) {
 		return isValidDate(date) ? date : undefined ;
 	},
-	default: noop
+	default: function(date) {
+        throw new Error('parseDate: date is not of a supported type (number, string, Date)');
+    }
 });
 
-var parseDateLocal = overload(toType, {
+/*
+parseDateLocal(string)
+*/
+
+export const parseDateLocal = overload(toType, {
 	number:  secondsToDate,
 	string:  exec(rdate, createDateLocal),
 	object:  function(date) {
 		return date instanceof Date ? date : undefined ;
 	},
-	default: noop
+	default: function(date) {
+        throw new Error('parseDateLocal: date is not of a supported type (number, string, Date)');
+    }
 });
 
 function isValidDate(date) {
@@ -280,7 +291,11 @@ function _formatDate(string, timezone, locale, date) {
 	});
 }
 
-function formatDateLocal(string, locale, date) {
+/*
+formatDateLocal(string, locale, date)
+*/
+
+export function formatDateLocal(string, locale, date) {
 	var formatters = dateFormatters;
 	var lang = locale.slice(0, 2);
 
@@ -290,11 +305,19 @@ function formatDateLocal(string, locale, date) {
 	});
 }
 
-function formatDateISO(date) {
+/*
+formatDateISO(date)
+*/
+
+export function formatDateISO(date) {
 	return rdatejson.exec(JSON.stringify(parseDate(date)))[1];
 }
 
-function formatDateTimeISO(date) {
+/*
+formatDateTimeISO(date)
+*/
+
+export function formatDateTimeISO(date) {
 	return JSON.stringify(parseDate(date)).slice(1,-1);
 }
 
@@ -307,11 +330,21 @@ var days   = {
 
 var dayMap = [6,0,1,2,3,4,5];
 
-function toDay(date) {
+/*
+toDay(date)
+Returns day of week as a number, where monday is `0`.
+*/
+
+export function toDay(date) {
 	return dayMap[date.getDay()];
 }
 
-function cloneDate(date) {
+/*
+cloneDate(date)
+Returns new date object set to same time.
+*/
+
+export function cloneDate(date) {
 	return new Date(+date);
 }
 
@@ -498,33 +531,23 @@ export const formatDate = curry(function(string, timezone, locale, date) {
 	_formatDate(string, timezone, locale, parseDate(date)) ;
 });
 
-export {
-	cloneDate,
-	formatDateISO,
-	formatDateTimeISO,
-	formatDateLocal,
-	parseDate,
-	parseDateLocal,
-	toDay
-};
-
 
 // Time
 
 // Decimal places to round to when comparing times
 var precision = 9;
 
-function millisecondsToSeconds(n) { return n / 1000; }
-function minutesToSeconds(n) { return n * 60; }
-function hoursToSeconds(n) { return n * 3600; }
-function daysToSeconds(n) { return n * 86400; }
-function weeksToSeconds(n) { return n * 604800; }
+export function millisecondsToSeconds(n) { return n / 1000; }
+export function minutesToSeconds(n) { return n * 60; }
+export function hoursToSeconds(n) { return n * 3600; }
+export function daysToSeconds(n) { return n * 86400; }
+export function weeksToSeconds(n) { return n * 604800; }
 
-function secondsToMilliseconds(n) { return n * 1000; }
-function secondsToMinutes(n) { return n / 60; }
-function secondsToHours(n) { return n / 3600; }
-function secondsToDays(n) { return n / 86400; }
-function secondsToWeeks(n) { return n / 604800; }
+export function secondsToMilliseconds(n) { return n * 1000; }
+export function secondsToMinutes(n) { return n / 60; }
+export function secondsToHours(n) { return n / 3600; }
+export function secondsToDays(n) { return n / 86400; }
+export function secondsToWeeks(n) { return n / 604800; }
 
 function prefix(n) {
 	return n >= 10 ? '' : '0';
@@ -539,7 +562,11 @@ function prefix(n) {
 var rtime     = /^([+-])?(\d{2,}):([0-5]\d)(?::((?:[0-5]\d|60)(?:.\d+)?))?$/;
 var rtimediff = /^([+-])?(\d{2,}):(\d{2,})(?::(\d{2,}(?:.\d+)?))?$/;
 
-var parseTime = overload(toType, {
+/*
+parseTime(string)
+*/
+
+export const parseTime = overload(toType, {
 	number:  id,
 	string:  exec(rtime, createTime),
 	default: function(object) {
@@ -668,16 +695,28 @@ export const nowTime = function() {
 	return window.performance.now();
 };
 
+/*
+formatTime(format, time)
+*/
+
 export const formatTime = curry(function(string, time) {
 	return string === 'ISO' ?
 		_formatTimeISO(parseTime(time)) :
 		formatTimeString(string, parseTime(time)) ;
 });
 
+/*
+formatTimeISO(time)
+*/
+
 export function formatTimeISO(time) {
 	// Undefined causes problems by outputting dates full of NaNs
 	return time === undefined ? undefined : _formatTimeISO(time);
 }
+
+/*
+addTime(time1, time2)
+*/
 
 export const addTime = curry(function(time1, time2) {
 	return parseTime(time2) + parseTimeDiff(time1);
@@ -691,20 +730,10 @@ export const diffTime = curry(function(time1, time2) {
 	return parseTime(time1) - parseTime(time2);
 });
 
+/*
+floorTime(token, time)
+*/
+
 export const floorTime = curry(function(token, time) {
 	return _floorTime(token, parseTime(time));
 });
-
-export {
-	parseTime,
-	secondsToMilliseconds,
-	secondsToMinutes,
-	secondsToHours,
-	secondsToDays,
-	secondsToWeeks,
-	millisecondsToSeconds,
-	minutesToSeconds,
-	hoursToSeconds,
-	daysToSeconds,
-	weeksToSeconds
-};

@@ -3,6 +3,11 @@ import toArray from '../to-array.js';
 const A = Array.prototype;
 const S = String.prototype;
 
+/*
+by(fn, a, b)
+Compares `fn(a)` against `fn(b)`. Useful for sorting.
+*/
+
 export function by(fn, a, b) {
     const fna = fn(a);
     const fnb = fn(b);

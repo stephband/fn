@@ -76,6 +76,49 @@
             filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
         </section>
 
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+            <h2 class="text-2" style="font-size: 1.875rem;">Maths</h2>
+
+            <template build-fn="docs:
+            modules/maths/core.js,
+            modules/maths/cubic-bezier.js,
+            modules/maths/to-cartesian.js,
+            modules/maths/to-polar.js
+            filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+        </section>
+
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+            <h2 class="text-2" style="font-size: 1.875rem;">Arrays and collections</h2>
+
+            <template build-fn="docs:
+            modules/lists/core.js,
+            modules/lists/insert.js,
+            modules/lists/last.js,
+            modules/lists/remove.js,
+            modules/lists/rest.js,
+            modules/lists/take.js,
+            modules/lists/unique.js,
+            modules/lists/update.js
+            filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+        </section>
+
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+            <h2 class="text-2" style="font-size: 1.875rem;">Time</h2>
+
+            <template build-fn="docs:
+            modules/time.js
+            filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+        </section>
+
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+            <h2 class="text-2" style="font-size: 1.875rem;">Observe</h2>
+
+            <template build-fn="docs:
+            modules/observer/observe.js,
+            modules/observer/observer.js
+            filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+        </section>
+
         <header class="col-1 span-6 @2-col-2 @2-span-4">
             <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
         </header>

@@ -178,7 +178,7 @@ export const exponentialOut = curry(_exponentialOut);
 
 /* Time */
 
-export * from './modules/time/core.js';
+export * from './modules/time.js';
 
 /* Test */
 

@@ -1,4 +1,8 @@
 
+/*
+toCartesian(polar)
+*/
+
 export default function toCartesian(polar) {
     var d = polar[0];
     var a = polar[1];

@@ -1,3 +1,7 @@
+/*
+toPolar(cartesian)
+*/
+
 export default function toPolar(cartesian) {
     var x = cartesian[0];
     var y = cartesian[1];

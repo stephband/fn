@@ -136,26 +136,19 @@ function observeUnknown(object, path, data) {
 }
 
 /*
-    observe(path, fn, object)
+    observe(path, fn, object [, init])
 
-    path:
+    Observe `path` in `object` and call `fn(value)` with the value at the
+    end of that path when it mutates. Returns a function that destroys the
+    observer.
 
-    fn:
+    The callback is called immediately on initialisation if the value at
+    the end of the path is not equal to `init`. In the default case where
+    `init` is `undefined`, paths that end in `undefined` do not cause the
+    callback to be called.
 
-    object:
-
-
-    observe(path, fn, object, initialValue)
-
-    initialValue: optional, defaults is undefined
-
-    Initial value of the path. When a path is observed the callback is called
-    immediately if the value of the path is not equal to the initialValue. In
-    the default case initialValue is undefined, so paths with a value of
-    undefined do not cause the callback to be called on setup.
-
-    If you want to force the callback to be called on setup, pass in null
-    as an initialValue. After all, in JS null is never equal to null.
+    To force the callback to always be called on setup, pass in `NaN` as an
+    initialValue. In JS `NaN` is not equal to anything, even `NaN`.
 */
 
 export function observe(path, fn, object, initialValue) {

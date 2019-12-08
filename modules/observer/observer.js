@@ -225,6 +225,12 @@ function isObservable(object) {
 		&& !ArrayBuffer.isView(object) ;
 }
 
+/*
+notify(object, path, value)
+Force the `object`'s Observer to register a mutation at `path`. Pass in `value`
+to override the value actually at the end of the path.
+*/
+
 export function notify(object, path, value) {
 	const observer = object[$observer];
 	if (!observer) { return; }
@@ -235,6 +241,11 @@ export function notify(object, path, value) {
 	fire(mutate, object);
 }
 
+/*
+Observer(object)
+Wraps `object` in an Observer proxy.
+*/
+
 export function Observer(object) {
 	return !object ? undefined :
 		object[$observer] ? object[$observer].observer :
@@ -242,6 +253,10 @@ export function Observer(object) {
 			createObserver(object) :
 			undefined ;
 }
+
+/*
+Target(object)
+*/
 
 export function Target(object) {
 	return object

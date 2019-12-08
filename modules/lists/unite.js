@@ -1,4 +1,5 @@
 
+import toArray from '../to-array.js';
 import { map } from './core.js';
 
 export default function unite(array, object) {
