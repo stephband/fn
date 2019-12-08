@@ -162,6 +162,28 @@ This file is generated via SASS. To generate it, run `npm run sass`.
 
 .y-baseline { align-self: baseline !important; }
 
+.columns-2 { columns: 2 !important; }
+
+.columns-3 { columns: 3 !important; }
+
+.columns-4 { columns: 4 !important; }
+
+.columns-5 { columns: 5 !important; }
+
+.columns-6 { columns: 6 !important; }
+
+.columns-7 { columns: 7 !important; }
+
+.columns-8 { columns: 8 !important; }
+
+.columns-9 { columns: 9 !important; }
+
+.columns-10 { columns: 10 !important; }
+
+.columns-11 { columns: 11 !important; }
+
+.columns-12 { columns: 12 !important; }
+
 @media screen and (max-width: 44.999em) { .\@1-shown { display: none !important; } }
 
 @media screen and (min-width: 45em) { .\@1-hidden { display: none !important; }
@@ -242,7 +264,18 @@ This file is generated via SASS. To generate it, run `npm run sass`.
 	.\@1-y-start { align-self: start !important; }
 	.\@1-y-center { align-self: center !important; }
 	.\@1-y-stretch { align-self: stretch !important; }
-	.\@1-y-baseline { align-self: baseline !important; } }
+	.\@1-y-baseline { align-self: baseline !important; }
+	.\@1-columns-2 { columns: 2 !important; }
+	.\@1-columns-3 { columns: 3 !important; }
+	.\@1-columns-4 { columns: 4 !important; }
+	.\@1-columns-5 { columns: 5 !important; }
+	.\@1-columns-6 { columns: 6 !important; }
+	.\@1-columns-7 { columns: 7 !important; }
+	.\@1-columns-8 { columns: 8 !important; }
+	.\@1-columns-9 { columns: 9 !important; }
+	.\@1-columns-10 { columns: 10 !important; }
+	.\@1-columns-11 { columns: 11 !important; }
+	.\@1-columns-12 { columns: 12 !important; } }
 
 @media screen and (max-width: 64.999em) { .\@2-shown { display: none !important; } }
 
@@ -324,7 +357,18 @@ This file is generated via SASS. To generate it, run `npm run sass`.
 	.\@2-y-start { align-self: start !important; }
 	.\@2-y-center { align-self: center !important; }
 	.\@2-y-stretch { align-self: stretch !important; }
-	.\@2-y-baseline { align-self: baseline !important; } }
+	.\@2-y-baseline { align-self: baseline !important; }
+	.\@2-columns-2 { columns: 2 !important; }
+	.\@2-columns-3 { columns: 3 !important; }
+	.\@2-columns-4 { columns: 4 !important; }
+	.\@2-columns-5 { columns: 5 !important; }
+	.\@2-columns-6 { columns: 6 !important; }
+	.\@2-columns-7 { columns: 7 !important; }
+	.\@2-columns-8 { columns: 8 !important; }
+	.\@2-columns-9 { columns: 9 !important; }
+	.\@2-columns-10 { columns: 10 !important; }
+	.\@2-columns-11 { columns: 11 !important; }
+	.\@2-columns-12 { columns: 12 !important; } }
 
 @media screen and (max-width: 84.999em) { .\@3-shown { display: none !important; } }
 
@@ -406,7 +450,18 @@ This file is generated via SASS. To generate it, run `npm run sass`.
 	.\@3-y-start { align-self: start !important; }
 	.\@3-y-center { align-self: center !important; }
 	.\@3-y-stretch { align-self: stretch !important; }
-	.\@3-y-baseline { align-self: baseline !important; } }
+	.\@3-y-baseline { align-self: baseline !important; }
+	.\@3-columns-2 { columns: 2 !important; }
+	.\@3-columns-3 { columns: 3 !important; }
+	.\@3-columns-4 { columns: 4 !important; }
+	.\@3-columns-5 { columns: 5 !important; }
+	.\@3-columns-6 { columns: 6 !important; }
+	.\@3-columns-7 { columns: 7 !important; }
+	.\@3-columns-8 { columns: 8 !important; }
+	.\@3-columns-9 { columns: 9 !important; }
+	.\@3-columns-10 { columns: 10 !important; }
+	.\@3-columns-11 { columns: 11 !important; }
+	.\@3-columns-12 { columns: 12 !important; } }
 
 @media screen and (max-width: 104.999em) { .\@4-shown { display: none !important; } }
 
@@ -488,4 +543,15 @@ This file is generated via SASS. To generate it, run `npm run sass`.
 	.\@4-y-start { align-self: start !important; }
 	.\@4-y-center { align-self: center !important; }
 	.\@4-y-stretch { align-self: stretch !important; }
-	.\@4-y-baseline { align-self: baseline !important; } }
+	.\@4-y-baseline { align-self: baseline !important; }
+	.\@4-columns-2 { columns: 2 !important; }
+	.\@4-columns-3 { columns: 3 !important; }
+	.\@4-columns-4 { columns: 4 !important; }
+	.\@4-columns-5 { columns: 5 !important; }
+	.\@4-columns-6 { columns: 6 !important; }
+	.\@4-columns-7 { columns: 7 !important; }
+	.\@4-columns-8 { columns: 8 !important; }
+	.\@4-columns-9 { columns: 9 !important; }
+	.\@4-columns-10 { columns: 10 !important; }
+	.\@4-columns-11 { columns: 11 !important; }
+	.\@4-columns-12 { columns: 12 !important; } }
