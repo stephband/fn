@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="../fn/css/tests.css">
     <link rel="stylesheet" href="css/docs.css">
     <link rel="stylesheet" href="css/theme.css">
-    <link rel="stylesheet" href="../soundstage/css/respond.css">
+    <link rel="stylesheet" href="css/respond.css">
 <template id="header-template" title="/fn/">
     <header class="grid" id="header">
         <h1 class="col-1 span-7 @2-col-2">{[title]} <span class="text-6">{[version]}</span></h1>
@@ -78,9 +78,7 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
             <h2 class="text-1">Functions</h2>
-
             <h4 class="text-4">Functions</h4>
-
             <!--template-->
     <article class="toggle-block block" toggleable="" id="cache-fn">
         <h3 class="text-5 ">
@@ -173,7 +171,6 @@ against input values in a WeakMap, such that for each input value
 
         <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
             <h4 class="text-4">Objects</h4>
-
             <!--template-->
     <article class="toggle-block block" toggleable="" id="argument-n">
         <h3 class="text-5 ">
@@ -193,16 +190,6 @@ against input values in a WeakMap, such that for each input value
     <p>Returns a function that calls <code>fn()</code> with no arguments.</p>
 </article>
 
-    <article class="toggle-block block" toggleable="" id="capture-regex-parts-accumulator-string">
-        <h3 class="text-5 ">
-            <a href="#capture-regex-parts-accumulator-string">
-                <code class="function language-js"><span class="token function">capture</span><span class="token punctuation">(</span>regex<span class="token punctuation">,</span> parts<span class="token punctuation">,</span> accumulator<span class="token punctuation">,</span> string<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Parse <code>string</code> with <code>regex</code>, calling functions in <code>parts</code> to modify
-<code>accumulator</code>. Returns accumulator.</p>
-</article>
-
     <article class="toggle-block block" toggleable="" id="equals-a-b">
         <h3 class="text-5 ">
             <a href="#equals-a-b">
@@ -212,14 +199,6 @@ against input values in a WeakMap, such that for each input value
     <p>Perform a deep equality comparison of <code>a</code> and <code>b</code>. Returns <code>true</code> if
 they are equal.</p>
 </article>
-
-    <article class="toggle-block block" toggleable="" id="exec-regex-fn-string">
-        <h3 class="text-5 ">
-            <a href="#exec-regex-fn-string">
-                <code class="function language-js"><span class="token function">exec</span><span class="token punctuation">(</span>regex<span class="token punctuation">,</span> fn<span class="token punctuation">,</span> string<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    </article>
 
     <article class="toggle-block block" toggleable="" id="get-name-object">
         <h3 class="text-5 ">
@@ -301,14 +280,6 @@ they are equal.</p>
     <p>Returns <code>!value</code>.</p>
 </article>
 
-    <article class="toggle-block block" toggleable="" id="parsevalue-units-string">
-        <h3 class="text-5 ">
-            <a href="#parsevalue-units-string">
-                <code class="function language-js"><span class="token function">parseValue</span><span class="token punctuation">(</span>units<span class="token punctuation">,</span> string<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    </article>
-
     <article class="toggle-block block" toggleable="" id="requesttick-fn">
         <h3 class="text-5 ">
             <a href="#requesttick-fn">
@@ -388,8 +359,54 @@ they are equal.</p>
         </section>
 
         <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
-            <h4 class="text-4">Numbers</h4>
+            <h4 class="text-4">Strings</h4>
+            <!--template-->
+    <article class="toggle-block block" toggleable="" id="capture-regex-parts-accumulator-string">
+        <h3 class="text-5 ">
+            <a href="#capture-regex-parts-accumulator-string">
+                <code class="function language-js"><span class="token function">capture</span><span class="token punctuation">(</span>regex<span class="token punctuation">,</span> parts<span class="token punctuation">,</span> accumulator<span class="token punctuation">,</span> string<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Parse <code>string</code> with <code>regex</code>, calling functions in <code>parts</code> to modify
+<code>accumulator</code>. Returns accumulator.</p>
+</article>
 
+    <article class="toggle-block block" toggleable="" id="exec-regex-fn-string">
+        <h3 class="text-5 ">
+            <a href="#exec-regex-fn-string">
+                <code class="function language-js"><span class="token function">exec</span><span class="token punctuation">(</span>regex<span class="token punctuation">,</span> fn<span class="token punctuation">,</span> string<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="parsedate-string">
+        <h3 class="text-5 ">
+            <a href="#parsedate-string">
+                <code class="function language-js"><span class="token function">parseDate</span><span class="token punctuation">(</span>string<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="parsetime-string">
+        <h3 class="text-5 ">
+            <a href="#parsetime-string">
+                <code class="function language-js"><span class="token function">parseTime</span><span class="token punctuation">(</span>string<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="parsevalue-units-string">
+        <h3 class="text-5 ">
+            <a href="#parsevalue-units-string">
+                <code class="function language-js"><span class="token function">parseValue</span><span class="token punctuation">(</span>units<span class="token punctuation">,</span> string<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+        </section>
+
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+            <h4 class="text-4">Numbers</h4>
             <!--template-->
     <article class="toggle-block block" toggleable="" id="mod-divisor-n">
         <h3 class="text-5 ">
@@ -481,7 +498,6 @@ around 0 with limits -1 to 1.</p>
 
         <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
             <h4 class="text-4">Arrays</h4>
-
             <!--template-->
     <article class="toggle-block block" toggleable="" id="by-fn-a-b">
         <h3 class="text-5 ">
@@ -563,7 +579,6 @@ array (preserving a sort order based on the result of <code>fn(object)</code>).<
 
         <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
             <h4 class="text-4">Time</h4>
-
             <!--template-->
     <article class="toggle-block block" toggleable="" id="parsedate-string">
         <h3 class="text-5 ">
@@ -667,7 +682,6 @@ array (preserving a sort order based on the result of <code>fn(object)</code>).<
 
         <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
             <h2 class="text-2" style="font-size: 1.875rem;">Observe</h2>
-
             <!--template-->
     <article class="toggle-block block" toggleable="" id="observe-path-fn-object-init">
         <h3 class="text-5 ">

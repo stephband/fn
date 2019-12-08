@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="../fn/css/tests.css" />
     <link rel="stylesheet" href="css/docs.css" />
     <link rel="stylesheet" href="css/theme.css" />
-    <link rel="stylesheet" href="../soundstage/css/respond.css" />
+    <link rel="stylesheet" href="css/respond.css" />
 </head>
 
 <body>
@@ -39,9 +39,7 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
             <h2 class="text-1">Functions</h2>
-
             <h4 class="text-4">Functions</h4>
-
             <template build-fn="docs:
             modules/cache.js,
             modules/compose.js,
@@ -56,13 +54,10 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
             <h4 class="text-4">Objects</h4>
-
             <template build-fn="docs:
             modules/argument.js,
             modules/call.js,
-            modules/capture.js,
             modules/equals.js,
-            modules/exec.js,
             modules/get.js,
             modules/has.js,
             modules/id.js,
@@ -72,7 +67,6 @@
             modules/matches.js,
             modules/noop.js,
             modules/not.js,
-            modules/parse-value.js,
             modules/request-tick.js,
             modules/self.js,
             modules/set.js,
@@ -86,8 +80,17 @@
         </section>
 
         <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
-            <h4 class="text-4">Numbers</h4>
+            <h4 class="text-4">Strings</h4>
+            <template build-fn="docs:
+            modules/capture.js,
+            modules/exec.js,
+            'modules/time.js?parseDate,parseTime',
+            modules/parse-value.js,
+            filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+        </section>
 
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
+            <h4 class="text-4">Numbers</h4>
             <template build-fn="docs:
             modules/maths/core.js,
             modules/maths/cubic-bezier.js,
@@ -98,7 +101,6 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
             <h4 class="text-4">Arrays</h4>
-
             <template build-fn="docs:
             modules/lists/core.js,
             modules/lists/insert.js,
@@ -113,7 +115,6 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
             <h4 class="text-4">Time</h4>
-
             <template build-fn="docs:
             modules/time.js
             filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
@@ -121,7 +122,6 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @2-span-4">
             <h2 class="text-2" style="font-size: 1.875rem;">Observe</h2>
-
             <template build-fn="docs:
             modules/observer/observe.js,
             modules/observer/observer.js
