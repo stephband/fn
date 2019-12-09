@@ -7,6 +7,16 @@
         "url": "http://stephen.band",
         "twitter": "stephband"
     },
+
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/stephband/fn.git"
+    },
+
+    "bugs": {
+        "url": "https://github.com/stephband/fn/issues"
+    },
+
     "licenses": [
         {
             "url": "http://unlicense.org/"
