@@ -193,9 +193,12 @@ assign(Fn.prototype, {
         });
     },
 
+    /*
+    .unshift(...values)
+    Creates a buffer of values at the end of the stream that are read first.
+    */
+
     unshift: function() {
-        // Create an unshift buffer, such that objects can be inserted
-        // back into the stream at will with stream.unshift(object).
         var source = this;
         var buffer = toArray(arguments);
 
@@ -215,18 +218,6 @@ assign(Fn.prototype, {
                 return fn(e);
             }
         });
-    },
-
-    /*
-    .chain(fn)
-
-    Maps values and flattens them. The equivalent of the array
-    method `.flatMap()`.
-    */
-
-    chain: function(fn) {
-        console.warn('Stream.chain() is now Stream.flatMap()');
-        return this.map(fn).flat();
     },
 
     syphon: function(fn) {
@@ -409,11 +400,15 @@ assign(Fn.prototype, {
     .flatMap()
     Maps values to lists – `fn(value)` must return an array, functor, stream
     or other type with a `.shift()` method – and flattens those lists into a
-    single stream.
+    single stream. Should be called mapFlat, really.
     */
 
     flatMap: function(fn) {
-        console.warn('Stream.chain() is now Stream.flatMap()');
+        return this.map(fn).flat();
+    },
+
+    chain: function(fn) {
+        console.trace('Stream.chain() is now Stream.flatMap()');
         return this.map(fn).flat();
     },
 
@@ -510,7 +505,7 @@ assign(Fn.prototype, {
         });
     },
 
-    reduce: function reduce(fn, seed) {
+    fold: function reduce(fn, seed) {
         return this.scan(fn, seed).latest().shift();
     },
 

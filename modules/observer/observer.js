@@ -1,4 +1,6 @@
 
+/* Observer */
+
 export const $observer = Symbol('observer');
 
 const A            = Array.prototype;

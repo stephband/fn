@@ -247,12 +247,115 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     stream is not writeable, it does not have a `.push()` method.
     */
 
-    /* Transform */
+    /* Map */
 
     /*
     .chunk(n)
     Batches values into arrays of length `n`.
     */
+
+    /*
+    .flat()
+    Flattens a stream of streams or arrays into a single stream.
+    */
+
+    /*
+    .flatMap(fn)
+    Maps values to lists – `fn(value)` must return an array, functor, stream
+    (or any other duck with a `.shift()` method) and flattens those lists into a
+    single stream.
+    */
+
+    /*
+    .map(fn)
+    Maps values to the result of `fn(value)`.
+    */
+
+    /*
+    .merge(stream)
+    Merges this stream with `stream`, which in fact may be an array, array-like
+    or functor.
+    */
+
+    merge: function merge() {
+        var sources = toArray(arguments);
+        sources.unshift(this);
+        return Stream.Merge.apply(null, sources);
+    },
+
+    /*
+    .scan(fn, seed)
+    Calls `fn(accumulator, value)` and emits `accumulator` for each value
+    in the stream.
+    */
+
+
+    /* Filter */
+
+    /*
+    .dedup()
+    Filters out consecutive equal values.
+    */
+
+    /*
+    .filter(fn)
+    Filter values according to the truthiness of `fn(value)`.
+    */
+
+    /*
+    .latest()
+    When the stream has a values buffered, passes the last value
+    in the buffer.
+    */
+
+    /*
+    .rest(n)
+    Filters the stream to the `n`th value and above.
+    */
+
+    /*
+    .take(n)
+    Filters the stream to the first `n` values.
+    */
+
+    ///*
+    //.clock(timer)
+    //Emits values at the framerate of `timer`, one-per-frame. No values
+    //are discarded.
+    //*/
+    //
+    //clock: function clock(timer) {
+    //    return this.pipe(Stream.clock(timer));
+    //},
+
+    /*
+    .throttle(time)
+    Throttles values such that the latest value is emitted every `time` seconds.
+    Other values are discarded. The parameter `time` may also be a timer options
+    object, an object with `{ request, cancel, now }` functions,
+    allowing the creation of, say, and animation frame throttle.
+    */
+
+    throttle: function throttle(timer) {
+        return this.pipe(Stream.throttle(timer));
+    },
+
+    /*
+    .wait(time)
+    Emits the latest value only after `time` seconds of inactivity.
+    Other values are discarded.
+    */
+
+    wait: function wait(time) {
+        return this.pipe(Stream.Choke(time));
+    },
+
+    combine: function(fn, source) {
+        return Stream.Combine(fn, this, source);
+    },
+
+
+    /* Read */
 
     /*
     .clone()
@@ -292,106 +395,6 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         });
     },
 
-    combine: function(fn, source) {
-        return Stream.Combine(fn, this, source);
-    },
-
-    /*
-    .dedup()
-    Filters out consecutive equal values.
-    */
-
-    /*
-    .filter(fn)
-    Filter values according to the truthiness of `fn(value)`.
-    */
-
-    /*
-    .flatten()
-    Flattens a stream of streams or arrays into a single stream.
-    */
-
-    /*
-    .flatMap()
-    Maps values to lists – `fn(value)` must return an array, functor, stream
-    or other type with a `.shift()` method – and flattens those lists into a
-    single stream.
-    */
-
-    /*
-    .latest()
-    When the stream has a values buffered, passes the last value
-    in the buffer.
-    */
-
-    /*
-    .map(fn)
-    Maps values to the result of `fn(value)`.
-    */
-
-    /*
-    .merge(stream)
-    Merges this stream with `stream`, which in fact may be an array, array-like
-    or functor.
-    */
-
-    merge: function merge() {
-        var sources = toArray(arguments);
-        sources.unshift(this);
-        return Stream.Merge.apply(null, sources);
-    },
-
-    /*
-    .rest(n)
-    Filters the stream to the `n`th value and above.
-    */
-
-    /*
-    .scan(fn, seed)
-    Calls `fn(accumulator, value)` and emits `accumulator` for each value
-    in the stream.
-    */
-
-    /*
-    .take(n)
-    Filters the stream to the first `n` values.
-    */
-
-    /* Delay */
-
-    ///*
-    //.clock(timer)
-    //Emits values at the framerate of `timer`, one-per-frame. No values
-    //are discarded.
-    //*/
-    //
-    //clock: function clock(timer) {
-    //    return this.pipe(Stream.clock(timer));
-    //},
-
-    /*
-    .throttle(timer)
-    Throttles values such that on each frame of `timer` the latest value
-    is emitted. Other values are discarded.
-    */
-
-    throttle: function throttle(timer) {
-        return this.pipe(Stream.throttle(timer));
-    },
-
-    /*
-    .wait(time)
-    Emits the latest value only after `time` seconds of inactivity.
-    Intermediate values are discarded.
-    */
-
-    wait: function wait(time) {
-        return this.pipe(Stream.Choke(time));
-    },
-
-
-    /* Consume */
-
     /*
     .each(fn)
     Thirstilly consumes the stream, calling `fn(value)` whenever
@@ -423,11 +426,11 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         return this;
     },
 
-    ///*
-    //.fold(fn, accumulator)
-    //Consumes the stream when stopped, calling `fn(accumulator, value)`
-    //for each value in the stream. Returns a promise.
-    //*/
+    /*
+    .fold(fn, accumulator)
+    Consumes the stream when stopped, calling `fn(accumulator, value)`
+    for each value in the stream. Returns a promise.
+    */
 
     fold: function fold(fn, accumulator) {
         // Fold to promise
@@ -438,12 +441,12 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         });
     },
 
-    /*
-    .reduce(fn, accumulator)
-    Consumes the stream when stopped, calling `fn(accumulator, value)`
-    for each value in the stream. Returns a promise that resolves to
-    the last value returned by `fn(accumulator, value)`.
-    */
+    ///*
+    //.reduce(fn, accumulator)
+    //Consumes the stream when stopped, calling `fn(accumulator, value)`
+    //for each value in the stream. Returns a promise that resolves to
+    //the last value returned by `fn(accumulator, value)`.
+    //*/
 
     reduce: function reduce(fn, accumulator) {
         // Support array.reduce semantics with optional seed
@@ -680,15 +683,26 @@ assign(TimeSource.prototype, {
 
 /*
 Stream.fromTimer(timer)
-Create a stream from a timer object. A timer object must look like:
+Create a stream from a `timer` object. A `timer` is an object
+with the properties:
 
 ```
 {
     request:     fn(fn), calls fn on the next frame, returns an id
     cancel:      fn(id), cancels request with id
-    now:         fn(), returne the time
+    now:         fn(), returns the time
     currentTime: time at the start of the latest frame
 }
+```
+
+Here is how a stream of animation frames may be created:
+
+```
+const frames = Stream.fromTimer({
+    request: window.requestAnimationFrame,
+    cancel: window.cancelAnimationFrame,
+    now: () => window.performance.now()
+});
 ```
 
 This stream is not writeable: it has no `.push()` method.

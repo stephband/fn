@@ -1,8 +1,8 @@
 body {
     padding-top: 1.875rem;
     padding-bottom: 2.25rem;
-    padding-left: 1.875rem;
-    padding-right: 1.875rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
 }
 
 body > .grid + .grid {
@@ -13,12 +13,27 @@ body > .\31-grid + .\31-2-3-grid {
     margin-top: 1.875rem;
 }
 
-@media (min-width: 84em) {
+@media (min-width: 49.6875em) {
+    body {
+        padding-left: 2.8125rem;
+        padding-right: 2.8125rem;
+    }
+}
+
+@media (min-width: 76.875em) {
     body {
         padding-top: 1.875rem;
         padding-bottom: 7.5rem;
+        padding-left: 3.75rem;
+        padding-right: 3.75rem;
     }
 }
+
+@media (min-width: 101.25em) {
+
+}
+
+
 
 body > .grid-block {
     margin-left: auto;
@@ -399,6 +414,41 @@ line { stroke-width: 1; stroke: inherit; }
     margin-right: -0.9375rem;
 }
 
+
+.grid {
+    grid-column-gap: 1.875rem;
+    grid-row-gap: 1.875rem;
+}
+
+@media (min-width: 49.6875em) {
+    .grid {
+        grid-column-gap: 2.8125rem;
+    }
+
+    .columns-grid {
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+    }
+}
+
+@media (min-width: 76.875em) {
+    .grid {
+        grid-column-gap: 3.75rem;
+        grid-row-gap: 1.875rem;
+    }
+
+    .columns-grid {
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    }
+}
+
+@media (min-width: 101.25em) {
+    .columns-grid {
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    }
+}
+
+
+
 .column-grid {
     align-content: start;
     align-items: start;
@@ -418,6 +468,7 @@ line { stroke-width: 1; stroke: inherit; }
     align-content: start;
     align-items: start;
     justify-content: stretch;
+    grid-row-gap: 0;
 }
 
 .list-grid > .text-4 {
