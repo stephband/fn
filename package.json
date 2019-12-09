@@ -50,7 +50,7 @@
         "build": "npm run build-cjs && npm run build-esm",
         "build-cjs": "rollup module.js --o index.js --f cjs",
         "build-esm": "rollup module.js --o fn.js --f esm",
-        "build-docs": "node render-html.js http://localhost/fn/template.html ./index.html 8",
+        "build-docs": "node render-html.js http://localhost/fn/template.html ./index.html 8 && git add index.html && git commit -m 'Builds docs.'",
         "sass": "node-sass --output-style compact --indent-type tab --indent-width 1 -o css css/respond.scss"
     }
 }

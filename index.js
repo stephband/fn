@@ -2,8 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-/* cache(fn)
-Returns a function that caches results of calling it.
+/*
+cache(fn)
+Returns a function that caches the output values of `fn(input)`
+against input values in a map, such that for each input value
+`fn` is only ever called once.
 */
 
 function cache(fn) {
@@ -21,6 +24,9 @@ function cache(fn) {
     };
 }
 
+/*
+curry(fn [, muteable, arity])
+*/
 const A     = Array.prototype;
 
 function applyFn(fn, args) {
@@ -56,16 +62,14 @@ function curry(fn, muteable, arity) {
     };
 }
 
-/*
-function curry(fn, muteable, arity) {
-    arity = arity || fn.length;
-    return function curried() {
-        return arguments.length >= arity ?
-            fn.apply(null, arguments) :
-            curried.bind(null, ...arguments) ;
-    };
-}
-*/
+//function curry(fn, muteable, arity) {
+//    arity = arity || fn.length;
+//    return function curried() {
+//        return arguments.length >= arity ?
+//            fn.apply(null, arguments) :
+//            curried.bind(null, ...arguments) ;
+//    };
+//}
 
 {
     const _curry = curry;
@@ -110,6 +114,10 @@ function curry(fn, muteable, arity) {
 
 var curry$1 = curry;
 
+/*
+rest(n, array)
+*/
+
 function rest(i, object) {
     if (object.slice) { return object.slice(i); }
     if (object.rest)  { return object.rest(i); }
@@ -120,6 +128,24 @@ function rest(i, object) {
     return a;
 }
 
+/*
+choose(fn, map)
+Returns a function that takes its first argument as a key and uses it
+to select a function in `map` which is invoked with the remaining arguments.
+
+Where `map` has a function `default`, that function is run when a key
+is not found, otherwise unfound keys will error.
+
+```
+var fn = choose({
+    'fish':  function fn1(a, b) {...},
+    'chips': function fn2(a, b) {...}
+});
+
+fn('fish', a, b);   // Calls fn1(a, b)
+```
+*/
+
 function choose(map) {
     return function choose(key) {
         var fn = map[key] || map.default;
@@ -127,7 +153,17 @@ function choose(map) {
     };
 }
 
+/*
+noop()
+Returns undefined.
+*/
+
 function noop() {}
+
+/*
+requestTick(fn)
+Call `fn` on the next tick.
+*/
 
 const resolved = Promise.resolve();
 
@@ -188,7 +224,33 @@ Throttle.prototype.stop = function() {
     return this;
 };
 
-function toArray$1(object) {
+function Throttle$1(fn) {
+	var promise, context, args;
+
+	function fire() {
+		// Remove promise
+		promise = undefined;
+
+		// Make the function
+		return fn.apply(context, args);
+	}
+
+	return function throttle() {
+		// Throttle requests to next tick, usin the context and args
+		// from the latest call to request()
+		promise = promise || Promise.resolve().then(fire);
+		context = this;
+		args    = arguments;
+
+		return promise;
+	};
+}
+
+/*
+toArray(object)
+*/
+
+function toArray(object) {
     if (object.toArray) { return object.toArray(); }
 
     // Speed test for array conversion:
@@ -211,6 +273,11 @@ function toArray$1(object) {
 
 const A$1 = Array.prototype;
 const S = String.prototype;
+
+/*
+by(fn, a, b)
+Compares `fn(a)` against `fn(b)`. Useful for sorting.
+*/
 
 function by(fn, a, b) {
     const fna = fn(a);
@@ -265,14 +332,15 @@ function concat(array2, array1) {
     // together.
     return Array.isArray(array1) ?
         // 1 is an array. Convert 2 to an array if necessary
-        array1.concat(Array.isArray(array2) ? array2 : toArray$1(array2)) :
+        array1.concat(Array.isArray(array2) ? array2 : toArray(array2)) :
 
     array1.concat ?
         // It has it's own concat method. Lets assume it's robust
         array1.concat(array2) :
     // 1 is not an array, but 2 is
-    toArray$1(array1).concat(Array.isArray(array2) ? array2 : toArray$1(array2)) ;
+    toArray(array1).concat(Array.isArray(array2) ? array2 : toArray(array2)) ;
 }
+
 function contains(value, object) {
     return object.includes ?
         object.includes(value) :
@@ -282,17 +350,11 @@ function contains(value, object) {
         A$1.includes.call(object, value) :
         A$1.indexOf.call(object, value) !== -1 ;
 }
+
 function find(fn, object) {
     return A$1.find.call(object, fn);
 }
 
-function insert(fn, array, object) {
-    var n = -1;
-    var l = array.length;
-    var value = fn(object);
-    while(++n < l && fn(array[n]) <= value);
-    A$1.splice.call(array, n, 0, object);
-}
 
 function slice(n, m, object) {
     return object.slice ?
@@ -321,11 +383,34 @@ code(block)
 
 function args() { return arguments; }
 
-// choke
-//
-// Returns a function that waits for `time` seconds without being invoked
-// before calling `fn` using the context and arguments from the latest
-// invocation
+/*
+argument(n)
+
+Returns a function that returns its nth argument when called.
+*/
+
+function argument(n) {
+    return function argument() {
+        return arguments[n];
+    }
+}
+
+/*
+call(fn)
+Returns a function that calls `fn()` with no arguments.
+*/
+
+function call(fn) {
+    return fn();
+}
+
+/*
+choke(fn, time)
+
+Returns a function that waits for `time` seconds without being invoked
+before calling `fn` using the context and arguments from the latest
+invocation.
+*/
 
 function choke(fn, time) {
     var timer, context, args;
@@ -374,6 +459,10 @@ function choke(fn, time) {
 //		};
 //	}
 
+/*
+compose(fn2, fn1)
+*/
+
 function compose(fn2, fn1) {
     return function compose() {
         return fn2(fn1.apply(null, arguments));
@@ -388,7 +477,19 @@ function deprecate(fn, message) {
     };
 }
 
+/*
+id(object)
+Returns `object`.
+*/
+
 function id(object) { return object; }
+
+/*
+isDefined(value)
+Check for value – where `value` is `undefined`, `NaN` or `null`, returns
+`false`, otherwise `true`.
+*/
+
 
 function isDefined(value) {
     // !!value is a fast out for non-zero numbers, non-empty strings
@@ -401,17 +502,40 @@ function latest(source) {
     return value === undefined ? arguments[1] : latest(source, value) ;
 }
 
+/*
+not(value)
+Returns `!value`.
+*/
+
+function not(n) { return !n; }
+
+const done     = { done: true };
+const iterator = { next: () => done };
+
 var nothing = Object.freeze({
+    // Standard array methods
     shift: noop,
     push:  noop,
+
+    // Stream methods
+    start: noop,
     stop:  noop,
-    length: 0
+
+    // Make it look like an empty array
+    length: 0,
+
+    // Make it an iterable with nothing in it
+    [Symbol.iterator]: () => iterator
 });
 
 function now() {
     // Return time in seconds
     return +new Date() / 1000;
 }
+
+/*
+once(fn)
+*/
 
 function once(fn) {
     return function once() {
@@ -420,6 +544,24 @@ function once(fn) {
         return value;
     };
 }
+
+/*
+overload(fn, map)
+
+Returns a function that calls a function at the property of `object` that
+matches the result of calling `fn` with all arguments.</p>
+
+```
+var fn = overload(toType, {
+    string: function a(name, n) {...},
+    number: function b(n, m) {...}
+});
+
+fn('pie', 4); // Returns a('pie', 4)
+fn(1, 2);     // Returns b(1, 2)
+```
+*/
+
 
 function overload(fn, map) {
     return typeof map.get === 'function' ?
@@ -439,6 +581,10 @@ function apply(value, fn) {
     return fn(value);
 }
 
+/*
+pipe(fn1, fn2, ...)
+*/
+
 const A$2 = Array.prototype;
 
 function pipe() {
@@ -448,13 +594,26 @@ function pipe() {
         id ;
 }
 
-const symbol = Symbol('privates');
+const $private = Symbol('private');
 
 function privates(object) {
-    return object[symbol] || (object[symbol] = {});
+    return object[$private] ?
+        object[$private] :
+        Object.defineProperty(object, $private, {
+            value: {}
+        })[$private] ;
 }
 
+/*
+self()
+Returns `this`.
+*/
+
 function self() { return this; }
+
+/*
+toClass(object)
+*/
 
 const O = Object.prototype;
 
@@ -462,19 +621,42 @@ function toClass(object) {
     return O.toString.apply(object).slice(8, -1);
 }
 
-function toInt(object) {
+/*
+parseInt(string)
+Parse to integer without having to worry about the radix parameter,
+making it suitable, for example, to use in `array.map(parseInt)`.
+*/
+
+function parseInt$1(object) {
     return object === undefined ?
         undefined :
-        parseInt(object, 10);
+        parseInt$1(object);
 }
+
+/*
+toString(object)
+Returns `object.toString()`.
+*/
 
 function toString(object) {
 	return object.toString();
 }
 
+/*
+toType(object)
+Returns `typeof object`.
+*/
+
 function toType(object) {
     return typeof object;
 }
+
+/*
+weakCache(fn)
+Returns a function that caches the return values of `fn()`
+against input values in a WeakMap, such that for each input value
+`fn` is only ever called once.
+*/
 
 function weakCache(fn) {
     var map = new WeakMap();
@@ -543,6 +725,14 @@ function sortIndex(array, fn) {
 
     return i;
 }
+
+/* Properties */
+
+/*
+.status
+Reflects the running status of the stream. When all values have been consumed
+status is `'done'`.
+*/
 
 function Fn(fn) {
     // Accept constructor without `new`
@@ -629,6 +819,22 @@ assign(Fn, {
     }
 });
 
+
+function scanChunks(data, value) {
+    data.accumulator.push(value);
+    ++data.count;
+
+    if (data.count % data.n === 0) {
+        data.value = data.accumulator;
+        data.accumulator = [];
+    }
+    else {
+        data.value = undefined;
+    }
+
+    return data;
+}
+
 assign(Fn.prototype, {
     shift: noop,
 
@@ -642,21 +848,22 @@ assign(Fn.prototype, {
     // Transform
 
     ap: function(object) {
-        var shift = this.shift;
+        var stream = this;
 
         return create(this, function ap() {
-            var fn = shift();
-            return fn === undefined ?
-                undefined :
-                object.map(fn) ;
+            var fn = stream.shift();
+            return fn && object.map(fn) ;
         });
     },
 
+    /*
+    .unshift(...values)
+    Creates a buffer of values at the end of the stream that are read first.
+    */
+
     unshift: function() {
-        // Create an unshift buffer, such that objects can be inserted
-        // back into the stream at will with stream.unshift(object).
         var source = this;
-        var buffer = toArray$1(arguments);
+        var buffer = toArray(arguments);
 
         return create(this, function() {
             return (buffer.length ? buffer : source).shift() ;
@@ -676,8 +883,34 @@ assign(Fn.prototype, {
         });
     },
 
-    chain: function(fn) {
-        return this.map(fn).join();
+    syphon: function(fn) {
+        var shift   = this.shift;
+        var buffer1 = [];
+        var buffer2 = [];
+
+        this.shift = function() {
+            if (buffer1.length) { return buffer1.shift(); }
+
+            var value;
+
+            while ((value = shift()) !== undefined && fn(value)) {
+                buffer2.push(value);
+            }
+
+            return value;
+        };
+
+        return create(this, function filter() {
+            if (buffer2.length) { return buffer2.shift(); }
+
+            var value;
+
+            while ((value = shift()) !== undefined && !fn(value)) {
+                buffer1.push(value);
+            }
+
+            return value;
+        });
     },
 
     clone: function() {
@@ -747,7 +980,7 @@ assign(Fn.prototype, {
     },
 
     concat: function() {
-        var sources = toArray$1(arguments);
+        var sources = toArray(arguments);
         var source  = this;
 
         var stream  = create(this, function concat() {
@@ -772,6 +1005,12 @@ assign(Fn.prototype, {
         return stream;
     },
 
+    /*
+    .dedup()
+
+    Filters out consecutive equal values.
+    */
+
     dedup: function() {
         var v;
         return this.filter(function(value) {
@@ -780,6 +1019,12 @@ assign(Fn.prototype, {
             return old !== value;
         });
     },
+
+    /*
+    .filter(fn)
+
+    Filter values according to the truthiness of `fn(value)`.
+    */
 
     filter: function(fn) {
         var source = this;
@@ -791,19 +1036,21 @@ assign(Fn.prototype, {
         });
     },
 
-    first: function() {
-        var source = this;
-        return create(this, once(function first() {
-            source.status = 'done';
-            return source.shift();
-        }));
-    },
+    /*
+    .flat()
+    Flattens a list of lists into a single list.
+    */
 
     join: function() {
+        console.warn('Fn.join() is now Fn.flat() to mirror name of new Array method');
+        return this.join();
+    },
+
+    flat: function() {
         var source = this;
         var buffer = nothing;
 
-        return create(this, function join() {
+        return create(this, function flat() {
             var value = buffer.shift();
             if (value !== undefined) { return value; }
             buffer = source.shift();
@@ -812,6 +1059,29 @@ assign(Fn.prototype, {
         });
     },
 
+    /*
+    .flatMap()
+    Maps values to lists – `fn(value)` must return an array, functor, stream
+    or other type with a `.shift()` method – and flattens those lists into a
+    single stream. Should be called mapFlat, really.
+    */
+
+    flatMap: function(fn) {
+        return this.map(fn).flat();
+    },
+
+    chain: function(fn) {
+        console.trace('Stream.chain() is now Stream.flatMap()');
+        return this.map(fn).flat();
+    },
+
+    /*
+    .latest()
+
+    When the stream has a values buffered, passes the last value
+    in the buffer.
+    */
+
     latest: function() {
         var source = this;
         return create(this, function shiftLast() {
@@ -819,58 +1089,30 @@ assign(Fn.prototype, {
         });
     },
 
+    /*
+    .map(fn)
+    Maps values to the result of `fn(value)`.
+    */
+
     map: function(fn) {
         return create(this, compose(function map(object) {
             return object === undefined ? undefined : fn(object) ;
         }, this.shift));
     },
 
+    /*
+    .chunk(n)
+    Batches values into arrays of length `n`.
+    */
+
     chunk: function(n) {
-        var source = this;
-        var buffer = [];
-
-        return create(this, n ?
-            // If n is defined batch into arrays of length n.
-            function shiftChunk() {
-                var value, _buffer;
-
-                while (buffer.length < n) {
-                    value = source.shift();
-                    if (value === undefined) { return; }
-                    buffer.push(value);
-                }
-
-                if (buffer.length >= n) {
-                    _buffer = buffer;
-                    buffer = [];
-                    return Fn.of.apply(Fn, _buffer);
-                }
-            } :
-
-            // If n is undefined or 0, batch all values into an array.
-            function shiftChunk() {
-                buffer = source.toArray();
-                // An empty array is equivalent to undefined
-                return buffer.length ? buffer : undefined ;
-            }
-        );
-    },
-
-    fold: function(fn, seed) {
-        var i = 0;
         return this
-        .map(function fold(value) {
-            seed = fn(seed, value, i++);
-            return seed;
-        });
-
-        // Why would we want this? To gaurantee a result? It's a bad idea
-        // when streaming, as you get an extra value in front...
-        //.unshift(seed);
-    },
-
-    scan: function(fn, seed) {
-        return this.map((value) => (seed = fn(seed, value)));
+        .scan(scanChunks, {
+            n: n,
+            count: 0,
+            accumulator: []
+        })
+        .map(get('value'));
     },
 
     partition: function(fn) {
@@ -881,6 +1123,7 @@ assign(Fn.prototype, {
         fn = fn || Fn.id;
 
         function createPart(key, value) {
+            // Todo: Nope, no pull
             var stream = Stream.of().on('pull', shiftPull);
             stream.key = key;
             streams.set(key, stream);
@@ -897,7 +1140,7 @@ assign(Fn.prototype, {
             if (stream === pullStream) { return value; }
 
             if (stream === undefined) {
-                stream = createPart(key, value);
+                stream = createPart(key);
                 buffer.push(stream);
             }
 
@@ -915,7 +1158,7 @@ assign(Fn.prototype, {
             var stream = streams.get(key);
 
             if (stream === undefined) {
-                stream = createPart(key, value);
+                stream = createPart(key);
                 stream.push(value);
                 return stream;
             }
@@ -925,9 +1168,28 @@ assign(Fn.prototype, {
         });
     },
 
-    reduce: function reduce(fn, seed) {
-        return this.fold(fn, seed).latest().shift();
+    fold: function reduce(fn, seed) {
+        return this.scan(fn, seed).latest().shift();
     },
+
+    /*
+    .scan(fn, seed)
+
+    Calls `fn(accumulator, value)` and emits `accumulator` for each value
+    in the stream.
+    */
+
+    scan: function scan(fn, accumulator) {
+        return this.map(function scan(value) {
+            return seed = fn(seed, value);
+        });
+    },
+
+    /*
+    .take(n)
+
+    Filters the stream to the first `n` values.
+    */
 
     take: function(n) {
         var source = this;
@@ -940,7 +1202,11 @@ assign(Fn.prototype, {
                 value = source.shift();
                 // Only increment i where an actual value has been shifted
                 if (value === undefined) { return; }
-                if (++i === n) { source.status = 'done'; }
+                if (++i === n) {
+                    this.push = noop;
+                    this.stop = noop;
+                    this.status = 'done';
+                }
                 return value;
             }
         });
@@ -992,35 +1258,11 @@ assign(Fn.prototype, {
         });
     },
 
-    syphon: function(fn) {
-        var shift   = this.shift;
-        var buffer1 = [];
-        var buffer2 = [];
+    /*
+    .rest(n)
 
-        this.shift = function() {
-            if (buffer1.length) { return buffer1.shift(); }
-
-            var value;
-
-            while ((value = shift()) !== undefined && fn(value)) {
-                buffer2.push(value);
-            }
-
-            return value;
-        };
-
-        return create(this, function filter() {
-            if (buffer2.length) { return buffer2.shift(); }
-
-            var value;
-
-            while ((value = shift()) !== undefined && !fn(value)) {
-                buffer1.push(value);
-            }
-
-            return value;
-        });
-    },
+    Filters the stream to all values after the `n`th value.
+    */
 
     rest: function(i) {
         var source = this;
@@ -1030,6 +1272,12 @@ assign(Fn.prototype, {
             return source.shift();
         });
     },
+
+    /*
+    .unique()
+
+    Filters the stream to remove any value already emitted.
+    */
 
     unique: function() {
         var source = this;
@@ -1070,11 +1318,24 @@ assign(Fn.prototype, {
         };
     },
 
+    /*
+    .pipe(stream)
+
+    Pipes the current stream into `stream`.
+    */
+
     pipe: function(stream) {
-        return stream.on ?
-            stream.on('pull', this.shift) :
-            stream ;
+        this.each(stream.push);
+        return stream;
     },
+
+    /*
+    .tap(fn)
+
+    Calls `fn(value)` for each value in the stream without modifying
+    the stream. Note that values are only tapped when there is a
+    consumer attached to the end of the stream to suck them through.
+    */
 
     tap: function(fn) {
         // Overwrite shift to copy values to tap fn
@@ -1088,21 +1349,7 @@ assign(Fn.prototype, {
 
     toString: function() {
         return this.reduce(prepend, '');
-    },
-
-
-    // Deprecated
-
-    process: deprecate(function(fn) {
-        return fn(this);
-    }, '.process() is deprecated'),
-
-    last: deprecate(function() {
-        var source = this;
-        return create(this, function shiftLast() {
-            return latest(source);
-        });
-    }, '.last() is now .latest()'),
+    }
 });
 
 Fn.prototype.toArray = Fn.prototype.toJSON;
@@ -1136,13 +1383,23 @@ if (window.Symbol) {
     };
 }
 
+/*
+remove(array, value)
+Remove `value` from `array`. Where `value` is not in `array`, does nothing.
+*/
+
 function remove(array, value) {
     if (array.remove) { array.remove(value); }
     var i = array.indexOf(value);
     if (i !== -1) { array.splice(i, 1); }
 }
 
-// Timer
+/*
+Timer(duration, getTime)
+
+Create an object with a request/cancel pair of functions that
+fires request(fn) callbacks at a given duration.
+*/
 
 function Timer(duration, getTime) {
     if (typeof duration !== 'number') { throw new Error('Timer(duration) requires a duration in seconds (' + duration + ')'); }
@@ -1210,9 +1467,7 @@ var A$3         = Array.prototype;
 var assign$1    = Object.assign;
 
 
-// Functions
-
-function call(value, fn) {
+function call$1(value, fn) {
     return fn(value);
 }
 
@@ -1222,70 +1477,174 @@ function isDone$1(stream) {
     return stream.status === 'done';
 }
 
-
-// Events
-
-var $events = Symbol('events');
-
-function notify(type, object) {
-    var events = object[$events];
-
+function notify(object) {
+    var events = privates(object).events;
     if (!events) { return; }
-    if (!events[type]) { return; }
 
     var n = -1;
-    var l = events[type].length;
+    var l = events.length;
     var value;
 
     while (++n < l) {
-        value = events[type][n](type, object);
-        if (value !== undefined) {
-            return value;
-        }
+        value = events[n](object);
+        if (value !== undefined) { return value; }
     }
 }
 
-function createNotify(stream) {
-    var _notify = notify;
-
-    return function trigger(type) {
-        // Prevent nested events, so a 'push' event triggered while
-        // the stream is 'pull'ing will do nothing. A bit of a fudge.
-        var notify = _notify;
-        _notify = noop;
-        var value = notify(type, stream);
-        _notify = notify;
-        return value;
-    };
+function done$1(stream, privates) {
+    stream.status = 'done';
+    privates.source = nothing;
+    privates.resolve();
 }
 
+function createSource(stream, privates, options, Source) {
+    function note() {
+        notify(stream);
+    }
 
-// Sources
-//
-// Sources that represent stopping and stopped states of a stream
+    function stop(n) {
+        // Neuter events
+        delete privates.events;
 
-var doneSource = {
-    shift: noop,
-    push:  noop,
-    start: noop,
-    stop:  noop
-};
+        // If no n, shut the stream down
+        if (n !== undefined) {
+            privates.source = new StopSource(stream, privates.source, privates, n, done$1);
+            privates.stops && privates.stops.forEach((fn) => fn());
+            privates.stops = undefined;
+        }
 
-function StopSource(source, n, done) {
-    this.source = source;
-    this.n      = n;
-    this.done   = done;
+        // Schedule shutdown of stream after n values
+        else {
+            privates.stops && privates.stops.forEach((fn) => fn());
+            privates.stops = undefined;
+            done$1(stream, privates);
+        }
+    }
+
+    const source = new Source(note, stop, options);
+
+    // Gaurantee that source has a .stop() method
+    if (!source.stop) { source.stop = noop; }
+
+    return (privates.source = source);
 }
 
-assign$1(StopSource.prototype, doneSource, {
-    shift: function() {
-        if (--this.n < 1) { this.done(); }
-        return this.source.shift();
+function shiftBuffer(shift, bufferA) {
+    if (bufferA.length === 0) {
+        const value = shift();
+        if (value === undefined) { return; }
+        let n = arguments.length;
+        while (--n) arguments[n].push(value);
+    }
+
+    return bufferA.shift();
+}
+
+// StartSource
+
+function StartSource(stream, privates, options, Source) {
+    this.stream   = stream;
+    this.privates = privates;
+    this.options  = options;
+    this.Source   = Source;
+}
+
+assign$1(StartSource.prototype, {
+    create: function() {
+        return createSource(this.stream, this.privates, this.options, this.Source);
+    },
+
+    shift: function shift() {
+        return this.create().shift();
+    },
+
+    push: function push() {
+        const source = this.create();
+        if (!source.push) { throw new Error('Attempt to .push() to unpushable stream'); }
+        source.push.apply(source, arguments);
+    },
+
+    start: function start() {
+        const source = this.create();
+        if (!source.start) { throw new Error('Attempt to .start() unstartable stream'); }
+        source.start.apply(source, arguments);
+    },
+
+    stop: function done() {
+        const source = this.create();
+
+        if (!source.stop) {
+            done(this.stream, this.privates);
+        }
+
+        source.stop.apply(source, arguments);
     }
 });
 
 
-// Stream
+// StopSource
+
+function StopSource(stream, source, privates, n, done) {
+    this.stream   = stream;
+    this.source   = source;
+    this.privates = privates;
+    this.n        = n;
+    this.done     = done;
+}
+
+assign$1(StopSource.prototype, nothing, {
+    shift: function() {
+        const value = this.source.shift();
+        if (--this.n < 1) { this.done(this.stream, this.privates); }
+        return value;
+    },
+
+    start: function() {
+        throw new Error('Cannot .start() stopped stream');
+    },
+
+    push: function() {
+        throw new Error('Cannot .push() to stopped stream');
+    }
+});
+
+
+// BufferSource
+
+function BufferSource(notify, stop, list) {
+    const buffer = list === undefined ? [] :
+        Fn.prototype.isPrototypeOf(list) ? list :
+        Array.from(list).filter(isValue) ;
+
+    this.buffer = buffer;
+    this.notify = notify;
+    this.stopfn = stop;
+}
+
+assign$1(BufferSource.prototype, {
+    shift: function() {
+        return this.buffer.shift();
+    },
+
+    push: function() {
+        this.buffer.push.apply(this.buffer, arguments);
+        this.notify();
+    },
+
+    stop: function() {
+        this.stopfn(this.buffer.length);
+    }
+});
+
+/* Construct */
+
+/*
+Stream(fn)
+Construct a new stream. The `new` keyword is optional. `fn(notify, stop)` is
+invoked when the stream is started: it must return a source object – a
+'producer' – with the method `.shift()` and optionally methods `.push()`,
+`.start()` and `.stop()`.
+*/
 
 function Stream$1(Source, options) {
     // Enable construction without the `new` keyword
@@ -1293,151 +1652,377 @@ function Stream$1(Source, options) {
         return new Stream$1(Source, options);
     }
 
-    var stream  = this;
-    var resolve = noop;
-    var source;
-    var promise;
+    // Privates
 
-    function done() {
-        stream.status = 'done';
-        source = doneSource;
-    }
+    const privates$1 = privates(this);
+    privates$1.stream  = this;
+    privates$1.events  = [];
+    privates$1.resolve = noop;
+    privates$1.source  = new StartSource(this, privates$1, options, Source);
 
-    function stop(n, value) {
-        // Neuter events and schedule shutdown of the stream
-        // after n values
-        delete stream[$events];
-
-        if (n) { source = new StopSource(source, n, done); }
-        else { done(); }
-
-        resolve(stream);
-    }
-
-    function getSource() {
-        var notify = createNotify(stream);
-        source = new Source(notify, stop, options);
-
-        // Gaurantee that source has a .stop() method
-        if (!source.stop) { source.stop = noop; }
-
-        getSource = function() { return source; };
-
-        return source;
-    }
-
-    // Properties and methods
-
-    this[$events] = {};
-
-    this.push = function push() {
-        var source = getSource();
-        source.push.apply(source, arguments);
-        return stream;
-    };
+    // Methods
 
     this.shift = function shift() {
-        return getSource().shift();
+        return privates$1.source.shift();
     };
 
-    this.start = function start() {
-        var source = getSource();
-        source.start.apply(source, arguments);
-        return stream;
+    // I use presence of push to check for writeability in various places,
+    // keep it as an instance method for just now
+    this.push = function push() {
+        const source = privates$1.source;
+        source.push.apply(source, arguments);
+        return this;
     };
+}
 
-    this.stop = function stop() {
-        var source = getSource();
-        source.stop.apply(source, arguments);
-        return stream;
-    };
+// Stream Methods
 
-    this.done = function done(fn) {
-        promise = promise || new Promise((res, rej) => {
-            resolve = res;
+Stream$1.prototype = assign$1(Object.create(Fn.prototype), {
+    constructor: Stream$1,
+
+    /* Write */
+
+    /*
+    .push(value)
+    Pushes a `value` (or multiple values) into the head of the stream. If the
+    stream is not writeable, it does not have a `.push()` method.
+    */
+
+    /* Map */
+
+    /*
+    .chunk(n)
+    Batches values into arrays of length `n`.
+    */
+
+    /*
+    .flat()
+    Flattens a stream of streams or arrays into a single stream.
+    */
+
+    /*
+    .flatMap(fn)
+    Maps values to lists – `fn(value)` must return an array, functor, stream
+    (or any other duck with a `.shift()` method) and flattens those lists into a
+    single stream.
+    */
+
+    /*
+    .map(fn)
+    Maps values to the result of `fn(value)`.
+    */
+
+    /*
+    .merge(stream)
+    Merges this stream with `stream`, which in fact may be an array, array-like
+    or functor.
+    */
+
+    merge: function merge() {
+        var sources = toArray(arguments);
+        sources.unshift(this);
+        return Stream$1.Merge.apply(null, sources);
+    },
+
+    /*
+    .scan(fn, seed)
+    Calls `fn(accumulator, value)` and emits `accumulator` for each value
+    in the stream.
+    */
+
+
+    /* Filter */
+
+    /*
+    .dedup()
+    Filters out consecutive equal values.
+    */
+
+    /*
+    .filter(fn)
+    Filter values according to the truthiness of `fn(value)`.
+    */
+
+    /*
+    .latest()
+    When the stream has a values buffered, passes the last value
+    in the buffer.
+    */
+
+    /*
+    .rest(n)
+    Filters the stream to the `n`th value and above.
+    */
+
+    /*
+    .take(n)
+    Filters the stream to the first `n` values.
+    */
+
+    ///*
+    //.clock(timer)
+    //Emits values at the framerate of `timer`, one-per-frame. No values
+    //are discarded.
+    //*/
+    //
+    //clock: function clock(timer) {
+    //    return this.pipe(Stream.clock(timer));
+    //},
+
+    /*
+    .throttle(time)
+    Throttles values such that the latest value is emitted every `time` seconds.
+    Other values are discarded. The parameter `time` may also be a timer options
+    object, an object with `{ request, cancel, now }` functions,
+    allowing the creation of, say, and animation frame throttle.
+    */
+
+    throttle: function throttle(timer) {
+        return this.pipe(Stream$1.throttle(timer));
+    },
+
+    /*
+    .wait(time)
+    Emits the latest value only after `time` seconds of inactivity.
+    Other values are discarded.
+    */
+
+    wait: function wait(time) {
+        return this.pipe(Stream$1.Choke(time));
+    },
+
+    combine: function(fn, source) {
+        return Stream$1.Combine(fn, this, source);
+    },
+
+
+    /* Read */
+
+    /*
+    .clone()
+    Creates a read-only copy of the stream.
+    */
+
+    clone: function clone() {
+        const source  = this;
+        const shift   = this.shift.bind(this);
+        const buffer1 = [];
+        const buffer2 = [];
+
+        this.shift = function() {
+            return shiftBuffer(shift, buffer1, buffer2);
+        };
+
+        return new Stream$1(function(notify, stop) {
+            source.on(notify);
+            source.done(stop);
+
+            return {
+                shift: function() {
+                    const value = shiftBuffer(shift, buffer2, buffer1);
+
+                    if (source.status === 'done') {
+                        // Since this has just shifted, it should be at 0
+                        stop(buffer2.length);
+                    }
+
+                    return value;
+                },
+
+                stop: function() {
+                    stop(0);
+                }
+            }
         });
-
-        return promise.then(fn);
-    };
-}
-
-
-// Buffer Stream
-
-function BufferSource(notify, stop, list) {
-    const buffer = list === undefined ? [] :
-        Fn.prototype.isPrototypeOf(list) ? list :
-        Array.from(list).filter(isValue) ;
-
-    this._buffer = buffer;
-    this._notify = notify;
-    this._stop   = stop;
-}
-
-assign$1(BufferSource.prototype, {
-    shift: function() {
-        var buffer = this._buffer;
-        var notify = this._notify;
-        return buffer.length ? buffer.shift() : notify('pull') ;
     },
 
-    push: function() {
-        var buffer = this._buffer;
-        var notify = this._notify;
-        buffer.push.apply(buffer, arguments);
-        notify('push');
+    /*
+    .each(fn)
+    Thirstilly consumes the stream, calling `fn(value)` whenever
+    a value is available.
+    */
+
+    each: function each(fn) {
+        var args   = arguments;
+        var source = this;
+
+        // Flush and observe
+        Fn.prototype.each.apply(source, args);
+
+        // Delegate to Fn#each().
+        return this.on(() => Fn.prototype.each.apply(source, args));
     },
 
-    stop: function() {
-        var buffer = this._buffer;
-        this._stop(buffer.length);
+    /*
+    .last(fn)
+    Consumes the stream when stopped, calling `fn(value)` with the
+    last value read from the stream.
+    */
+
+    last: function last(fn) {
+        const privates$1 = privates(this);
+        privates$1.stops = privates$1.stops || [];
+        const value = this.latest().shift();
+        value !== undefined && privates$1.stops.push(() => fn(value));
+        return this;
+    },
+
+    /*
+    .fold(fn, accumulator)
+    Consumes the stream when stopped, calling `fn(accumulator, value)`
+    for each value in the stream. Returns a promise.
+    */
+
+    fold: function fold(fn, accumulator) {
+        // Fold to promise
+        return new Promise((resolve, reject) => {
+            this
+            .scan(fn, accumulator)
+            .last(resolve);
+        });
+    },
+
+    ///*
+    //.reduce(fn, accumulator)
+    //Consumes the stream when stopped, calling `fn(accumulator, value)`
+    //for each value in the stream. Returns a promise that resolves to
+    //the last value returned by `fn(accumulator, value)`.
+    //*/
+
+    reduce: function reduce(fn, accumulator) {
+        // Support array.reduce semantics with optional seed
+        return accumulator ?
+            this.fold(fn, accumulator) :
+            this.fold((acc, value) => (acc === undefined ? value : fn(acc, value)), this.shift()) ;
+    },
+
+    /*
+    .shift()
+    Reads a value from the stream. If no values are in the stream, returns
+    `undefined`. If this is the last value in the stream, `streams.status`
+    is `'done'`.
+    */
+
+    /* Lifecycle */
+
+    /*
+    .done(fn)
+    Calls `fn()` after the stream is stopped and all values have been drained.
+    */
+
+    done: function done(fn) {
+        const privates$1 = privates(this);
+        const promise = privates$1.promise || (
+            privates$1.promise = this.status === 'done' ?
+                Promise.resolve() :
+                new Promise((resolve, reject) => assign$1(privates$1, { resolve, reject }))
+        );
+
+        promise.then(fn);
+        return this;
+    },
+
+    /*
+    .start()
+    If the stream's producer is startable, starts the stream.
+    */
+
+    start: function start() {
+        const source = privates(this).source;
+        source.start.apply(source, arguments);
+        return this;
+    },
+
+    /*
+    .stop()
+    Stops the stream. No more values can be pushed to the stream and any
+    consumers added will do nothing. However, depending on the stream's source
+    the stream may yet drain any buffered values into an existing consumer
+    before entering `'done'` state. Once in `'done'` state a stream is
+    entirely inert.
+    */
+
+    stop: function stop() {
+        const source = privates(this).source;
+        source.stop.apply(source, arguments);
+        return this;
+    },
+
+    on: function on(fn) {
+        if (typeof fn === 'string') {
+            throw new Error('stream.on(fn) no longer takes type');
+        }
+
+        var events = privates(this).events;
+        if (!events) { return this; }
+
+        events.push(fn);
+        return this;
+    },
+
+    off: function off(fn) {
+        if (typeof fn === 'string') {
+            throw new Error('stream.off(fn) no longer takes type');
+        }
+
+        var events = privates(this).events;
+        if (!events) { return this; }
+
+        // Remove all handlers
+        if (!fn) {
+            events.length = 0;
+            return this;
+        }
+
+        // Remove handler fn for type
+        var n = events.length;
+        while (n--) {
+            if (events[n] === fn) { events.splice(n, 1); }
+        }
+
+        return this;
     }
 });
 
-Stream$1.from = function BufferStream(list) {
+
+/*
+Stream.from(values)
+Returns a writeable stream that consumes the array or array-like `values` as
+its source.
+*/
+
+Stream$1.from = function(list) {
     return new Stream$1(BufferSource, list);
 };
 
-Stream$1.of = function ArgumentStream() {
-    return Stream$1.from(arguments);
-};
-
-
-// Promise Stream
-
-function PromiseSource(notify, stop, promise) {
-    const source = this;
-
-    promise
-    // Todo: Put some error handling into our streams
-    .catch(stop)
-    .then(function(value) {
-        source.value = value;
-        notify('push');
-        stop();
-    });
-}
-
-PromiseSource.prototype.shift = function() {
-    const value = this.value;
-    this.value = undefined;
-    return value;
-};
+/*
+Stream.fromPromise(promise)
+Returns a stream that uses the given promise as its source. When the promise
+resolves the stream is given its value and stopped. If the promise errors
+the stream is stopped without value. This stream is not writeable: it has no
+`.push()` method.
+*/
 
 Stream$1.fromPromise = function(promise) {
-    return new Stream$1(PromiseSource, promise);
-};
-
-
-// Callback stream
-
-Stream$1.fromCallback = function(object, name) {
     const stream = Stream$1.of();
-    const args = rest(2, arguments);
-    args.push(stream.push);
-    object[name].apply(object, args);
+
+    promise
+    .then((value) => {
+        stream.push(value);
+        stream.stop();
+    })
+    .catch(() => stream.stop());
+
     return stream;
 };
+
+/*
+Stream.fromProperty(name, object)
+Returns a stream of mutations made to the `name` property of `object`,
+assuming those mutations are made to the Observer proxy of object - see
+[Observer](#observer).
+*/
+
 
 // Clock Stream
 
@@ -1527,7 +2112,7 @@ assign$1(TimeSource.prototype, {
 
         if (time >= event.stopTime) {
             event.t2 = event.stopTime;
-            this.notify('push');
+            this.notify();
             this.end();
 
             // Release event
@@ -1536,24 +2121,58 @@ assign$1(TimeSource.prototype, {
         }
 
         event.t2 = time;
-        this.notify('push');
+        this.notify();
         // Todo: We need this? Test.
         this.value     = undefined;
         this.requestId = this.timer.request(this.frame);
     }
 });
 
+
+/*
+Stream.fromTimer(timer)
+Create a stream from a `timer` object. A `timer` is an object
+with the properties:
+
+```
+{
+    request:     fn(fn), calls fn on the next frame, returns an id
+    cancel:      fn(id), cancels request with id
+    now:         fn(), returns the time
+    currentTime: time at the start of the latest frame
+}
+```
+
+Here is how a stream of animation frames may be created:
+
+```
+const frames = Stream.fromTimer({
+    request: window.requestAnimationFrame,
+    cancel: window.cancelAnimationFrame,
+    now: () => window.performance.now()
+});
+```
+
+This stream is not writeable: it has no `.push()` method.
+*/
+
 Stream$1.fromTimer = function TimeStream(timer) {
     return new Stream$1(TimeSource, timer);
 };
 
-Stream$1.fromDuration = function(duration) {
-    return Stream$1.fromTimer(new Timer(duration));
+
+/*
+Stream.of(...values)
+Returns a writeable stream that uses arguments as its source.
+*/
+
+Stream$1.of = function() {
+    return Stream$1.from(arguments);
 };
 
-Stream$1.frames = function() {
-    return Stream$1.fromTimer(frameTimer);
-};
+//Stream.frames = function() {
+//    return Stream.fromTimer(frameTimer);
+//};
 
 
 
@@ -1587,8 +2206,8 @@ function CombineSource(notify, stop, fn, sources) {
             object._hot = true;
         }
 
-        source.on('push', listen);
-        source.on('push', notify);
+        source.on(listen);
+        source.on(notify);
         return data;
     });
 }
@@ -1612,8 +2231,8 @@ assign$1(CombineSource.prototype, {
         each(function(data) {
             var source = data.source;
             var listen = data.listen;
-            source.off('push', listen);
-            source.off('push', notify);
+            source.off(listen);
+            source.off(notify);
         }, this._store);
 
         this._stop(this._hot ? 1 : 0);
@@ -1637,72 +2256,44 @@ Stream$1.Combine = function(fn) {
 
 function MergeSource(notify, stop, sources) {
     var values = [];
-    var buffer = [];
 
-    function update(type, source) {
-        buffer.push(source);
+    function update(source) {
+        values.push.apply(values, toArray(source));
     }
 
-    this._notify  = notify;
-    this._stop    = stop;
-    this._sources = sources;
-    this._values  = values;
-    this._buffer  = buffer;
-    this._i       = 0;
-    this._update  = update;
+    this.values  = values;
+    this.notify  = notify;
+    this.sources = sources;
+    this.update  = update;
+    this.cueStop = stop;
 
     each(function(source) {
         // Flush the source
-        values.push.apply(values, toArray$1(source));
+        update(source);
 
         // Listen for incoming values
-        source.on('push', update);
-        source.on('push', notify);
+        source.on(update);
+        source.on(notify);
     }, sources);
 }
 
 assign$1(MergeSource.prototype, {
     shift: function() {
-        var sources = this._sources;
-        var values  = this._values;
-        var buffer  = this._buffer;
-        var stop    = this._stop;
+        if (this.sources.every(isDone$1)) {
+            this.stop();
+        }
 
-        if (values.length) { return values.shift(); }
-        var stream = buffer.shift();
-        if (!stream) { return; }
-        var value = stream.shift();
-        // When all the sources are empty, stop
-        if (stream.status === 'done' && ++this._i >= sources.length) { stop(0); }
-        return value;
+        return this.values.shift();
     },
 
     stop: function() {
-        var notify  = this._notify;
-        var sources = this._sources;
-        var stop    = this._stop;
-        var update  = this._update;
-
-        // Remove listeners
-        each(function(source) {
-            source.off('push', update);
-            source.off('push', notify);
-        }, sources);
-
-        stop(this._values.length + this._buffer.length);
+        this.cueStop(this.values.length);
     }
 });
 
 Stream$1.Merge = function(source1, source2) {
-    var args = arguments;
-
-    return new Stream$1(function setup(notify, stop) {
-        return new MergeSource(notify, stop, Array.from(args));
-    });
+    return new Stream$1(MergeSource, Array.from(arguments));
 };
-
-
-
 
 
 // Stream Timers
@@ -1713,7 +2304,7 @@ Stream$1.Choke = function(time) {
         var update = choke(function() {
             // Get last value and stick it in buffer
             value = arguments[arguments.length - 1];
-            notify('push');
+            notify();
         }, time);
 
         return {
@@ -1732,7 +2323,6 @@ Stream$1.Choke = function(time) {
         };
     });
 };
-
 
 
 // Frame timer
@@ -1754,7 +2344,7 @@ function StreamTimer(stream) {
 
     stream.each(function() {
         timer.fns = fns1;
-        fns0.reduce(call, undefined);
+        fns0.reduce(call$1, undefined);
         fns0.length = 0;
         fns1 = fns0;
         fns0 = timer.fns;
@@ -1790,7 +2380,7 @@ function ThrottleSource(notify, stop, timer) {
     this.queue   = schedule;
     this.update  = function update() {
         source.queue = schedule;
-        notify('push');
+        notify();
     };
 }
 
@@ -1845,149 +2435,11 @@ Stream$1.throttle = function(timer) {
     });
 };
 
+/* Observer */
 
-// Stream Methods
-
-Stream$1.prototype = assign$1(Object.create(Fn.prototype), {
-    clone: function() {
-        var source  = this;
-        var shift   = this.shift;
-        var buffer1 = [];
-        var buffer2 = [];
-
-        var stream  = new Stream$1(function setup(notify, stop) {
-            var buffer = buffer2;
-
-            source.on('push', notify);
-
-            return {
-                shift: function() {
-                    if (buffer.length) { return buffer.shift(); }
-                    var value = shift();
-
-                    if (value !== undefined) { buffer1.push(value); }
-                    else if (source.status === 'done') {
-                        stop(0);
-                        source.off('push', notify);
-                    }
-
-                    return value;
-                },
-
-                stop: function() {
-                    var value;
-
-                    // Flush all available values into buffer
-                    while ((value = shift()) !== undefined) {
-                        buffer.push(value);
-                        buffer1.push(value);
-                    }
-
-                    stop(buffer.length);
-                    source.off('push', notify);
-                }
-            };
-        });
-
-        this.done(stream.stop);
-
-        this.shift = function() {
-            if (buffer1.length) { return buffer1.shift(); }
-            var value = shift();
-            if (value !== undefined && stream.status !== 'done') { buffer2.push(value); }
-            return value;
-        };
-
-        return stream;
-    },
-
-    combine: function(fn, source) {
-        return Stream$1.Combine(fn, this, source);
-    },
-
-    merge: function() {
-        var sources = toArray$1(arguments);
-        sources.unshift(this);
-        return Stream$1.Merge.apply(null, sources);
-    },
-
-    choke: function(time) {
-        return this.pipe(Stream$1.Choke(time));
-    },
-
-    throttle: function(timer) {
-        return this.pipe(Stream$1.throttle(timer));
-    },
-
-    clock: function(timer) {
-        return this.pipe(Stream$1.clock(timer));
-    },
-
-
-    // Consume
-
-    each: function(fn) {
-        var args   = arguments;
-        var source = this;
-
-        // Flush and observe
-        Fn.prototype.each.apply(source, args);
-
-        return this.on('push', function each() {
-            // Delegate to Fn#each().
-            Fn.prototype.each.apply(source, args);
-        });
-    },
-
-    pipe: function(stream) {
-        this.each(stream.push);
-        return Fn.prototype.pipe.apply(this, arguments);
-    },
-
-    // Events
-
-    on: function(type, fn) {
-        var events = this[$events];
-        if (!events) { return this; }
-
-        var listeners = events[type] || (events[type] = []);
-        listeners.push(fn);
-        return this;
-    },
-
-    off: function off(type, fn) {
-        var events = this[$events];
-        if (!events) { return this; }
-
-        // Remove all handlers for all types
-        if (arguments.length === 0) {
-            Object.keys(events).forEach(off, this);
-            return this;
-        }
-
-        var listeners = events[type];
-        if (!listeners) { return; }
-
-        // Remove all handlers for type
-        if (!fn) {
-            delete events[type];
-            return this;
-        }
-
-        // Remove handler fn for type
-        var n = listeners.length;
-        while (n--) {
-            if (listeners[n] === fn) { listeners.splice(n, 1); }
-        }
-
-        return this;
-    }
-});
-
-const $observer = Symbol('Observer');
+const $observer = Symbol('observer');
 
 const A$4            = Array.prototype;
-const DOMPrototype = (window.EventTarget || window.Node).prototype;
 const nothing$1      = Object.freeze([]);
 const isExtensible = Object.isExtensible;
 
@@ -2056,7 +2508,7 @@ const arrayHandlers = {
 		if (name === 'length') {
 			if (value >= target.length) {
 				// Don't allow array length to grow like this
-				//target.length = value;
+				target.length = value;
 				return true;
 			}
 
@@ -2125,8 +2577,9 @@ const objectHandlers = {
 		// If we are setting the same value, we're not really setting at all
 		if (target[name] === value) { return true; }
 
-        // Set value on target
+        // Set value on target, then use that as value
 		target[name] = value;
+		value = target[name];
 
         // Notify the observer
         var properties = target[$observer].properties;
@@ -2192,9 +2645,10 @@ function isObservable(object) {
 		&& isExtensible(object)
 		// This is less safe but faster.
 		//&& typeof object === 'object'
-		// Reject DOM nodes, Web Audio context, MIDI inputs,
-		// XMLHttpRequests, which all inherit from EventTarget
-		&& !DOMPrototype.isPrototypeOf(object)
+		// Reject DOM nodes
+		&& !Node.prototype.isPrototypeOf(object)
+		// Reject WebAudio context
+		&& (typeof BaseAudioContext === 'undefined' || !BaseAudioContext.prototype.isPrototypeOf(object))
 		// Reject dates
 		&& !(object instanceof Date)
 		// Reject regex
@@ -2209,10 +2663,15 @@ function isObservable(object) {
 		&& !ArrayBuffer.isView(object) ;
 }
 
+///*
+//notify(object, path, value)
+//Force the `object`'s Observer to register a mutation at `path`. Pass in `value`
+//to override the value actually at the end of the path.
+//*/
+
 function notify$1(object, path, value) {
 	const observer = object[$observer];
 	if (!observer) { return; }
-
 	const fns = observer.properties;
 	fire(fns[path], value === undefined ? object[path] : value);
 
@@ -2220,11 +2679,24 @@ function notify$1(object, path, value) {
 	fire(mutate, object);
 }
 
+/*
+Observer(object)
+Create an Observer proxy around `object`. In order for `observe(...)` to detect
+mutations, changes must be made to this proxy rather than the original
+`object`.
+*/
+
 function Observer(object) {
 	return !object ? undefined :
 		object[$observer] ? object[$observer].observer :
-		isObservable(object) && createObserver(object) ;
+		isObservable(object) ?
+			createObserver(object) :
+			undefined ;
 }
+
+///*
+//Target(object)
+//*/
 
 function Target(object) {
 	return object
@@ -2443,26 +2915,20 @@ function observeUnknown(object, path, data) {
 }
 
 /*
-    observe(path, fn, object)
+observe(path, fn, object [, init])
 
-    path:
+Observe `path` in `object` and call `fn(value)` with the value at the
+end of that path when it mutates. Returns a function that destroys this
+observer.
 
-    fn:
+The callback `fn` is called immediately on initialisation if the value at
+the end of the path is not equal to `init`. In the default case where
+`init` is `undefined`, paths that end in `undefined` do not cause the
+callback to be called.
 
-    object:
-
-
-    observe(path, fn, object, initialValue)
-
-    initialValue: optional, defaults is undefined
-
-    Initial value of the path. When a path is observed the callback is called
-    immediately if the value of the path is not equal to the initialValue. In
-    the default case initialValue is undefined, so paths with a value of
-    undefined do not cause the callback to be called on setup.
-
-    If you want to force the callback to be called on setup, pass in null
-    as an initialValue. After all, in JS null is never equal to null.
+(To force the callback to always be called on setup, pass in `NaN` as an
+`init` value. In JS `NaN` is not equal to anything (even `NaN`), so it
+always initialises.)
 */
 
 function observe(path, fn, object, initialValue) {
@@ -2472,10 +2938,306 @@ function observe(path, fn, object, initialValue) {
     });
 }
 
+//import { setPath } from './paths.js';
+
+function ObserveSource(notify, stop, args) {
+	this.observer = Observer(args[1]);
+	this.path     = args[0];
+	this.object   = args[1];
+	this.end      = stop;
+
+	this.unobserve = observe(this.path, (value) => {
+		this.value = value === undefined ? null : value ;
+		notify('push');
+	}, this.object);
+}
+
+ObserveSource.prototype = {
+	shift: function() {
+		var value = this.value;
+		this.value = undefined;
+		return value;
+	},
+
+// Doesnt seem like this is at all necessary ??
+// To be able to update properties by pushing ??
+//	push: function() {
+//		setPath(this.path, this.observer, arguments[arguments.length - 1]);
+//	},
+
+	stop: function() {
+		this.unobserve();
+		this.end();
+	},
+
+	unobserve: noop
+};
+
+function Observable(path, object) {
+	return new Stream$1(ObserveSource, arguments);
+}
+
+Stream$1.fromProperty = Observable;
+
+function call$2(fn) {
+	return fn();
+}
+
+// Just for debugging
+var loggers = [];
+
+// Pool
+function Pool(options, prototype) {
+	var create = options.create || noop;
+	var reset  = options.reset  || noop;
+	var isIdle = options.isIdle;
+	var store = [];
+
+	// Todo: This is bad! It keeps a reference to the pools hanging around,
+	// accessible from the global scope, so even if the pools are forgotten
+	// they are never garbage collected!
+	loggers.push(function log() {
+		var total = store.length;
+		var idle  = store.filter(isIdle).length;
+		return {
+			name:   options.name,
+			total:  total,
+			active: total - idle,
+			idle:   idle
+		};
+	});
+
+	return function PoolObject() {
+		var object = store.find(isIdle);
+
+		if (!object) {
+			object = Object.create(prototype || null);
+			create.apply(object, arguments);
+			store.push(object);
+		}
+
+		reset.apply(object, arguments);
+		return object;
+	};
+}
+
+Pool.release = function() {
+	loggers.length = 0;
+};
+
+Pool.snapshot = function() {
+	return Fn
+	.from(loggers)
+	.map(call$2)
+	.toJSON();
+};
+
+function requestTime(s, fn) {
+    return setTimeout(fn, s * 1000);
+}
+
+const cancelTime = clearTimeout;
+
+/*
+equals(a, b)
+Perform a deep equality comparison of `a` and `b`. Returns `true` if
+they are equal.
+*/
+
+function equals(a, b) {
+    // Fast out if references are for the same object
+    if (a === b) { return true; }
+
+    // If either of the values is null, or not an object, we already know
+    // they're not equal so get out of here
+    if (a === null ||
+        b === null ||
+        typeof a !== 'object' ||
+        typeof b !== 'object') {
+        return false;
+    }
+
+    // Compare their enumerable keys
+    const akeys = Object.keys(a);
+    let n = akeys.length;
+
+    while (n--) {
+        // Has the property been set to undefined on a?
+        if (a[akeys[n]] === undefined) {
+            // We don't want to test if it is an own property of b, as
+            // undefined represents an absence of value
+            if (b[akeys[n]] === undefined) {
+                return true;
+            }
+        }
+        else {
+            //
+            if (b.hasOwnProperty(akeys[n]) && !equals(a[akeys[n]], b[akeys[n]])) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+/*
+exec(regex, fn, string)
+*/
+
+function exec(regex, fn, string) {
+    let data;
+
+    // If string looks like a regex result, get rest of string
+    // from latest index
+    if (string.input !== undefined && string.index !== undefined) {
+        data   = string;
+        string = data.input.slice(
+            string.index
+            + string[0].length
+            + (string.consumed || 0)
+        );
+    }
+
+    // Look for tokens
+    const tokens = regex.exec(string);
+    if (!tokens) { return; }
+
+    const output = fn(tokens);
+
+    // If we have a parent tokens object update its consumed count
+    if (data) {
+        data.consumed = (data.consumed || 0)
+            + tokens.index
+            + tokens[0].length
+            + (tokens.consumed || 0) ;
+    }
+
+    return output;
+}
+
+/*
+get(name, object)
+Get property `name` of `object`.
+*/
+
+function get$1(key, object) {
+    // Todo? Support WeakMaps and Maps and other map-like objects with a
+    // get method - but not by detecting the get method
+    return object[key];
+
+    // Why are we protecting against null again? To innoculate ourselves
+    // against DOM nodes?
+    //return value === null ? undefined : value ;
+}
+
+/*
+has(key, value, object)
+Returns `true` if `object[key]` is strictly equal to `value`.
+*/
+
+function has(key, value, object) {
+    return object[key] === value;
+}
+
+/*
+is(a, b)
+Perform a strict equality check of `a === b`.
+*/
+
+
+var _is = Object.is || function is(a, b) { return a === b; };
+
+/*
+invoke(name, parameters, object)
+*/
+
+function invoke(name, values, object) {
+    return object[name].apply(object, values);
+}
+
+/*
+matches(selector, object)
+*/
+
+function matches(object, item) {
+	let property;
+	for (property in object) {
+		if (object[property] !== item[property]) { return false; }
+	}
+	return true;
+}
+
+function error(regex, reducers, string) {
+    if (string.input !== undefined && string.index !== undefined) {
+        string = string.input;
+    }
+
+    throw new Error('Cannot capture() in invalid string "' + string + '"');
+}
+
+function reduce$1(reducers, acc, tokens) {
+    let n = -1;
+
+    while (++n < tokens.length) {
+        acc = (tokens[n] !== undefined && reducers[n]) ? reducers[n](acc, tokens) : acc ;
+    }
+
+    // Call the optional close fn
+    return reducers.close ?
+        reducers.close(acc, tokens) :
+        acc ;
+}
+
+/*
+capture(regex, parts, accumulator, string)
+Parse `string` with `regex`, calling functions in `parts` to modify
+`accumulator`. Returns accumulator.
+*/
+
+function capture(regex, reducers, acc, string) {
+    const output = exec(regex, (tokens) => reduce$1(reducers, acc, tokens), string);
+
+    // If tokens is undefined exec has failed apply regex to string
+    return output === undefined ?
+        // If there is a catch function, call it, otherwise error out
+        reducers.catch ?
+            reducers.catch(acc, string) :
+            error(regex, reducers, string) :
+
+        // Return the accumulator
+        output ;
+}
+
+/*
+set(key, object, value)
+
+```
+// Set `input.value` whenever a value is pushed into a stream:
+stream.scan(set('value'), input);
+```
+*/
+
 function set(key, object, value) {
     return typeof object.set === "function" ?
         object.set(key, value) :
         (object[key] = value) ;
+}
+
+/*
+toFixed(number)
+*/
+
+const N     = Number.prototype;
+const isNaN = Number.isNaN;
+
+function toFixed(n, value) {
+    if (isNaN(value)) {
+        return '';
+        // throw new Error('Fn.toFixed does not accept NaN.');
+    }
+
+    return N.toFixed.call(value, n);
 }
 
 var rpath$1  = /\[?([-\w]+)(?:=(['"])([^\2]+)\2|(true|false)|((?:\d*\.)?\d+))?\]?\.?/g;
@@ -2582,252 +3344,6 @@ function setPath(path, object, value) {
     return setRegexPath(rpath$1, path, object, value);
 }
 
-function ObserveSource(end, object, path) {
-	this.observable = Observer(object);
-	this.path       = path;
-	this.end        = end;
-}
-
-ObserveSource.prototype = {
-	shift: function() {
-		var value = this.value;
-		this.value = undefined;
-		return value;
-	},
-
-	push: function() {
-		setPath(this.path, this.observable, arguments[arguments.length - 1]);
-	},
-
-	stop: function() {
-		this.unobserve();
-		this.end();
-	},
-
-	unobserve: noop
-};
-
-function Observable(path, object) {
-	return new Stream$1(function setup(notify, stop) {
-		var source = new ObserveSource(stop, object, path);
-
-		function update(v) {
-			source.value = v === undefined ? null : v ;
-			notify('push');
-		}
-
-		source.unobserve = observe(path, update, object);
-		return source;
-	});
-}
-
-function call$1(fn) {
-	return fn();
-}
-
-// Just for debugging
-var loggers = [];
-
-// Pool
-function Pool(options, prototype) {
-	var create = options.create || noop;
-	var reset  = options.reset  || noop;
-	var isIdle = options.isIdle;
-	var store = [];
-
-	// Todo: This is bad! It keeps a reference to the pools hanging around,
-	// accessible from the global scope, so even if the pools are forgotten
-	// they are never garbage collected!
-	loggers.push(function log() {
-		var total = store.length;
-		var idle  = store.filter(isIdle).length;
-		return {
-			name:   options.name,
-			total:  total,
-			active: total - idle,
-			idle:   idle
-		};
-	});
-
-	return function PoolObject() {
-		var object = store.find(isIdle);
-
-		if (!object) {
-			object = Object.create(prototype || null);
-			create.apply(object, arguments);
-			store.push(object);
-		}
-
-		reset.apply(object, arguments);
-		return object;
-	};
-}
-
-Pool.release = function() {
-	loggers.length = 0;
-};
-
-Pool.snapshot = function() {
-	return Fn
-	.from(loggers)
-	.map(call$1)
-	.toJSON();
-};
-
-function requestTime(s, fn) {
-    return setTimeout(fn, s * 1000);
-}
-
-const cancelTime = clearTimeout;
-
-function equals(a, b) {
-    // Fast out if references are for the same object
-    if (a === b) { return true; }
-
-    // If either of the values is null, or not an object, we already know
-    // they're not equal so get out of here
-    if (a === null ||
-        b === null ||
-        typeof a !== 'object' ||
-        typeof b !== 'object') {
-        return false;
-    }
-
-    // Compare their enumerable keys
-    const akeys = Object.keys(a);
-    let n = akeys.length;
-
-    while (n--) {
-        // Has the property been set to undefined on a?
-        if (a[akeys[n]] === undefined) {
-            // We don't want to test if it is an own property of b, as
-            // undefined represents an absence of value
-            if (b[akeys[n]] === undefined) {
-                return true;
-            }
-        }
-        else {
-            //
-            if (b.hasOwnProperty(akeys[n]) && !equals(a[akeys[n]], b[akeys[n]])) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-function exec(regex, fn, string) {
-    let data;
-
-    // If string looks like a regex result, get rest of string
-    // from latest index
-    if (string.input !== undefined && string.index !== undefined) {
-        data   = string;
-        string = data.input.slice(
-            string.index
-            + string[0].length
-            + (string.consumed || 0)
-        );
-    }
-
-    // Look for tokens
-    const tokens = regex.exec(string);
-    if (!tokens) { return; }
-
-    const output = fn(tokens);
-
-    // If we have a parent tokens object update its consumed count
-    if (data) {
-        data.consumed = (data.consumed || 0)
-            + tokens.index
-            + tokens[0].length
-            + (tokens.consumed || 0) ;
-    }
-
-    return output;
-}
-
-function get(key, object) {
-    // Todo? Support WeakMaps and Maps and other map-like objects with a
-    // get method - but not by detecting the get method
-    return object[key];
-
-    // Why are we protecting against null again? To innoculate ourselves
-    // against DOM nodes?
-    //return value === null ? undefined : value ;
-}
-
-/*
-has(key, value, object)
-
-Returns `true` if `object[key]` is strictly equal to `value`.
-*/
-
-function has(key, value, object) {
-    return object[key] === value;
-}
-
-var _is = Object.is || function is(a, b) { return a === b; };
-
-function invoke(name, values, object) {
-    return object[name].apply(object, values);
-}
-
-function matches(object, item) {
-	let property;
-	for (property in object) {
-		if (object[property] !== item[property]) { return false; }
-	}
-	return true;
-}
-
-function error(regex, reducers, string) {
-    if (string.input !== undefined && string.index !== undefined) {
-        string = string.input;
-    }
-
-    throw new Error('Cannot capture() in invalid string "' + string + '"');
-}
-
-function reduce$1(reducers, acc, tokens) {
-    let n = -1;
-
-    while (++n < tokens.length) {
-        acc = (tokens[n] !== undefined && reducers[n]) ? reducers[n](acc, tokens) : acc ;
-    }
-
-    // Call the optional close fn
-    return reducers.close ?
-        reducers.close(acc, tokens) :
-        acc ;
-}
-
-function capture(regex, reducers, acc, string) {
-    const output = exec(regex, (tokens) => reduce$1(reducers, acc, tokens), string);
-
-    // If tokens is undefined exec has failed apply regex to string
-    return output === undefined ?
-        // If there is a catch function, call it, otherwise error out
-        reducers.catch ?
-            reducers.catch(acc, string) :
-            error(regex, reducers, string) :
-
-        // Return the accumulator
-        output ;
-}
-
-const N     = Number.prototype;
-const isNaN = Number.isNaN;
-
-function toFixed(n, value) {
-    if (isNaN(value)) {
-        throw new Error('Fn.toFixed does not accept NaN.');
-    }
-
-    return N.toFixed.call(value, n);
-}
-
 function ap(data, fns) {
 	let n = -1;
 	let fn;
@@ -2835,6 +3351,27 @@ function ap(data, fns) {
 		fn(data);
 	}
 }
+
+/*
+insert(fn, array, object)
+Inserts `object` into `array` at the first index where the result of
+`fn(object)` is greater than `fn(array[index])`.
+*/
+
+const A$6 = Array.prototype;
+
+function insert(fn, array, object) {
+    var n = -1;
+    var l = array.length;
+    var value = fn(object);
+    while(++n < l && fn(array[n]) <= value);
+    A$6.splice.call(array, n, 0, object);
+    return object;
+}
+
+/*
+take(n, array)
+*/
 
 function take(i, object) {
     if (object.slice) { return object.slice(0, i); }
@@ -2845,6 +3382,12 @@ function take(i, object) {
     while (n--) { a[n] = object[n]; }
     return a;
 }
+
+/*
+unique(array)
+Takes an array or stream as `array`, returns an object of the same
+type without duplicate values.
+*/
 
 function uniqueReducer(array, value) {
     if (array.indexOf(value) === -1) { array.push(value); }
@@ -2859,21 +3402,28 @@ function unique(object) {
 
 const assign$2 = Object.assign;
 
-function update(fn, target, array) {
-    return array.reduce(function(target, obj2) {
-        var obj1 = target.find(compose(is(fn(obj2)), fn));
-        if (obj1) {
-            assign$2(obj1, obj2);
-        }
-        else {
-            insert(fn, target, obj2);
-        }
-        return target;
-    }, target);
+/*
+update(fn, array, object)
+
+Compares the result of calling `fn` on `object` to the result of calling `fn`
+on each value in `array`. If a match is found, `object` has its properties
+assigned to that target, and if not the `object` is spliced into the
+array (preserving a sort order based on the result of `fn(object)`).
+
+Returns the updated object.
+*/
+
+function update(fn, construct, array, source) {
+    const id  = fn(source);
+    const obj = array.find((obj) => fn(obj) === id);
+
+    return obj ?
+        assign$2(obj, source) :
+        insert(fn, array, construct(source)) ;
 }
 
 function diff(array, object) {
-    var values = toArray$1(array);
+    var values = toArray(array);
 
     return filter(function(value) {
         var i = values.indexOf(value);
@@ -2885,7 +3435,7 @@ function diff(array, object) {
 }
 
 function intersect(array, object) {
-    var values = toArray$1(array);
+    var values = toArray(array);
 
     return filter(function(value) {
         var i = values.indexOf(value);
@@ -2906,6 +3456,11 @@ function unite(array, object) {
     .concat(values);
 }
 
+/*
+last(array)
+Gets the last value from an array.
+*/
+
 function last(array) {
     if (typeof array.length === 'number') {
         return array[array.length - 1];
@@ -2913,6 +3468,12 @@ function last(array) {
 
     // Todo: handle Fns and Streams
 }
+
+/*
+.append(str2, str1)
+
+Returns `str1 + str2` as string.
+*/
 
 function append(string1, string2) {
     return '' + string2 + string1;
@@ -3155,6 +3716,10 @@ function def(notation, fn, file, line) {
 // webkit source by Christian Effenberger):
 // http://www.netzgesta.de/dev/cubic-bezier-timing-function.html
 
+/*
+cubicBezier(point1, point2, duration, x)
+Where `point1` and `point2` are `[x, y]` arrays describing control points.
+*/
 
 function sampleCubicBezier(a, b, c, t) {
     // `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
@@ -3276,6 +3841,7 @@ const cubicBezier$1 = def(
 );
 
 var normalisers = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     linear: linear,
     quadratic: quadratic,
     cubic: cubic,
@@ -3324,16 +3890,17 @@ const linearLogarithmic$1 = def(
 
 const cubicBezier$2 = def(
     'Object, Object, Number => Number',
-    (begin, end, value) => linear$1(cubicBezier({
+    (begin, end, value) => linear$1(begin.point[1], end.point[1], cubicBezier({
         0: linear(begin.point[0], end.point[0], begin.handle[0]),
-        1: linear(begin.point[0], end.point[0], begin.handle[0])
+        1: linear(begin.point[1], end.point[1], begin.handle[1])
     }, {
         0: linear(begin.point[0], end.point[0], end.handle[0]),
-        1: linear(begin.point[0], end.point[0], end.handle[0])
+        1: linear(begin.point[1], end.point[1], end.handle[1])
     }, 1, value))
 );
 
 var denormalisers = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     linear: linear$1,
     quadratic: quadratic$1,
     cubic: cubic$1,
@@ -3354,14 +3921,21 @@ function exp(n, x)  { return Math.pow(n, x); }
 function log(n, x)  { return Math.log(x) / Math.log(n); }
 function root(n, x) { return Math.pow(x, 1/n); }
 
+/*
+mod(divisor, n)
+JavaScript's modulu operator (`%`) uses Euclidean division, but for
+stuff that cycles through 0 the symmetrics of floored division are often
+are more useful.
+*/
+
 function mod(d, n) {
-    // JavaScript's modulu operator % uses Euclidean division, but for
-    // stuff that cycles through 0 the symmetrics of floored division
-    // are more useful.
-    // https://en.wikipedia.org/wiki/Modulo_operation
     var value = n % d;
     return value < 0 ? value + d : value ;
 }
+
+/*
+limit(min, max, n)
+*/
 
 function limit(min, max, n) {
     return n > max ? max : n < min ? min : n ;
@@ -3371,10 +3945,18 @@ function wrap(min, max, n) {
     return (n < min ? max : min) + (n - min) % (max - min);
 }
 
+/*
+gcd(a, b)
+*/
+
 function gcd(a, b) {
     // Greatest common divider
     return b ? gcd(b, a % b) : a ;
 }
+
+/*
+lcm(a, b)
+*/
 
 function lcm(a, b) {
     // Lowest common multiple.
@@ -3388,19 +3970,33 @@ function factorise(n, d) {
     return [n/f, d/f];
 }
 
+/*
+gaussian()
+Generate a random number with a bell curve probability centred
+around 0 with limits -1 to 1.
+*/
+
 function gaussian() {
-    // Returns a random number with a bell curve probability centred
-    // around 0 and limits -1 to 1.
     return Math.random() + Math.random() - 1;
 }
 
+/*
+todB(level)
+*/
+
 // A bit disturbingly, a correction factor is needed to make todB() and
-// to toLevel() reciprocate more accurately. This is quite a lot to off
-// by... investigate?
+// to toLevel() reciprocate more accurately. This is quite a lot to be off
+// by... Todo: investigate?
 const dBCorrectionFactor = (60 / 60.205999132796244);
 
 function todB(n)    { return 20 * Math.log10(n) * dBCorrectionFactor; }
+
+/*
+toLevel(dB)
+*/
+
 function toLevel(n) { return Math.pow(2, n / 6); }
+
 function toRad(n)   { return n / angleFactor; }
 function toDeg(n)   { return n * angleFactor; }
 
@@ -3418,6 +4014,10 @@ function exponentialOut(e, x) {
     return 1 - Math.pow(1 - x, e);
 }
 
+/*
+toPolar(cartesian)
+*/
+
 function toPolar(cartesian) {
     var x = cartesian[0];
     var y = cartesian[1];
@@ -3433,6 +4033,10 @@ function toPolar(cartesian) {
         Math.atan2(x, y)
     ];
 }
+
+/*
+toCartesian(polar)
+*/
 
 function toCartesian(polar) {
     var d = polar[0];
@@ -3495,22 +4099,34 @@ var rdate     = /^(-?\d{4})(?:-(0[1-9]|1[012])(?:-(0[1-9]|[12]\d|3[01])(?:T([01]
 //                sign   year        month       day               T or -
 var rdatediff = /^([+-])?(\d{2,})(?:-(\d{2,})(?:-(\d{2,}))?)?(?:([T-])|$)/;
 
-var parseDate = overload(toType, {
+/*
+parseDate(string)
+*/
+
+const parseDate = overload(toType, {
 	number:  secondsToDate,
 	string:  exec$1(rdate, createDate),
 	object:  function(date) {
 		return isValidDate(date) ? date : undefined ;
 	},
-	default: noop
+	default: function(date) {
+        throw new Error('parseDate: date is not of a supported type (number, string, Date)');
+    }
 });
 
-var parseDateLocal = overload(toType, {
+/*
+parseDateLocal(string)
+*/
+
+const parseDateLocal = overload(toType, {
 	number:  secondsToDate,
 	string:  exec$1(rdate, createDateLocal),
 	object:  function(date) {
 		return date instanceof Date ? date : undefined ;
 	},
-	default: noop
+	default: function(date) {
+        throw new Error('parseDateLocal: date is not of a supported type (number, string, Date)');
+    }
 });
 
 function isValidDate(date) {
@@ -3715,6 +4331,10 @@ function _formatDate(string, timezone, locale, date) {
 	});
 }
 
+/*
+formatDateLocal(format, locale, date)
+*/
+
 function formatDateLocal(string, locale, date) {
 	var formatters = dateFormatters;
 	var lang = locale.slice(0, 2);
@@ -3725,9 +4345,17 @@ function formatDateLocal(string, locale, date) {
 	});
 }
 
+/*
+formatDateISO(date)
+*/
+
 function formatDateISO(date) {
 	return rdatejson.exec(JSON.stringify(parseDate(date)))[1];
 }
+
+/*
+formatDateTimeISO(date)
+*/
 
 function formatDateTimeISO(date) {
 	return JSON.stringify(parseDate(date)).slice(1,-1);
@@ -3742,9 +4370,19 @@ var days   = {
 
 var dayMap = [6,0,1,2,3,4,5];
 
+/*
+toDay(date)
+Returns day of week as a number, where monday is `0`.
+*/
+
 function toDay(date) {
 	return dayMap[date.getDay()];
 }
+
+/*
+cloneDate(date)
+Returns new date object set to same time.
+*/
 
 function cloneDate(date) {
 	return new Date(+date);
@@ -3906,12 +4544,15 @@ function _floorDate(grain, date) {
 function nowDate() {
 	return new Date();
 }
+
 function dateDiff(d1, d2) {
 	return +parseDate(d2) - +parseDate(d1);
 }
+
 function toTimestamp(date) {
 	return date.getTime() / 1000;
 }
+
 const addDate = curry$1(function(diff, date) {
 	return _addDate(diff, parseDate(date));
 });
@@ -3961,7 +4602,11 @@ function prefix(n) {
 var rtime     = /^([+-])?(\d{2,}):([0-5]\d)(?::((?:[0-5]\d|60)(?:.\d+)?))?$/;
 var rtimediff = /^([+-])?(\d{2,}):(\d{2,})(?::(\d{2,}(?:.\d+)?))?$/;
 
-var parseTime = overload(toType, {
+/*
+parseTime(string)
+*/
+
+const parseTime = overload(toType, {
 	number:  id,
 	string:  exec$1(rtime, createTime),
 	default: function(object) {
@@ -4090,16 +4735,29 @@ const nowTime = function() {
 	return window.performance.now();
 };
 
+/*
+formatTime(format, time)
+*/
+
 const formatTime = curry$1(function(string, time) {
 	return string === 'ISO' ?
 		_formatTimeISO(parseTime(time)) :
 		formatTimeString(string, parseTime(time)) ;
 });
 
+/*
+formatTimeISO(time)
+*/
+
 function formatTimeISO(time) {
 	// Undefined causes problems by outputting dates full of NaNs
 	return time === undefined ? undefined : _formatTimeISO(time);
 }
+
+/*
+addTime(time1, time2)
+*/
+
 const addTime = curry$1(function(time1, time2) {
 	return parseTime(time2) + parseTimeDiff(time1);
 });
@@ -4111,6 +4769,10 @@ const subTime = curry$1(function(time1, time2) {
 const diffTime = curry$1(function(time1, time2) {
 	return parseTime(time1) - parseTime(time2);
 });
+
+/*
+floorTime(token, time)
+*/
 
 const floorTime = curry$1(function(token, time) {
 	return _floorTime(token, parseTime(time));
@@ -4300,7 +4962,7 @@ if (window.console && window.console.log) {
 }
 const requestTime$1 = curry$1(requestTime, true, 2);
 
-function not(a) { return !a; }const toFloat = parseFloat;
+const toFloat = parseFloat;
 const and     = curry$1(function and(a, b) { return !!(a && b); });
 const or      = curry$1(function or(a, b) { return a || b; });
 const xor     = curry$1(function xor(a, b) { return (a || b) && (!!a !== !!b); });
@@ -4310,7 +4972,7 @@ const capture$1     = curry$1(capture);
 const define      = curry$1(Object.defineProperties, true, 2);
 const equals$2      = curry$1(equals, true);
 const exec$2        = curry$1(exec);
-const get$1         = curry$1(get, true);
+const get$2         = curry$1(get$1, true);
 const has$1         = curry$1(has, true);
 const is          = curry$1(_is, true);
 const invoke$1      = curry$1(invoke, true);
@@ -4330,13 +4992,13 @@ const contains$1    = curry$1(contains, true);
 const each$1        = curry$1(each, true);
 const filter$1      = curry$1(filter, true);
 const find$1        = curry$1(find, true);
-const insert$1      = curry$1(insert, true);
 const map$1         = curry$1(map, true);
 const reduce$2      = curry$1(reduce, true);
 const remove$1      = curry$1(remove, true);
 const rest$1        = curry$1(rest, true);
 const slice$1       = curry$1(slice, true, 3);
 const sort$1        = curry$1(sort, true);
+const insert$1      = curry$1(insert, true);
 const take$1        = curry$1(take, true);
 const update$1      = curry$1(update, true);
 
@@ -4373,6 +5035,8 @@ exports.Observable = Observable;
 exports.ObserveStream = Observable;
 exports.Observer = Observer;
 exports.Pool = Pool;
+exports.Privates = privates;
+exports.PromiseThrottle = Throttle$1;
 exports.Stream = Stream$1;
 exports.Target = Target;
 exports.Throttle = Throttle;
@@ -4384,10 +5048,12 @@ exports.and = and;
 exports.ap = ap$1;
 exports.append = append$1;
 exports.args = args;
+exports.argument = argument;
 exports.assign = assign$3;
 exports.by = by$1;
 exports.byAlphabet = byAlphabet$1;
 exports.cache = cache;
+exports.call = call;
 exports.cancelTime = cancelTime;
 exports.capture = capture$1;
 exports.choke = choke;
@@ -4424,7 +5090,7 @@ exports.formatTime = formatTime;
 exports.formatTimeISO = formatTimeISO;
 exports.gaussian = gaussian;
 exports.gcd = gcd$1;
-exports.get = get$1;
+exports.get = get$2;
 exports.getPath = getPath$1;
 exports.has = has$1;
 exports.hoursToSeconds = hoursToSeconds;
@@ -4469,7 +5135,6 @@ exports.pow = pow$1;
 exports.prepad = prepad$1;
 exports.prepend = prepend$1;
 exports.print = print;
-exports.privates = privates;
 exports.reduce = reduce$2;
 exports.remove = remove$1;
 exports.requestTick = requestTick;
@@ -4491,7 +5156,7 @@ exports.subTime = subTime;
 exports.take = take$1;
 exports.test = group;
 exports.throttle = throttle;
-exports.toArray = toArray$1;
+exports.toArray = toArray;
 exports.toCamelCase = toCamelCase;
 exports.toCartesian = toCartesian;
 exports.toClass = toClass;
@@ -4499,7 +5164,7 @@ exports.toDay = toDay;
 exports.toDeg = toDeg;
 exports.toFixed = toFixed$1;
 exports.toFloat = toFloat;
-exports.toInt = toInt;
+exports.toInt = parseInt$1;
 exports.toLevel = toLevel;
 exports.toPlainText = toPlainText;
 exports.toPolar = toPolar;
