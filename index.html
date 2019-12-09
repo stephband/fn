@@ -26,10 +26,9 @@
     <link rel="stylesheet" href="css/theme.css">
     <link rel="stylesheet" href="css/respond.css">
 <template id="header-template" title="/fn/">
-    <header class="grid" id="header">
-        <h1 class="col-1 span-3 @2-col-2">{[title]} <span class="text-6">{[version]}</span></h1>
+        <h1>{[title]} <span class="text-6">{[version]}</span></h1>
 
-        <div class="col-1 span-3 @2-col-2 @3-span-6 @4-span-5 @5-span-3">
+        <div>
             <p class="text-8">
                 {[description]}
             </p>
@@ -39,7 +38,6 @@
                 <li><strong>bugs:</strong> <a href="{[bugs.url]}">{[bugs.url]}</a></li>
             </ul>
         </div>
-    </header>
 </template><template id="title-template" title="/fn/">
     <h3 class="text-4">{[name]}</h3>
 </template><template id="method-template" title="/fn/">
@@ -68,12 +66,12 @@
     </article>
 </template></head>
 
-<body>
-    
-    <header class="grid" id="header">
-        <h1 class="col-1 span-3 @2-col-2">Fn <span class="text-6">1.3.0</span></h1>
+<body class="grid">
+    <header class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 @3-x-span-11" id="header">
+        
+        <h1>Fn <span class="text-6">1.3.0</span></h1>
 
-        <div class="col-1 span-3 @2-col-2 @3-span-6 @4-span-5 @5-span-3">
+        <div>
             <p class="text-8">
                 A library of functions, observers and streams, published as ES6 modules.
             </p>
@@ -83,16 +81,15 @@
                 <li><strong>bugs:</strong> <a href=""></a></li>
             </ul>
         </div>
+
     </header>
 
+    <section class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 grid">
+        <header class="x-1 x-span-3 @1-x-span-4">
+            <h2 class="text-2">Functions</h2>
+        </header>
 
-    <section class="grid" style="grid-gap: 1.875rem; grid-auto-rows: min-content;">
-        <!--header class="x-1 x-span-3 @1-x-1 @1-x-span-6 @2-x-2 @4-x-2 @4-x-span-4 @5-x-2 @5-x-span-3">
-            <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
-        </header-->
-
-        <section class="x-1 x-span-3 @1-x-1 @1-x-span-4 @2-x-1">
-            <h2 class="text-1">Functions</h2>
+        <div class="x-1 x-span-3">
             <h4 class="text-4">Functions</h4>
             <!--template-->
     <article class="toggle-block block" toggleable="" id="cache-fn">
@@ -182,16 +179,19 @@ against input values in a WeakMap, such that for each input value
 <code>fn</code> is only ever called once.</p>
 </article>
 
-        </section>
-
-        <div class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-span-12">
-            The following functions are curried (where they take more than one parameter), allowing them to
-            be partially applied.
         </div>
 
-        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @1-y-span-2 @2-x-1">
-            <h4 class="text-4">Objects</h4>
-            <!--template-->
+        <div class="x-1 x-span-3 @2-x-span-4">
+            <p>
+            The following functions are curried (where they take more than one parameter), allowing them to
+            be partially applied.
+            </p>
+        </div>
+
+        <div class="x-1 x-span-3 column-grid grid">
+            <div class="x-1">
+                <h4 class="text-4">Objects</h4>
+                <!--template-->
     <article class="toggle-block block" toggleable="" id="argument-n">
         <h3 class="text-5 ">
             <a href="#argument-n">
@@ -324,7 +324,8 @@ they are equal.</p>
                 <code class="function language-js"><span class="token keyword">set</span><span class="token punctuation">(</span>key<span class="token punctuation">,</span> object<span class="token punctuation">,</span> value<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    </article>
+    <pre><code><span class="token comment">// Set `input.value` whenever a value is pushed into a stream:</span>
+stream<span class="token punctuation">.</span><span class="token function">scan</span><span class="token punctuation">(</span><span class="token keyword">set</span><span class="token punctuation">(</span><span class="token string">'value'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> input<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
 
     <article class="toggle-block block" toggleable="" id="toarray-object">
         <h3 class="text-5 ">
@@ -350,14 +351,6 @@ they are equal.</p>
         </h3>
     </article>
 
-    <article class="toggle-block block" toggleable="" id="toint-string">
-        <h3 class="text-5 ">
-            <a href="#toint-string">
-                <code class="function language-js"><span class="token function">toInt</span><span class="token punctuation">(</span>string<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    </article>
-
     <article class="toggle-block block" toggleable="" id="tostring-object">
         <h3 class="text-5 ">
             <a href="#tostring-object">
@@ -376,11 +369,13 @@ they are equal.</p>
     <p>Returns <code>typeof object</code>.</p>
 </article>
 
-        </section>
+            </div>
+        </div>
 
-        <section class="x-1 x-span-3 @1-x-4 @1-x-span-3 @2-x-4">
-            <h4 class="text-4">Strings</h4>
-            <!--template-->
+        <div class="x-1 x-span-3 @1-x-4 column-grid grid">
+            <div class="x-1">
+                <h4 class="text-4">Strings</h4>
+                <!--template-->
     <article class="toggle-block block" toggleable="" id="capture-regex-parts-accumulator-string">
         <h3 class="text-5 ">
             <a href="#capture-regex-parts-accumulator-string">
@@ -415,6 +410,16 @@ they are equal.</p>
         </h3>
     </article>
 
+    <article class="toggle-block block" toggleable="" id="parseint-string">
+        <h3 class="text-5 ">
+            <a href="#parseint-string">
+                <code class="function language-js"><span class="token function">parseInt</span><span class="token punctuation">(</span>string<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Parse to integer without having to worry about the radix parameter,
+making it suitable, for example, to use in <code>array.map(parseInt)</code>.</p>
+</article>
+
     <article class="toggle-block block" toggleable="" id="parsevalue-units-string">
         <h3 class="text-5 ">
             <a href="#parsevalue-units-string">
@@ -423,11 +428,11 @@ they are equal.</p>
         </h3>
     </article>
 
-        </section>
+            </div>
 
-        <section class="x-1 x-span-3 @1-x-4 @1-x-span-3 @2-x-7">
-            <h4 class="text-4">Numbers</h4>
-            <!--template-->
+            <div class="x-1">
+                <h4 class="text-4">Numbers</h4>
+                <!--template-->
     <article class="toggle-block block" toggleable="" id="mod-divisor-n">
         <h3 class="text-5 ">
             <a href="#mod-divisor-n">
@@ -514,11 +519,13 @@ around 0 with limits -1 to 1.</p>
         </h3>
     </article>
 
-        </section>
+            </div>
+        </div>
 
-        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @2-x-1">
-            <h4 class="text-4">Arrays</h4>
-            <!--template-->
+        <div class="x-1 x-span-3 @2-x-7 column-grid grid">
+            <div class="x-1">
+                <h4 class="text-4">Arrays</h4>
+                <!--template-->
     <article class="toggle-block block" toggleable="" id="by-fn-a-b">
         <h3 class="text-5 ">
             <a href="#by-fn-a-b">
@@ -595,11 +602,11 @@ array (preserving a sort order based on the result of <code>fn(object)</code>).<
 <p>Returns the updated object.</p>
 </article>
 
-        </section>
+            </div>
 
-        <section class="x-1 x-span-3 @1-x-4 @1-x-span-3 @2-x-4">
-            <h4 class="text-4">Time</h4>
-            <!--template-->
+            <div class="x-1">
+                <h4 class="text-4">Time</h4>
+                <!--template-->
     <article class="toggle-block block" toggleable="" id="parsedate-string">
         <h3 class="text-5 ">
             <a href="#parsedate-string">
@@ -698,11 +705,42 @@ array (preserving a sort order based on the result of <code>fn(object)</code>).<
         </h3>
     </article>
 
-        </section>
+            </div>
+        </div>
+    </section>
 
-        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @2-x-7">
-            <h2 class="text-2" style="font-size: 1.875rem;">Observe</h2>
+    <section class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 columns-grid grid">
+        <header class="x-1 x-span-3 @1-x-span-4">
+            <h2 class="text-2" style="font-size: 1.875rem;">Observer</h2>
+            <p>Import and create an observer:</p>
+            <pre class=" language-js"><code class=" language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> Observer<span class="token punctuation">,</span> observe <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'/fn/module.js'</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token function">Observer</span><span class="token punctuation">(</span><span class="token punctuation">{</span> a<span class="token punctuation">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+            <p>
+            An observer is an ES6 Proxy of an object that intercepts and reports
+            mutations. There is only ever one observer per object, ie, calling
+            <code>Observer(object)</code> multiple times with the same object
+            always returns the same observer. Observers can be observed for
+            mutations with the observe function:
+            </p>
+
+            <pre class=" language-js"><code class=" language-js"><span class="token function">observe</span><span class="token punctuation">(</span><span class="token string">'a'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>value<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span><span class="token operator">...</span><span class="token punctuation">}</span><span class="token punctuation">,</span> data<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+        </header>
+
+        <div class="x-1 x-span-3 list-grid grid">
             <!--template-->
+    <h3 class="text-4">Observer</h3>
+
+    <article class="toggle-block block" toggleable="" id="observer-object">
+        <h3 class="text-5 ">
+            <a href="#observer-object">
+                <code class="function language-js"><span class="token function">Observer</span><span class="token punctuation">(</span>object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Create an Observer proxy around <code>object</code>. In order for <code>observe(...)</code> to detect
+mutations, changes must be made to this proxy rather than the original
+<code>object</code>.</p>
+</article>
+
     <article class="toggle-block block" toggleable="" id="observe-path-fn-object-init">
         <h3 class="text-5 ">
             <a href="#observe-path-fn-object-init">
@@ -721,30 +759,24 @@ callback to be called.</p>
 always initialises.)</p>
 </article>
 
-    <article class="toggle-block block" toggleable="" id="observer-object">
-        <h3 class="text-5 ">
-            <a href="#observer-object">
-                <code class="function language-js"><span class="token function">Observer</span><span class="token punctuation">(</span>object<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Create an Observer proxy around <code>object</code>. In order for <code>observe(...)</code> to detect
-mutations, changes must be made to this proxy rather than the original
-<code>object</code>.</p>
-</article>
+        </div>
+    </section>
 
-        </section>
+    <!--div class="x-1 x-span-3 @2-x-2 @3-x-span-6 @4-x-span-5 @5-x-span-3">
+        <p>Text things</p>
+    </div-->
 
-        <header class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-span-12">
+    <!--div class="x-1 x-span-3 @2-x-2 @3-x-span-6 @4-x-span-5 @5-x-span-3" build-fn="docs:'./modules/stream.js'"></div-->
+
+    <section class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 columns-grid grid">
+        <header class="x-1 x-span-3 @1-x-span-4">
             <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
+            <p>Import and create a stream:</p>
+            <pre class=" language-js"><code class=" language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> Stream <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'/fn/module.js'</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> stream <span class="token operator">=</span> Stream<span class="token punctuation">.</span><span class="token keyword">of</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token number">4</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
         </header>
 
-        <!--div class="x-1 x-span-3 @2-x-2 @3-x-span-6 @4-x-span-5 @5-x-span-3">
-            <p>Text things</p>
-        </div-->
-
-        <!--div class="x-1 x-span-3 @2-x-2 @3-x-span-6 @4-x-span-5 @5-x-span-3" build-fn="docs:'./modules/stream.js'"></div-->
-
-        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @2-x-2 @2-x-span-2">
+        <div class="x-1 x-span-3 list-grid grid">
             <!--template-->
     <h3 class="text-4">Construct</h3>
 
@@ -788,13 +820,19 @@ the stream is stopped without value. This stream is not writeable: it has no
                 <code class="function language-js">Stream<span class="token punctuation">.</span><span class="token function">fromTimer</span><span class="token punctuation">(</span>timer<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    <p>Create a stream from a timer object. A timer object must look like:</p>
+    <p>Create a stream from a <code>timer</code> object. A <code>timer</code> is an object
+with the properties:</p>
 <pre><code><span class="token punctuation">{</span>
     request<span class="token punctuation">:</span>     <span class="token function">fn</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span><span class="token punctuation">,</span> calls fn on the next frame<span class="token punctuation">,</span> returns an id
     cancel<span class="token punctuation">:</span>      <span class="token function">fn</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span><span class="token punctuation">,</span> cancels request <span class="token keyword">with</span> id
-    now<span class="token punctuation">:</span>         <span class="token function">fn</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> returne the time
+    now<span class="token punctuation">:</span>         <span class="token function">fn</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> returns the time
     currentTime<span class="token punctuation">:</span> time at the start <span class="token keyword">of</span> the latest frame
-<span class="token punctuation">}</span></code></pre><p>This stream is not writeable: it has no <code>.push()</code> method.</p>
+<span class="token punctuation">}</span></code></pre><p>Here is how a stream of animation frames may be created:</p>
+<pre><code><span class="token keyword">const</span> frames <span class="token operator">=</span> Stream<span class="token punctuation">.</span><span class="token function">fromTimer</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    request<span class="token punctuation">:</span> window<span class="token punctuation">.</span>requestAnimationFrame<span class="token punctuation">,</span>
+    cancel<span class="token punctuation">:</span> window<span class="token punctuation">.</span>cancelAnimationFrame<span class="token punctuation">,</span>
+    now<span class="token punctuation">:</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> window<span class="token punctuation">.</span>performance<span class="token punctuation">.</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>This stream is not writeable: it has no <code>.push()</code> method.</p>
 </article>
 
     <article class="toggle-block block" toggleable="" id="stream-of-values">
@@ -806,9 +844,22 @@ the stream is stopped without value. This stream is not writeable: it has no
     <p>Returns a writeable stream that uses arguments as its source.</p>
 </article>
 
-        </section>
+            <!--template-->
+    <h3 class="text-4">Properties</h3>
 
-        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @2-x-4 @2-x-span-2">
+    <article class="toggle-block block" toggleable="" id="statusundefined">
+        <h3 class="text-5 dot-indent">
+            <a href="#statusundefined">
+                <code class="property language-js">.status</code>
+            </a>
+        </h3>
+    <p>Reflects the running status of the stream. When all values have been consumed
+status is <code>'done'</code>.</p>
+</article>
+
+        </div>
+
+        <div class="x-1 x-span-3 @1-x-4 list-grid grid">
             <!--template-->
     <h3 class="text-4">Write</h3>
 
@@ -822,7 +873,7 @@ the stream is stopped without value. This stream is not writeable: it has no
     stream is not writeable, it does not have a <code>.push()</code> method.</p>
 </article>
 
-    <h3 class="text-4">Transform</h3>
+    <h3 class="text-4">Map</h3>
 
     <article class="toggle-block block" toggleable="" id="chunk-n">
         <h3 class="text-5 dot-indent">
@@ -833,61 +884,24 @@ the stream is stopped without value. This stream is not writeable: it has no
     <p>Batches values into arrays of length <code>n</code>.</p>
 </article>
 
-    <article class="toggle-block block" toggleable="" id="clone">
+    <article class="toggle-block block" toggleable="" id="flat">
         <h3 class="text-5 dot-indent">
-            <a href="#clone">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">clone</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Creates copy of the stream.</p>
-</article>
-
-    <article class="toggle-block block" toggleable="" id="dedup">
-        <h3 class="text-5 dot-indent">
-            <a href="#dedup">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">dedup</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Filters out consecutive equal values.</p>
-</article>
-
-    <article class="toggle-block block" toggleable="" id="filter-fn">
-        <h3 class="text-5 dot-indent">
-            <a href="#filter-fn">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Filter values according to the truthiness of <code>fn(value)</code>.</p>
-</article>
-
-    <article class="toggle-block block" toggleable="" id="flatten">
-        <h3 class="text-5 dot-indent">
-            <a href="#flatten">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">flatten</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
+            <a href="#flat">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">flat</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
             </a>
         </h3>
     <p>Flattens a stream of streams or arrays into a single stream.</p>
 </article>
 
-    <article class="toggle-block block" toggleable="" id="flatmap">
+    <article class="toggle-block block" toggleable="" id="flatmap-fn">
         <h3 class="text-5 dot-indent">
-            <a href="#flatmap">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
+            <a href="#flatmap-fn">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span></code>
             </a>
         </h3>
     <p>Maps values to lists – <code>fn(value)</code> must return an array, functor, stream
-    or other type with a <code>.shift()</code> method – and flattens those lists into a
+    (or any other duck with a <code>.shift()</code> method) and flattens those lists into a
     single stream.</p>
-</article>
-
-    <article class="toggle-block block" toggleable="" id="latest">
-        <h3 class="text-5 dot-indent">
-            <a href="#latest">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">latest</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>When the stream has a values buffered, passes the last value
-    in the buffer.</p>
 </article>
 
     <article class="toggle-block block" toggleable="" id="map-fn">
@@ -909,15 +923,6 @@ the stream is stopped without value. This stream is not writeable: it has no
     or functor.</p>
 </article>
 
-    <article class="toggle-block block" toggleable="" id="rest-n">
-        <h3 class="text-5 dot-indent">
-            <a href="#rest-n">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">rest</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Filters the stream to the <code>n</code>th value and above.</p>
-</article>
-
     <article class="toggle-block block" toggleable="" id="scan-fn-seed">
         <h3 class="text-5 dot-indent">
             <a href="#scan-fn-seed">
@@ -926,6 +931,45 @@ the stream is stopped without value. This stream is not writeable: it has no
         </h3>
     <p>Calls <code>fn(accumulator, value)</code> and emits <code>accumulator</code> for each value
     in the stream.</p>
+</article>
+
+    <h3 class="text-4">Filter</h3>
+
+    <article class="toggle-block block" toggleable="" id="dedup">
+        <h3 class="text-5 dot-indent">
+            <a href="#dedup">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">dedup</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Filters out consecutive equal values.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="filter-fn">
+        <h3 class="text-5 dot-indent">
+            <a href="#filter-fn">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Filter values according to the truthiness of <code>fn(value)</code>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="latest">
+        <h3 class="text-5 dot-indent">
+            <a href="#latest">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">latest</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>When the stream has a values buffered, passes the last value
+    in the buffer.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="rest-n">
+        <h3 class="text-5 dot-indent">
+            <a href="#rest-n">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">rest</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Filters the stream to the <code>n</code>th value and above.</p>
 </article>
 
     <article class="toggle-block block" toggleable="" id="take-n">
@@ -937,26 +981,16 @@ the stream is stopped without value. This stream is not writeable: it has no
     <p>Filters the stream to the first <code>n</code> values.</p>
 </article>
 
-    <h3 class="text-4">Delay</h3>
-
-    <article class="toggle-block block" toggleable="" id="clock-timer">
+    <article class="toggle-block block" toggleable="" id="throttle-time">
         <h3 class="text-5 dot-indent">
-            <a href="#clock-timer">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">clock</span><span class="token punctuation">(</span>timer<span class="token punctuation">)</span></code>
+            <a href="#throttle-time">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">throttle</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    <p>Emits values at the framerate of <code>timer</code>, one-per-frame. No values
-    are discarded.</p>
-</article>
-
-    <article class="toggle-block block" toggleable="" id="throttle-timer">
-        <h3 class="text-5 dot-indent">
-            <a href="#throttle-timer">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">throttle</span><span class="token punctuation">(</span>timer<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Throttles values such that on each frame of <code>timer</code> the latest value
-    is emitted. Other values are discarded.</p>
+    <p>Throttles values such that the latest value is emitted every <code>time</code> seconds.
+    Other values are discarded. The parameter <code>time</code> may also be a timer options
+    object, an object with <code>{ request, cancel, now }</code> functions,
+    allowing the creation of, say, and animation frame throttle.</p>
 </article>
 
     <article class="toggle-block block" toggleable="" id="wait-time">
@@ -966,10 +1000,23 @@ the stream is stopped without value. This stream is not writeable: it has no
             </a>
         </h3>
     <p>Emits the latest value only after <code>time</code> seconds of inactivity.
-    Intermediate values are discarded.</p>
+    Other values are discarded.</p>
 </article>
 
-    <h3 class="text-4">Consume</h3>
+        </div>
+
+        <div class="x-1 x-span-3 @2-x-7 list-grid grid">
+            <!--template-->
+    <h3 class="text-4">Read</h3>
+
+    <article class="toggle-block block" toggleable="" id="clone">
+        <h3 class="text-5 dot-indent">
+            <a href="#clone">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">clone</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Creates a read-only copy of the stream.</p>
+</article>
 
     <article class="toggle-block block" toggleable="" id="each-fn">
         <h3 class="text-5 dot-indent">
@@ -991,15 +1038,14 @@ the stream is stopped without value. This stream is not writeable: it has no
     last value read from the stream.</p>
 </article>
 
-    <article class="toggle-block block" toggleable="" id="reduce-fn-accumulator">
+    <article class="toggle-block block" toggleable="" id="fold-fn-accumulator">
         <h3 class="text-5 dot-indent">
-            <a href="#reduce-fn-accumulator">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">reduce</span><span class="token punctuation">(</span>fn<span class="token punctuation">,</span> accumulator<span class="token punctuation">)</span></code>
+            <a href="#fold-fn-accumulator">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">fold</span><span class="token punctuation">(</span>fn<span class="token punctuation">,</span> accumulator<span class="token punctuation">)</span></code>
             </a>
         </h3>
     <p>Consumes the stream when stopped, calling <code>fn(accumulator, value)</code>
-    for each value in the stream. Returns a promise that resolves to
-    the last value returned by <code>fn(accumulator, value)</code>.</p>
+    for each value in the stream. Returns a promise.</p>
 </article>
 
     <article class="toggle-block block" toggleable="" id="shift">
@@ -1046,23 +1092,7 @@ the stream is stopped without value. This stream is not writeable: it has no
     entirely inert.</p>
 </article>
 
-        </section>
-
-        <section class="x-1 x-span-3 @1-x-4 @1-x-span-4 @2-x-6 @2-x-span-2">
-            <!--template-->
-    <h3 class="text-4">Properties</h3>
-
-    <article class="toggle-block block" toggleable="" id="statusundefined">
-        <h3 class="text-5 dot-indent">
-            <a href="#statusundefined">
-                <code class="property language-js">.status</code>
-            </a>
-        </h3>
-    <p>Reflects the running status of the stream. When all values have been consumed
-status is <code>'done'</code>.</p>
-</article>
-
-        </section>
+        </div>
     </section>
 
     <!-- Build document -->
