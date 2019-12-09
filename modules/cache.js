@@ -1,6 +1,6 @@
 /*
 cache(fn)
-Returns a function that caches the return values of `fn()`
+Returns a function that caches the output values of `fn(input)`
 against input values in a map, such that for each input value
 `fn` is only ever called once.
 */

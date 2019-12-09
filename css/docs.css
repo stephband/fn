@@ -5,8 +5,9 @@ body {
     padding-right: 1.5rem;
 }
 
-body > .grid + .grid {
-    margin-top: 7.5rem;
+body > .grid + .grid,
+body > header + .grid {
+    margin-top: 5.625rem;
 }
 
 body > .\31-grid + .\31-2-3-grid {

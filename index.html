@@ -85,6 +85,21 @@
             <h2 class="text-2">Functions</h2>
         </header>
 
+        <header class="x-1 x-span-3 @1-x-span-4">
+            <h2 class="text-2">Functions</h2>
+            <p>Import a function from the Fn module:</p>
+            <pre class=" language-js"><code class=" language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> matches <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'/fn/module.js'</span><span class="token punctuation">;</span></code></pre>
+            <p>
+            An observer is an ES6 Proxy of an object that intercepts and reports
+            mutations. There is only ever one observer per object, ie, calling
+            <code>Observer(object)</code> multiple times with the same object
+            always returns the same observer. Observers can be observed for
+            mutations with the observe function:
+            </p>
+
+            <pre class=" language-js"><code class=" language-js"><span class="token function">observe</span><span class="token punctuation">(</span><span class="token string">'a'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>value<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span><span class="token operator">...</span><span class="token punctuation">}</span><span class="token punctuation">,</span> data<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+        </header>
+
         <div class="x-1 x-span-3">
             <h4 class="text-4">Functions</h4>
             <!--template-->
@@ -94,7 +109,7 @@
                 <code class="function language-js"><span class="token function">cache</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    <p>Returns a function that caches the return values of <code>fn()</code>
+    <p>Returns a function that caches the output values of <code>fn(input)</code>
 against input values in a map, such that for each input value
 <code>fn</code> is only ever called once.</p>
 </article>
