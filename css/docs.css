@@ -1,4 +1,4 @@
- body {
+body {
     padding-top: 1.875rem;
     padding-bottom: 2.25rem;
     padding-left: 1.875rem;
@@ -344,7 +344,48 @@ line { stroke-width: 1; stroke: inherit; }
 .grid {
     display: grid;
     grid-auto-columns: 1fr;
+    column-gap: 1.875rem;
 }
+
+.columns {
+    column-fill: auto;
+    column-gap: 1.875rem;
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+}
+
+.columns > * {
+    break-inside: avoid;
+    break-inside: avoid-column;
+}
+
+.columns > .text-4 ~ .text-4 {
+    break-before: column;
+    break-after: avoid;
+    break-after: avoid-column;
+}
+
+.columns > .text-4 ~ .text-4 ~ .text-4 {
+    break-before: auto;
+}
+
+.columns > .text-4 ~ .text-4 ~ .text-4 ~ .text-4 {
+    break-before: auto;
+}
+
+.columns > .text-4 ~ .text-4 ~ .text-4 ~ .text-4 ~ .text-4 {
+    break-before: auto;
+}
+
+.columns > .toggle-block {
+    break-before: avoid;
+    break-before: avoid-column;
+}
+/*
+.columns > .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .text-4 {
+    break-before: column;
+}
+*/
 
 .grid-header { grid-area: grid-header; }
 .grid-0 { grid-area: grid-0; }
