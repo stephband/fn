@@ -34,7 +34,7 @@ export { default as Privates }    from './modules/privates.js';
 export { default as self }        from './modules/self.js';
 export { default as toArray }     from './modules/to-array.js';
 export { default as toClass }     from './modules/to-class.js';
-export { default as toInt }       from './modules/to-int.js';
+export { default as toInt }       from './modules/parse-int.js';
 export { default as toString }    from './modules/to-string.js';
 export { default as toType }      from './modules/to-type.js';
 export { default as weakCache }   from './modules/weak-cache.js';

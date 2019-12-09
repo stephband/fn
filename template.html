@@ -34,12 +34,12 @@
         <template build-fn="fetch:package.json" build-include="/fn/templates.html#header-template"></template>
     </header>
 
-    <section class="@3-x-1 @3-x-span-12 grid" style="grid-gap: 1.875rem; grid-auto-rows: min-content;">
+    <section class="@3-x-2 @3-x-span-9 grid" style="grid-gap: 1.875rem; grid-auto-rows: min-content;">
         <!--header class="x-1 x-span-3 @1-x-1 @1-x-span-6 @2-x-2 @4-x-2 @4-x-span-4 @5-x-2 @5-x-span-3">
             <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
         </header-->
 
-        <section class="x-1 x-span-3 @1-x-1 @1-x-span-4 @2-x-1 @3-x-2">
+        <div class="x-1 x-span-3 @1-x-span-4">
             <h2 class="text-1">Functions</h2>
             <h4 class="text-4">Functions</h4>
             <template build-fn="docs:
@@ -52,102 +52,121 @@
             modules/pipe.js,
             modules/weak-cache.js
             filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
-        </section>
-
-        <div class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 @3-x-span-4">
-            The following functions are curried (where they take more than one parameter), allowing them to
-            be partially applied.
         </div>
 
-        <section class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 @2-columns-3 columns">
-            <h4 class="text-4">Objects</h4>
-            <template build-fn="docs:
-            modules/argument.js,
-            modules/call.js,
-            modules/equals.js,
-            modules/get.js,
-            modules/has.js,
-            modules/id.js,
-            modules/invoke.js,
-            modules/is.js,
-            modules/is-defined.js,
-            modules/matches.js,
-            modules/noop.js,
-            modules/not.js,
-            modules/request-tick.js,
-            modules/self.js,
-            modules/set.js,
-            modules/to-array.js,
-            modules/to-class.js,
-            modules/to-fixed.js,
-            modules/to-int.js,
-            modules/to-string.js,
-            modules/to-type.js
-            filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+        <div class="x-1 x-span-3 @1-x-span-4">
+            <p>
+            The following functions are curried (where they take more than one parameter), allowing them to
+            be partially applied.
+            </p>
+        </div>
 
-            <h4 class="text-4">Strings</h4>
-            <template build-fn="docs:
-            modules/capture.js,
-            modules/exec.js,
-            'modules/time.js?parseDate,parseTime',
-            modules/parse-value.js
-            filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+        <div class="x-1 x-span-3 @1-x-span-3 column-grid grid">
+            <div class="x-1">
+                <h4 class="text-4">Objects</h4>
+                <template build-fn="docs:
+                modules/argument.js,
+                modules/call.js,
+                modules/equals.js,
+                modules/get.js,
+                modules/has.js,
+                modules/id.js,
+                modules/invoke.js,
+                modules/is.js,
+                modules/is-defined.js,
+                modules/matches.js,
+                modules/noop.js,
+                modules/not.js,
+                modules/request-tick.js,
+                modules/self.js,
+                modules/set.js,
+                modules/to-array.js,
+                modules/to-class.js,
+                modules/to-fixed.js,
+                modules/to-string.js,
+                modules/to-type.js
+                filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+            </div>
+        </div>
 
-            <h4 class="text-4">Numbers</h4>
-            <template build-fn="docs:
-            modules/maths/core.js,
-            modules/maths/cubic-bezier.js,
-            modules/maths/to-cartesian.js,
-            modules/maths/to-polar.js
-            filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+        <div class="x-4 x-span-3 @1-x-span-3 column-grid grid">
+            <div class="x-1">
+                <h4 class="text-4">Strings</h4>
+                <template build-fn="docs:
+                modules/capture.js,
+                modules/exec.js,
+                'modules/time.js?parseDate,parseTime',
+                modules/parse-int.js,
+                modules/parse-value.js
+                filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+            </div>
 
-            <h4 class="text-4">Arrays</h4>
-            <template build-fn="docs:
-            modules/lists/core.js,
-            modules/lists/insert.js,
-            modules/lists/last.js,
-            modules/lists/remove.js,
-            modules/lists/rest.js,
-            modules/lists/take.js,
-            modules/lists/unique.js,
-            modules/lists/update.js
-            filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+            <div class="x-1">
+                <h4 class="text-4">Numbers</h4>
+                <template build-fn="docs:
+                modules/maths/core.js,
+                modules/maths/cubic-bezier.js,
+                modules/maths/to-cartesian.js,
+                modules/maths/to-polar.js
+                filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+            </div>
+        </div>
 
-            <h4 class="text-4">Time</h4>
-            <template build-fn="docs:
-            modules/time.js
-            filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
-        </section>
+        <div class="x-7 x-span-3 @1-x-span-3 column-grid grid">
+            <div class="x-1">
+                <h4 class="text-4">Arrays</h4>
+                <template build-fn="docs:
+                modules/lists/core.js,
+                modules/lists/insert.js,
+                modules/lists/last.js,
+                modules/lists/remove.js,
+                modules/lists/rest.js,
+                modules/lists/take.js,
+                modules/lists/unique.js,
+                modules/lists/update.js
+                filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+            </div>
 
-        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @2-x-7 @3-x-2">
-            <h2 class="text-2" style="font-size: 1.875rem;">Observe</h2>
-            <template build-fn="docs:
-            modules/observer/observe.js,
-            modules/observer/observer.js
-            filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
-        </section>
+            <div class="x-1">
+                <h4 class="text-4">Time</h4>
+                <template build-fn="docs:
+                modules/time.js
+                filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+            </div>
+        </div>
+    </section>
 
-        <header class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 @3-x-2 @3-x-span-11">
+    <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @2-x-7 @3-x-2">
+        <h2 class="text-2" style="font-size: 1.875rem;">Observe</h2>
+        <template build-fn="docs:
+        modules/observer/observe.js,
+        modules/observer/observer.js
+        filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+    </section>
+
+    <!--div class="x-1 x-span-3 @2-x-2 @3-x-span-6 @4-x-span-5 @5-x-span-3">
+        <p>Text things</p>
+    </div-->
+
+    <!--div class="x-1 x-span-3 @2-x-2 @3-x-span-6 @4-x-span-5 @5-x-span-3" build-fn="docs:'./modules/stream.js'"></div-->
+
+    <section class="@3-x-2 @3-x-span-9 grid" style="grid-gap: 1.875rem; grid-auto-rows: min-content;">
+        <header class="x-1 x-span-3 @1-x-span-6">
             <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
         </header>
 
-        <!--div class="x-1 x-span-3 @2-x-2 @3-x-span-6 @4-x-span-5 @5-x-span-3">
-            <p>Text things</p>
-        </div-->
-
-        <!--div class="x-1 x-span-3 @2-x-2 @3-x-span-6 @4-x-span-5 @5-x-span-3" build-fn="docs:'./modules/stream.js'"></div-->
-
-        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @2-x-2 @2-x-span-2 @3-x-2">
+        <div class="x-1 x-span-3 @1-x-span-3 list-grid grid">
             <template build-fn="docs:modules/stream.js filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
-        </section>
-
-        <section class="x-1 x-span-3 @1-x-1 @1-x-span-3 @2-x-4 @2-x-span-2 @3-x-5">
-            <template build-fn="docs:modules/stream.js filter-method each" build-include="/fn/templates.html#{[type]}-template"></template>
-        </section>
-
-        <section class="x-1 x-span-3 @1-x-4 @1-x-span-4 @2-x-6 @2-x-span-2 @3-x-8">
             <template build-fn="docs:modules/fn.js filter-property each" build-include="/fn/templates.html#{[type]}-template"></template>
-        </section>
+        </div>
+
+        <div class="x-4 x-span-3 @1-x-span-3 list-grid grid">
+            <template build-fn="docs:modules/stream.js filter-method take:15 each" build-include="/fn/templates.html#{[type]}-template"></template>
+        </div>
+
+        <div class="x-7 x-span-3 @1-x-span-3 list-grid grid">
+            <template build-fn="docs:modules/stream.js filter-method rest:15 each" build-include="/fn/templates.html#{[type]}-template"></template>
+        </div>
     </section>
 
     <!-- Build document -->

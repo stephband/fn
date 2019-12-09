@@ -88,6 +88,16 @@ function createSource(stream, privates, options, Source) {
     return (privates.source = source);
 }
 
+function shiftBuffer(shift, bufferA) {
+    if (bufferA.length === 0) {
+        const value = shift();
+        if (value === undefined) { return; }
+        let n = arguments.length;
+        while (--n) arguments[n].push(value);
+    }
+
+    return bufferA.shift();
+}
 
 // StartSource
 
@@ -246,28 +256,17 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
 
     /*
     .clone()
-    Creates copy of the stream.
+    Creates a read-only copy of the stream.
     */
 
     clone: function clone() {
         const source  = this;
-        const next    = this.shift;
+        const shift   = this.shift.bind(this);
         const buffer1 = [];
         const buffer2 = [];
 
-        function shift(bufferA, bufferB, source, next) {
-            if (bufferA.length === 0) {
-                const value = next.apply(source);
-                if (value === undefined) { return; }
-                bufferA.push(value);
-                bufferB.push(value);
-            }
-
-            return buffer1.shift();
-        }
-
         this.shift = function() {
-            return shift(buffer1, buffer2, source, next);
+            return shiftBuffer(shift, buffer1, buffer2);
         };
 
         return new Stream(function(notify, stop) {
@@ -276,7 +275,14 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
 
             return {
                 shift: function() {
-                    return shift(buffer2, buffer1, source, next);
+                    const value = shiftBuffer(shift, buffer2, buffer1);
+
+                    if (source.status === 'done') {
+                        // Since this has just shifted, it should be at 0
+                        stop(buffer2.length);
+                    }
+
+                    return value;
                 },
 
                 stop: function() {
@@ -353,15 +359,15 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
 
     /* Delay */
 
-    /*
-    .clock(timer)
-    Emits values at the framerate of `timer`, one-per-frame. No values
-    are discarded.
-    */
-
-    clock: function clock(timer) {
-        return this.pipe(Stream.clock(timer));
-    },
+    ///*
+    //.clock(timer)
+    //Emits values at the framerate of `timer`, one-per-frame. No values
+    //are discarded.
+    //*/
+    //
+    //clock: function clock(timer) {
+    //    return this.pipe(Stream.clock(timer));
+    //},
 
     /*
     .throttle(timer)

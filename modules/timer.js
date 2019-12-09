@@ -1,11 +1,21 @@
-// Timer
-//
-// Create an object with a request/cancel pair of functions that
-// fire request(fn) callbacks at a given duration.
-//
-// .request()
-// .cancel()
-// .now()
+/*
+Timer(duration, getTime)
+
+Create an object with a request/cancel pair of functions that
+fires request(fn) callbacks at a given duration.
+*/
+
+/*
+.request()
+*/
+
+/*
+.cancel()
+*/
+
+/*
+.now()
+*/
 
 import now from './now.js';
 import requestTick from './request-tick.js';

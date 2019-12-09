@@ -381,6 +381,60 @@ line { stroke-width: 1; stroke: inherit; }
     break-before: avoid;
     break-before: avoid-column;
 }
+
+.columns-3 {
+    column-gap: 1.875rem;
+}
+
+.columns-3 > * {
+    break-inside: avoid;
+}
+
+.columns-3 > * + * {
+    margin-top: 1.875rem;
+}
+
+.columns-3 > * > .toggle-block {
+    margin-left: -0.9375rem;
+    margin-right: -0.9375rem;
+}
+
+.column-grid {
+    align-content: start;
+    align-items: start;
+    justify-content: stretch;
+    grid-gap: 1.875rem;
+}
+
+.column-grid > * {
+    overflow: hidden;
+    margin-left: -0.9375rem;
+    margin-right: -0.9375rem;
+    padding-left: 0.9375rem;
+    padding-right: 0.9375rem;
+}
+
+.list-grid {
+    align-content: start;
+    align-items: start;
+    justify-content: stretch;
+}
+
+.list-grid > .text-4 {
+    margin-top: 1.875rem;
+}
+
+
+
+.toggle-block > .text-5 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Make sure hanging '.' is still seen */
+    margin-left: -0.9375rem;
+    padding-left: 0.9375rem;
+    margin-right: -0.1875rem;
+}
+
 /*
 .columns > .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .text-4 {
     break-before: column;
