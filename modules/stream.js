@@ -575,6 +575,13 @@ Stream.fromPromise = function(promise) {
     return stream;
 };
 
+/*
+Stream.fromProperty(name, object)
+Returns a stream of mutations made to the `name` property of `object`
+(assuming those mutations are made to the [Observer](#observer) proxy of object - see
+Observer).
+*/
+
 
 // Clock Stream
 

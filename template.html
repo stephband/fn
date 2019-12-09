@@ -20,7 +20,15 @@
     <link rel="icon" type="image/png" href="images/logo-128x128.png" sizes="128x128">
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono:100,300,400,500,700" />
-    <link rel="stylesheet" href="../bolt/dist/bolt.css" />
+
+    <link rel="stylesheet" href="../bolt/css/html.css" />
+    <link rel="stylesheet" href="../bolt/css/root.css" />
+    <link rel="stylesheet" href="../bolt/css/body.css" />
+    <link rel="stylesheet" href="../bolt/css/block.css" />
+    <link rel="stylesheet" href="../bolt/css/type.css" />
+    <link rel="stylesheet" href="../bolt/css/text.css" />
+    <link rel="stylesheet" href="../bolt/css/color.css" />
+
     <link rel="stylesheet" href="../dom/css/dom.css" />
     <link rel="stylesheet" href="../fn/css/prism.cruncher.css" />
     <link rel="stylesheet" href="../fn/css/tests.css" />
@@ -34,7 +42,7 @@
         <template build-fn="fetch:package.json" build-include="/fn/templates.html#header-template"></template>
     </header>
 
-    <section class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 grid">
+    <section class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 grid" locateable id="functions">
         <header class="x-1 x-span-3 @1-x-span-4">
             <h2 class="text-2">Functions</h2>
             <p>Import functions from the Fn module:</p>
@@ -137,7 +145,7 @@
         </div>
     </section>
 
-    <section class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 columns-grid grid">
+    <section class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 columns-grid grid" locateable id="observer">
         <header class="x-1 x-span-3 @1-x-span-4">
             <h2 class="text-2" style="font-size: 1.875rem;">Observer</h2>
             <p>Import and create an observer:</p>
@@ -168,7 +176,7 @@ const data = Observer({ a: true });</code></pre>
 
     <!--div class="x-1 x-span-3 @2-x-2 @3-x-span-6 @4-x-span-5 @5-x-span-3" build-fn="docs:'./modules/stream.js'"></div-->
 
-    <section class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 columns-grid grid">
+    <section class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 columns-grid grid" locateable id="stream">
         <header class="x-1 x-span-3 @1-x-span-4">
             <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
             <p>Import and create a stream:</p>
@@ -199,5 +207,6 @@ const stream = Stream.of(1,2,3,4);</code></pre>
     <script type="module">
         import '../dom/js/device.js';
         import '../dom/js/toggleable.js';
+        import '../dom/js/locateable.js';
     </script>
 </body>

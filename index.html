@@ -18,7 +18,15 @@
     <link rel="icon" type="image/png" href="images/logo-128x128.png" sizes="128x128">
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono:100,300,400,500,700">
-    <link rel="stylesheet" href="../bolt/dist/bolt.css">
+
+    <link rel="stylesheet" href="../bolt/css/html.css">
+    <link rel="stylesheet" href="../bolt/css/root.css">
+    <link rel="stylesheet" href="../bolt/css/body.css">
+    <link rel="stylesheet" href="../bolt/css/block.css">
+    <link rel="stylesheet" href="../bolt/css/type.css">
+    <link rel="stylesheet" href="../bolt/css/text.css">
+    <link rel="stylesheet" href="../bolt/css/color.css">
+
     <link rel="stylesheet" href="../dom/css/dom.css">
     <link rel="stylesheet" href="../fn/css/prism.cruncher.css">
     <link rel="stylesheet" href="../fn/css/tests.css">
@@ -80,24 +88,11 @@
 
     </header>
 
-    <section class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 grid">
+    <section class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 grid" locateable="" id="functions">
         <header class="x-1 x-span-3 @1-x-span-4">
             <h2 class="text-2">Functions</h2>
-        </header>
-
-        <header class="x-1 x-span-3 @1-x-span-4">
-            <h2 class="text-2">Functions</h2>
-            <p>Import a function from the Fn module:</p>
-            <pre class=" language-js"><code class=" language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> matches <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'/fn/module.js'</span><span class="token punctuation">;</span></code></pre>
-            <p>
-            An observer is an ES6 Proxy of an object that intercepts and reports
-            mutations. There is only ever one observer per object, ie, calling
-            <code>Observer(object)</code> multiple times with the same object
-            always returns the same observer. Observers can be observed for
-            mutations with the observe function:
-            </p>
-
-            <pre class=" language-js"><code class=" language-js"><span class="token function">observe</span><span class="token punctuation">(</span><span class="token string">'a'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>value<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span><span class="token operator">...</span><span class="token punctuation">}</span><span class="token punctuation">,</span> data<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+            <p>Import functions from the Fn module:</p>
+            <pre class=" language-js"><code class=" language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> <span class="token keyword">get</span><span class="token punctuation">,</span> matches <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'/fn/module.js'</span><span class="token punctuation">;</span></code></pre>
         </header>
 
         <div class="x-1 x-span-3">
@@ -720,7 +715,7 @@ array (preserving a sort order based on the result of <code>fn(object)</code>).<
         </div>
     </section>
 
-    <section class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 columns-grid grid">
+    <section class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 columns-grid grid" locateable="" id="observer">
         <header class="x-1 x-span-3 @1-x-span-4">
             <h2 class="text-2" style="font-size: 1.875rem;">Observer</h2>
             <p>Import and create an observer:</p>
@@ -779,7 +774,7 @@ always initialises.)</p>
 
     <!--div class="x-1 x-span-3 @2-x-2 @3-x-span-6 @4-x-span-5 @5-x-span-3" build-fn="docs:'./modules/stream.js'"></div-->
 
-    <section class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 columns-grid grid">
+    <section class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 columns-grid grid" locateable="" id="stream">
         <header class="x-1 x-span-3 @1-x-span-4">
             <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
             <p>Import and create a stream:</p>
@@ -823,6 +818,17 @@ its source.</p>
 resolves the stream is given its value and stopped. If the promise errors
 the stream is stopped without value. This stream is not writeable: it has no
 <code>.push()</code> method.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="stream-fromproperty-name-object">
+        <h3 class="text-5 ">
+            <a href="#stream-fromproperty-name-object">
+                <code class="function language-js">Stream<span class="token punctuation">.</span><span class="token function">fromProperty</span><span class="token punctuation">(</span>name<span class="token punctuation">,</span> object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns a stream of mutations made to the <code>name</code> property of <code>object</code>
+(assuming those mutations are made to the <a href="#observer">Observer</a> proxy of object - see
+Observer).</p>
 </article>
 
     <article class="toggle-block block" toggleable="" id="stream-fromtimer-timer">
@@ -1113,6 +1119,7 @@ status is <code>'done'</code>.</p>
     <script type="module">
         import '../dom/js/device.js';
         import '../dom/js/toggleable.js';
+        import '../dom/js/locateable.js';
     </script>
 
 </body></html>
