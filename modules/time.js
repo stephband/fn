@@ -627,10 +627,14 @@ var rtimediff = /^([+-])?(\d{2,}):(\d{2,})(?::(\d{2,}(?:.\d+)?))?$/;
 
 /*
 parseTime(time)
-If `time` is a number it is returned, a string then it is
-parsed as a time in UNIX format: as hours `'13'`, with minutes `'13:25'`, with
-seconds `'13:25:14'` or decimal seconds `'13:25:14.001'`, and returned as
-a number in seconds.
+If `time` is a number it is returned. If it is a string then it is
+parsed as a time in ISO time format: as hours `'13'`, with
+minutes `'13:25'`, with seconds `'13:25:14'` or decimal
+seconds `'13:25:14.001'`, and returned as a number in seconds.
+
+```
+const time = parseTime('13:25:14.001');   // 48314.001
+```
 */
 
 export const parseTime = overload(toType, {

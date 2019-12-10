@@ -143,7 +143,7 @@ register('filter-method', function(node, params) {
             if (data.type === 'title' || data.type === 'method') {
                 output.push(data);
             }
-console.log(output);
+
             return output;
         }, []);
     });

@@ -27,8 +27,36 @@ capture(regex, reducers, accumulator, string)
 Parse `string` with `regex`, calling functions in `reducers` to modify
 and return `accumulator`.
 
+Reducers is an object of functions keyed by the index of their capturing
+group in the regexp result (`0` corresponding to the entire regex match,
+the first capturing group being at index `1`). Reducer functions are
+called in capture order for all capturing groups that captured something.
+Reducers may also define the function 'close', which is called at the end
+of every capture. All functions are passed the paremeters
+`(accumulator, tokens)`, where `tokens` is the regexp result. Functions
+must return an accumulator.
+
+Reducers may also define a function 'catch', which is called when a match
+has not been made (where 'catch' is not defined an error is thrown).
+
 ```
-const parsePhone = capture( /\s*/    )
+const rvalue = /^\s*(-?\d*\.?\d+)(\w+)?\s*$/;
+const parseValue = capture(rvalue, {
+    // Create a new accumulator object each call
+    0: () => ({}),
+
+    1: (acc, tokens) => {
+        acc.number = parseFloat(tokens[1]);
+        return acc;
+    },
+
+    2: (acc, tokens) => {
+        acc.unit = tokens[2];
+        return acc;
+    }
+}, {});
+
+const value = parseValue('36rem');    // { value: 36, unit: 'rem' }
 ```
 */
 

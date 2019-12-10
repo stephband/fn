@@ -1,15 +1,15 @@
-<!DOCTYPE html><html lang="en" is="sparky" class="js"><head build-fn="fetch:package.json">
+<!DOCTYPE html><html lang="en" is="sparky" class="js"><head>
     <meta charset="utf-8">
 
-    <meta name="author" content="@{[author.twitter]}">
-    <meta name="description" content="Documentation for {[title]}. {[description]}">
+    <meta name="author" content="@stephband">
+    <meta name="description" content="Documentation for Fn. A library of functions, observers and streams, published as ES6 modules.">
     <meta name="viewport" content="width=device-width">
 
-    <title>{[title]}</title>
+    <title>Fn</title>
 
     <script>
     document.documentElement.className = 'js';
-    window.DEBUG = true;
+    window.DEBUG = false;
     </script>
 
     <link rel="shortcut icon" href="images/logo-64x64.ico">
@@ -33,32 +33,158 @@
     <link rel="stylesheet" href="css/docs.css">
     <link rel="stylesheet" href="css/theme.css">
     <link rel="stylesheet" href="css/respond.css">
-</head>
+<template id="header-template" title="/fn/">
+        <h1>{[title]} <span class="text-6">{[version]}</span></h1>
+
+        <p class="text-8">
+            {[description]}
+        </p>
+
+        <ul class="link-index index">
+            <li><strong>repo:</strong> <a href="{[repository.url]}">{[repository.url]}</a></li>
+            <li><strong>bugs:</strong> <a href="{[bugs.url]}">{[bugs.url]}</a></li>
+        </ul>
+</template><template id="title-template" title="/fn/">
+    <h3 class="text-4">{[name]}</h3>
+</template><template id="method-template" title="/fn/">
+    <article build-fn="append:body" class="toggle-block block" toggleable="" id="{[id]}">
+        <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+            <a href="#{[id]}">
+                <code build-fn="append:title" class="function language-js"></code>
+            </a>
+        </h3>
+    </article>
+</template><template id="property-template" title="/fn/">
+    <article build-fn="append:body" class="toggle-block block" toggleable="" id="{[id]}">
+        <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+            <a href="#{[id]}">
+                <code build-fn="append:title" class="property language-js"></code>
+            </a>
+        </h3>
+    </article>
+</template><template id="function-template" title="/fn/">
+    <article build-fn="append:body" class="toggle-block block" toggleable="" id="{[id]}">
+        <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+            <a href="#{[id]}">
+                <code build-fn="append:title" class="function language-js"></code>
+            </a>
+        </h3>
+    </article>
+</template></head>
 
 <body class="grid">
     <header class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 @3-x-span-11" id="header">
-        <template build-fn="fetch:package.json" build-include="/fn/templates.html#header-template"></template>
+        
+        <h1>Fn <span class="text-6">1.4.0</span></h1>
+
+        <p class="text-8">
+            A library of functions, observers and streams, published as ES6 modules.
+        </p>
+
+        <ul class="link-index index">
+            <li><strong>repo:</strong> <a href="https://github.com/stephband/fn.git">https://github.com/stephband/fn.git</a></li>
+            <li><strong>bugs:</strong> <a href="https://github.com/stephband/fn/issues">https://github.com/stephband/fn/issues</a></li>
+        </ul>
+
     </header>
 
     <section class="x-1 x-span-3 @1-x-span-6 @2-x-span-9 @3-x-2 grid" locateable="" id="functions">
         <header class="x-1 x-span-3 @1-x-span-4">
             <h2 class="text-2">Functions</h2>
             <p>Import functions from the Fn module:</p>
-            <pre><code class="language-js">import { get, matches } from '/fn/module.js';</code></pre>
+            <pre class=" language-js"><code class=" language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> <span class="token keyword">get</span><span class="token punctuation">,</span> matches <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'/fn/module.js'</span><span class="token punctuation">;</span></code></pre>
         </header>
 
         <div class="x-1 x-span-3">
             <h4 class="text-4">Functions</h4>
-            <template build-fn="docs:
-            modules/cache.js,
-            modules/compose.js,
-            modules/curry.js,
-            modules/choose.js,
-            modules/once.js,
-            modules/overload.js,
-            modules/pipe.js,
-            modules/weak-cache.js
-            filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+            
+    <article class="toggle-block block" toggleable="" id="cache-fn">
+        <h3 class="text-5 ">
+            <a href="#cache-fn">
+                <code class="function language-js"><span class="token function">cache</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns a function that caches the output values of <code>fn(input)</code>
+against input values in a map, such that for each input value
+<code>fn</code> is only ever called once.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="compose-fn2-fn1">
+        <h3 class="text-5 ">
+            <a href="#compose-fn2-fn1">
+                <code class="function language-js"><span class="token function">compose</span><span class="token punctuation">(</span>fn2<span class="token punctuation">,</span> fn1<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="curry-fn-muteable-arity">
+        <h3 class="text-5 ">
+            <a href="#curry-fn-muteable-arity">
+                <code class="function language-js"><span class="token function">curry</span><span class="token punctuation">(</span>fn <span class="token punctuation">[</span><span class="token punctuation">,</span> muteable<span class="token punctuation">,</span> arity<span class="token punctuation">]</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="choose-fn-map">
+        <h3 class="text-5 ">
+            <a href="#choose-fn-map">
+                <code class="function language-js"><span class="token function">choose</span><span class="token punctuation">(</span>fn<span class="token punctuation">,</span> map<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns a function that takes its first argument as a key and uses it
+to select a function in <code>map</code> which is invoked with the remaining arguments.</p>
+<p>Where <code>map</code> has a function <code>default</code>, that function is run when a key
+is not found, otherwise unfound keys will error.</p>
+<pre><code><span class="token keyword">var</span> fn <span class="token operator">=</span> <span class="token function">choose</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token string">'fish'</span><span class="token punctuation">:</span>  <span class="token keyword">function</span> <span class="token function">fn1</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> b<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token operator">...</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token string">'chips'</span><span class="token punctuation">:</span> <span class="token keyword">function</span> <span class="token function">fn2</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> b<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token operator">...</span><span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">fn</span><span class="token punctuation">(</span><span class="token string">'fish'</span><span class="token punctuation">,</span> a<span class="token punctuation">,</span> b<span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// Calls fn1(a, b)</span></code></pre></article>
+
+    <article class="toggle-block block" toggleable="" id="once-fn">
+        <h3 class="text-5 ">
+            <a href="#once-fn">
+                <code class="function language-js"><span class="token function">once</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="overload-fn-map">
+        <h3 class="text-5 ">
+            <a href="#overload-fn-map">
+                <code class="function language-js"><span class="token function">overload</span><span class="token punctuation">(</span>fn<span class="token punctuation">,</span> map<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns a function that calls a function at the property of <code>object</code> that
+matches the result of calling <code>fn</code> with all arguments.</p><p></p>
+<pre><code><span class="token keyword">var</span> fn <span class="token operator">=</span> <span class="token function">overload</span><span class="token punctuation">(</span>toType<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    string<span class="token punctuation">:</span> <span class="token keyword">function</span> <span class="token function">a</span><span class="token punctuation">(</span>name<span class="token punctuation">,</span> n<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token operator">...</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    number<span class="token punctuation">:</span> <span class="token keyword">function</span> <span class="token function">b</span><span class="token punctuation">(</span>n<span class="token punctuation">,</span> m<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token operator">...</span><span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">fn</span><span class="token punctuation">(</span><span class="token string">'pie'</span><span class="token punctuation">,</span> <span class="token number">4</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// Returns a('pie', 4)</span>
+<span class="token function">fn</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span>     <span class="token comment">// Returns b(1, 2)</span></code></pre></article>
+
+    <article class="toggle-block block" toggleable="" id="pipe-fn1-fn2">
+        <h3 class="text-5 ">
+            <a href="#pipe-fn1-fn2">
+                <code class="function language-js"><span class="token function">pipe</span><span class="token punctuation">(</span>fn1<span class="token punctuation">,</span> fn2<span class="token punctuation">,</span> <span class="token operator">...</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="weakcache-fn">
+        <h3 class="text-5 ">
+            <a href="#weakcache-fn">
+                <code class="function language-js"><span class="token function">weakCache</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns a function that caches the return values of <code>fn()</code>
+against input values in a WeakMap, such that for each input value
+<code>fn</code> is only ever called once.</p>
+</article>
+
         </div>
 
         <div class="x-1 x-span-3 @2-x-span-4">
@@ -71,74 +197,656 @@
         <div class="x-1 x-span-3 column-grid grid">
             <div class="x-1">
                 <h4 class="text-4">Objects</h4>
-                <template build-fn="docs:
-                modules/argument.js,
-                modules/call.js,
-                modules/equals.js,
-                modules/get.js,
-                modules/has.js,
-                modules/id.js,
-                modules/invoke.js,
-                modules/is.js,
-                modules/is-defined.js,
-                modules/matches.js,
-                modules/noop.js,
-                modules/not.js,
-                modules/request-tick.js,
-                modules/self.js,
-                modules/set.js,
-                modules/to-array.js,
-                modules/to-class.js,
-                modules/to-fixed.js,
-                modules/to-string.js,
-                modules/to-type.js
-                filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+                
+    <article class="toggle-block block" toggleable="" id="argument-n">
+        <h3 class="text-5 ">
+            <a href="#argument-n">
+                <code class="function language-js"><span class="token function">argument</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns a function that returns its nth argument when called.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="call-fn">
+        <h3 class="text-5 ">
+            <a href="#call-fn">
+                <code class="function language-js"><span class="token function">call</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns a function that calls <code>fn()</code> with no arguments.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="equals-a-b">
+        <h3 class="text-5 ">
+            <a href="#equals-a-b">
+                <code class="function language-js"><span class="token function">equals</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> b<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Perform a deep equality comparison of <code>a</code> and <code>b</code>. Returns <code>true</code> if
+they are equal.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="get-name-object">
+        <h3 class="text-5 ">
+            <a href="#get-name-object">
+                <code class="function language-js"><span class="token keyword">get</span><span class="token punctuation">(</span>name<span class="token punctuation">,</span> object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Get property <code>name</code> of <code>object</code>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="has-key-value-object">
+        <h3 class="text-5 ">
+            <a href="#has-key-value-object">
+                <code class="function language-js"><span class="token function">has</span><span class="token punctuation">(</span>key<span class="token punctuation">,</span> value<span class="token punctuation">,</span> object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns <code>true</code> if <code>object[key]</code> is strictly equal to <code>value</code>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="id-value">
+        <h3 class="text-5 ">
+            <a href="#id-value">
+                <code class="function language-js"><span class="token function">id</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns <code>value</code>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="invoke-name-parameters-object">
+        <h3 class="text-5 ">
+            <a href="#invoke-name-parameters-object">
+                <code class="function language-js"><span class="token function">invoke</span><span class="token punctuation">(</span>name<span class="token punctuation">,</span> parameters<span class="token punctuation">,</span> object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Invokes <code>object.name()</code> with <code>parameters</code> as arguments. For example:</p>
+<pre><code>models<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token function">invoke</span><span class="token punctuation">(</span><span class="token string">'save'</span><span class="token punctuation">,</span> <span class="token punctuation">[</span>version<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
+
+    <article class="toggle-block block" toggleable="" id="is-a-b">
+        <h3 class="text-5 ">
+            <a href="#is-a-b">
+                <code class="function language-js"><span class="token function">is</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> b<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Perform a strict equality check of <code>a === b</code>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="isdefined-value">
+        <h3 class="text-5 ">
+            <a href="#isdefined-value">
+                <code class="function language-js"><span class="token function">isDefined</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Check for value – where <code>value</code> is <code>undefined</code>, <code>NaN</code> or <code>null</code>, returns
+<code>false</code>, otherwise <code>true</code>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="matches-selector-object">
+        <h3 class="text-5 ">
+            <a href="#matches-selector-object">
+                <code class="function language-js"><span class="token function">matches</span><span class="token punctuation">(</span>selector<span class="token punctuation">,</span> object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="noop">
+        <h3 class="text-5 ">
+            <a href="#noop">
+                <code class="function language-js"><span class="token function">noop</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns undefined.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="not-value">
+        <h3 class="text-5 ">
+            <a href="#not-value">
+                <code class="function language-js"><span class="token function">not</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns <code>!value</code>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="requesttick-fn">
+        <h3 class="text-5 ">
+            <a href="#requesttick-fn">
+                <code class="function language-js"><span class="token function">requestTick</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Call <code>fn</code> on the next tick.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="self">
+        <h3 class="text-5 ">
+            <a href="#self">
+                <code class="function language-js"><span class="token function">self</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns <code>this</code>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="set-key-object-value">
+        <h3 class="text-5 ">
+            <a href="#set-key-object-value">
+                <code class="function language-js"><span class="token keyword">set</span><span class="token punctuation">(</span>key<span class="token punctuation">,</span> object<span class="token punctuation">,</span> value<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <pre><code><span class="token comment">// Set `input.value` whenever a value is pushed into a stream:</span>
+stream<span class="token punctuation">.</span><span class="token function">scan</span><span class="token punctuation">(</span><span class="token keyword">set</span><span class="token punctuation">(</span><span class="token string">'value'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> input<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
+
+    <article class="toggle-block block" toggleable="" id="toarray-object">
+        <h3 class="text-5 ">
+            <a href="#toarray-object">
+                <code class="function language-js"><span class="token function">toArray</span><span class="token punctuation">(</span>object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="toclass-object">
+        <h3 class="text-5 ">
+            <a href="#toclass-object">
+                <code class="function language-js"><span class="token function">toClass</span><span class="token punctuation">(</span>object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="tofixed-number">
+        <h3 class="text-5 ">
+            <a href="#tofixed-number">
+                <code class="function language-js"><span class="token function">toFixed</span><span class="token punctuation">(</span>number<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="tostring-object">
+        <h3 class="text-5 ">
+            <a href="#tostring-object">
+                <code class="function language-js"><span class="token function">toString</span><span class="token punctuation">(</span>object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns <code>object.toString()</code>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="totype-object">
+        <h3 class="text-5 ">
+            <a href="#totype-object">
+                <code class="function language-js"><span class="token function">toType</span><span class="token punctuation">(</span>object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns <code>typeof object</code>.</p>
+</article>
+
             </div>
         </div>
 
         <div class="x-1 x-span-3 @1-x-4 column-grid grid">
             <div class="x-1">
                 <h4 class="text-4">Strings</h4>
-                <template build-fn="docs:
-                modules/capture.js,
-                modules/exec.js,
-                'modules/time.js?parseDate,parseTime',
-                modules/parse-int.js,
-                modules/parse-value.js
-                filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+                
+    <article class="toggle-block block" toggleable="" id="capture-regex-reducers-accumulator-string">
+        <h3 class="text-5 ">
+            <a href="#capture-regex-reducers-accumulator-string">
+                <code class="function language-js"><span class="token function">capture</span><span class="token punctuation">(</span>regex<span class="token punctuation">,</span> reducers<span class="token punctuation">,</span> accumulator<span class="token punctuation">,</span> string<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Parse <code>string</code> with <code>regex</code>, calling functions in <code>reducers</code> to modify
+and return <code>accumulator</code>.</p>
+<p>Reducers is an object of functions keyed by the index of their capturing
+group in the regexp result (<code>0</code> corresponding to the entire regex match,
+the first capturing group being at index <code>1</code>). Reducer functions are
+called in capture order for all capturing groups that captured something.
+Reducers may also define the function ‘close’, which is called at the end
+of every capture. All functions are passed the paremeters
+<code>(accumulator, tokens)</code>, where <code>tokens</code> is the regexp result. Functions
+must return an accumulator.</p>
+<p>Reducers may also define a function ‘catch’, which is called when a match
+has not been made (where ‘catch’ is not defined an error is thrown).</p>
+<pre><code><span class="token keyword">const</span> rvalue <span class="token operator">=</span> <span class="token regex">/^\s*(-?\d*\.?\d+)(\w+)?\s*$/</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> parseValue <span class="token operator">=</span> <span class="token function">capture</span><span class="token punctuation">(</span>rvalue<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Create a new accumulator object each call</span>
+    <span class="token number">0</span><span class="token punctuation">:</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+
+    <span class="token number">1</span><span class="token punctuation">:</span> <span class="token punctuation">(</span>acc<span class="token punctuation">,</span> tokens<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+        acc<span class="token punctuation">.</span>number <span class="token operator">=</span> <span class="token function">parseFloat</span><span class="token punctuation">(</span>tokens<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> acc<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+
+    <span class="token number">2</span><span class="token punctuation">:</span> <span class="token punctuation">(</span>acc<span class="token punctuation">,</span> tokens<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+        acc<span class="token punctuation">.</span>unit <span class="token operator">=</span> tokens<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> acc<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> value <span class="token operator">=</span> <span class="token function">parseValue</span><span class="token punctuation">(</span><span class="token string">'36rem'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>    <span class="token comment">// { value: 36, unit: 'rem' }</span></code></pre></article>
+
+    <article class="toggle-block block" toggleable="" id="exec-regex-fn-string">
+        <h3 class="text-5 ">
+            <a href="#exec-regex-fn-string">
+                <code class="function language-js"><span class="token function">exec</span><span class="token punctuation">(</span>regex<span class="token punctuation">,</span> fn<span class="token punctuation">,</span> string<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="parsedate-date">
+        <h3 class="text-5 ">
+            <a href="#parsedate-date">
+                <code class="function language-js"><span class="token function">parseDate</span><span class="token punctuation">(</span>date<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Parses <code>date</code> as a:</p>
+<ul>
+<li>string in ISO format (including BC dates denoted with a leading <code>'-'</code>)</li>
+<li>number in seconds UNIX time</li>
+<li>date object</li>
+</ul>
+<p>Returns a date object, or <em>the</em> date object, if it validates.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="parsetime-time">
+        <h3 class="text-5 ">
+            <a href="#parsetime-time">
+                <code class="function language-js"><span class="token function">parseTime</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>If <code>time</code> is a number it is returned. If it is a string then it is
+parsed as a time in ISO time format: as hours <code>'13'</code>, with
+minutes <code>'13:25'</code>, with seconds <code>'13:25:14'</code> or decimal
+seconds <code>'13:25:14.001'</code>, and returned as a number in seconds.</p>
+<pre><code><span class="token keyword">const</span> time <span class="token operator">=</span> <span class="token function">parseTime</span><span class="token punctuation">(</span><span class="token string">'13:25:14.001'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// 48314.001</span></code></pre></article>
+
+    <article class="toggle-block block" toggleable="" id="parseint-string">
+        <h3 class="text-5 ">
+            <a href="#parseint-string">
+                <code class="function language-js"><span class="token function">parseInt</span><span class="token punctuation">(</span>string<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Parse to integer without having to worry about the radix parameter,
+making it suitable, for example, to use in <code>array.map(parseInt)</code>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="parsevalue-units-string">
+        <h3 class="text-5 ">
+            <a href="#parsevalue-units-string">
+                <code class="function language-js"><span class="token function">parseValue</span><span class="token punctuation">(</span>units<span class="token punctuation">,</span> string<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
             </div>
 
             <div class="x-1">
                 <h4 class="text-4">Numbers</h4>
-                <template build-fn="docs:
-                modules/maths/core.js,
-                modules/maths/cubic-bezier.js,
-                modules/maths/to-cartesian.js,
-                modules/maths/to-polar.js
-                filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+                
+    <article class="toggle-block block" toggleable="" id="mod-divisor-n">
+        <h3 class="text-5 ">
+            <a href="#mod-divisor-n">
+                <code class="function language-js"><span class="token function">mod</span><span class="token punctuation">(</span>divisor<span class="token punctuation">,</span> n<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>JavaScript’s modulu operator (<code>%</code>) uses Euclidean division, but for
+stuff that cycles through 0 the symmetrics of floored division are often
+are more useful.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="limit-min-max-n">
+        <h3 class="text-5 ">
+            <a href="#limit-min-max-n">
+                <code class="function language-js"><span class="token function">limit</span><span class="token punctuation">(</span>min<span class="token punctuation">,</span> max<span class="token punctuation">,</span> n<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="gcd-a-b">
+        <h3 class="text-5 ">
+            <a href="#gcd-a-b">
+                <code class="function language-js"><span class="token function">gcd</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> b<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="lcm-a-b">
+        <h3 class="text-5 ">
+            <a href="#lcm-a-b">
+                <code class="function language-js"><span class="token function">lcm</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> b<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="gaussian">
+        <h3 class="text-5 ">
+            <a href="#gaussian">
+                <code class="function language-js"><span class="token function">gaussian</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Generate a random number with a bell curve probability centred
+around 0 with limits -1 to 1.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="todb-level">
+        <h3 class="text-5 ">
+            <a href="#todb-level">
+                <code class="function language-js"><span class="token function">todB</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="tolevel-db">
+        <h3 class="text-5 ">
+            <a href="#tolevel-db">
+                <code class="function language-js"><span class="token function">toLevel</span><span class="token punctuation">(</span>dB<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="cubicbezier-point1-point2-duration-x">
+        <h3 class="text-5 ">
+            <a href="#cubicbezier-point1-point2-duration-x">
+                <code class="function language-js"><span class="token function">cubicBezier</span><span class="token punctuation">(</span>point1<span class="token punctuation">,</span> point2<span class="token punctuation">,</span> duration<span class="token punctuation">,</span> x<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Where <code>point1</code> and <code>point2</code> are <code>[x, y]</code> arrays describing control points.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="tocartesian-polar">
+        <h3 class="text-5 ">
+            <a href="#tocartesian-polar">
+                <code class="function language-js"><span class="token function">toCartesian</span><span class="token punctuation">(</span>polar<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="topolar-cartesian">
+        <h3 class="text-5 ">
+            <a href="#topolar-cartesian">
+                <code class="function language-js"><span class="token function">toPolar</span><span class="token punctuation">(</span>cartesian<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
             </div>
         </div>
 
         <div class="x-1 x-span-3 @2-x-7 column-grid grid">
             <div class="x-1">
                 <h4 class="text-4">Arrays</h4>
-                <template build-fn="docs:
-                modules/lists/core.js,
-                modules/lists/insert.js,
-                modules/lists/last.js,
-                modules/lists/remove.js,
-                modules/lists/rest.js,
-                modules/lists/take.js,
-                modules/lists/unique.js,
-                modules/lists/update.js
-                filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+                
+    <article class="toggle-block block" toggleable="" id="by-fn-a-b">
+        <h3 class="text-5 ">
+            <a href="#by-fn-a-b">
+                <code class="function language-js"><span class="token function">by</span><span class="token punctuation">(</span>fn<span class="token punctuation">,</span> a<span class="token punctuation">,</span> b<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Compares <code>fn(a)</code> against <code>fn(b)</code>. Useful for sorting.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="insert-fn-array-object">
+        <h3 class="text-5 ">
+            <a href="#insert-fn-array-object">
+                <code class="function language-js"><span class="token function">insert</span><span class="token punctuation">(</span>fn<span class="token punctuation">,</span> array<span class="token punctuation">,</span> object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Inserts <code>object</code> into <code>array</code> at the first index where the result of
+<code>fn(object)</code> is greater than <code>fn(array[index])</code>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="last-array">
+        <h3 class="text-5 ">
+            <a href="#last-array">
+                <code class="function language-js"><span class="token function">last</span><span class="token punctuation">(</span>array<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Gets the last value from an array.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="remove-array-value">
+        <h3 class="text-5 ">
+            <a href="#remove-array-value">
+                <code class="function language-js"><span class="token function">remove</span><span class="token punctuation">(</span>array<span class="token punctuation">,</span> value<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Remove <code>value</code> from <code>array</code>. Where <code>value</code> is not in <code>array</code>, does nothing.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="rest-n-array">
+        <h3 class="text-5 ">
+            <a href="#rest-n-array">
+                <code class="function language-js"><span class="token function">rest</span><span class="token punctuation">(</span>n<span class="token punctuation">,</span> array<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="take-n-array">
+        <h3 class="text-5 ">
+            <a href="#take-n-array">
+                <code class="function language-js"><span class="token function">take</span><span class="token punctuation">(</span>n<span class="token punctuation">,</span> array<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="unique-array">
+        <h3 class="text-5 ">
+            <a href="#unique-array">
+                <code class="function language-js"><span class="token function">unique</span><span class="token punctuation">(</span>array<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Takes an array or stream as <code>array</code>, returns an object of the same
+type without duplicate values.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="update-fn-array-object">
+        <h3 class="text-5 ">
+            <a href="#update-fn-array-object">
+                <code class="function language-js"><span class="token function">update</span><span class="token punctuation">(</span>fn<span class="token punctuation">,</span> array<span class="token punctuation">,</span> object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Compares the result of calling <code>fn</code> on <code>object</code> to the result of calling <code>fn</code>
+on each value in <code>array</code>. If a match is found, <code>object</code> has its properties
+assigned to that target, and if not the <code>object</code> is spliced into the
+array (preserving a sort order based on the result of <code>fn(object)</code>).</p>
+<p>Returns the updated object.</p>
+</article>
+
             </div>
 
             <div class="x-1">
                 <h4 class="text-4">Time</h4>
-                <template build-fn="docs:
-                modules/time.js
-                filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+                
+    <article class="toggle-block block" toggleable="" id="parsedate-date">
+        <h3 class="text-5 ">
+            <a href="#parsedate-date">
+                <code class="function language-js"><span class="token function">parseDate</span><span class="token punctuation">(</span>date<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Parses <code>date</code> as a:</p>
+<ul>
+<li>string in ISO format (including BC dates denoted with a leading <code>'-'</code>)</li>
+<li>number in seconds UNIX time</li>
+<li>date object</li>
+</ul>
+<p>Returns a date object, or <em>the</em> date object, if it validates.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="parsedatelocal-date">
+        <h3 class="text-5 ">
+            <a href="#parsedatelocal-date">
+                <code class="function language-js"><span class="token function">parseDateLocal</span><span class="token punctuation">(</span>date<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>As <code>parseDate(date)</code>, but returns a date object with local time set to the
+result of parsing (or the original date object, if it validates).</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="formatdatelocal-format-locale-date">
+        <h3 class="text-5 ">
+            <a href="#formatdatelocal-format-locale-date">
+                <code class="function language-js"><span class="token function">formatDateLocal</span><span class="token punctuation">(</span>format<span class="token punctuation">,</span> locale<span class="token punctuation">,</span> date<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="formatdateiso-date">
+        <h3 class="text-5 ">
+            <a href="#formatdateiso-date">
+                <code class="function language-js"><span class="token function">formatDateISO</span><span class="token punctuation">(</span>date<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Formats <code>date</code> (a string or a number or date accepted by <code>parseDate(date)</code>) as
+a string in the ISO date format.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="formatdatetimeiso-date">
+        <h3 class="text-5 ">
+            <a href="#formatdatetimeiso-date">
+                <code class="function language-js"><span class="token function">formatDateTimeISO</span><span class="token punctuation">(</span>date<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Formats <code>date</code> (a string or a number or date accepted by <code>parseDate(date)</code>) as
+a string in the ISO datetime format.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="today-date">
+        <h3 class="text-5 ">
+            <a href="#today-date">
+                <code class="function language-js"><span class="token function">toDay</span><span class="token punctuation">(</span>date<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns day of week as a number, where monday is <code>0</code>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="clonedate-date">
+        <h3 class="text-5 ">
+            <a href="#clonedate-date">
+                <code class="function language-js"><span class="token function">cloneDate</span><span class="token punctuation">(</span>date<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns new date object set to same time.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="adddate-diff-date">
+        <h3 class="text-5 ">
+            <a href="#adddate-diff-date">
+                <code class="function language-js"><span class="token function">addDate</span><span class="token punctuation">(</span>diff<span class="token punctuation">,</span> date<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Sums <code>diff</code> and <code>date</code>, where <code>diff</code> is a string in ISO date format. Returns
+a new date object.</p>
+<pre><code><span class="token keyword">const</span> addWeek <span class="token operator">=</span> <span class="token function">addDate</span><span class="token punctuation">(</span><span class="token string">'0000-00-07'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> sameTimeNextWeek <span class="token operator">=</span> <span class="token function">addWeek</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
+
+    <article class="toggle-block block" toggleable="" id="floordate-token-date">
+        <h3 class="text-5 ">
+            <a href="#floordate-token-date">
+                <code class="function language-js"><span class="token function">floorDate</span><span class="token punctuation">(</span>token<span class="token punctuation">,</span> date<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Floors date to the nearest <code>token</code>, where <code>token</code> is one of:
+<code>'year'</code>,
+<code>'month'</code>,
+<code>'week'</code>,
+<code>'day'</code>,
+<code>'hour'</code>,
+<code>'minute'</code>
+or <code>'second'</code>;
+<code>'mon'</code>,
+<code>'tue'</code>,
+<code>'wed'</code>,
+<code>'thu'</code>,
+<code>'fri'</code>,
+<code>'sat'</code>,
+<code>'sun'</code>;
+or a number representing a weekday.</p>
+<pre><code><span class="token keyword">const</span> dayCounts <span class="token operator">=</span> times<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token function">floorTime</span><span class="token punctuation">(</span><span class="token string">'days'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
+
+    <article class="toggle-block block" toggleable="" id="formatdate-format-date">
+        <h3 class="text-5 ">
+            <a href="#formatdate-format-date">
+                <code class="function language-js"><span class="token function">formatDate</span><span class="token punctuation">(</span>format<span class="token punctuation">,</span> date<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Formats <code>date</code> (a string or number or date accepted by <code>parseDate(date)</code>)
+to the format of the string <code>format</code>. The format string may contain the tokens:</p>
+<ul>
+<li><code>'YYYY'</code> years</li>
+<li><code>'YY'</code>   2-digit year</li>
+<li><code>'MM'</code>   month, 2-digit</li>
+<li><code>'MMM'</code>  month, 3-letter</li>
+<li><code>'MMMM'</code> month, full name</li>
+<li><code>'D'</code>    day of week</li>
+<li><code>'DD'</code>   day of week, two-digit</li>
+<li><code>'ddd'</code>  weekday, 3-letter</li>
+<li><code>'dddd'</code> weekday, full name</li>
+<li><code>'hh'</code>   hours</li>
+<li><code>'mm'</code>   minutes</li>
+<li><code>'ss'</code>   seconds</li>
+</ul>
+<pre><code><span class="token keyword">const</span> time <span class="token operator">=</span> <span class="token function">formatTime</span><span class="token punctuation">(</span><span class="token string">'+-hh:mm:ss'</span><span class="token punctuation">,</span> <span class="token number">3600</span><span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// 01:00:00</span></code></pre></article>
+
+    <article class="toggle-block block" toggleable="" id="parsetime-time">
+        <h3 class="text-5 ">
+            <a href="#parsetime-time">
+                <code class="function language-js"><span class="token function">parseTime</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>If <code>time</code> is a number it is returned. If it is a string then it is
+parsed as a time in ISO time format: as hours <code>'13'</code>, with
+minutes <code>'13:25'</code>, with seconds <code>'13:25:14'</code> or decimal
+seconds <code>'13:25:14.001'</code>, and returned as a number in seconds.</p>
+<pre><code><span class="token keyword">const</span> time <span class="token operator">=</span> <span class="token function">parseTime</span><span class="token punctuation">(</span><span class="token string">'13:25:14.001'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// 48314.001</span></code></pre></article>
+
+    <article class="toggle-block block" toggleable="" id="formattime-format-time">
+        <h3 class="text-5 ">
+            <a href="#formattime-format-time">
+                <code class="function language-js"><span class="token function">formatTime</span><span class="token punctuation">(</span>format<span class="token punctuation">,</span> time<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Formats <code>time</code> (a string or a number) to the format of the <code>format</code> string.
+The format string may contain the tokens:</p>
+<ul>
+<li>‘+-‘    sign</li>
+<li><code>'www'</code> weeks</li>
+<li><code>'dd'</code>  days</li>
+<li><code>'hhh'</code> duration hours, unlimited</li>
+<li><code>'hh'</code>  time hours, 24-hour cycle</li>
+<li><code>'mm'</code>  time minutes</li>
+<li><code>'ss'</code>  time seconds</li>
+<li><code>'sss'</code> time seconds with decimals</li>
+<li><code>'ms'</code>  time milliseconds</li>
+</ul>
+<pre><code><span class="token keyword">const</span> time <span class="token operator">=</span> <span class="token function">formatTime</span><span class="token punctuation">(</span><span class="token string">'+-hh:mm:ss'</span><span class="token punctuation">,</span> <span class="token number">3600</span><span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// 01:00:00</span></code></pre></article>
+
+    <article class="toggle-block block" toggleable="" id="formattimeiso-time">
+        <h3 class="text-5 ">
+            <a href="#formattimeiso-time">
+                <code class="function language-js"><span class="token function">formatTimeISO</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Formats <code>time</code> (a string or a number accepted by <code>parseTime(time)</code>) as
+a string in the ISO time format.
+<code>`</code></p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="addtime-time1-time2">
+        <h3 class="text-5 ">
+            <a href="#addtime-time1-time2">
+                <code class="function language-js"><span class="token function">addTime</span><span class="token punctuation">(</span>time1<span class="token punctuation">,</span> time2<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Sums <code>time2</code> and <code>time1</code>, returning UNIX time as a number in seconds.
+If <code>time1</code> is a string, it is parsed as a time diff, where numbers
+are accepted outside the bounds of 0-24 hours or 0-60 minutes or seconds.
+For example, to add 72 minutes to a list of times:</p>
+<pre><code><span class="token keyword">const</span> laters <span class="token operator">=</span> times<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token function">addTime</span><span class="token punctuation">(</span><span class="token string">'00:72'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
+
+    <article class="toggle-block block" toggleable="" id="floortime-token-time">
+        <h3 class="text-5 ">
+            <a href="#floortime-token-time">
+                <code class="function language-js"><span class="token function">floorTime</span><span class="token punctuation">(</span>token<span class="token punctuation">,</span> time<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Floors time to the nearest <code>token</code>, where <code>token</code> is one of: <code>'week'</code>, <code>'day'</code>,
+<code>'hour'</code>, <code>'minute'</code> or <code>'second'</code>.</p>
+<pre><code><span class="token keyword">const</span> dayCounts <span class="token operator">=</span> times<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token function">floorTime</span><span class="token punctuation">(</span><span class="token string">'days'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
+
             </div>
         </div>
     </section>
@@ -147,8 +855,8 @@
         <header class="x-1 x-span-3 @1-x-span-4">
             <h2 class="text-2" style="font-size: 1.875rem;">Observer</h2>
             <p>Import and create an observer:</p>
-            <pre><code class="language-js">import { Observer, observe } from '/fn/module.js';
-const data = Observer({ a: true });</code></pre>
+            <pre class=" language-js"><code class=" language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> Observer<span class="token punctuation">,</span> observe <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'/fn/module.js'</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token function">Observer</span><span class="token punctuation">(</span><span class="token punctuation">{</span> a<span class="token punctuation">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
             <p>
             An observer is an ES6 Proxy of an object that intercepts and reports
             mutations. There is only ever one observer per object, ie, calling
@@ -157,14 +865,42 @@ const data = Observer({ a: true });</code></pre>
             mutations with the observe function:
             </p>
 
-            <pre><code class="language-js">observe('a', (value) =&gt; {...}, data);</code></pre>
+            <pre class=" language-js"><code class=" language-js"><span class="token function">observe</span><span class="token punctuation">(</span><span class="token string">'a'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>value<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span><span class="token operator">...</span><span class="token punctuation">}</span><span class="token punctuation">,</span> data<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
         </header>
 
         <div class="x-1 x-span-3 list-grid grid">
-            <template build-fn="docs:
-            modules/observer/observer.js,
-            modules/observer/observe.js
-            filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+            
+    <h3 class="text-4">Observer</h3>
+
+    <article class="toggle-block block" toggleable="" id="observer-object">
+        <h3 class="text-5 ">
+            <a href="#observer-object">
+                <code class="function language-js"><span class="token function">Observer</span><span class="token punctuation">(</span>object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Create an Observer proxy around <code>object</code>. In order for <code>observe(...)</code> to detect
+mutations, changes must be made to this proxy rather than the original
+<code>object</code>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="observe-path-fn-object-init">
+        <h3 class="text-5 ">
+            <a href="#observe-path-fn-object-init">
+                <code class="function language-js"><span class="token function">observe</span><span class="token punctuation">(</span>path<span class="token punctuation">,</span> fn<span class="token punctuation">,</span> object <span class="token punctuation">[</span><span class="token punctuation">,</span> init<span class="token punctuation">]</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Observe <code>path</code> in <code>object</code> and call <code>fn(value)</code> with the value at the
+end of that path when it mutates. Returns a function that destroys this
+observer.</p>
+<p>The callback <code>fn</code> is called immediately on initialisation if the value at
+the end of the path is not equal to <code>init</code>. In the default case where
+<code>init</code> is <code>undefined</code>, paths that end in <code>undefined</code> do not cause the
+callback to be called.</p>
+<p>(To force the callback to always be called on setup, pass in <code>NaN</code> as an
+<code>init</code> value. In JS <code>NaN</code> is not equal to anything (even <code>NaN</code>), so it
+always initialises.)</p>
+</article>
+
         </div>
     </section>
 
@@ -178,34 +914,351 @@ const data = Observer({ a: true });</code></pre>
         <header class="x-1 x-span-3 @1-x-span-4">
             <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
             <p>Import and create a stream:</p>
-            <pre><code class="language-js">import { Stream } from '/fn/module.js';
-const stream = Stream.of(1,2,3,4);</code></pre>
+            <pre class=" language-js"><code class=" language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> Stream <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'/fn/module.js'</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> stream <span class="token operator">=</span> Stream<span class="token punctuation">.</span><span class="token keyword">of</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token number">4</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
         </header>
 
         <div class="x-1 x-span-3 list-grid grid">
-            <template build-fn="docs:modules/stream.js filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
-            <template build-fn="docs:modules/fn.js filter-property each" build-include="/fn/templates.html#{[type]}-template"></template>
+            
+    <h3 class="text-4">Construct</h3>
+
+    <article class="toggle-block block" toggleable="" id="stream-fn">
+        <h3 class="text-5 ">
+            <a href="#stream-fn">
+                <code class="function language-js"><span class="token function">Stream</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Construct a new stream. The <code>new</code> keyword is optional. <code>fn(notify, stop)</code> is
+invoked when the stream is started: it must return a source object – a
+‘producer’ – with the method <code>.shift()</code> and optionally methods <code>.push()</code>,
+<code>.start()</code> and <code>.stop()</code>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="stream-from-values">
+        <h3 class="text-5 ">
+            <a href="#stream-from-values">
+                <code class="function language-js">Stream<span class="token punctuation">.</span><span class="token keyword">from</span><span class="token punctuation">(</span>values<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns a writeable stream that consumes the array or array-like <code>values</code> as
+its source.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="stream-frompromise-promise">
+        <h3 class="text-5 ">
+            <a href="#stream-frompromise-promise">
+                <code class="function language-js">Stream<span class="token punctuation">.</span><span class="token function">fromPromise</span><span class="token punctuation">(</span>promise<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns a stream that uses the given promise as its source. When the promise
+resolves the stream is given its value and stopped. If the promise errors
+the stream is stopped without value. This stream is not writeable: it has no
+<code>.push()</code> method.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="stream-fromproperty-name-object">
+        <h3 class="text-5 ">
+            <a href="#stream-fromproperty-name-object">
+                <code class="function language-js">Stream<span class="token punctuation">.</span><span class="token function">fromProperty</span><span class="token punctuation">(</span>name<span class="token punctuation">,</span> object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns a stream of mutations made to the <code>name</code> property of <code>object</code>,
+assuming those mutations are made to the Observer proxy of object - see
+<a href="#observer">Observer</a>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="stream-fromtimer-timer">
+        <h3 class="text-5 ">
+            <a href="#stream-fromtimer-timer">
+                <code class="function language-js">Stream<span class="token punctuation">.</span><span class="token function">fromTimer</span><span class="token punctuation">(</span>timer<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Create a stream from a <code>timer</code> object. A <code>timer</code> is an object
+with the properties:</p>
+<pre><code><span class="token punctuation">{</span>
+    request<span class="token punctuation">:</span>     <span class="token function">fn</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span><span class="token punctuation">,</span> calls fn on the next frame<span class="token punctuation">,</span> returns an id
+    cancel<span class="token punctuation">:</span>      <span class="token function">fn</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span><span class="token punctuation">,</span> cancels request <span class="token keyword">with</span> id
+    now<span class="token punctuation">:</span>         <span class="token function">fn</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> returns the time
+    currentTime<span class="token punctuation">:</span> time at the start <span class="token keyword">of</span> the latest frame
+<span class="token punctuation">}</span></code></pre><p>Here is how a stream of animation frames may be created:</p>
+<pre><code><span class="token keyword">const</span> frames <span class="token operator">=</span> Stream<span class="token punctuation">.</span><span class="token function">fromTimer</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    request<span class="token punctuation">:</span> window<span class="token punctuation">.</span>requestAnimationFrame<span class="token punctuation">,</span>
+    cancel<span class="token punctuation">:</span> window<span class="token punctuation">.</span>cancelAnimationFrame<span class="token punctuation">,</span>
+    now<span class="token punctuation">:</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> window<span class="token punctuation">.</span>performance<span class="token punctuation">.</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>This stream is not writeable: it has no <code>.push()</code> method.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="stream-of-values">
+        <h3 class="text-5 ">
+            <a href="#stream-of-values">
+                <code class="function language-js">Stream<span class="token punctuation">.</span><span class="token keyword">of</span><span class="token punctuation">(</span><span class="token operator">...</span>values<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns a writeable stream that uses arguments as its source.</p>
+</article>
+
+            
+    <h3 class="text-4">Properties</h3>
+
+    <article class="toggle-block block" toggleable="" id="statusundefined">
+        <h3 class="text-5 dot-indent">
+            <a href="#statusundefined">
+                <code class="property language-js">.status</code>
+            </a>
+        </h3>
+    <p>Reflects the running status of the stream. When all values have been consumed
+status is <code>'done'</code>.</p>
+</article>
+
         </div>
 
         <div class="x-1 x-span-3 @1-x-4 list-grid grid">
-            <template build-fn="docs:modules/stream.js filter-method take:17 each" build-include="/fn/templates.html#{[type]}-template"></template>
+            
+    <h3 class="text-4">Write</h3>
+
+    <article class="toggle-block block" toggleable="" id="push-value">
+        <h3 class="text-5 dot-indent">
+            <a href="#push-value">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Pushes a <code>value</code> (or multiple values) into the head of the stream. If the
+    stream is not writeable, it does not have a <code>.push()</code> method.</p>
+</article>
+
+    <h3 class="text-4">Map</h3>
+
+    <article class="toggle-block block" toggleable="" id="chunk-n">
+        <h3 class="text-5 dot-indent">
+            <a href="#chunk-n">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">chunk</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Batches values into arrays of length <code>n</code>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="flat">
+        <h3 class="text-5 dot-indent">
+            <a href="#flat">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">flat</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Flattens a stream of streams or arrays into a single stream.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="flatmap-fn">
+        <h3 class="text-5 dot-indent">
+            <a href="#flatmap-fn">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Maps values to lists – <code>fn(value)</code> must return an array, functor, stream
+    (or any other duck with a <code>.shift()</code> method) and flattens those lists into a
+    single stream.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="map-fn">
+        <h3 class="text-5 dot-indent">
+            <a href="#map-fn">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Maps values to the result of <code>fn(value)</code>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="merge-stream">
+        <h3 class="text-5 dot-indent">
+            <a href="#merge-stream">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">merge</span><span class="token punctuation">(</span>stream<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Merges this stream with <code>stream</code>, which in fact may be an array, array-like
+    or functor.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="scan-fn-seed">
+        <h3 class="text-5 dot-indent">
+            <a href="#scan-fn-seed">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">scan</span><span class="token punctuation">(</span>fn<span class="token punctuation">,</span> seed<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Calls <code>fn(accumulator, value)</code> and emits <code>accumulator</code> for each value
+    in the stream.</p>
+</article>
+
+    <h3 class="text-4">Filter</h3>
+
+    <article class="toggle-block block" toggleable="" id="dedup">
+        <h3 class="text-5 dot-indent">
+            <a href="#dedup">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">dedup</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Filters out consecutive equal values.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="filter-fn">
+        <h3 class="text-5 dot-indent">
+            <a href="#filter-fn">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Filter values according to the truthiness of <code>fn(value)</code>.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="latest">
+        <h3 class="text-5 dot-indent">
+            <a href="#latest">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">latest</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>When the stream has a values buffered, passes the last value
+    in the buffer.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="rest-n">
+        <h3 class="text-5 dot-indent">
+            <a href="#rest-n">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">rest</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Filters the stream to the <code>n</code>th value and above.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="take-n">
+        <h3 class="text-5 dot-indent">
+            <a href="#take-n">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">take</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Filters the stream to the first <code>n</code> values.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="throttle-time">
+        <h3 class="text-5 dot-indent">
+            <a href="#throttle-time">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">throttle</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Throttles values such that the latest value is emitted every <code>time</code> seconds.
+    Other values are discarded. The parameter <code>time</code> may also be a timer options
+    object, an object with <code>{ request, cancel, now }</code> functions,
+    allowing the creation of, say, and animation frame throttle.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="wait-time">
+        <h3 class="text-5 dot-indent">
+            <a href="#wait-time">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">wait</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Emits the latest value only after <code>time</code> seconds of inactivity.
+    Other values are discarded.</p>
+</article>
+
         </div>
 
         <div class="x-1 x-span-3 @2-x-7 list-grid grid">
-            <template build-fn="docs:modules/stream.js filter-method rest:17 each" build-include="/fn/templates.html#{[type]}-template"></template>
+            
+    <h3 class="text-4">Read</h3>
+
+    <article class="toggle-block block" toggleable="" id="clone">
+        <h3 class="text-5 dot-indent">
+            <a href="#clone">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">clone</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Creates a read-only copy of the stream.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="each-fn">
+        <h3 class="text-5 dot-indent">
+            <a href="#each-fn">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">each</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Thirstilly consumes the stream, calling <code>fn(value)</code> whenever
+    a value is available.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="last-fn">
+        <h3 class="text-5 dot-indent">
+            <a href="#last-fn">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">last</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Consumes the stream when stopped, calling <code>fn(value)</code> with the
+    last value read from the stream.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="fold-fn-accumulator">
+        <h3 class="text-5 dot-indent">
+            <a href="#fold-fn-accumulator">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">fold</span><span class="token punctuation">(</span>fn<span class="token punctuation">,</span> accumulator<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Consumes the stream when stopped, calling <code>fn(accumulator, value)</code>
+    for each value in the stream. Returns a promise.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="shift">
+        <h3 class="text-5 dot-indent">
+            <a href="#shift">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">shift</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Reads a value from the stream. If no values are in the stream, returns
+    <code>undefined</code>. If this is the last value in the stream, <code>streams.status</code>
+    is <code>'done'</code>.</p>
+</article>
+
+    <h3 class="text-4">Lifecycle</h3>
+
+    <article class="toggle-block block" toggleable="" id="done-fn">
+        <h3 class="text-5 dot-indent">
+            <a href="#done-fn">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">done</span><span class="token punctuation">(</span>fn<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Calls <code>fn()</code> after the stream is stopped and all values have been drained.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="start">
+        <h3 class="text-5 dot-indent">
+            <a href="#start">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>If the stream’s producer is startable, starts the stream.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="stop">
+        <h3 class="text-5 dot-indent">
+            <a href="#stop">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">stop</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Stops the stream. No more values can be pushed to the stream and any
+    consumers added will do nothing. However, depending on the stream’s source
+    the stream may yet drain any buffered values into an existing consumer
+    before entering <code>'done'</code> state. Once in <code>'done'</code> state a stream is
+    entirely inert.</p>
+</article>
+
         </div>
     </section>
 
     <!-- Build document -->
-    <script type="module" build-remove="">
-        import '../fn/docs-build.js';
-    </script>
+    
 
     <!-- Document interactivity -->
     <script type="module">
         import '../dom/js/device.js';
         import '../dom/js/toggleable.js';
         import '../dom/js/locateable.js';
+        import * as Fn from './module.js';
+
+        Object.assign(window, Fn);
     </script>
 
 </body></html>
