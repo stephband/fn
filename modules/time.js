@@ -3,7 +3,6 @@ import { mod }   from './maths/core.js';
 import curry     from './curry.js';
 import choose    from './choose.js';
 import id        from './id.js';
-import isDefined from './is-defined.js';
 import overload  from './overload.js';
 import toType    from './to-type.js';
 import toClass   from './to-class.js';
@@ -63,7 +62,7 @@ var rdatediff = /^([+-])?(\d{2,})(?:-(\d{2,})(?:-(\d{2,}))?)?(?:([T-])|$)/;
 parseDate(date)
 Parses `date` as a:
 
-- string in ISO format (including BC dates denoted with a leading `'-'`)
+- string in ISO format
 - number in seconds UNIX time
 - date object
 
@@ -84,7 +83,7 @@ export const parseDate = overload(toType, {
 /*
 parseDateLocal(date)
 As `parseDate(date)`, but returns a date object with local time set to the
-result of parsing (or the original date object, if it validates).
+result of the parse (or the original date object, if it validates).
 */
 
 export const parseDateLocal = overload(toType, {
@@ -829,11 +828,12 @@ export const diffTime = curry(function(time1, time2) {
 
 /*
 floorTime(token, time)
-Floors time to the nearest `token`, where `token` is one of: `'week'`, `'day'`,
-`'hour'`, `'minute'` or `'second'`.
+Floors `time` to the nearest `token`, where `token` is one of: `'week'`, `'day'`,
+`'hour'`, `'minute'` or `'second'`. `time` may be an ISO time string or a time
+in seconds. Returns a time in seconds.
 
 ```
-const dayCounts = times.map(floorTime('days'));
+const hourCounts = times.map(floorTime('hour'));
 ```
 */
 

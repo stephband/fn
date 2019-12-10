@@ -435,7 +435,7 @@ has not been made (where ‘catch’ is not defined an error is thrown).</p>
         </h3>
     <p>Parses <code>date</code> as a:</p>
 <ul>
-<li>string in ISO format (including BC dates denoted with a leading <code>'-'</code>)</li>
+<li>string in ISO format</li>
 <li>number in seconds UNIX time</li>
 <li>date object</li>
 </ul>
@@ -659,7 +659,7 @@ array (preserving a sort order based on the result of <code>fn(object)</code>).<
         </h3>
     <p>Parses <code>date</code> as a:</p>
 <ul>
-<li>string in ISO format (including BC dates denoted with a leading <code>'-'</code>)</li>
+<li>string in ISO format</li>
 <li>number in seconds UNIX time</li>
 <li>date object</li>
 </ul>
@@ -673,7 +673,7 @@ array (preserving a sort order based on the result of <code>fn(object)</code>).<
             </a>
         </h3>
     <p>As <code>parseDate(date)</code>, but returns a date object with local time set to the
-result of parsing (or the original date object, if it validates).</p>
+result of the parse (or the original date object, if it validates).</p>
 </article>
 
     <article class="toggle-block block" toggleable="" id="formatdatelocal-format-locale-date">
@@ -843,9 +843,10 @@ For example, to add 72 minutes to a list of times:</p>
                 <code class="function language-js"><span class="token function">floorTime</span><span class="token punctuation">(</span>token<span class="token punctuation">,</span> time<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    <p>Floors time to the nearest <code>token</code>, where <code>token</code> is one of: <code>'week'</code>, <code>'day'</code>,
-<code>'hour'</code>, <code>'minute'</code> or <code>'second'</code>.</p>
-<pre><code><span class="token keyword">const</span> dayCounts <span class="token operator">=</span> times<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token function">floorTime</span><span class="token punctuation">(</span><span class="token string">'days'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
+    <p>Floors <code>time</code> to the nearest <code>token</code>, where <code>token</code> is one of: <code>'week'</code>, <code>'day'</code>,
+<code>'hour'</code>, <code>'minute'</code> or <code>'second'</code>. <code>time</code> may be an ISO time string or a time
+in seconds. Returns a time in seconds.</p>
+<pre><code><span class="token keyword">const</span> hourCounts <span class="token operator">=</span> times<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token function">floorTime</span><span class="token punctuation">(</span><span class="token string">'hour'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
 
             </div>
         </div>
