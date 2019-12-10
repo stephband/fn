@@ -23,9 +23,13 @@ function reduce(reducers, acc, tokens) {
 }
 
 /*
-capture(regex, parts, accumulator, string)
-Parse `string` with `regex`, calling functions in `parts` to modify
-`accumulator`. Returns accumulator.
+capture(regex, reducers, accumulator, string)
+Parse `string` with `regex`, calling functions in `reducers` to modify
+and return `accumulator`.
+
+```
+const parsePhone = capture( /\s*/    )
+```
 */
 
 export default function capture(regex, reducers, acc, string) {

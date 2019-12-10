@@ -1,6 +1,6 @@
 /*
-id(object)
-Returns `object`.
+id(value)
+Returns `value`.
 */
 
-export default function id(object) { return object; }
+export default function id(value) { return value; }

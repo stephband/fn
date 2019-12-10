@@ -60,7 +60,14 @@ var rdate     = /^(-?\d{4})(?:-(0[1-9]|1[012])(?:-(0[1-9]|[12]\d|3[01])(?:T([01]
 var rdatediff = /^([+-])?(\d{2,})(?:-(\d{2,})(?:-(\d{2,}))?)?(?:([T-])|$)/;
 
 /*
-parseDate(string)
+parseDate(date)
+Parses `date` as a:
+
+- string in ISO format (including BC dates denoted with a leading `'-'`)
+- number in seconds UNIX time
+- date object
+
+Returns a date object, or *the* date object, if it validates.
 */
 
 export const parseDate = overload(toType, {
@@ -70,19 +77,21 @@ export const parseDate = overload(toType, {
 		return isValidDate(date) ? date : undefined ;
 	},
 	default: function(date) {
-        throw new Error('parseDate: date is not of a supported type (number, string, Date)');
+        throw new TypeError('parseDate(date) date is not of a supported type (' + (typeof date) + ')');
     }
 });
 
 /*
-parseDateLocal(string)
+parseDateLocal(date)
+As `parseDate(date)`, but returns a date object with local time set to the
+result of parsing (or the original date object, if it validates).
 */
 
 export const parseDateLocal = overload(toType, {
 	number:  secondsToDate,
 	string:  exec(rdate, createDateLocal),
 	object:  function(date) {
-		return date instanceof Date ? date : undefined ;
+		return isValidDate(date) ? date : undefined ;
 	},
 	default: function(date) {
         throw new Error('parseDateLocal: date is not of a supported type (number, string, Date)');
@@ -307,6 +316,8 @@ export function formatDateLocal(string, locale, date) {
 
 /*
 formatDateISO(date)
+Formats `date` (a string or a number or date accepted by `parseDate(date)`) as
+a string in the ISO date format.
 */
 
 export function formatDateISO(date) {
@@ -315,6 +326,8 @@ export function formatDateISO(date) {
 
 /*
 formatDateTimeISO(date)
+Formats `date` (a string or a number or date accepted by `parseDate(date)`) as
+a string in the ISO datetime format.
 */
 
 export function formatDateTimeISO(date) {
@@ -488,18 +501,10 @@ function floorDateByDay(day, date) {
 function _floorDate(grain, date) {
 	// Clone date before mutating it
 	date = cloneDate(date);
-
-	// Take a day string or number, find the last matching day
-	var day = typeof grain === 'number' ?
-		grain :
-		days[grain] ;
-
-	return isDefined(day) ?
-		floorDateByDay(day, date) :
-		floorDateByGrain(grain, date) ;
+	return typeof grain === 'number' ? floorDateByDay(grain, date) :
+        days[grain] ? floorDateByDay(days[grain], date) :
+	    floorDateByGrain(grain, date) ;
 }
-
-
 
 export function nowDate() {
 	return new Date();
@@ -513,15 +518,73 @@ export function toTimestamp(date) {
 	return date.getTime() / 1000;
 }
 
+/*
+addDate(diff, date)
+Sums `diff` and `date`, where `diff` is a string in ISO date format. Returns
+a new date object.
+
+```
+const addWeek = addDate('0000-00-07');
+const sameTimeNextWeek = addWeek(new Date());
+```
+*/
+
 export const addDate = curry(function(diff, date) {
 	return _addDate(diff, parseDate(date));
 });
 
 export const diffDateDays = curry(_diffDateDays);
 
+/*
+floorDate(token, date)
+Floors date to the nearest `token`, where `token` is one of:
+`'year'`,
+`'month'`,
+`'week'`,
+`'day'`,
+`'hour'`,
+`'minute'`
+or `'second'`;
+`'mon'`,
+`'tue'`,
+`'wed'`,
+`'thu'`,
+`'fri'`,
+`'sat'`,
+`'sun'`;
+or a number representing a weekday.
+
+```
+const dayCounts = times.map(floorTime('days'));
+```
+*/
+
 export const floorDate = curry(function(token, date) {
 	return _floorDate(token, parseDate(date));
 });
+
+/*
+formatDate(format, date)
+Formats `date` (a string or number or date accepted by `parseDate(date)`)
+to the format of the string `format`. The format string may contain the tokens:
+
+- `'YYYY'` years
+- `'YY'`   2-digit year
+- `'MM'`   month, 2-digit
+- `'MMM'`  month, 3-letter
+- `'MMMM'` month, full name
+- `'D'`    day of week
+- `'DD'`   day of week, two-digit
+- `'ddd'`  weekday, 3-letter
+- `'dddd'` weekday, full name
+- `'hh'`   hours
+- `'mm'`   minutes
+- `'ss'`   seconds
+
+```
+const time = formatTime('+-hh:mm:ss', 3600);   // 01:00:00
+```
+*/
 
 export const formatDate = curry(function(string, timezone, locale, date) {
 	return string === 'ISO' ?
@@ -563,7 +626,11 @@ var rtime     = /^([+-])?(\d{2,}):([0-5]\d)(?::((?:[0-5]\d|60)(?:.\d+)?))?$/;
 var rtimediff = /^([+-])?(\d{2,}):(\d{2,})(?::(\d{2,}(?:.\d+)?))?$/;
 
 /*
-parseTime(string)
+parseTime(time)
+If `time` is a number it is returned, a string then it is
+parsed as a time in UNIX format: as hours `'13'`, with minutes `'13:25'`, with
+seconds `'13:25:14'` or decimal seconds `'13:25:14.001'`, and returned as
+a number in seconds.
 */
 
 export const parseTime = overload(toType, {
@@ -647,11 +714,10 @@ var timeFormatters = {
 };
 
 function createTime(match, sign, hh, mm, sss) {
-	var time = hoursToSeconds(parseInt(hh, 10)) + (
-		mm ? minutesToSeconds(parseInt(mm, 10)) + (
-			sss ? parseFloat(sss, 10) : 0
-		) : 0
-	);
+	var time = hoursToSeconds(parseInt(hh, 10))
+        + (mm ? minutesToSeconds(parseInt(mm, 10))
+            + (sss ? parseFloat(sss, 10) : 0)
+        : 0) ;
 
 	return sign === '-' ? -time : time ;
 }
@@ -697,6 +763,22 @@ export const nowTime = function() {
 
 /*
 formatTime(format, time)
+Formats `time` (a string or a number) to the format of the `format` string.
+The format string may contain the tokens:
+
+- '+-'    sign
+- `'www'` weeks
+- `'dd'`  days
+- `'hhh'` duration hours, unlimited
+- `'hh'`  time hours, 24-hour cycle
+- `'mm'`  time minutes
+- `'ss'`  time seconds
+- `'sss'` time seconds with decimals
+- `'ms'`  time milliseconds
+
+```
+const time = formatTime('+-hh:mm:ss', 3600);   // 01:00:00
+```
 */
 
 export const formatTime = curry(function(string, time) {
@@ -707,6 +789,9 @@ export const formatTime = curry(function(string, time) {
 
 /*
 formatTimeISO(time)
+Formats `time` (a string or a number accepted by `parseTime(time)`) as
+a string in the ISO time format.
+```
 */
 
 export function formatTimeISO(time) {
@@ -716,6 +801,14 @@ export function formatTimeISO(time) {
 
 /*
 addTime(time1, time2)
+Sums `time2` and `time1`, returning UNIX time as a number in seconds.
+If `time1` is a string, it is parsed as a time diff, where numbers
+are accepted outside the bounds of 0-24 hours or 0-60 minutes or seconds.
+For example, to add 72 minutes to a list of times:
+
+```
+const laters = times.map(addTime('00:72'));
+```
 */
 
 export const addTime = curry(function(time1, time2) {
@@ -732,6 +825,12 @@ export const diffTime = curry(function(time1, time2) {
 
 /*
 floorTime(token, time)
+Floors time to the nearest `token`, where `token` is one of: `'week'`, `'day'`,
+`'hour'`, `'minute'` or `'second'`.
+
+```
+const dayCounts = times.map(floorTime('days'));
+```
 */
 
 export const floorTime = curry(function(token, time) {
