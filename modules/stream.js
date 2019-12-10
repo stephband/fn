@@ -243,16 +243,16 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
 
     /*
     .push(value)
-    Pushes a `value` (or multiple values) into the head of the stream. If the
-    stream is not writeable, it does not have a `.push()` method.
+    Pushes a `value` (or multiple values) into the head of a writeable stream.
+    If the stream is not writeable, it does not have a `.push()` method.
     */
 
     /* Map */
 
-    /*
-    .chunk(n)
-    Batches values into arrays of length `n`.
-    */
+    ///*
+    //.chunk(n)
+    //Batches values into arrays of length `n`.
+    //*/
 
     /*
     .flat()

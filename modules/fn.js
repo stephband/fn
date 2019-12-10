@@ -437,10 +437,10 @@ assign(Fn.prototype, {
         }, this.shift));
     },
 
-    /*
-    .chunk(n)
-    Batches values into arrays of length `n`.
-    */
+    ///*
+    //.chunk(n)
+    //Batches values into arrays of length `n`.
+    //*/
 
     chunk: function(n) {
         return this
