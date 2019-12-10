@@ -60,11 +60,11 @@ var rdatediff = /^([+-])?(\d{2,})(?:-(\d{2,})(?:-(\d{2,}))?)?(?:([T-])|$)/;
 
 /*
 parseDate(date)
-Parses `date` as a:
+Parse a date, where, `date` may be:
 
-- string in ISO format
-- number in seconds UNIX time
-- date object
+- a string in ISO date format
+- a number in seconds UNIX time
+- a date object
 
 Returns a date object, or *the* date object, if it validates.
 */
