@@ -399,8 +399,8 @@ Reducers may also define the function ‘close’, which is called at the end
 of every capture. All functions are passed the paremeters
 <code>(accumulator, tokens)</code>, where <code>tokens</code> is the regexp result. Functions
 must return an accumulator.</p>
-<p>Reducers may also define a function ‘catch’, which is called when a match
-has not been made (where ‘catch’ is not defined an error is thrown).</p>
+<p>Reducers may also define a function <code>'catch'</code>, which is called when a match
+has not been made (where <code>'catch'</code> is not defined an error is thrown).</p>
 <pre><code><span class="token keyword">const</span> rvalue <span class="token operator">=</span> <span class="token regex">/^\s*(-?\d*\.?\d+)(\w+)?\s*$/</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> parseValue <span class="token operator">=</span> <span class="token function">capture</span><span class="token punctuation">(</span>rvalue<span class="token punctuation">,</span> <span class="token punctuation">{</span>
     <span class="token comment">// Create a new accumulator object each call</span>

@@ -36,8 +36,8 @@ of every capture. All functions are passed the paremeters
 `(accumulator, tokens)`, where `tokens` is the regexp result. Functions
 must return an accumulator.
 
-Reducers may also define a function 'catch', which is called when a match
-has not been made (where 'catch' is not defined an error is thrown).
+Reducers may also define a function `'catch'`, which is called when a match
+has not been made (where `'catch'` is not defined an error is thrown).
 
 ```
 const rvalue = /^\s*(-?\d*\.?\d+)(\w+)?\s*$/;
