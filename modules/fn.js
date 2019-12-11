@@ -379,8 +379,8 @@ assign(Fn.prototype, {
     */
 
     join: function() {
-        console.warn('Fn.join() is now Fn.flat() to mirror name of new Array method');
-        return this.join();
+        console.trace('Fn.join() is now Fn.flat() to mirror name of new Array method');
+        return this.flat();
     },
 
     flat: function() {
@@ -391,7 +391,7 @@ assign(Fn.prototype, {
             var value = buffer.shift();
             if (value !== undefined) { return value; }
             buffer = source.shift();
-            if (buffer !== undefined) { return join(); }
+            if (buffer !== undefined) { return flat(); }
             buffer = nothing;
         });
     },
@@ -518,7 +518,7 @@ assign(Fn.prototype, {
 
     scan: function scan(fn, accumulator) {
         return this.map(function scan(value) {
-            return seed = fn(seed, value);
+            return accumulator = fn(accumulator, value);
         });
     },
 
