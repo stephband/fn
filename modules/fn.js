@@ -449,7 +449,9 @@ assign(Fn.prototype, {
             count: 0,
             accumulator: []
         })
-        .map(get('value'));
+        .map(function(accumulator) {
+            return accumulator.value;
+        });
     },
 
     partition: function(fn) {
@@ -518,7 +520,9 @@ assign(Fn.prototype, {
 
     scan: function scan(fn, accumulator) {
         return this.map(function scan(value) {
-            return accumulator = fn(accumulator, value);
+            var acc = fn(accumulator, value);
+            accumulator = acc;
+            return accumulator;
         });
     },
 
@@ -681,7 +685,9 @@ assign(Fn.prototype, {
     },
 
     toJSON: function() {
-        return this.reduce(arrayReducer, []);
+        const array = [];
+        this.scan(arrayReducer, array).each(noop);
+        return array;
     },
 
     toString: function() {

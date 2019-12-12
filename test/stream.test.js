@@ -1,8 +1,8 @@
 
-group('Stream()', function(test, log) {
+import test from "../modules/test/test.js";
+import { Stream, add, Timer, get } from '../module.js';
 
-	var Stream = window.Stream;
-
+test('Stream()', function(test, log) {
 	test('Stream(setup)', function(equals, done) {
 		var i = 0;
 		var s = Stream(function setup() {
@@ -18,12 +18,12 @@ group('Stream()', function(test, log) {
 		equals(3, s.shift());
 		equals(4, s.shift());
 		equals(undefined, s.shift());
+        equals(undefined, s.shift());
 
 		done();
-	}, 5);
+	}, 6);
 
 	test('Stream.of(...)', function(equals, done) {
-		var i = 0;
 		var s = Stream.of(1,2,3,4);
 
 		equals(1, s.shift());
@@ -31,10 +31,11 @@ group('Stream()', function(test, log) {
 		equals(3, s.shift());
 		equals(4, s.shift());
 		equals(undefined, s.shift());
+        equals(undefined, s.shift());
 
 		done();
-	}, 5);
-
+	}, 6);
+/*
 	test('.chunk()', function(equals, done) {
 		var f = Stream.of(0,1,2,3,4,5,6,7,8).chunk(2);
 		equals('0,1', f.shift().toArray().join());
@@ -44,7 +45,7 @@ group('Stream()', function(test, log) {
 		equals(undefined, f.shift());
 		done();
 	});
-
+*/
 	test('.shift()', function(equals, done) {
 		var i = 0;
 		var s = Stream(function setup() {
@@ -93,15 +94,15 @@ group('Stream()', function(test, log) {
 	});
 
 	test('.map()', function(equals, done) {
-		var s1 = Fn.from([0,1,2,3]);
-		var s2 = s1.map(Fn.add(1));
+		var s1 = Stream.from([0,1,2,3]);
+		var s2 = s1.map(add(1));
 		equals('1,2,3,4', s2.toArray().join());
 
 		done();
 	});
-
+/*
 	test('.fold()', function(equals, done) {
-		var s = Stream.of(1,0,1,0).fold(Fn.add, 2);
+		var s = Stream.of(1,0,1,0).fold(add, 2);
 		equals(2, s.shift());
 		equals(3, s.shift());
 		equals(3, s.shift());
@@ -114,13 +115,13 @@ group('Stream()', function(test, log) {
 
 	test('.reduce()', function(equals, done) {
 		var s = Stream.of(1,0,1,0);
-		var v = s.reduce(Fn.add, 2);
+		var v = s.reduce(add, 2);
 		equals(4, v);
 		equals(undefined, s.shift());
 
 		done();
 	});
-
+*/
 	test('.pipe()', function(equals, done) {
 		var s1 = Stream.of(0,1,2,3);
 		var s2 = s1.pipe(Stream.of());
@@ -200,9 +201,9 @@ group('Stream()', function(test, log) {
 
 		// Pipe then .stop()
 
-		var s1 = Stream.of(1,2);
-		var s2 = Stream.of(3);
-		var s3 = Stream.of(0);
+		s1 = Stream.of(1,2);
+		s2 = Stream.of(3);
+		s3 = Stream.of(0);
 
 		s3.name = 's3';
 
@@ -249,7 +250,7 @@ group('Stream()', function(test, log) {
 
 		done();
 	});
-
+/*
 	test('.partition()', function(equals, done) {
 		var s = Stream.of(
 			[0, "note", 60, 0.5],
@@ -259,24 +260,24 @@ group('Stream()', function(test, log) {
 			[4, "pitch", 60],
 			[5, "tempo", 120]
 		)
-		.partition(Fn.get(1));
+		.partition(get(1));
 
-		equals('note,note,note', s.shift().map(Fn.get(1)).toArray().join());
-		equals('pitch,pitch', s.shift().map(Fn.get(1)).toArray().join());
-		equals('tempo', s.shift().map(Fn.get(1)).toArray().join());
+		equals('note,note,note', s.shift().map(get(1)).toArray().join());
+		equals('pitch,pitch', s.shift().map(get(1)).toArray().join());
+		equals('tempo', s.shift().map(get(1)).toArray().join());
 		equals(undefined, s.shift());
 
 		done();
 	});
-
-	test('.join()', function(equals, done) {
+*/
+	test('.flat()', function(equals, done) {
 		equals('0,0,1,1,1,2,3,3,3,3,3,4,4',
 			Stream.of([0,0,1,1,1],[2,3],[3,3,3,3],[4,4])
-			.join()
+			.flat()
 			.toArray()
 			.join()
 		);
-
+/*
 		equals('note,note,note,pitch,pitch,tempo', Stream.of(
 				[0, "note", 60, 0.5],
 				[1, "note", 60, 0.5],
@@ -285,16 +286,16 @@ group('Stream()', function(test, log) {
 				[4, "pitch", 60],
 				[5, "tempo", 120]
 			)
-			.partition(Fn.get(1))
-			.join()
-			.map(Fn.get(1))
+			.partition(get(1))
+			.flat()
+			.map(get(1))
 			.toArray()
 			.join()
 		);
 
 		var s = Stream.of(0,0,1,2,3,3,2,3,0)
 			.partition()
-			.join();
+			.flat();
 
 		equals([0,0,0,1,2,2,3,3,3].join(), s.toArray().join());
 
@@ -313,7 +314,7 @@ group('Stream()', function(test, log) {
 		s.push(7);
 		s.push(8);
 		equals([7,7,8,8].join(), s.toArray().join());
-
+*/
 		done();
 	});
 
@@ -322,11 +323,7 @@ group('Stream()', function(test, log) {
 		var s1 = Stream.of(2,3);
 		var s2 = Stream.of(4,5);
 
-		equals('0,1,2,3,4,5',
-			s0.merge(s1, s2)
-			.toArray()
-			.join()
-		);
+		equals('0,1,2,3,4,5', s0.merge(s1, s2).toArray().join());
 
 		var s0 = Stream.of(0,1);
 		var s1 = Stream.of(2,3);
@@ -334,21 +331,8 @@ group('Stream()', function(test, log) {
 
 		s1.push(6);
 
-		equals('0,1,2,3,6,4,5',
-			s0.merge(s1, s2)
-			.toArray()
-			.join()
-		);
-
-		var s0 = Stream.of(0,1);
-		var s1 = Stream.of(2,3);
-		var s2 = Stream.of(4,5);
-		var s3 = s0.merge(s1, s2);
-
-		s1.push(6);
-
-		equals('0,1,2,3,6,4,5', s3.toArray().join());
-
+		equals('0,1,2,3,6,4,5', s0.merge(s1, s2).toArray().join());
+/*
 		var s0 = Stream.of(0,1);
 		var s1 = Stream.of(2,3);
 		var s2 = Stream.of(4,5);
@@ -364,14 +348,14 @@ group('Stream()', function(test, log) {
 		equals(4, s3.shift());
 		equals(5, s3.shift());
 		equals(6, s3.shift());
-
+*/
 		done();
 	});
 
 	test('.combine()', function(equals, done) {
 		var s0 = Stream.of(0,1);
 		var s1 = Stream.of(2,3);
-		var s2 = s0.combine(Fn.add, s1);
+		var s2 = s0.combine(add, s1);
 
 		equals(4, s2.shift());
 
@@ -440,7 +424,7 @@ group('Stream()', function(test, log) {
 	}, 2);
 
 	test('.throttle(timer)', function(equals, done) {
-		var timer  = Fn.Timer(0.5);
+		var timer  = Timer(0.5);
 		var buffer = Stream.of(0,1,2,3,4,5);
 		var i = 0;
 

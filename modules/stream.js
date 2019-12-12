@@ -63,17 +63,17 @@ function createSource(stream, privates, options, Source) {
         delete privates.events;
 
         // If no n, shut the stream down
-        if (n !== undefined) {
-            privates.source = new StopSource(stream, privates.source, privates, n, done);
+        if (!n) {
             privates.stops && privates.stops.forEach((fn) => fn());
             privates.stops = undefined;
+            done(stream, privates);
         }
 
         // Schedule shutdown of stream after n values
         else {
+            privates.source = new StopSource(stream, privates.source, privates, n, done);
             privates.stops && privates.stops.forEach((fn) => fn());
             privates.stops = undefined;
-            done(stream, privates);
         }
     }
 
@@ -88,15 +88,17 @@ function createSource(stream, privates, options, Source) {
     return (privates.source = source);
 }
 
-function shiftBuffer(shift, bufferA) {
-    if (bufferA.length === 0) {
-        const value = shift();
-        if (value === undefined) { return; }
-        let n = arguments.length;
-        while (--n) arguments[n].push(value);
+function shiftBuffer(shift, state, one, two, buffer) {
+    if (buffer.length && state.buffered === one) {
+        return buffer.shift();
     }
 
-    return bufferA.shift();
+    const value = shift();
+    if (value === undefined) { return; }
+
+    buffer.push(value);
+    state.buffered = two;
+    return value;
 }
 
 // StartSource
@@ -225,16 +227,13 @@ export default function Stream(Source, options) {
         return privates.source.shift();
     };
 
-    // I use presence of push to check for writeability in various places,
-    // keep it as an instance method for just now
+    // Keep it as an instance method for just now
     this.push = function push() {
         const source = privates.source;
         source.push.apply(source, arguments);
         return this;
     };
 }
-
-// Stream Methods
 
 Stream.prototype = assign(Object.create(Fn.prototype), {
     constructor: Stream,
@@ -363,13 +362,18 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     */
 
     clone: function clone() {
-        const source  = this;
-        const shift   = this.shift.bind(this);
-        const buffer1 = [];
-        const buffer2 = [];
+        const source = this;
+        const shift  = this.shift.bind(this);
+        const buffer = [];
+
+        const state = {
+            // Flag telling us which stream has been buffered,
+            // source (1) or copy (2)
+            buffered: 1
+        };
 
         this.shift = function() {
-            return shiftBuffer(shift, buffer1, buffer2);
+            return shiftBuffer(shift, state, 1, 2, buffer);
         };
 
         return new Stream(function(notify, stop) {
@@ -378,14 +382,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
 
             return {
                 shift: function() {
-                    const value = shiftBuffer(shift, buffer2, buffer1);
-
-                    if (source.status === 'done') {
-                        // Since this has just shifted, it should be at 0
-                        stop(buffer2.length);
-                    }
-
-                    return value;
+                    return shiftBuffer(shift, state, 2, 1, buffer);
                 },
 
                 stop: function() {
