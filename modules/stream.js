@@ -9,7 +9,7 @@ import Timer    from './timer.js';
 import toArray  from './to-array.js';
 import choke    from './choke.js';
 import Privates from './privates.js';
-import Fn, { create } from './fn.js';
+import Fn       from './fn.js';
 
 var debug     = false;
 var A         = Array.prototype;
@@ -257,6 +257,18 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     .flat()
     Flattens a stream of streams or arrays into a single stream.
     */
+
+    flat: function() {
+        const output = this.constructor.of();
+        this.each((input) => {
+            input.pipe ?
+                // Input is a stream
+                input.pipe(output) :
+                // Input is an array-like
+                output.push.apply(output, input) ;
+        });
+        return output;
+    },
 
     /*
     .flatMap(fn)

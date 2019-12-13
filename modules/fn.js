@@ -390,17 +390,20 @@ assign(Fn.prototype, {
         return create(this, function flat() {
             var value = buffer.shift();
             if (value !== undefined) { return value; }
-            buffer = source.shift();
-            if (buffer !== undefined) { return flat(); }
-            buffer = nothing;
+            // Support array buffers and stream buffers
+            //if (buffer.length === 0 || buffer.status === 'done') {
+                buffer = source.shift();
+                if (buffer !== undefined) { return flat(); }
+                buffer = nothing;
+            //}
         });
     },
 
     /*
     .flatMap()
-    Maps values to lists – `fn(value)` must return an array, functor, stream
+    Maps values to lists – `fn(value)` must return an array, stream
     or other type with a `.shift()` method – and flattens those lists into a
-    single stream. Should be called mapFlat, really.
+    single stream.
     */
 
     flatMap: function(fn) {

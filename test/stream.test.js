@@ -277,22 +277,23 @@ test('Stream()', function(test, log) {
 			.toArray()
 			.join()
 		);
-/*
-		equals('note,note,note,pitch,pitch,tempo', Stream.of(
-				[0, "note", 60, 0.5],
-				[1, "note", 60, 0.5],
-				[2, "pitch", 1],
-				[3, "note", 60, 0.5],
-				[4, "pitch", 60],
-				[5, "tempo", 120]
-			)
-			.partition(get(1))
+
+		equals('note,note,note,pitch,pitch,tempo', Stream.of([
+                [0, "note", 60, 0.5],
+			    [1, "note", 60, 0.5],
+                [3, "note", 60, 0.5]
+            ], [
+                [2, "pitch", 1],
+			    [4, "pitch", 60]
+            ], [
+			    [5, "tempo", 120]
+            ])
 			.flat()
 			.map(get(1))
 			.toArray()
 			.join()
 		);
-
+/*
 		var s = Stream.of(0,0,1,2,3,3,2,3,0)
 			.partition()
 			.flat();
