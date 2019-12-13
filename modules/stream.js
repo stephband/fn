@@ -77,7 +77,11 @@ function createSource(stream, privates, options, Source) {
         }
     }
 
-    const source = new Source(note, stop, options);
+    const source = Source.prototype ?
+        // Source is constructable
+        new Source(note, stop, options) :
+        // Source is an arrow function
+        Source(note, stop, options) ;
 
     // Check for sanity
     if (debug) { checkSource(source); }
@@ -99,6 +103,16 @@ function shiftBuffer(shift, state, one, two, buffer) {
     buffer.push(value);
     state.buffered = two;
     return value;
+}
+
+function flat(output, input) {
+    input.pipe ?
+        // Input is a stream
+        input.pipe(output) :
+        // Input is an array-like
+        output.push.apply(output, input) ;
+
+    return output;
 }
 
 // StartSource
@@ -260,13 +274,11 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
 
     flat: function() {
         const output = this.constructor.of();
-        this.each((input) => {
-            input.pipe ?
-                // Input is a stream
-                input.pipe(output) :
-                // Input is an array-like
-                output.push.apply(output, input) ;
-        });
+
+        this
+        .scan(flat, output)
+        .each(noop);
+
         return output;
     },
 
