@@ -36,7 +36,7 @@ const markedOptions = {
 };
 
 //                Open comment followed by spaces and (dot)(name)   (brackets) OR (tag)
-const parseDoc = window.parseDoc = capture(/\/\*\s*(?:(\.)?([\w\.]+)(\([^\)]*\))?|(<[\w-]+>))/, {
+const parseDoc = window.parseDoc = capture(/\/\*\s*(?:(\.)?([\w-, .]+)(\([^\)]*\))?|(<[\w-]+>))/, {
     2: function(data, results) {
         data.push({
             id:     slugify(results[2] + results[3]),

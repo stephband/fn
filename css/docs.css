@@ -129,6 +129,10 @@ body > .demo-block + .grid {
         padding-bottom 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89);
 }
 
+.attribute-toggle-block {
+    min-height: 6.75rem;
+}
+
 .toggle-block:not(.active) {
     padding-top: 8px;
 }

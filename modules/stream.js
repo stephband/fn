@@ -53,12 +53,25 @@ function done(stream, privates) {
     privates.resolve();
 }
 
-function createSource(stream, privates, options, Source) {
-    function note() {
+function createSource(stream, privates, buffer, options, Source) {
+    // Flag to tell us whether we are using an internal buffer - which
+    // depends on the existence of source.shift
+    var buffered = false;
+
+    function push() {
+        // Detect that buffer exists and is not an arguments object, if so
+        // we push to it
+        buffered && buffer.push.apply(buffer, arguments);
         notify(stream);
     }
 
     function stop(n) {
+        // If stop count is not given, use buffer length (if buffer exists and
+        // is not arguments object) by default
+        n = n !== undefined ? n :
+            buffered ? buffer.length :
+            0 ;
+
         // Neuter events
         delete privates.events;
 
@@ -79,12 +92,26 @@ function createSource(stream, privates, options, Source) {
 
     const source = Source.prototype ?
         // Source is constructable
-        new Source(note, stop, options) :
+        new Source(push, stop, buffer, options) :
         // Source is an arrow function
-        Source(note, stop, options) ;
+        Source(push, stop, buffer, options) ;
 
     // Check for sanity
     if (debug) { checkSource(source); }
+
+    // Gaurantee that source has a .shift() method - where it does not,
+    // prepare an internal buffer and give source a .shift() for it
+    if (!source.shift) {
+        buffer = buffer === undefined ? [] :
+            Fn.prototype.isPrototypeOf(buffer) ? buffer :
+            Array.from(buffer).filter(isValue) ;
+
+        buffered = true;
+
+        source.shift = function() {
+            return buffer.shift();
+        };
+    }
 
     // Gaurantee that source has a .stop() method
     if (!source.stop) { source.stop = noop; }
@@ -117,16 +144,17 @@ function flat(output, input) {
 
 // StartSource
 
-function StartSource(stream, privates, options, Source) {
+function StartSource(stream, privates, buffer, options, Source) {
     this.stream   = stream;
     this.privates = privates;
+    this.buffer   = buffer;
     this.options  = options;
     this.Source   = Source;
 }
 
 assign(StartSource.prototype, {
     create: function() {
-        return createSource(this.stream, this.privates, this.options, this.Source, () => this.stop());
+        return createSource(this.stream, this.privates, this.buffer, this.options, this.Source);
     },
 
     shift: function shift() {
@@ -186,30 +214,10 @@ assign(StopSource.prototype, nothing, {
 
 // BufferSource
 
-function BufferSource(notify, stop, list) {
-    const buffer = list === undefined ? [] :
-        Fn.prototype.isPrototypeOf(list) ? list :
-        Array.from(list).filter(isValue) ;
-
-    this.buffer = buffer;
-    this.notify = notify;
-    this.stopfn = stop;
+function BufferSource(push, stop) {
+    return { push, stop };
 }
 
-assign(BufferSource.prototype, {
-    shift: function() {
-        return this.buffer.shift();
-    },
-
-    push: function() {
-        this.buffer.push.apply(this.buffer, arguments);
-        this.notify();
-    },
-
-    stop: function() {
-        this.stopfn(this.buffer.length);
-    }
-});
 
 /* Construct */
 
@@ -221,7 +229,7 @@ invoked when the stream is started: it must return a source object – a
 `.start()` and `.stop()`.
 */
 
-export default function Stream(Source, options) {
+export default function Stream(Source, buffer, options) {
     // Enable construction without the `new` keyword
     if (!Stream.prototype.isPrototypeOf(this)) {
         return new Stream(Source, options);
@@ -233,7 +241,7 @@ export default function Stream(Source, options) {
     privates.stream  = this;
     privates.events  = [];
     privates.resolve = noop;
-    privates.source  = new StartSource(this, privates, options, Source);
+    privates.source  = new StartSource(this, privates, buffer, options, Source);
 
     // Methods
 
@@ -564,15 +572,14 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     }
 });
 
-
 /*
 Stream.from(values)
 Returns a writeable stream that consumes the array or array-like `values` as
-its source.
+its buffer.
 */
 
-Stream.from = function(list) {
-    return new Stream(BufferSource, list);
+Stream.from = function(values) {
+    return new Stream(BufferSource, values);
 };
 
 /*

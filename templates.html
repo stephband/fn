@@ -16,6 +16,18 @@
     <h3 class="text-4">{[name]}</h3>
 </template>
 
+<template id="attribute-template">
+    <article build-fn="append:body" class="attribute-toggle-block toggle-block block" toggleable id="{[id]}">
+        <h3 class="text-5">
+            <a href="#{[id]}">
+                <code class="token language-js"><span>[</span><span build-fn="append:title"></span><span>]</span></code>
+            </a>
+        </h3>
+
+        <pre><code class="language-js">import '/dom/js/{[name]}.js';</code></pre>
+    </article>
+</template>
+
 <template id="method-template">
     <article build-fn="append:body" class="toggle-block block" toggleable id="{[id]}">
         <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
