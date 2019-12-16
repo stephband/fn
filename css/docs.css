@@ -123,10 +123,10 @@ body > .demo-block + .grid {
     padding-right: 0.9375rem;
     padding-top: 8px;
     /*color: #444444;*/
-    transition:
+    /*transition:
         max-height 400ms cubic-bezier(0, 0.5, 0.33, 1),
         margin-top 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89),
-        padding-bottom 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89);
+        padding-bottom 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89);*/
 }
 
 .attribute-toggle-block {
