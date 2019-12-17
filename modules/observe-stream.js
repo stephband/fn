@@ -33,5 +33,3 @@ ObserveSource.prototype = {
 export default function Observable(path, object) {
 	return new Stream(ObserveSource, arguments);
 }
-
-Stream.fromProperty = Observable;

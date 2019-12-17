@@ -747,7 +747,6 @@ Stream.fromTimer = function TimeStream(timer) {
     return new Stream(TimeSource, timer);
 };
 
-
 /*
 Stream.of(...values)
 Returns a writeable stream that uses arguments as its source.
@@ -1012,8 +1011,8 @@ Stream.throttle = function(timer) {
 
     timer = typeof timer === 'number' ?
         new Timer(timer) :
-    timer instanceof Stream ?
-        new StreamTimer(timer) :
+    //timer instanceof Stream ?
+    //    new StreamTimer(timer) :
     timer ? timer :
         frameTimer ;
 
