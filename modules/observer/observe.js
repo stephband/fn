@@ -4,6 +4,10 @@ import remove from '../lists/remove.js';
 import { getListeners, Observer, $observer } from './observer.js';
 import parseSelector from './parse-selector.js';
 
+const DEBUG = true;
+
+if (DEBUG) { window.observeCount = 0; }
+
 const A       = Array.prototype;
 const assign  = Object.assign;
 const nothing = Object.freeze([]);
@@ -29,6 +33,8 @@ function observeMutable(object, data) {
 	var fns = object[$observer].mutate;
 	fns.push(data.fn);
 
+    if (DEBUG) { ++window.observeCount; }
+
 	if (object !== data.value) {
 		data.old   = data.value;
 		data.value = object;
@@ -41,6 +47,8 @@ function observeMutable(object, data) {
 
 	return () => {
 		remove(fns, data.fn);
+
+        if (DEBUG) { --window.observeCount; }
 	};
 }
 
@@ -73,11 +81,15 @@ function observeProperty(object, name, path, data) {
 	}
 
 	fns.push(update);
-	update(object[name]);
+    update(object[name]);
+
+    if (DEBUG) { ++window.observeCount; }
 
 	return () => {
 		unobserve();
 		remove(fns, update);
+
+        if (DEBUG) { --window.observeCount; }
 	};
 }
 
