@@ -57,3 +57,11 @@
         </h3>
     </article>
 </template>
+
+<template id="section-template">
+    <article build-fn="append:body" class="toggle-block block active" id="{[id]}">
+        <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+            <code build-fn="append:title" class="function language-js"></code>
+        </h3>
+    </article>
+</template>
