@@ -1,0 +1,36 @@
+:root {
+    --code-fg: #b7d6e7;
+    --code-bg: #272a2b;
+    --code-bg: #141B1E;
+}
+
+pre .punctuation { color: #779aab; }
+pre .keyword     { color: #63ACDD; }
+pre .operator    { color: #63ACDD; }
+pre .number      { color: #FE267E; }
+pre .comment     { color: #485b68; }
+pre .string      { color: #B2CB3A; }
+pre .function    { color: #f5a623; }
+
+.punctuation { color: #779aab; }
+.keyword     { color: #63ACDD; }
+.operator    { color: #63ACDD; }
+.number      { color: #FE267E; }
+.comment     { color: #485b68; }
+.string      { color: #B2CB3A; }
+.function    { color: #f5a623; }
+
+.language-html .tag                       { color: #fc6827; }
+.language-html .tag > .punctuation        { color: #8B572A; }
+.language-html .attr-name                 { color: #f5a623; }
+.language-html .attr-value                { color: #B2CB3A; }
+.language-html .attr-value > .punctuation { color: #8B572A; }
+.language-html .property                  { color: #63ACDD; }
+.language-html .property > .variable      { color: #b7d6e7; }
+
+.language-html            { color: #b7d6e7; }
+
+pre > code {
+    color: var(--code-fg);
+    background-color: var(--code-bg);
+}
