@@ -35,41 +35,65 @@ const markedOptions = {
     smartypants: true
 };
 
-//                Open comment followed by spaces and (dot)(name)   (brackets) OR (tag)
-const parseDoc = window.parseDoc = capture(/\/\*\s*(?:(\.)?([\w-, .]+)(\([^\)]*\))?|(<[\w- ="]+\/?>))/, {
+//                Open comment followed by spaces and (dot)(name)   ((params)) or (:params) OR (tag)
+const parseDoc = window.parseDoc = capture(/\/\*\s*(?:(\.)?([\w-, .]+)(?:(\([^)]*\))|:[ \t]*([\w-, .:'"]*)|="([\w-, .:']*)")?|(<[\w- ="]+\/?>))/, {
+    // .property or title
     2: function(data, results) {
         data.push({
-            id:     slugify(results[2] + results[3]),
+            id:     slugify(results[2] + (results[3] || '')),
             prefix: results[1],
             name:   results[2],
-            params: results[3],
-            type:   results[1] ?
-                results[3] ? 'method' : 'property' :
-                results[3] ? 'function' : 'title',
-            title:  (results[3]) ?
-                Prism.highlight(
-                    (results[1] || '') + results[2] + (results[3] || ''),
-                    Prism.languages['js'],
-                    'js'
-                ) :
-                (results[1] || '') + results[2]
+            type:   results[1] ? 'property' : 'title',
+            title: (results[1] || '') + results[2]
         });
         return data;
     },
 
+    // .method() or function()
+    3: function(data, results) {
+        const object  = last(data);
+        object.type   = results[1] ? 'method' : 'function' ;
+        object.params = results[3];
+        object.title  = Prism.highlight(
+            (results[1] || '') + results[2] + results[3],
+            Prism.languages['js'],
+            'js'
+        );
+        return data;
+    },
+
+    // fn:param
     4: function(data, results) {
+        const object = last(data);
+        object.type  = 'fn';
+        object.title = results[4] ?
+            results[2] + ': ' + results[4] :
+            results[2] ;
+        return data;
+    },
+
+    // attribute="value"
+    5: function(data, results) {
+        const object = last(data);
+        object.type  = 'attribute';
+        object.title = results[2] + '="' + results[5] + '"';
+        return data;
+    },
+
+    // <element>
+    6: function(data, results) {
         data.push({
-            id:     slugify(results[4]),
+            id:     slugify(results[6]),
             prefix: '',
-            name:   results[4],
+            name:   results[6],
             params: '',
             type:   'tag',
-            title:  Prism.highlight(results[4], Prism.languages['html'], 'html')
+            title:  Prism.highlight(results[6], Prism.languages['html'], 'html')
         });
         return data;
     },
 
-    // Markdown    (anything) close comment
+    // Markdown (anything) close comment
     close: capture(/^\s*([\s\S]*?)\*\//, {
         1: function(data, results) {
             last(data).body = marked(results[1], markedOptions);
@@ -208,5 +232,13 @@ register('append', function(node, params) {
     return this.tap((scope) => {
         const fragment = fragmentFromHTML(scope[name]);
         node.appendChild(fragment);
+    });
+});
+
+register('after', function (node, params) {
+    const name = params[0];
+    return this.tap((scope) => {
+        const fragment = fragmentFromHTML(scope[name]);
+        node.after(fragment);
     });
 });

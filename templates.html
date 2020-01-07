@@ -13,7 +13,7 @@
 </template>
 
 <template id="title-template">
-    <h3 class="text-4">{[name]}</h3>
+    <h3 class="text-4" build-fn="after:body">{[name]}</h3>
 </template>
 
 <template id="attribute-template">
@@ -53,6 +53,16 @@
         <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
             <a href="#{[id]}">
                 <code build-fn="append:title" class="function language-js"></code>
+            </a>
+        </h3>
+    </article>
+</template>
+
+<template id="fn-template">
+    <article build-fn="append:body" class="toggle-block block" toggleable id="{[id]}">
+        <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+            <a href="#{[id]}">
+                <code build-fn="append:title" class="language-js"></code>
             </a>
         </h3>
     </article>
