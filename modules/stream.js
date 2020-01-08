@@ -26,13 +26,6 @@ function isDone(stream) {
     return stream.status === 'done';
 }
 
-function checkSource(source) {
-    // Check for .shift()
-    if (!source.shift) {
-        throw new Error('Stream: Source must create an object with .shift() ' + source);
-    }
-}
-
 function notify(object) {
     var events = Privates(object).events;
     if (!events) { return; }
@@ -53,16 +46,21 @@ function done(stream, privates) {
     privates.resolve();
 }
 
-function createSource(stream, privates, buffer, options, Source) {
+function createSource(stream, privates, seeds, options, Source) {
+    var buffer = seeds === undefined ? [] :
+        Fn.prototype.isPrototypeOf(seeds) ? buffer :
+        Array.from(seeds).filter(isValue) ;
+
     // Flag to tell us whether we are using an internal buffer - which
     // depends on the existence of source.shift
-    var buffered = false;
+    var initialised = false;
+    var buffered = true;
 
     function push() {
         // Detect that buffer exists and is not an arguments object, if so
         // we push to it
         buffered && buffer.push.apply(buffer, arguments);
-        notify(stream);
+        initialised && notify(stream);
     }
 
     function stop(n) {
@@ -92,29 +90,29 @@ function createSource(stream, privates, buffer, options, Source) {
 
     const source = Source.prototype ?
         // Source is constructable
-        new Source(push, stop, buffer, options) :
+        new Source(push, stop, seeds, options) :
         // Source is an arrow function
-        Source(push, stop, buffer, options) ;
+        Source(push, stop, seeds, options) ;
 
-    // Check for sanity
-    if (debug) { checkSource(source); }
+    initialised = true;
 
-    // Gaurantee that source has a .shift() method - where it does not,
-    // prepare an internal buffer and give source a .shift() for it
-    if (!source.shift) {
-        buffer = buffer === undefined ? [] :
-            Fn.prototype.isPrototypeOf(buffer) ? buffer :
-            Array.from(buffer).filter(isValue) ;
+    // Where source has .shift() override the internal buffer
+    if (source.shift) {
+        buffered = false;
+        buffer = undefined;
+    }
 
-        buffered = true;
-
-        source.shift = function() {
+    // Otherwise give it a .shift() for the internal buffer
+    else {
+        source.shift = function () {
             return buffer.shift();
         };
     }
 
     // Gaurantee that source has a .stop() method
-    if (!source.stop) { source.stop = noop; }
+    if (!source.stop) {
+        source.stop = noop;
+    }
 
     return (privates.source = source);
 }
