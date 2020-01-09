@@ -157,7 +157,13 @@ export { gaussian, todB, toLevel, toRad, toDeg } from './modules/maths/core.js';
 export { default as toPolar }     from './modules/maths/to-polar.js';
 export { default as toCartesian } from './modules/maths/to-cartesian.js';
 
-export const add         = curry(maths.add);
+export const sum         = curry(maths.sum);
+
+export const add         = curry(function(a, b) {
+    console.trace('Fn module add() is now sum()');
+    return maths.sum(a, b);
+});
+
 export const multiply    = curry(maths.multiply);
 export const min         = curry(maths.min);
 export const max         = curry(maths.max);

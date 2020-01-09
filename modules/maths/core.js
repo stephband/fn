@@ -1,7 +1,7 @@
 // Constant for converting radians to degrees
 const angleFactor = 180 / Math.PI;
 
-export function add(a, b)  { return b + a; }
+export function sum(a, b)  { return b + a; }
 export function multiply(a, b) { return b * a; }
 export function min(a, b)  { return a > b ? b : a ; }
 export function max(a, b)  { return a < b ? b : a ; }
