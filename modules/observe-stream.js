@@ -30,6 +30,9 @@ ObserveSource.prototype = {
 	unobserve: noop
 };
 
-export default function Observable(path, object) {
-	return new Stream(ObserveSource, arguments);
+export default function mutations(path, object) {
+	const args = arguments;
+	return new Stream(function(push, stop) {
+		return new ObserveSource(push, stop, args);
+	});
 }

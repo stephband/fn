@@ -11,7 +11,7 @@ import choke    from './choke.js';
 import Privates from './privates.js';
 import Fn       from './fn.js';
 
-var debug     = false;
+var DEBUG     = window.DEBUG !== false;
 var A         = Array.prototype;
 var assign    = Object.assign;
 
@@ -46,15 +46,15 @@ function done(stream, privates) {
     privates.resolve();
 }
 
-function createSource(stream, privates, seeds, options, Source) {
-    var buffer = seeds === undefined ? [] :
-        Fn.prototype.isPrototypeOf(seeds) ? buffer :
-        Array.from(seeds).filter(isValue) ;
+function createSource(stream, privates, Source, buffer) {
+    buffer = buffer === undefined ? [] :
+        buffer.shift ? buffer :
+        Array.from(buffer) ;
 
     // Flag to tell us whether we are using an internal buffer - which
     // depends on the existence of source.shift
-    var initialised = false;
     var buffered = true;
+    var initialised = false;
 
     function push() {
         // Detect that buffer exists and is not an arguments object, if so
@@ -90,9 +90,9 @@ function createSource(stream, privates, seeds, options, Source) {
 
     const source = Source.prototype ?
         // Source is constructable
-        new Source(push, stop, seeds, options) :
+        new Source(push, stop) :
         // Source is an arrow function
-        Source(push, stop, seeds, options) ;
+        Source(push, stop) ;
 
     initialised = true;
 
@@ -142,17 +142,16 @@ function flat(output, input) {
 
 // StartSource
 
-function StartSource(stream, privates, buffer, options, Source) {
+function StartSource(stream, privates, Source, buffer) {
     this.stream   = stream;
     this.privates = privates;
-    this.buffer   = buffer;
-    this.options  = options;
     this.Source   = Source;
+    this.buffer   = buffer;
 }
 
 assign(StartSource.prototype, {
     create: function() {
-        return createSource(this.stream, this.privates, this.buffer, this.options, this.Source);
+        return createSource(this.stream, this.privates, this.Source, this.buffer);
     },
 
     shift: function shift() {
@@ -210,13 +209,6 @@ assign(StopSource.prototype, nothing, {
 });
 
 
-// BufferSource
-
-function BufferSource(push, stop) {
-    return { push, stop };
-}
-
-
 /* Construct */
 
 /*
@@ -236,10 +228,16 @@ data:
 ```
 */
 
-export default function Stream(Source, buffer, options) {
+export default function Stream(Source, buffer) {
+    if (DEBUG) {
+        if (arguments.length > 2) {
+            throw new Error('Stream(setup, buffer) takes 2 arguments. Recieved ' + arguments.length + '.');
+        }
+    }
+
     // Enable construction without the `new` keyword
     if (!Stream.prototype.isPrototypeOf(this)) {
-        return new Stream(Source, options);
+        return new Stream(Source, buffer);
     }
 
     // Privates
@@ -248,7 +246,7 @@ export default function Stream(Source, buffer, options) {
     privates.stream  = this;
     privates.events  = [];
     privates.resolve = noop;
-    privates.source  = new StartSource(this, privates, buffer, options, Source);
+    privates.source  = new StartSource(this, privates, Source, buffer);
 
     // Methods
 
@@ -311,7 +309,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
 
     /*
     .merge(stream)
-    Merges this stream with `stream`, which in fact may be an array, array-like
+    Merges this stream with `stream`, which may be an array, array-like
     or functor.
     */
 
@@ -579,35 +577,36 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     }
 });
 
+
 /*
 Stream.from(values)
 Returns a writeable stream that consumes the array or array-like `values` as
 its buffer.
 */
 
+function Pushable(push, stop) {
+    return { push, stop };
+}
+
 Stream.from = function(values) {
-    return new Stream(BufferSource, values);
+    return new Stream(Pushable, values);
 };
+
 
 /*
 Stream.fromPromise(promise)
 Returns a stream that uses the given promise as its source. When the promise
 resolves the stream is given its value and stopped. If the promise errors
-the stream is stopped without value. This stream is not writeable: it has no
-`.push()` method.
+the stream is stopped without value. This stream is not pushable, but may
+be stopped before the promise resolves.
 */
 
 Stream.fromPromise = function(promise) {
-    const stream = Stream.of();
-
-    promise
-    .then((value) => {
-        stream.push(value);
-        stream.stop();
-    })
-    .catch(() => stream.stop());
-
-    return stream;
+    return new Stream(function(push, stop) {
+        promise.then(push);
+        promise.finally(stop);
+        return { stop };
+    });
 };
 
 /*
@@ -747,12 +746,15 @@ const frames = Stream.fromTimer({
 });
 ```
 
-This stream is not writeable: it has no `.push()` method.
+This stream is not pushable.
 */
 
 Stream.fromTimer = function TimeStream(timer) {
-    return new Stream(TimeSource, timer);
+    return new Stream(function(push, stop) {
+        return new TimeSource(push, stop, timer);
+    });
 };
+
 
 /*
 Stream.of(...values)
@@ -762,12 +764,6 @@ Returns a writeable stream that uses arguments as its source.
 Stream.of = function() {
     return Stream.from(arguments);
 };
-
-//Stream.frames = function() {
-//    return Stream.fromTimer(frameTimer);
-//};
-
-
 
 
 // Stream.Combine
@@ -885,7 +881,10 @@ assign(MergeSource.prototype, {
 });
 
 Stream.Merge = function(source1, source2) {
-    return new Stream(MergeSource, Array.from(arguments));
+    const sources = Array.from(arguments);
+    return new Stream(function(push, stop) {
+        return new MergeSource(push, stop, sources);
+    });
 };
 
 
@@ -927,52 +926,19 @@ var frameTimer = {
 };
 
 
-// Stream timer
-
-function StreamTimer(stream) {
-    var timer = this;
-    var fns0  = [];
-    var fns1  = [];
-    this.fns = fns0;
-
-    stream.each(function() {
-        timer.fns = fns1;
-        fns0.reduce(call, undefined);
-        fns0.length = 0;
-        fns1 = fns0;
-        fns0 = timer.fns;
-    });
-}
-
-assign(StreamTimer.prototype, {
-    request: function(fn) {
-        this.fns.push(fn);
-        return fn;
-    },
-
-    cancel: function(fn) {
-        remove(this.fns, fn);
-    }
-});
-
-
 // Stream.throttle
 
 function schedule() {
-    var timer   = this.timer;
-
     this.queue = noop;
-    this.ref   = timer.request(this.update);
+    this.ref   = this.timer.request(this.update);
 }
 
 function ThrottleSource(notify, stop, timer) {
-    var source   = this;
-
     this._stop   = stop;
     this.timer   = timer;
     this.queue   = schedule;
     this.update  = function update() {
-        source.queue = schedule;
+        this.queue = schedule;
         notify();
     };
 }
@@ -1012,18 +978,11 @@ assign(ThrottleSource.prototype, {
 });
 
 Stream.throttle = function(timer) {
-    if (typeof timer === 'function') {
-        throw new Error('Dont accept request and cancel functions anymore');
-    }
-
-    timer = typeof timer === 'number' ?
-        new Timer(timer) :
-    //timer instanceof Stream ?
-    //    new StreamTimer(timer) :
-    timer ? timer :
-        frameTimer ;
-
     return new Stream(function(notify, stop) {
+        timer = typeof timer === 'number' ? new Timer(timer) :
+            timer ? timer :
+            frameTimer;
+
         return new ThrottleSource(notify, stop, timer);
     });
 };
