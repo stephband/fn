@@ -22,7 +22,7 @@ body {
 }
 
 code,
-code > .params {
+.params {
     color: #e2006f;
 }
 

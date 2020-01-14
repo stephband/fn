@@ -147,6 +147,9 @@ function toHTML(paths) {
     });
 }
 
+register('config', function() {
+    return Stream.of(window.config);
+});
 
 register('docs', function(node, params) {
     const data = toHTML(params);
@@ -183,6 +186,18 @@ register('filter-function', function(node, params) {
             }
 
             if (data.type === 'function' || data.type === 'title') {
+                output.push(data);
+            }
+
+            return output;
+        }, []);
+    });
+});
+
+register('filter-fn', function (node, params) {
+    return this.map(function (array) {
+        return array.reduce(function (output, data) {
+            if (data.type === 'fn') {
                 output.push(data);
             }
 

@@ -215,16 +215,18 @@ assign(StopSource.prototype, nothing, {
 Stream(fn)
 
 Construct a new stream. `fn(push, stop)` is invoked when the stream is started,
-and it must return a 'producer' – an object with methods to control the flow
+and it must return a 'producer' – an object with methods to control the flow of
 data:
 
 ```js
-{
-    shift: //
-    push:  // Makes the stream writeable
-    start: // Makes the stream extarnally startable
-    stop:  // Makes the stream externally stoppable
-}
+const stream = Stream(function(push, stop) {
+    return {
+        push:  fn,  // Optional. Makes the stream pushable.
+        start: fn,  // Optional. Makes the stream extarnally startable.
+        stop:  fn   // Optional. Makes the stream externally stoppable.
+        shift: fn,  // Optional. Overrides the stream's internal buffer.
+    };
+});
 ```
 */
 
@@ -492,7 +494,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     /*
     .shift()
     Reads a value from the stream. If no values are in the stream, returns
-    `undefined`. If this is the last value in the stream, `streams.status`
+    `undefined`. If this is the last value in the stream, `stream.status`
     is `'done'`.
     */
 

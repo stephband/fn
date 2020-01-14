@@ -4,33 +4,42 @@
     --code-bg: #141B1E;
 }
 
-pre .punctuation { color: #779aab; }
-pre .keyword     { color: #63ACDD; }
-pre .operator    { color: #63ACDD; }
-pre .number      { color: #FE267E; }
-pre .comment     { color: #485b68; }
-pre .string      { color: #B2CB3A; }
-pre .function    { color: #f5a623; }
-
-.punctuation { color: #779aab; }
-.keyword     { color: #63ACDD; }
-.operator    { color: #63ACDD; }
-.number      { color: #FE267E; }
-.comment     { color: #485b68; }
-.string      { color: #B2CB3A; }
-.function    { color: #f5a623; }
-
-.language-html .tag                       { color: #fc6827; }
-.language-html .tag > .punctuation        { color: #8B572A; }
-.language-html .attr-name                 { color: #f5a623; }
-.language-html .attr-value                { color: #B2CB3A; }
-.language-html .attr-value > .punctuation { color: #8B572A; }
-.language-html .property                  { color: #63ACDD; }
-.language-html .property > .variable      { color: #b7d6e7; }
-
-.language-html            { color: #b7d6e7; }
+/*code,
+code .tag,
+code .attr-name,
+code .attr-value,
+code .params,
+code .punctuation,
+code .keyword,
+code .operator,
+code .number,
+code .comment,
+code .string,
+code .function {
+    color: #e2006f;
+}*/
 
 pre > code {
     color: var(--code-fg);
     background-color: var(--code-bg);
 }
+
+pre > code .punctuation { color: #779aab; }
+pre > code .keyword     { color: #63ACDD; }
+pre > code .operator    { color: #63ACDD; }
+pre > code .number      { color: #FE267E; }
+pre > code .comment     { color: #485b68; }
+pre > code .string      { color: #B2CB3A; }
+pre > code .function    { color: #f5a623; }
+
+pre > .language-html                            { color: #b7d6e7; }
+pre > .language-html .tag                       { color: #fc6827; }
+pre > .language-html .tag > .punctuation        { color: #8B572A; }
+pre > .language-html .attr-name                 { color: #f5a623; }
+pre > .language-html .attr-value                { color: #B2CB3A; }
+pre > .language-html .attr-value > .punctuation { color: #8B572A; }
+pre > .language-html .property                  { color: #63ACDD; }
+pre > .language-html .property > .variable      { color: #b7d6e7; }
+
+
+
