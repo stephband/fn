@@ -7,7 +7,7 @@ import './libs/marked/marked.min.js';
 // https://prismjs.com/
 import './libs/prism/prism.js';
 
-import { cache, capture, id, invoke, last, matches, nothing, slugify, Stream } from './module.js';
+import { cache, capture, id, invoke, last, nothing, slugify, Stream } from './module.js';
 import { fragmentFromHTML } from '../dom/module.js';
 import { register } from '../sparky/module.js';
 
@@ -35,9 +35,9 @@ const markedOptions = {
     smartypants: true
 };
 
-//                Open comment followed by spaces and (dot)(name)   ((params)) or (:params) OR (tag)
-const parseDoc = window.parseDoc = capture(/\/\*\s*(?:(\.)?([\w-, .]+)(?:(\([^)]*\))|:[ \t]*([\w-, .:'"]*)|="([\w-, .:']*)")?|(<[\w- ="]+\/?>))/, {
-    // .property or title
+//                Open comment followed by spaces and (dot)(name)   ((params))   or (:params)          or (="")            OR (<tag>)               OR ({[ tag ]} or {% tag %})
+const parseDoc = window.parseDoc = capture(/\/\*\s*(?:(\.)?([\w-, .]+)(?:(\([^)]*\))|:[ \t]*([\w-, .:'"]*)|="([\w-#,/%\]}[{ .:']*)")?|(<[\w- ="]+\/?>)|(\{[\[\]\w%|:. ]+\}))/, {
+    // .property or title or {[tag]}
     2: function(data, results) {
         data.push({
             id:     slugify(results[2] + (results[3] || '')),
@@ -93,6 +93,19 @@ const parseDoc = window.parseDoc = capture(/\/\*\s*(?:(\.)?([\w-, .]+)(?:(\([^)]
         return data;
     },
 
+    // {[ tag ]}
+    7: function (data, results) {
+        data.push({
+            id: slugify(results[7]),
+            prefix: '',
+            name: results[7],
+            params: '',
+            type: 'title',
+            title: results[7]
+        });
+        return data;
+    },
+
     // Markdown (anything) close comment
     close: capture(/^\s*([\s\S]*?)\*\//, {
         1: function(data, results) {
@@ -132,9 +145,12 @@ function toHTML(paths) {
             .then(function(docs) {
                 //console.log(path, ids.join(', '), docs)
                 // Gaurantee order of ids
-                return ids.map(function(id) {
+                return ids
+                .map(slugify)
+                .map(function(id) {
                     return docs.filter(function(doc) {
-                        return doc.name === id;
+                        console.log(slugify(doc.name) === id, slugify(doc.name), id);
+                        return slugify(doc.name) === id;
                     });
                 })
                 .reduce(flatten, []);
@@ -245,15 +261,23 @@ register('filter-tag', function(node, params) {
 register('append', function(node, params) {
     const name = params[0];
     return this.tap((scope) => {
-        const fragment = fragmentFromHTML(scope[name]);
-        node.appendChild(fragment);
+        // Avoid having Sparky parse the contents of documentation by waiting
+        // until the next frame
+        requestAnimationFrame(function() {
+            const fragment = fragmentFromHTML(scope[name]);
+            node.appendChild(fragment);
+        });
     });
 });
 
 register('after', function (node, params) {
     const name = params[0];
     return this.tap((scope) => {
-        const fragment = fragmentFromHTML(scope[name]);
-        node.after(fragment);
+        // Avoid having Sparky parse the contents of documentation by waiting
+        // until the next frame
+        requestAnimationFrame(function () {
+            const fragment = fragmentFromHTML(scope[name]);
+            node.after(fragment);
+        });
     });
 });
