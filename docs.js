@@ -149,8 +149,7 @@ function toHTML(paths) {
                 .map(slugify)
                 .map(function(id) {
                     return docs.filter(function(doc) {
-                        console.log(slugify(doc.name) === id, slugify(doc.name), id);
-                        return slugify(doc.name) === id;
+                        return doc.id === id;
                     });
                 })
                 .reduce(flatten, []);
