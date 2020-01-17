@@ -12,18 +12,13 @@ import Privates from './privates.js';
 import Fn       from './fn.js';
 
 var DEBUG     = window.DEBUG !== false;
-var A         = Array.prototype;
 var assign    = Object.assign;
 
 
-function call(value, fn) {
-    return fn(value);
-}
-
-function isValue(n) { return n !== undefined; }
-
 function isDone(stream) {
     return stream.status === 'done';
+    // Accept arrays or streams
+    //return stream.length === 0 || stream.status === 'done';
 }
 
 function notify(object) {
@@ -388,8 +383,16 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         return this.pipe(Stream.Choke(time));
     },
 
-    combine: function(fn, source) {
-        return Stream.Combine(fn, this, source);
+    /*
+    .combine(fn, stream)
+    Combines the latest values from this stream and `stream` via the combinator
+    `fn` any time a new value is emitted by either stream.
+    */
+
+    combine: function(fn, stream) {
+        const streams = Array.from(arguments);
+        streams[0] = this;
+        return CombineStream(fn, streams);
     },
 
 
@@ -544,7 +547,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     },
 
     on: function on(fn) {
-        if (typeof fn === 'string') {
+        if (DEBUG && typeof fn === 'string') {
             throw new Error('stream.on(fn) no longer takes type');
         }
 
@@ -556,7 +559,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     },
 
     off: function off(fn) {
-        if (typeof fn === 'string') {
+        if (DEBUG && typeof fn === 'string') {
             throw new Error('stream.off(fn) no longer takes type');
         }
 
@@ -576,6 +579,14 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         }
 
         return this;
+    },
+
+    toPush: function() {
+        const stream = this;
+        const privates = Privates(this);
+        return privates.input || (privates.input = function() {
+            stream.push.apply(stream, arguments);
+        });
     }
 });
 
@@ -587,7 +598,8 @@ its buffer.
 */
 
 function Pushable(push, stop) {
-    return { push, stop };
+    this.push = push;
+    this.stop = stop;
 }
 
 Stream.from = function(values) {
@@ -611,12 +623,9 @@ Stream.fromPromise = function(promise) {
     });
 };
 
-/*
-Stream.fromProperty(name, object)
-Returns a stream of mutations made to the `name` property of `object`,
-assuming those mutations are made to the Observer proxy of object - see
-[Observer](#observer).
-*/
+
+
+
 
 
 // Clock Stream
@@ -760,7 +769,7 @@ Stream.fromTimer = function TimeStream(timer) {
 
 /*
 Stream.of(...values)
-Returns a writeable stream that uses arguments as its source.
+Returns a stream that consumes arguments as a buffer. The stream is pushable.
 */
 
 Stream.of = function() {
@@ -768,79 +777,55 @@ Stream.of = function() {
 };
 
 
-// Stream.Combine
+// CombineStream
 
-function toValue(data) {
-    var source = data.source;
-    var value  = data.value;
-    return data.value = value === undefined ? latest(source) : value ;
-}
+function CombineProducer(push, stop, fn, streams) {
+    const values = {
+        length: streams.length,
+        count: 0,
+        doneCount: 0
+    };
 
-function CombineSource(notify, stop, fn, sources) {
-    var object = this;
+    function done() {
+        ++values.doneCount;
 
-    this._notify  = notify;
-    this._stop    = stop;
-    this._fn      = fn;
-    this._sources = sources;
-    this._hot     = true;
-
-    this._store = sources.map(function(source) {
-        var data = {
-            source: source,
-            listen: listen
-        };
-
-        // Listen for incoming values and flag as hot
-        function listen() {
-            data.value = undefined;
-            object._hot = true;
+        // Are all the source streams finished?
+        if (values.doneCount === values.length) {
+            // Stop the stream
+            stop();
         }
+    }
 
-        source.on(listen)
-        source.on(notify);
-        return data;
+    streams.forEach(function(stream, i) {
+        stream
+        .map(function(value) {
+            // Is this the first value to come through the source stream?
+            if (values[i] === undefined) {
+                ++values.count;
+            }
+
+            values[i] = value;
+
+            // Are all the source streams active?
+            if (values.count === values.length) {
+                // Push the combined output into the stream's buffer
+                return fn.apply(null, values);
+            }
+        })
+        .each(push)
+        .done(done);
     });
+
+    return { stop };
 }
 
-assign(CombineSource.prototype, {
-    shift: function combine() {
-        // Prevent duplicate values going out the door
-        if (!this._hot) { return; }
-        this._hot = false;
-
-        var sources = this._sources;
-        var values  = this._store.map(toValue);
-        if (sources.every(isDone)) { this._stop(0); }
-        return values.every(isValue) && this._fn.apply(null, values) ;
-    },
-
-    stop: function stop() {
-        var notify = this._notify;
-
-        // Remove listeners
-        each(function(data) {
-            var source = data.source;
-            var listen = data.listen;
-            source.off(listen);
-            source.off(notify);
-        }, this._store);
-
-        this._stop(this._hot ? 1 : 0);
-    }
-});
-
-Stream.Combine = function(fn) {
-    var sources = A.slice.call(arguments, 1);
-
-    if (sources.length < 2) {
-        throw new Error('Stream: Combine requires more than ' + sources.length + ' source streams')
+export function CombineStream(fn, streams) {
+    if (DEBUG && streams.length < 2) {
+        throw new Error('CombineStream(fn, streams) requires more than 1 stream')
     }
 
-    return new Stream(function setup(notify, stop) {
-        return new CombineSource(notify, stop, fn, sources);
-    });
-};
+    return new Stream((push, stop) => CombineProducer(push, stop, fn, streams));
+}
 
 
 // Stream.Merge

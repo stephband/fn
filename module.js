@@ -41,6 +41,7 @@ export { default as weakCache }   from './modules/weak-cache.js';
 export { default as Fn }          from './modules/fn.js';
 export { default as Observable }  from './modules/observe-stream.js';
 export { default as ObserveStream } from './modules/observe-stream.js';
+export { default as mutations }   from './modules/observe-stream.js';
 export { default as Stream }      from './modules/stream.js';
 export { default as Timer }       from './modules/timer.js';
 export { default as Pool }        from './modules/pool.js';

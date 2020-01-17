@@ -39,7 +39,7 @@
 
 <body class="grid">
     <header class="x-1 xspan-3 @1-xspan-6 @2-xspan-9 @3-x-2 @3-xspan-11" id="header">
-        <template build-fn="fetch:package.json" build-include="/fn/templates.html#header-template"></template>
+        <template build-fn="fetch:package.json" build-src="/fn/templates.html#header-template"></template>
     </header>
 
     <section class="x-1 xspan-3 @1-xspan-6 @2-xspan-9 @3-x-2 grid" locateable id="functions">
@@ -60,7 +60,7 @@
             modules/overload.js,
             modules/pipe.js,
             modules/weak-cache.js
-            filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+            filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
         </div>
 
         <div class="x-1 xspan-3 @2-xspan-4">
@@ -94,7 +94,7 @@
                 modules/to-fixed.js,
                 modules/to-string.js,
                 modules/to-type.js
-                filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+                filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
             </div>
         </div>
 
@@ -107,7 +107,7 @@
                 'modules/time.js?parseDate,parseTime',
                 modules/parse-int.js,
                 modules/parse-value.js
-                filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+                filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
             </div>
 
             <div class="x-1">
@@ -117,7 +117,7 @@
                 modules/maths/cubic-bezier.js,
                 modules/maths/to-cartesian.js,
                 modules/maths/to-polar.js
-                filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+                filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
             </div>
         </div>
 
@@ -133,14 +133,14 @@
                 modules/lists/take.js,
                 modules/lists/unique.js,
                 modules/lists/update.js
-                filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+                filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
             </div>
 
             <div class="x-1">
                 <h4 class="text-4">Time</h4>
                 <template build-fn="docs:
                 modules/time.js
-                filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+                filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
             </div>
         </div>
     </section>
@@ -166,7 +166,7 @@ const data = Observer({ a: true });</code></pre>
             <template build-fn="docs:
             modules/observer/observer.js,
             modules/observer/observe.js
-            filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
+            filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
         </div>
     </section>
 
@@ -185,16 +185,16 @@ const stream = Stream.of(1,2,3,4);</code></pre>
         </header>
 
         <div class="x-1 xspan-3 list-grid grid">
-            <template build-fn="docs:modules/stream.js filter-function each" build-include="/fn/templates.html#{[type]}-template"></template>
-            <template build-fn="docs:modules/fn.js filter-property each" build-include="/fn/templates.html#{[type]}-template"></template>
+            <template build-fn="docs:modules/stream.js filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
+            <template build-fn="docs:modules/fn.js filter-property each" build-src="/fn/templates.html#{[type]}-template"></template>
         </div>
 
         <div class="x-1 xspan-3 @1-x-4 list-grid grid">
-            <template build-fn="docs:modules/stream.js filter-method take:16 each" build-include="/fn/templates.html#{[type]}-template"></template>
+            <template build-fn="docs:modules/stream.js filter-method take:16 each" build-src="/fn/templates.html#{[type]}-template"></template>
         </div>
 
         <div class="x-1 xspan-3 @2-x-7 list-grid grid">
-            <template build-fn="docs:modules/stream.js filter-method rest:16 each" build-include="/fn/templates.html#{[type]}-template"></template>
+            <template build-fn="docs:modules/stream.js filter-method rest:16 each" build-src="/fn/templates.html#{[type]}-template"></template>
         </div>
     </section>
 
