@@ -27,11 +27,11 @@ config.attributePrefix  = 'build-';
 setTimeout(function() {
     query('[build-fn]', document).forEach(invoke('removeAttribute', ['build-fn']));
     query('[build-remove]', document).forEach(invoke('remove', nothing));
-    console.log('Document built! (this is just a cheap timeout, it may not be true)');
+    window.console.log('Document built! (this is just a cheap timeout, it may not be true)');
 }, 5000);
 
 // Run Sparky on the whoooole document
 requestTick(function() {
-    console.log('Build...');
+    window.console.log('Build...');
     Sparky(document.documentElement).push({});
 });
