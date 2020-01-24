@@ -71,16 +71,15 @@ import _toFixed     from './modules/to-fixed.js';
 import { getPath as _getPath, setPath as _setPath } from './modules/paths.js';
 
 export const assign      = curry(Object.assign, true, 2);
-export const capture     = curry(_capture);
+export const capture     = curry(_capture, true);
 export const define      = curry(Object.defineProperties, true, 2);
 export const equals      = curry(_equals, true);
-export const exec        = curry(_exec);
+export const exec        = curry(_exec, true);
 export const get         = curry(_get, true);
 export const has         = curry(_has, true);
 export const is          = curry(_is, true);
 export const invoke      = curry(_invoke, true);
 export const matches     = curry(_matches, true);
-export const parse       = curry(_capture);
 export const set         = curry(_set, true);
 export const toFixed     = curry(_toFixed);
 export const getPath     = curry(_getPath, true);
