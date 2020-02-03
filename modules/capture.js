@@ -6,7 +6,7 @@ function error(regex, reducers, string) {
         string = string.input;
     }
 
-    throw new Error('Cannot capture() in invalid string "' + string + '"');
+    throw new Error('Cannot parse invalid string "' + string + '"');
 }
 
 function reduce(reducers, acc, tokens) {
@@ -32,16 +32,15 @@ group in the regexp result (`0` corresponding to the entire regex match,
 the first capturing group being at index `1`). Reducer functions are
 called in capture order for all capturing groups that captured something.
 Reducers may also define the function 'close', which is called at the end
-of every capture. All functions are passed the paremeters
-`(accumulator, tokens)`, where `tokens` is the regexp result. Functions
-must return an accumulator.
+of every capture. All reducer functions are passed the paremeters
+`(accumulator, tokens)`, where `tokens` is the regexp result, and are expected
+to return a value that is passed as an accumulator to the next reducer function.
 
 Reducers may also define a function `'catch'`, which is called when a match
 has not been made (where `'catch'` is not defined an error is thrown).
 
-```
-const rvalue = /^\s*(-?\d*\.?\d+)(\w+)?\s*$/;
-const parseValue = capture(rvalue, {
+```js
+const parseValue = capture(/^\s*(-?\d*\.?\d+)(\w+)?\s*$/, {
     // Create a new accumulator object each call
     0: () => ({}),
 
@@ -54,9 +53,9 @@ const parseValue = capture(rvalue, {
         acc.unit = tokens[2];
         return acc;
     }
-}, {});
+}, null);
 
-const value = parseValue('36rem');    // { value: 36, unit: 'rem' }
+const value = parseValue('36rem');    // { number: 36, unit: 'rem' }
 ```
 */
 

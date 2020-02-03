@@ -1,24 +1,43 @@
 
-import insert from './insert.js';
+/*
+update(create, destroy, fn, target, source)
+
+Returns a new array containing items that are either matched objects from
+`target` assigned new data from `source` objects or, where no match is found,
+new objects created by calling `create` on a `source` object. Any objects
+in `target` that are not matched to `source` objects are destroyed by calling
+`destroy` on them.
+*/
 
 const assign = Object.assign;
 
-/*
-update(fn, array, object)
+export default function update(create, destroy, fn, target, source) {
+    const ids     = target.map(fn);
+    const indexes = {};
+    const output  = source.map(function(data) {
+        const id = fn(data);
+        const i  = ids.indexOf(id);
 
-Compares the result of calling `fn` on `object` to the result of calling `fn`
-on each value in `array`. If a match is found, `object` has its properties
-assigned to that target, and if not the `object` is spliced into the
-array (preserving a sort order based on the result of `fn(object)`).
+        if (i < 0) {
+            return create.prototype ?
+                new create(data) :
+                create(data);
+        }
 
-Returns the updated object.
-*/
+        // Has it already been processed? Oops.
+        if (indexes[i]) {
+            throw new Error('Failed to update target array, source data contains duplicates');
+        }
 
-export default function update(fn, construct, array, source) {
-    const id  = fn(source);
-    const obj = array.find((obj) => fn(obj) === id);
+        indexes[i] = true;
+        return assign(target[i], data);
+    });
 
-    return obj ?
-        assign(obj, source) :
-        insert(fn, array, construct(source)) ;
+    target.forEach(function(object) {
+        if (!output.includes(object)) {
+            destroy(object);
+        }
+    });
+
+    return output;
 }
