@@ -93,7 +93,7 @@ export const parseDateLocal = overload(toType, {
 		return isValidDate(date) ? date : undefined ;
 	},
 	default: function(date) {
-        throw new Error('parseDateLocal: date is not of a supported type (number, string, Date)');
+        throw new TypeError('parseDateLocal: date is not of a supported type (number, string, Date)');
     }
 });
 
@@ -124,7 +124,7 @@ function createDate(match, year, month, day, hour, minute, second, ms, zone, zon
 
 function createDateLocal(year, month, day, hour, minute, second, ms, zone) {
 	if (zone) {
-		throw new Error('Time.parseDateLocal() will not parse a string with a time zone "' + zone + '".');
+		throw new Error('createDateLocal() will not parse a string with a time zone "' + zone + '".');
 	}
 
 	// Month must be 0-indexed for the Date constructor
@@ -213,8 +213,8 @@ var componentFormatters = {
 	MMMM: function(data, lang) { return langs[lang].months[data.month - 1]; },
 	D:    function(data)       { return parseInt(data.day, 10) + ''; },
 	DD:   function(data)       { return data.day; },
-	ddd:  function(data)       { return data.weekday.slice(0,3); },
-	dddd: function(data, lang) { return data.weekday; },
+	DDD:  function(data)       { return data.weekday.slice(0,3); },
+	DDDD: function(data, lang) { return data.weekday; },
 	hh:   function(data)       { return data.hour; },
 	//hh:   function(data)       { return ('0' + data.hour % 12).slice(-2); },
 	mm:   function(data)       { return data.minute; },
@@ -255,12 +255,9 @@ var rdatejson = /^"(-?\d{4,}-\d\d-\d\d)/;
 
 function matchEach(regex, fn, text) {
 	var match = regex.exec(text);
-
-	return match ? (
-		fn.apply(null, match),
-		matchEach(regex, fn, text)
-	) :
-	undefined ;
+	if (!match) { return; }
+	fn.apply(null, match);
+	matchEach(regex, fn, text);
 }
 
 function toLocaleString(timezone, locale, date) {
@@ -279,6 +276,7 @@ function toLocaleComponents(timezone, locale, date) {
 		components[keys[i++]] = value;
 	}, localedate);
 
+	components.milliseconds = +date % 1000;
 	return components;
 }
 
@@ -295,7 +293,9 @@ function _formatDate(string, timezone, locale, date) {
 	var formats = componentFormatters;
 
 	return string.replace(rtoken, function($0) {
-		return formats[$0] ? formats[$0](data, lang) : $0 ;
+		return formats[$0] ?
+			formats[$0](data, lang) :
+			$0 ;
 	});
 }
 
@@ -447,29 +447,29 @@ function _diffDateDays(date1, date2) {
 		diff(0, d2, d1 === date1 || d2 === d1 ? cloneDate(d1) : d1) * -1 ;
 }
 
-function floorDateByGrain(grain, date) {
+function floorDateByGrain(token, date) {
 	var diff, week;
 
-	if (grain === 'ms') { return date; }
+	if (token === 'ms') { return date; }
 
 	date.setUTCMilliseconds(0);
-	if (grain === 'second') { return date; }
+	if (token === 's') { return date; }
 
 	date.setUTCSeconds(0);
-	if (grain === 'minute') { return date; }
+	if (token === 'm') { return date; }
 
 	date.setUTCMinutes(0);
-	if (grain === 'hour') { return date; }
+	if (token === 'h') { return date; }
 
 	date.setUTCHours(0);
-	if (grain === 'day') { return date; }
+	if (token === 'd') { return date; }
 
-	if (grain === 'week') {
+	if (token === 'w') {
 		date.setDate(date.getDate() - toDay(date));
 		return date;
 	}
 
-	if (grain === 'fortnight') {
+	if (token === 'fortnight') {
 		week = floorDateByDay(1, new Date());
 		diff = mod(14, _diffDateDays(week, date));
 		date.setUTCDate(date.getUTCDate() - diff);
@@ -477,10 +477,10 @@ function floorDateByGrain(grain, date) {
 	}
 
 	date.setUTCDate(1);
-	if (grain === 'month') { return date; }
+	if (token === 'M') { return date; }
 
 	date.setUTCMonth(0);
-	if (grain === 'year') { return date; }
+	if (token === 'Y') { return date; }
 
 	date.setUTCFullYear(0);
 	return date;
@@ -497,12 +497,12 @@ function floorDateByDay(day, date) {
 	return _addDate('-0000-00-0' + diff, date);
 }
 
-function _floorDate(grain, date) {
+function _floorDate(token, date) {
 	// Clone date before mutating it
 	date = cloneDate(date);
-	return typeof grain === 'number' ? floorDateByDay(grain, date) :
-        days[grain] ? floorDateByDay(days[grain], date) :
-	    floorDateByGrain(grain, date) ;
+	return typeof token === 'number' ? floorDateByDay(token, date) :
+        days[token] ? floorDateByDay(days[token], date) :
+	    floorDateByGrain(token, date) ;
 }
 
 export function nowDate() {
@@ -536,22 +536,22 @@ export const diffDateDays = curry(_diffDateDays);
 
 /*
 floorDate(token, date)
-Floors date to the nearest `token`, where `token` is one of:
-`'year'`,
-`'month'`,
-`'week'`,
-`'day'`,
-`'hour'`,
-`'minute'`
-or `'second'`;
-`'mon'`,
-`'tue'`,
-`'wed'`,
-`'thu'`,
-`'fri'`,
-`'sat'`,
-`'sun'`;
-or a number representing a weekday.
+Floors date to the start of nearest calendar point in time indicated by `token`:
+
+- `'Y'`   Year
+- `'M'`   Month
+- `'w'`   Week
+- `'d'`   Day
+- `'h'`   Hour
+- `'m'`   Minute
+- `'s'`   Second
+- `'mon'` Monday
+- `'tue'` Tuesday
+- `'wed'` Wednesday
+- `'thu'` Thursday
+- `'fri'` Friday
+- `'sat'` Saturday
+- `'sun'` Sunday
 
 ```
 const dayCounts = times.map(floorTime('days'));
@@ -563,7 +563,7 @@ export const floorDate = curry(function(token, date) {
 });
 
 /*
-formatDate(format, date)
+formatDate(locale, timezone, format, date)
 Formats `date` (a string or number or date accepted by `parseDate(date)`)
 to the format of the string `format`. The format string may contain the tokens:
 
@@ -574,23 +574,23 @@ to the format of the string `format`. The format string may contain the tokens:
 - `'MMMM'` month, full name
 - `'D'`    day of week
 - `'DD'`   day of week, two-digit
-- `'ddd'`  weekday, 3-letter
-- `'dddd'` weekday, full name
+- `'DDD'`  weekday, 3-letter
+- `'DDDD'` weekday, full name
 - `'hh'`   hours
 - `'mm'`   minutes
 - `'ss'`   seconds
 
 ```
-const time = formatTime('+-hh:mm:ss', 3600);   // 01:00:00
+const date = formatDate('en', '', 'YYYY', new Date());   // 2020
 ```
 */
 
-export const formatDate = curry(function(string, timezone, locale, date) {
-	return string === 'ISO' ?
+export const formatDate = curry(function (timezone, locale, format, date) {
+	return format === 'ISO' ?
 		formatDateISO(parseDate(date)) :
 	timezone === 'local' ?
-		formatDateLocal(string, locale, date) :
-	_formatDate(string, timezone, locale, parseDate(date)) ;
+		formatDateLocal(format, locale, date) :
+	_formatDate(format, timezone, locale, parseDate(date)) ;
 });
 
 
@@ -611,6 +611,11 @@ export function secondsToHours(n) { return n / 3600; }
 export function secondsToDays(n) { return n / 86400; }
 export function secondsToWeeks(n) { return n / 604800; }
 
+/* Months and years are not fixed durations – these are approximate */
+export function secondsToMonths(n) { return n / 2629800; }
+export function secondsToYears(n) { return n / 31557600; }
+
+
 function prefix(n) {
 	return n >= 10 ? '' : '0';
 }
@@ -619,7 +624,6 @@ function prefix(n) {
 // Minutes: 00-59 -
 // Seconds: 00-60 - 60 is allowed, denoting a leap second
 
-//var rtime   = /^([+-])?([01]\d|2[0-3])(?::([0-5]\d)(?::([0-5]\d|60)(?:.(\d+))?)?)?$/;
 //                sign   hh       mm           ss
 var rtime     = /^([+-])?(\d{2,}):([0-5]\d)(?::((?:[0-5]\d|60)(?:.\d+)?))?$/;
 var rtimediff = /^([+-])?(\d{2,}):(\d{2,})(?::(\d{2,}(?:.\d+)?))?$/;
@@ -627,9 +631,9 @@ var rtimediff = /^([+-])?(\d{2,}):(\d{2,})(?::(\d{2,}(?:.\d+)?))?$/;
 /*
 parseTime(time)
 
-Where `time` is a string it is parsed as a time in ISO time format; as
+Where `time` is a string it is parsed as a time in ISO time format: as
 hours `'13'`, with minutes `'13:25'`, with seconds `'13:25:14'` or with
-decimal seconds `'13:25:14.001'`: it is returned as a number in seconds.
+decimal seconds `'13:25:14.001'`. Returns a number in seconds.
 
 ```
 const time = parseTime('13:25:14.001');   // 48314.001
@@ -667,61 +671,6 @@ var _floorTime = choose({
 	second: function(time) { return time - mod(1, time); }
 });
 
-var timeFormatters = {
-	'+-': function sign(time) {
-		return time < 0 ? '-' : '' ;
-	},
-
-	www: function www(time) {
-		time = time < 0 ? -time : time;
-		var weeks = Math.floor(secondsToWeeks(time));
-		return prefix(weeks) + weeks;
-	},
-
-	dd: function dd(time) {
-		time = time < 0 ? -time : time;
-		var days = Math.floor(secondsToDays(time));
-		return prefix(days) + days;
-	},
-
-	hhh: function hhh(time) {
-		time = time < 0 ? -time : time;
-		var hours = Math.floor(secondsToHours(time));
-		return prefix(hours) + hours;
-	},
-
-	hh: function hh(time) {
-		time = time < 0 ? -time : time;
-		var hours = Math.floor(secondsToHours(time % 86400));
-		return prefix(hours) + hours;
-	},
-
-	mm: function mm(time) {
-		time = time < 0 ? -time : time;
-		var minutes = Math.floor(secondsToMinutes(time % 3600));
-		return prefix(minutes) + minutes;
-	},
-
-	ss: function ss(time) {
-		time = time < 0 ? -time : time;
-		var seconds = Math.floor(time % 60);
-		return prefix(seconds) + seconds ;
-	},
-
-	sss: function sss(time) {
-		time = time < 0 ? -time : time;
-		var seconds = time % 60;
-		return prefix(seconds) + toMaxDecimals(precision, seconds);
-	},
-
-	ms: function ms(time) {
-		time = time < 0 ? -time : time;
-		var ms = Math.floor(secondsToMilliseconds(time % 1));
-		return ms >= 100 ? ms :
-			ms >= 10 ? '0' + ms :
-			'00' + ms ;
-	}
-};
 
 function createTime(match, sign, hh, mm, sss) {
 	var time = hoursToSeconds(parseInt(hh, 10))
@@ -764,32 +713,125 @@ function toMaxDecimals(precision, n) {
 }
 
 
-
-
-
 export const nowTime = function() {
 	return window.performance.now();
 };
 
 /*
 formatTime(format, time)
-Formats `time` (a string or a number) to the format of the `format` string.
-The format string may contain the tokens:
+Formats `time` (an 'hh:mm:sss' time string or a number in seconds) to match
+`format`, a string that may contain the tokens:
 
-- '+-'    sign
-- `'www'` weeks
-- `'dd'`  days
-- `'hhh'` duration hours, unlimited
-- `'hh'`  time hours, 24-hour cycle
-- `'mm'`  time minutes
-- `'ss'`  time seconds
-- `'sss'` time seconds with decimals
-- `'ms'`  time milliseconds
+- `'±'`   Sign, renders '-' if time is negative, otherwise nothing
+- `'Y'`   Years, approx.
+- `'M'`   Months, approx.
+- `'MM'`  Months, remainder from years (max 12), approx.
+- `'w'`   Weeks
+- `'ww'`  Weeks, remainder from months (max 4)
+- `'d'`   Days
+- `'dd'`  Days, remainder from weeks (max 7)
+- `'h'`   Hours
+- `'hh'`  Hours, remainder from days (max 24), 2-digit format
+- `'m'`   Minutes
+- `'mm'`  Minutes, remainder from hours (max 60), 2-digit format
+- `'s'`   Seconds
+- `'ss'`  Seconds, remainder from minutes (max 60), 2-digit format
+- `'sss'` Seconds, remainder from minutes (max 60), fractional
+- `'ms'`  Milliseconds, remainder from seconds (max 1000), 3-digit format
 
 ```
-const time = formatTime('+-hh:mm:ss', 3600);   // 01:00:00
+const time = formatTime('±hh:mm:ss', 3600);   // 01:00:00
 ```
 */
+
+var timeFormatters = {
+	'±': function sign(time) {
+		return time < 0 ? '-' : '';
+	},
+
+	Y: function Y(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(secondsToYears(time));
+	},
+
+	M: function M(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(secondsToMonths(time));
+	},
+
+	MM: function MM(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(secondsToMonths(time % 31557600));
+	},
+
+	W: function W(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(secondsToWeeks(time));
+	},
+
+	WW: function WW(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(secondsToDays(time % 2629800));
+	},
+
+	d: function dd(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(secondsToDays(time));
+	},
+
+	dd: function dd(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(secondsToDays(time % 604800));
+	},
+
+	h: function hhh(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(secondsToHours(time));
+	},
+
+	hh: function hh(time) {
+		time = time < 0 ? -time : time;
+		var hours = Math.floor(secondsToHours(time % 86400));
+		return prefix(hours) + hours;
+	},
+
+	m: function mm(time) {
+		time = time < 0 ? -time : time;
+		var minutes = Math.floor(secondsToMinutes(time));
+		return prefix(minutes) + minutes;
+	},
+
+	mm: function mm(time) {
+		time = time < 0 ? -time : time;
+		var minutes = Math.floor(secondsToMinutes(time % 3600));
+		return prefix(minutes) + minutes;
+	},
+
+	s: function s(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(time);
+	},
+
+	ss: function ss(time) {
+		time = time < 0 ? -time : time;
+		var seconds = Math.floor(time % 60);
+		return prefix(seconds) + seconds;
+	},
+
+	sss: function sss(time) {
+		time = time < 0 ? -time : time;
+		var seconds = time % 60;
+		return prefix(seconds) + toMaxDecimals(precision, seconds);
+	},
+
+	ms: function ms(time) {
+		time = time < 0 ? -time : time;
+		var ms = Math.floor(secondsToMilliseconds(time % 1));
+		return ms >= 100 ? ms :
+			ms >= 10 ? '0' + ms :
+				'00' + ms;
+	}
+};
 
 export const formatTime = curry(function(string, time) {
 	return string === 'ISO' ?
@@ -812,7 +854,7 @@ export function formatTimeISO(time) {
 /*
 addTime(time1, time2)
 Sums `time2` and `time1`, returning UNIX time as a number in seconds.
-If `time1` is a string, it is parsed as a time diff, where numbers
+If `time1` is a string, it is parsed as a duration, where numbers
 are accepted outside the bounds of 0-24 hours or 0-60 minutes or seconds.
 For example, to add 72 minutes to a list of times:
 
