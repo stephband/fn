@@ -3,8 +3,8 @@
 setPath(path, object, value)
 
 ```
-// Set `object.prop.value` whenever a value is pulled through a stream:
-stream.tap(setPath('prop.value'), object);
+// Set `object.prop.value` whenever a value is pushed into a stream:
+stream.each(setPath('prop.value'), object);
 ```
 */
 
