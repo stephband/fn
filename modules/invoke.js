@@ -7,6 +7,10 @@ models.forEach(invoke('save', [version]));
 ```
 */
 
-export default function invoke(name, values, object) {
+import curry from './curry.js';
+
+export function invoke(name, values, object) {
     return object[name].apply(object, values);
 }
+
+export default curry(invoke, true);

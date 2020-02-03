@@ -2,7 +2,6 @@
 import Stream  from './stream.js';
 import noop    from './noop.js';
 import { observe } from './observer/observe.js';
-//import { setPath } from './paths.js';
 
 function ObserveSource(push, stop, args) {
     const path   = args[0];

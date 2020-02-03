@@ -9,10 +9,14 @@ const vegeFoods = menu.filter(matches({ vegetarian: true }));
 ```
 */
 
-export default function matches(object, item) {
+import curry from './curry.js';
+
+export function matches(object, item) {
 	let property;
 	for (property in object) {
 		if (object[property] !== item[property]) { return false; }
 	}
 	return true;
 }
+
+export default curry(matches, true);

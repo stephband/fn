@@ -5,7 +5,9 @@ Calls `fn` with the result of `regex.exec(string)` if that result is not null,
 and returns the resulting value.
 */
 
-export default function exec(regex, fn, string) {
+import curry from './curry.js';
+
+export function exec(regex, fn, string) {
     let data;
 
     // If string looks like a regex result, get rest of string
@@ -35,3 +37,5 @@ export default function exec(regex, fn, string) {
 
     return output;
 }
+
+export default curry(exec, true);

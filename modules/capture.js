@@ -1,5 +1,6 @@
 
-import exec from './exec.js';
+import curry from './curry.js';
+import { exec } from './exec.js';
 
 function error(regex, reducers, string) {
     if (string.input !== undefined && string.index !== undefined) {
@@ -59,7 +60,7 @@ const value = parseValue('36rem');    // { number: 36, unit: 'rem' }
 ```
 */
 
-export default function capture(regex, reducers, acc, string) {
+export function capture(regex, reducers, acc, string) {
     const output = exec(regex, (tokens) => reduce(reducers, acc, tokens), string);
 
     // If tokens is undefined exec has failed apply regex to string
@@ -72,3 +73,5 @@ export default function capture(regex, reducers, acc, string) {
         // Return the accumulator
         output ;
 }
+
+export default curry(capture, true);
