@@ -1,4 +1,14 @@
 
+/*
+getPath(path, object)
+
+Returns the value at `path` in `object`.
+
+```
+const value = getPath('path.to.value', object);
+```
+*/
+
 import curry from './curry.js';
 
 var rpath  = /\[?([-\w]+)(?:=(['"])([^\2]+)\2|(true|false)|((?:\d*\.)?\d+))?\]?\.?/g;

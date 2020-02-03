@@ -7,8 +7,12 @@ stream.scan(set('value'), input);
 ```
 */
 
-export default function set(key, object, value) {
+import curry from './curry.js';
+
+export function set(key, object, value) {
     return typeof object.set === "function" ?
         object.set(key, value) :
         (object[key] = value) ;
 }
+
+export default curry(set, true);

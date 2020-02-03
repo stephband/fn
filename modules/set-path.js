@@ -1,6 +1,15 @@
 
+/*
+setPath(path, object, value)
+
+```
+// Set `object.prop.value` whenever a value is pulled through a stream:
+stream.tap(setPath('prop.value'), object);
+```
+*/
+
 import curry from './curry.js';
-import set from './set.js';
+import { set } from './set.js';
 
 var rpath  = /\[?([-\w]+)(?:=(['"])([^\2]+)\2|(true|false)|((?:\d*\.)?\d+))?\]?\.?/g;
 
