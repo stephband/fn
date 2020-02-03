@@ -13,6 +13,7 @@ export { curry, choose };
 export * from './modules/throttle.js';
 export { default as PromiseThrottle } from './modules/promise-throttle.js';
 export { default as print }       from './modules/print.js';
+
 export { default as args }        from './modules/args.js';
 export { default as argument }    from './modules/argument.js';
 export { default as cache }       from './modules/cache.js';
@@ -51,12 +52,26 @@ export { default as toString }    from './modules/to-string.js';
 export { default as toType }      from './modules/to-type.js';
 export { default as weakCache }   from './modules/weak-cache.js';
 export { default as Fn }          from './modules/fn.js';
+export { default as Observable }  from './modules/observe-stream.js';
 export { default as mutations }   from './modules/observe-stream.js';
 export { default as Stream }      from './modules/stream.js';
 export { default as Timer }       from './modules/timer.js';
 export { default as Pool }        from './modules/pool.js';
 export { Observer, Target, notify } from './modules/observer/observer.js';
 export { observe }                from './modules/observer/observe.js';
+
+/* Strings */
+
+export { default as append }      from './modules/strings/append.js';
+export { default as prepend }     from './modules/strings/prepend.js';
+export { default as prepad }      from './modules/strings/prepad.js';
+export { default as postpad }     from './modules/strings/postpad.js';
+export { default as slugify }     from './modules/strings/slugify.js';
+export { default as toCamelCase } from './modules/strings/to-camel-case.js';
+export { default as toPlainText } from './modules/strings/to-plain-text.js';
+export { default as toStringType } from './modules/strings/to-string-type.js';
+
+
 
 export { default as requestTick } from './modules/request-tick.js';
 import { requestTime as _requestTime } from './modules/request-time.js';
@@ -111,22 +126,7 @@ export const diff        = curry(_diff, true);
 export const intersect   = curry(_intersect, true);
 export const unite       = curry(_unite, true);
 
-/* Strings */
 
-import _append      from './modules/strings/append.js';
-import _prepend     from './modules/strings/prepend.js';
-import _prepad      from './modules/strings/prepad.js';
-import _postpad     from './modules/strings/postpad.js';
-
-export const append      = curry(_append);
-export const prepend     = curry(_prepend);
-export const prepad      = curry(_prepad);
-export const postpad     = curry(_postpad);
-
-export { default as slugify }      from './modules/strings/slugify.js';
-export { default as toCamelCase }  from './modules/strings/to-camel-case.js';
-export { default as toPlainText }  from './modules/strings/to-plain-text.js';
-export { default as toStringType } from './modules/strings/to-string-type.js';
 
 
 /* Numbers */

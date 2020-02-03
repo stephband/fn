@@ -2,8 +2,9 @@
 /*
 setPath(path, object, value)
 
+Sets `value` at `path` in `object`.
+
 ```
-// Set `object.prop.value` whenever a value is pushed into a stream:
 stream.each(setPath('prop.value'), object);
 ```
 */

@@ -21,7 +21,7 @@ import Sparky, { config } from '../sparky/module.js';
 
 // Change name of attributes
 config.attributeFn      = 'build-fn';
-config.attributeSrc = 'build-src';
+config.attributeSrc     = 'build-src';
 config.attributePrefix  = 'build-';
 
 setTimeout(function() {

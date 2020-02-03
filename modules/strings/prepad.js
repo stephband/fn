@@ -1,5 +1,7 @@
 
-export default function prepad(chars, n, value) {
+import curry from '../curry.js';
+
+export function prepad(chars, n, value) {
     var string = value + '';
     var i = -1;
     var pre = '';
@@ -10,4 +12,6 @@ export default function prepad(chars, n, value) {
 
     string = pre + string;
     return string.slice(string.length - n);
-};
+}
+
+export default curry(prepad);
