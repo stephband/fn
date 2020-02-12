@@ -8,6 +8,8 @@ This file is generated via SASS. To generate it, run `npm run sass`.
 
 /* Removed because we have projects that override .block - it sort of has two meanings, now, in Bolt – base class and modifier – which is a bad idea. */
 /*().block          { display: block !important; }*/
+.flex { display: flex !important; }
+
 .grid { display: grid !important; }
 
 .grid-2 { grid-template-columns: repeat(2, 1fr); }
@@ -210,6 +212,7 @@ This file is generated via SASS. To generate it, run `npm run sass`.
 
 @media screen and (min-width: 49.6875em) { .\@1-hidden { display: none !important; }
 	.\@1-block { display: block !important; }
+	.\@1-flex { display: flex !important; }
 	.\@1-grid { display: grid !important; }
 	.\@1-grid-2 { grid-template-columns: repeat(2, 1fr); }
 	.\@1-grid-3 { grid-template-columns: repeat(3, 1fr); }
@@ -310,10 +313,11 @@ This file is generated via SASS. To generate it, run `npm run sass`.
 	.\@1-columns-11 { columns: 11 !important; }
 	.\@1-columns-12 { columns: 12 !important; } }
 
-@media screen and (max-width: 76.874em) { .\@2-shown { display: none !important; } }
+@media screen and (max-width: 75.9365em) { .\@2-shown { display: none !important; } }
 
-@media screen and (min-width: 76.875em) { .\@2-hidden { display: none !important; }
+@media screen and (min-width: 75.9375em) { .\@2-hidden { display: none !important; }
 	.\@2-block { display: block !important; }
+	.\@2-flex { display: flex !important; }
 	.\@2-grid { display: grid !important; }
 	.\@2-grid-2 { grid-template-columns: repeat(2, 1fr); }
 	.\@2-grid-3 { grid-template-columns: repeat(3, 1fr); }
@@ -414,10 +418,11 @@ This file is generated via SASS. To generate it, run `npm run sass`.
 	.\@2-columns-11 { columns: 11 !important; }
 	.\@2-columns-12 { columns: 12 !important; } }
 
-@media screen and (max-width: 101.249em) { .\@3-shown { display: none !important; } }
+@media screen and (max-width: 99.999em) { .\@3-shown { display: none !important; } }
 
-@media screen and (min-width: 101.25em) { .\@3-hidden { display: none !important; }
+@media screen and (min-width: 100em) { .\@3-hidden { display: none !important; }
 	.\@3-block { display: block !important; }
+	.\@3-flex { display: flex !important; }
 	.\@3-grid { display: grid !important; }
 	.\@3-grid-2 { grid-template-columns: repeat(2, 1fr); }
 	.\@3-grid-3 { grid-template-columns: repeat(3, 1fr); }

@@ -3,9 +3,9 @@ $breakpoints:
     /* Gutter is 24px. 840px (1 column 354px + gutter 24px) */
     /* Gutter is 45px. (2 columns 375px + gutter 45px) 795px */
     '\\@1-' 49.6875em 6,
-    /* Gutter is 60px. (3 columns 390px + gutter 60px) 1230px */
-    '\\@2-' 76.875em 9,
-    /* Gutter is 60px. (4 columns 390px + gutter 60px) 1620px */
-    '\\@3-' 101.25em 12;
+    /* Gutter is 60px. (3 columns 385px + gutter 60px) 1215px */
+    '\\@2-' 75.9375em 9,
+    /* Gutter is 60px. (4 columns 385px + gutter 60px) 1600px. */
+    '\\@3-' 100em 12;
 
 @import '../bolt/css/respond.scss';
