@@ -7,6 +7,8 @@ cubicBezier(point1, point2, duration, x)
 Where `point1` and `point2` are `[x, y]` arrays describing control points.
 */
 
+import curry from '../curry.js';
+
 function sampleCubicBezier(a, b, c, t) {
     // `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
     return ((a * t + b) * t + c) * t;
@@ -57,7 +59,7 @@ function solveCubicBezierX(a, b, c, x, epsilon) {
     return t2;
 }
 
-export default function cubicBezier(p1, p2, duration, x) {
+export function cubicBezier(p1, p2, duration, x) {
     // The epsilon value to pass given that the animation is going
     // to run over duruation seconds. The longer the animation, the
     // more precision is needed in the timing function result to
@@ -76,3 +78,5 @@ export default function cubicBezier(p1, p2, duration, x) {
     var y = solveCubicBezierX(ax, bx, cx, x, epsilon);
     return sampleCubicBezier(ay, by, cy, y);
 }
+
+export default curry(cubicBezier, true, 4);

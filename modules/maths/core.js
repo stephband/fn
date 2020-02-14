@@ -1,73 +1,50 @@
-// Constant for converting radians to degrees
-const angleFactor = 180 / Math.PI;
 
-export function sum(a, b)  { return b + a; }
+import curry from '../curry.js';
+
+export function sum(a, b) { return b + a; }
 export function multiply(a, b) { return b * a; }
-export function min(a, b)  { return a > b ? b : a ; }
-export function max(a, b)  { return a < b ? b : a ; }
-export function pow(n, x)  { return Math.pow(x, n); }
-export function exp(n, x)  { return Math.pow(n, x); }
-export function log(n, x)  { return Math.log(x) / Math.log(n); }
+export function pow(n, x) { return Math.pow(x, n); }
+export function exp(n, x) { return Math.pow(n, x); }
+export function log(n, x) { return Math.log(x) / Math.log(n); }
 export function root(n, x) { return Math.pow(x, 1/n); }
-
-/*
-mod(divisor, n)
-JavaScript's modulu operator (`%`) uses Euclidean division, but for
-stuff that cycles through 0 the symmetrics of floored division are often
-are more useful.
-*/
-
-export function mod(d, n) {
-    var value = n % d;
-    return value < 0 ? value + d : value ;
-}
 
 /*
 limit(min, max, n)
 */
 
 export function limit(min, max, n) {
-    return n > max ? max : n < min ? min : n ;
+    return n > max ? max : n < min ? min : n;
 }
+
+/*
+wrap(min, max, n)
+*/
 
 export function wrap(min, max, n) {
     return (n < min ? max : min) + (n - min) % (max - min);
 }
 
 /*
-gcd(a, b)
-*/
-
-export function gcd(a, b) {
-    // Greatest common divider
-    return b ? gcd(b, a % b) : a ;
-}
-
-/*
-lcm(a, b)
-*/
-
-export function lcm(a, b) {
-    // Lowest common multiple.
-    return a * b / gcd(a, b);
-}
-
-export function factorise(n, d) {
-    // Reduce a fraction by finding the Greatest Common Divisor and
-    // dividing by it.
-    var f = gcd(n, d);
-    return [n/f, d/f];
-}
-
-/*
 gaussian()
-Generate a random number with a bell curve probability centred
-around 0 with limits -1 to 1.
+
+Generate a random number with a gaussian distribution centred
+at 0 with limits -1 to 1.
 */
 
 export function gaussian() {
     return Math.random() + Math.random() - 1;
 }
+
+export const curriedSum   = curry(sum);
+export const curriedMultiply = curry(multiply);
+export const curriedMin   = curry(Math.min, false, 2);
+export const curriedMax   = curry(Math.max, false, 2);
+export const curriedPow   = curry(pow);
+export const curriedExp   = curry(exp);
+export const curriedLog   = curry(log);
+export const curriedRoot  = curry(root);
+export const curriedLimit = curry(limit);
+export const curriedWrap  = curry(wrap);
 
 /*
 todB(level)
@@ -86,5 +63,16 @@ toLevel(dB)
 
 export function toLevel(n) { return Math.pow(2, n / 6); }
 
-export function toRad(n)   { return n / angleFactor; }
+/*
+toRad(deg)
+*/
+
+const angleFactor = 180 / Math.PI;
+
+export function toRad(n) { return n / angleFactor; }
+
+/*
+toDeg(rad)
+*/
+
 export function toDeg(n)   { return n * angleFactor; }

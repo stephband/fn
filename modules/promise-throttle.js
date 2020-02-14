@@ -10,7 +10,7 @@ export default function Throttle(fn) {
 	}
 
 	return function throttle() {
-		// Throttle requests to next tick, usin the context and args
+		// Throttle requests to next tick, using the context and args
 		// from the latest call to request()
 		promise = promise || Promise.resolve().then(fire);
 		context = this;

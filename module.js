@@ -85,7 +85,6 @@ export const xor     = curry(function xor(a, b) { return (a || b) && (!!a !== !!
 export const assign  = curry(Object.assign, true, 2);
 export const define  = curry(Object.defineProperties, true, 2);
 
-
 /* Lists */
 
 import * as lists   from './modules/lists/core.js';
@@ -126,46 +125,51 @@ export const diff        = curry(_diff, true);
 export const intersect   = curry(_intersect, true);
 export const unite       = curry(_unite, true);
 
-
-
-
 /* Numbers */
 
-import * as normalisers   from './modules/normalisers.js';
-import * as denormalisers from './modules/denormalisers.js';
+export {
+    curriedExp   as exp,
+    curriedLog   as log,
+    curriedMax   as max,
+    curriedMin   as min,
+    curriedMultiply as multiply,
+    curriedPow   as pow,
+    curriedRoot  as root,
+    curriedSum   as sum,
+    curriedLimit as limit,
+    curriedWrap  as wrap,
+    gaussian,
+    todB,
+    toLevel,
+    toRad,
+    toDeg
+} from './modules/maths/core.js';
 
-import * as maths      from './modules/maths/core.js';
-import _exponentialOut from './modules/maths/exponential-out.js';
-import _cubicBezier    from './modules/maths/cubic-bezier.js';
+export {
+    curriedGcd as gcd,
+    curriedLcm as lcm,
+    factorise
+} from './modules/maths/ratios.js';
 
-export { gaussian, todB, toLevel, toRad, toDeg } from './modules/maths/core.js';
-export { default as toPolar }     from './modules/maths/to-polar.js';
+export { default as mod } from './modules/maths/mod.js';
+export { default as toPolar } from './modules/maths/to-polar.js';
 export { default as toCartesian } from './modules/maths/to-cartesian.js';
+export { default as cubicBezier } from './modules/maths/cubic-bezier.js';
 
-export const sum         = curry(maths.sum);
-
-export const add         = curry(function(a, b) {
-    console.trace('Fn module add() is now sum()');
-    return maths.sum(a, b);
-});
-
-export const multiply    = curry(maths.multiply);
-export const min         = curry(maths.min);
-export const max         = curry(maths.max);
-export const mod         = curry(maths.mod);
-export const pow         = curry(maths.pow);
-export const exp         = curry(maths.exp);
-export const log         = curry(maths.log);
-export const gcd         = curry(maths.gcd);
-export const lcm         = curry(maths.lcm);
-export const root        = curry(maths.root);
-export const limit       = curry(maths.limit);
-export const wrap        = curry(maths.wrap);
-export const factorise   = curry(maths.factorise);
-export const cubicBezier = curry(_cubicBezier);
+import * as normalisers from './modules/normalisers.js';
+import * as denormalisers from './modules/denormalisers.js';
 export const normalise   = curry(choose(normalisers), false, 4);
 export const denormalise = curry(choose(denormalisers), false, 4);
+
+import _exponentialOut from './modules/maths/exponential-out.js';
 export const exponentialOut = curry(_exponentialOut);
+
+
+
+export const add = curry(function (a, b) {
+    console.trace('Deprecated: module add() is now sum()');
+    return a + b;
+});
 
 /* Time */
 
