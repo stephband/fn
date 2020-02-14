@@ -508,17 +508,6 @@ making it suitable, for example, to use in <code>array.map(parseInt)</code>.</p>
             <div class="x-1">
                 <h4 class="text-4">Numbers</h4>
                 
-    <article class="toggle-block block" toggleable="" id="mod-divisor-n">
-        <h3 class="text-5 ">
-            <a href="#mod-divisor-n">
-                <code class="function language-js"><span class="token function">mod</span><span class="token punctuation">(</span>divisor<span class="token punctuation">,</span> n<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>JavaScript’s modulu operator (<code>%</code>) uses Euclidean division, but for
-stuff that cycles through 0 the symmetrics of floored division are often
-are more useful.</p>
-</article>
-
     <article class="toggle-block block" toggleable="" id="limit-min-max-n">
         <h3 class="text-5 ">
             <a href="#limit-min-max-n">
@@ -527,18 +516,10 @@ are more useful.</p>
         </h3>
     </article>
 
-    <article class="toggle-block block" toggleable="" id="gcd-a-b">
+    <article class="toggle-block block" toggleable="" id="wrap-min-max-n">
         <h3 class="text-5 ">
-            <a href="#gcd-a-b">
-                <code class="function language-js"><span class="token function">gcd</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> b<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    </article>
-
-    <article class="toggle-block block" toggleable="" id="lcm-a-b">
-        <h3 class="text-5 ">
-            <a href="#lcm-a-b">
-                <code class="function language-js"><span class="token function">lcm</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> b<span class="token punctuation">)</span></code>
+            <a href="#wrap-min-max-n">
+                <code class="function language-js"><span class="token function">wrap</span><span class="token punctuation">(</span>min<span class="token punctuation">,</span> max<span class="token punctuation">,</span> n<span class="token punctuation">)</span></code>
             </a>
         </h3>
     </article>
@@ -549,8 +530,8 @@ are more useful.</p>
                 <code class="function language-js"><span class="token function">gaussian</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
             </a>
         </h3>
-    <p>Generate a random number with a bell curve probability centred
-around 0 with limits -1 to 1.</p>
+    <p>Generate a random number with a gaussian distribution centred
+at 0 with limits -1 to 1.</p>
 </article>
 
     <article class="toggle-block block" toggleable="" id="todb-level">
@@ -568,6 +549,63 @@ around 0 with limits -1 to 1.</p>
             </a>
         </h3>
     </article>
+
+    <article class="toggle-block block" toggleable="" id="torad-deg">
+        <h3 class="text-5 ">
+            <a href="#torad-deg">
+                <code class="function language-js"><span class="token function">toRad</span><span class="token punctuation">(</span>deg<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="todeg-rad">
+        <h3 class="text-5 ">
+            <a href="#todeg-rad">
+                <code class="function language-js"><span class="token function">toDeg</span><span class="token punctuation">(</span>rad<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="toggle-block block" toggleable="" id="mod-divisor-n">
+        <h3 class="text-5 ">
+            <a href="#mod-divisor-n">
+                <code class="function language-js"><span class="token function">mod</span><span class="token punctuation">(</span>divisor<span class="token punctuation">,</span> n<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>JavaScript’s modulu operator (<code>%</code>) uses Euclidean division, but for
+stuff that cycles through 0 the symmetrics of floored division are often
+are more useful. This function implements floored division.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="gcd-a-b">
+        <h3 class="text-5 ">
+            <a href="#gcd-a-b">
+                <code class="function language-js"><span class="token function">gcd</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> b<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns the greatest common divider of a and b.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="lcm-a-b">
+        <h3 class="text-5 ">
+            <a href="#lcm-a-b">
+                <code class="function language-js"><span class="token function">lcm</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> b<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns the lowest common multiple of a and b.</p>
+</article>
+
+    <article class="toggle-block block" toggleable="" id="factorise-array">
+        <h3 class="text-5 ">
+            <a href="#factorise-array">
+                <code class="function language-js"><span class="token function">factorise</span><span class="token punctuation">(</span>array<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Reduces a fraction (represented by <code>array</code> in the form
+<code>[numerator, denominator]</code>) by finding the greatest common divisor and
+dividing by it both values by it.</p>
+<p>Returns a new array in the form <code>[numerator, denominator]</code>.</p>
+</article>
 
     <article class="toggle-block block" toggleable="" id="cubicbezier-point1-point2-duration-x">
         <h3 class="text-5 ">

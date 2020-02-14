@@ -235,7 +235,7 @@ var Fn = (function (exports) {
     	}
 
     	return function throttle() {
-    		// Throttle requests to next tick, usin the context and args
+    		// Throttle requests to next tick, using the context and args
     		// from the latest call to request()
     		promise = promise || Promise.resolve().then(fire);
     		context = this;
@@ -3678,6 +3678,244 @@ var Fn = (function (exports) {
         // Todo: handle Fns and Streams
     }
 
+    function sum(a, b) { return b + a; }
+    function multiply(a, b) { return b * a; }
+    function pow(n, x) { return Math.pow(x, n); }
+    function exp(n, x) { return Math.pow(n, x); }
+    function log(n, x) { return Math.log(x) / Math.log(n); }
+    function root(n, x) { return Math.pow(x, 1/n); }
+
+    /*
+    limit(min, max, n)
+    */
+
+    function limit(min, max, n) {
+        return n > max ? max : n < min ? min : n;
+    }
+
+    /*
+    wrap(min, max, n)
+    */
+
+    function wrap(min, max, n) {
+        return (n < min ? max : min) + (n - min) % (max - min);
+    }
+
+    /*
+    gaussian()
+
+    Generate a random number with a gaussian distribution centred
+    at 0 with limits -1 to 1.
+    */
+
+    function gaussian() {
+        return Math.random() + Math.random() - 1;
+    }
+
+    const curriedSum   = curry$1(sum);
+    const curriedMultiply = curry$1(multiply);
+    const curriedMin   = curry$1(Math.min, false, 2);
+    const curriedMax   = curry$1(Math.max, false, 2);
+    const curriedPow   = curry$1(pow);
+    const curriedExp   = curry$1(exp);
+    const curriedLog   = curry$1(log);
+    const curriedRoot  = curry$1(root);
+    const curriedLimit = curry$1(limit);
+    const curriedWrap  = curry$1(wrap);
+
+    /*
+    todB(level)
+    */
+
+    // A bit disturbingly, a correction factor is needed to make todB() and
+    // to toLevel() reciprocate more accurately. This is quite a lot to be off
+    // by... Todo: investigate?
+    const dBCorrectionFactor = (60 / 60.205999132796244);
+
+    function todB(n)    { return 20 * Math.log10(n) * dBCorrectionFactor; }
+
+    /*
+    toLevel(dB)
+    */
+
+    function toLevel(n) { return Math.pow(2, n / 6); }
+
+    /*
+    toRad(deg)
+    */
+
+    const angleFactor = 180 / Math.PI;
+
+    function toRad(n) { return n / angleFactor; }
+
+    /*
+    toDeg(rad)
+    */
+
+    function toDeg(n)   { return n * angleFactor; }
+
+    /*
+    gcd(a, b)
+
+    Returns the greatest common divider of a and b.
+    */
+
+    function gcd(a, b) {
+        return b ? gcd(b, a % b) : a;
+    }
+
+    const curriedGcd = curry$1(gcd);
+
+    /*
+    lcm(a, b)
+
+    Returns the lowest common multiple of a and b.
+    */
+
+    function lcm(a, b) {
+        return a * b / gcd(a, b);
+    }
+
+    const curriedLcm = curry$1(lcm);
+
+    /*
+    factorise(array)
+
+    Reduces a fraction (represented by `array` in the form
+    `[numerator, denominator]`) by finding the greatest common divisor and
+    dividing by it both values by it.
+
+    Returns a new array in the form `[numerator, denominator]`.
+    */
+
+    function factorise(array) {
+        var f = gcd(array[0], array[1]);
+        return [array[0] / f, array[1] / f];
+    }
+
+    /*
+    mod(divisor, n)
+
+    JavaScript's modulu operator (`%`) uses Euclidean division, but for
+    stuff that cycles through 0 the symmetrics of floored division are often
+    are more useful. This function implements floored division.
+    */
+
+    function mod(d, n) {
+        var value = n % d;
+        return value < 0 ? value + d : value;
+    }
+
+    var mod$1 = curry$1(mod);
+
+    /*
+    toPolar(cartesian)
+    */
+
+    function toPolar(cartesian) {
+        var x = cartesian[0];
+        var y = cartesian[1];
+
+        return [
+            // Distance
+            x === 0 ?
+                Math.abs(y) :
+            y === 0 ?
+                Math.abs(x) :
+                Math.sqrt(x*x + y*y) ,
+            // Angle
+            Math.atan2(x, y)
+        ];
+    }
+
+    /*
+    toCartesian(polar)
+    */
+
+    function toCartesian(polar) {
+        var d = polar[0];
+        var a = polar[1];
+
+        return [
+            Math.sin(a) * d ,
+            Math.cos(a) * d
+        ];
+    }
+
+    // Cubic bezier function (originally translated from
+
+    function sampleCubicBezier(a, b, c, t) {
+        // `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
+        return ((a * t + b) * t + c) * t;
+    }
+
+    function sampleCubicBezierDerivative(a, b, c, t) {
+        return (3 * a * t + 2 * b) * t + c;
+    }
+
+    function solveCubicBezierX(a, b, c, x, epsilon) {
+        // Solve x for a cubic bezier
+        var x2, d2, i;
+        var t2 = x;
+
+        // First try a few iterations of Newton's method -- normally very fast.
+        for(i = 0; i < 8; i++) {
+            x2 = sampleCubicBezier(a, b, c, t2) - x;
+            if (Math.abs(x2) < epsilon) {
+                return t2;
+            }
+            d2 = sampleCubicBezierDerivative(a, b, c, t2);
+            if (Math.abs(d2) < 1e-6) {
+                break;
+            }
+            t2 = t2 - x2 / d2;
+        }
+
+        // Fall back to the bisection method for reliability.
+        var t0 = 0;
+        var t1 = 1;
+
+        t2 = x;
+
+        if(t2 < t0) { return t0; }
+        if(t2 > t1) { return t1; }
+
+        while(t0 < t1) {
+            x2 = sampleCubicBezier(a, b, c, t2);
+            if(Math.abs(x2 - x) < epsilon) {
+                return t2;
+            }
+            if (x > x2) { t0 = t2; }
+            else { t1 = t2; }
+            t2 = (t1 - t0) * 0.5 + t0;
+        }
+
+        // Failure.
+        return t2;
+    }
+
+    function cubicBezier(p1, p2, duration, x) {
+        // The epsilon value to pass given that the animation is going
+        // to run over duruation seconds. The longer the animation, the
+        // more precision is needed in the timing function result to
+        // avoid ugly discontinuities.
+        var epsilon = 1 / (200 * duration);
+
+        // Calculate the polynomial coefficients. Implicit first and last
+        // control points are (0,0) and (1,1).
+        var cx = 3 * p1[0];
+        var bx = 3 * (p2[0] - p1[0]) - cx;
+        var ax = 1 - cx - bx;
+        var cy = 3 * p1[1];
+        var by = 3 * (p2[1] - p1[1]) - cy;
+        var ay = 1 - cy - by;
+
+        var y = solveCubicBezierX(ax, bx, cx, x, epsilon);
+        return sampleCubicBezier(ay, by, cy, y);
+    }
+
+    var bezierify = curry$1(cubicBezier, true, 4);
+
     const DEBUG$1 = window.DEBUG === undefined || window.DEBUG;
 
     const defs = {
@@ -3814,85 +4052,6 @@ var Fn = (function (exports) {
         } : fn ;
     }
 
-    // Cubic bezier function (originally translated from
-    // webkit source by Christian Effenberger):
-    // http://www.netzgesta.de/dev/cubic-bezier-timing-function.html
-
-    /*
-    cubicBezier(point1, point2, duration, x)
-    Where `point1` and `point2` are `[x, y]` arrays describing control points.
-    */
-
-    function sampleCubicBezier(a, b, c, t) {
-        // `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
-        return ((a * t + b) * t + c) * t;
-    }
-
-    function sampleCubicBezierDerivative(a, b, c, t) {
-        return (3 * a * t + 2 * b) * t + c;
-    }
-
-    function solveCubicBezierX(a, b, c, x, epsilon) {
-        // Solve x for a cubic bezier
-        var x2, d2, i;
-        var t2 = x;
-
-        // First try a few iterations of Newton's method -- normally very fast.
-        for(i = 0; i < 8; i++) {
-            x2 = sampleCubicBezier(a, b, c, t2) - x;
-            if (Math.abs(x2) < epsilon) {
-                return t2;
-            }
-            d2 = sampleCubicBezierDerivative(a, b, c, t2);
-            if (Math.abs(d2) < 1e-6) {
-                break;
-            }
-            t2 = t2 - x2 / d2;
-        }
-
-        // Fall back to the bisection method for reliability.
-        var t0 = 0;
-        var t1 = 1;
-
-        t2 = x;
-
-        if(t2 < t0) { return t0; }
-        if(t2 > t1) { return t1; }
-
-        while(t0 < t1) {
-            x2 = sampleCubicBezier(a, b, c, t2);
-            if(Math.abs(x2 - x) < epsilon) {
-                return t2;
-            }
-            if (x > x2) { t0 = t2; }
-            else { t1 = t2; }
-            t2 = (t1 - t0) * 0.5 + t0;
-        }
-
-        // Failure.
-        return t2;
-    }
-
-    function cubicBezier(p1, p2, duration, x) {
-        // The epsilon value to pass given that the animation is going
-        // to run over duruation seconds. The longer the animation, the
-        // more precision is needed in the timing function result to
-        // avoid ugly discontinuities.
-        var epsilon = 1 / (200 * duration);
-
-        // Calculate the polynomial coefficients. Implicit first and last
-        // control points are (0,0) and (1,1).
-        var cx = 3 * p1[0];
-        var bx = 3 * (p2[0] - p1[0]) - cx;
-        var ax = 1 - cx - bx;
-        var cy = 3 * p1[1];
-        var by = 3 * (p2[1] - p1[1]) - cy;
-        var ay = 1 - cy - by;
-
-        var y = solveCubicBezierX(ax, bx, cx, x, epsilon);
-        return sampleCubicBezier(ay, by, cy, y);
-    }
-
     // Normalisers take a min and max and transform a value in that range
     // to a value on the normal curve of a given type
 
@@ -3933,7 +4092,7 @@ var Fn = (function (exports) {
 
     const cubicBezier$1 = def(
         'Object, Object, Number => Number',
-        (begin, end, value) => cubicBezier({
+        (begin, end, value) => bezierify({
             0: linear(begin.point[0], end.point[0], begin.handle[0]),
             1: linear(begin.point[0], end.point[0], begin.handle[0])
         }, {
@@ -3992,7 +4151,7 @@ var Fn = (function (exports) {
 
     const cubicBezier$2 = def(
         'Object, Object, Number => Number',
-        (begin, end, value) => linear$1(begin.point[1], end.point[1], cubicBezier({
+        (begin, end, value) => linear$1(begin.point[1], end.point[1], bezierify({
             0: linear(begin.point[0], end.point[0], begin.handle[0]),
             1: linear(begin.point[1], end.point[1], begin.handle[1])
         }, {
@@ -4011,97 +4170,6 @@ var Fn = (function (exports) {
         cubicBezier: cubicBezier$2
     });
 
-    // Constant for converting radians to degrees
-    const angleFactor = 180 / Math.PI;
-
-    function sum(a, b)  { return b + a; }
-    function multiply(a, b) { return b * a; }
-    function min(a, b)  { return a > b ? b : a ; }
-    function max(a, b)  { return a < b ? b : a ; }
-    function pow(n, x)  { return Math.pow(x, n); }
-    function exp(n, x)  { return Math.pow(n, x); }
-    function log(n, x)  { return Math.log(x) / Math.log(n); }
-    function root(n, x) { return Math.pow(x, 1/n); }
-
-    /*
-    mod(divisor, n)
-    JavaScript's modulu operator (`%`) uses Euclidean division, but for
-    stuff that cycles through 0 the symmetrics of floored division are often
-    are more useful.
-    */
-
-    function mod(d, n) {
-        var value = n % d;
-        return value < 0 ? value + d : value ;
-    }
-
-    /*
-    limit(min, max, n)
-    */
-
-    function limit(min, max, n) {
-        return n > max ? max : n < min ? min : n ;
-    }
-
-    function wrap(min, max, n) {
-        return (n < min ? max : min) + (n - min) % (max - min);
-    }
-
-    /*
-    gcd(a, b)
-    */
-
-    function gcd(a, b) {
-        // Greatest common divider
-        return b ? gcd(b, a % b) : a ;
-    }
-
-    /*
-    lcm(a, b)
-    */
-
-    function lcm(a, b) {
-        // Lowest common multiple.
-        return a * b / gcd(a, b);
-    }
-
-    function factorise(n, d) {
-        // Reduce a fraction by finding the Greatest Common Divisor and
-        // dividing by it.
-        var f = gcd(n, d);
-        return [n/f, d/f];
-    }
-
-    /*
-    gaussian()
-    Generate a random number with a bell curve probability centred
-    around 0 with limits -1 to 1.
-    */
-
-    function gaussian() {
-        return Math.random() + Math.random() - 1;
-    }
-
-    /*
-    todB(level)
-    */
-
-    // A bit disturbingly, a correction factor is needed to make todB() and
-    // to toLevel() reciprocate more accurately. This is quite a lot to be off
-    // by... Todo: investigate?
-    const dBCorrectionFactor = (60 / 60.205999132796244);
-
-    function todB(n)    { return 20 * Math.log10(n) * dBCorrectionFactor; }
-
-    /*
-    toLevel(dB)
-    */
-
-    function toLevel(n) { return Math.pow(2, n / 6); }
-
-    function toRad(n)   { return n / angleFactor; }
-    function toDeg(n)   { return n * angleFactor; }
-
     // Exponential functions
     //
     // e - exponent
@@ -4114,40 +4182,6 @@ var Fn = (function (exports) {
 
     function exponentialOut(e, x) {
         return 1 - Math.pow(1 - x, e);
-    }
-
-    /*
-    toPolar(cartesian)
-    */
-
-    function toPolar(cartesian) {
-        var x = cartesian[0];
-        var y = cartesian[1];
-
-        return [
-            // Distance
-            x === 0 ?
-                Math.abs(y) :
-            y === 0 ?
-                Math.abs(x) :
-                Math.sqrt(x*x + y*y) ,
-            // Angle
-            Math.atan2(x, y)
-        ];
-    }
-
-    /*
-    toCartesian(polar)
-    */
-
-    function toCartesian(polar) {
-        var d = polar[0];
-        var a = polar[1];
-
-        return [
-            Math.sin(a) * d ,
-            Math.cos(a) * d
-        ];
     }
 
     function createOrdinals(ordinals) {
@@ -5246,31 +5280,16 @@ var Fn = (function (exports) {
     const diff$2        = curry$1(diff, true);
     const intersect$1   = curry$1(intersect, true);
     const unite$1       = curry$1(unite, true);
-
-    const sum$1         = curry$1(sum);
-
-    const add         = curry$1(function(a, b) {
-        console.trace('Fn module add() is now sum()');
-        return sum(a, b);
-    });
-
-    const multiply$1    = curry$1(multiply);
-    const min$1         = curry$1(min);
-    const max$1         = curry$1(max);
-    const mod$1         = curry$1(mod);
-    const pow$1         = curry$1(pow);
-    const exp$1         = curry$1(exp);
-    const log$1         = curry$1(log);
-    const gcd$1         = curry$1(gcd);
-    const lcm$1         = curry$1(lcm);
-    const root$1        = curry$1(root);
-    const limit$1       = curry$1(limit);
-    const wrap$1        = curry$1(wrap);
-    const factorise$1   = curry$1(factorise);
-    const cubicBezier$3 = curry$1(cubicBezier);
     const normalise   = curry$1(choose(normalisers), false, 4);
     const denormalise = curry$1(choose(denormalisers), false, 4);
     const exponentialOut$1 = curry$1(exponentialOut);
+
+
+
+    const add = curry$1(function (a, b) {
+        console.trace('Deprecated: module add() is now sum()');
+        return a + b;
+    });
 
     exports.Fn = Fn;
     exports.Observable = mutations;
@@ -5303,7 +5322,7 @@ var Fn = (function (exports) {
     exports.compose = compose;
     exports.concat = concat$1;
     exports.contains = contains$1;
-    exports.cubicBezier = cubicBezier$3;
+    exports.cubicBezier = bezierify;
     exports.curry = curry$1;
     exports.dateDiff = dateDiff;
     exports.daysToSeconds = daysToSeconds;
@@ -5316,9 +5335,9 @@ var Fn = (function (exports) {
     exports.each = each$1;
     exports.equals = equals$1;
     exports.exec = exec$1;
-    exports.exp = exp$1;
+    exports.exp = curriedExp;
     exports.exponentialOut = exponentialOut$1;
-    exports.factorise = factorise$1;
+    exports.factorise = factorise;
     exports.filter = filter$1;
     exports.find = find$1;
     exports.floorDate = floorDate;
@@ -5330,7 +5349,7 @@ var Fn = (function (exports) {
     exports.formatTime = formatTime;
     exports.formatTimeISO = formatTimeISO;
     exports.gaussian = gaussian;
-    exports.gcd = gcd$1;
+    exports.gcd = curriedGcd;
     exports.get = get$1;
     exports.getPath = getPath$1;
     exports.has = has$1;
@@ -5343,17 +5362,17 @@ var Fn = (function (exports) {
     exports.isDefined = isDefined;
     exports.last = last;
     exports.latest = latest;
-    exports.lcm = lcm$1;
-    exports.limit = limit$1;
-    exports.log = log$1;
+    exports.lcm = curriedLcm;
+    exports.limit = curriedLimit;
+    exports.log = curriedLog;
     exports.map = map$1;
     exports.matches = matches$1;
-    exports.max = max$1;
+    exports.max = curriedMax;
     exports.millisecondsToSeconds = millisecondsToSeconds;
-    exports.min = min$1;
+    exports.min = curriedMin;
     exports.minutesToSeconds = minutesToSeconds;
     exports.mod = mod$1;
-    exports.multiply = multiply$1;
+    exports.multiply = curriedMultiply;
     exports.mutations = mutations;
     exports.noop = noop;
     exports.normalise = normalise;
@@ -5373,7 +5392,7 @@ var Fn = (function (exports) {
     exports.parseTime = parseTime;
     exports.pipe = pipe;
     exports.postpad = postpad$1;
-    exports.pow = pow$1;
+    exports.pow = curriedPow;
     exports.prepad = prepad$1;
     exports.prepend = prepend$1;
     exports.print = print;
@@ -5382,7 +5401,7 @@ var Fn = (function (exports) {
     exports.requestTick = requestTick;
     exports.requestTime = requestTime$1;
     exports.rest = rest$1;
-    exports.root = root$1;
+    exports.root = curriedRoot;
     exports.secondsToDays = secondsToDays;
     exports.secondsToHours = secondsToHours;
     exports.secondsToMilliseconds = secondsToMilliseconds;
@@ -5397,7 +5416,7 @@ var Fn = (function (exports) {
     exports.slugify = slugify;
     exports.sort = sort$1;
     exports.subTime = subTime;
-    exports.sum = sum$1;
+    exports.sum = curriedSum;
     exports.take = take$1;
     exports.test = group;
     exports.throttle = throttle;
@@ -5423,7 +5442,7 @@ var Fn = (function (exports) {
     exports.update = update$1;
     exports.weakCache = weakCache;
     exports.weeksToSeconds = weeksToSeconds;
-    exports.wrap = wrap$1;
+    exports.wrap = curriedWrap;
     exports.xor = xor;
 
     return exports;
