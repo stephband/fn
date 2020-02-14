@@ -213,7 +213,6 @@ const stream = Stream.of(1,2,3,4);</code></pre>
         import '../dom/js/toggleable.js';
         import '../dom/js/locateable.js';
         import * as Fn from './module.js';
-
-        Object.assign(window, Fn);
+        window.Fn = Fn;
     </script>
 </body>

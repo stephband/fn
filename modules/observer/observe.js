@@ -160,7 +160,7 @@ the end of the path is not equal to `init`. In the default case where
 callback to be called.
 
 (To force the callback to always be called on setup, pass in `NaN` as an
-`init` value. In JS `NaN` is not equal to anything (even `NaN`), so it
+`init` value. In JS `NaN` is not equal to anything, even `NaN`, so it
 always initialises.)
 */
 

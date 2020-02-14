@@ -980,7 +980,7 @@ the end of the path is not equal to <code>init</code>. In the default case where
 <code>init</code> is <code>undefined</code>, paths that end in <code>undefined</code> do not cause the
 callback to be called.</p>
 <p>(To force the callback to always be called on setup, pass in <code>NaN</code> as an
-<code>init</code> value. In JS <code>NaN</code> is not equal to anything (even <code>NaN</code>), so it
+<code>init</code> value. In JS <code>NaN</code> is not equal to anything, even <code>NaN</code>, so it
 always initialises.)</p>
 </article>
 
@@ -1353,8 +1353,7 @@ status is <code>'done'</code>.</p>
         import '../dom/js/toggleable.js';
         import '../dom/js/locateable.js';
         import * as Fn from './module.js';
-
-        Object.assign(window, Fn);
+        window.Fn = Fn;
     </script>
 
 </body></html>
