@@ -654,7 +654,7 @@ function findByProperty(key, value, array) {
 }
 
 
-/* Get path */
+// Get path
 
 function getRegexPathThing(regex, path, object, fn) {
     var tokens = regex.exec(path);
@@ -920,8 +920,6 @@ function findByProperty$1(key, value, array) {
         }
     }
 }
-
-/* Set path */
 
 function setRegexPath(regex, path, object, thing) {
     var tokens = regex.exec(path);
@@ -4785,7 +4783,7 @@ function secondsToHours(n) { return n / 3600; }
 function secondsToDays(n) { return n / 86400; }
 function secondsToWeeks(n) { return n / 604800; }
 
-/* Months and years are not fixed durations – these are approximate */
+// Months and years are not fixed durations – these are approximate
 function secondsToMonths(n) { return n / 2629800; }
 function secondsToYears(n) { return n / 31557600; }
 
@@ -5244,7 +5242,7 @@ function test(name, fn, n, next) {
 // #332256
 
 if (window.console && window.console.log) {
-    window.console.log('%cFn%c          - https://github.com/stephband/fn', 'color: #de3b16; font-weight: 600;', 'color: inherit; font-weight: 400;');
+    window.console.log('%cFn%c          - https://stephen.band/fn', 'color: #de3b16; font-weight: 600;', 'color: inherit; font-weight: 400;');
 }
 const requestTime$1 = curry$1(requestTime, true, 2);
 

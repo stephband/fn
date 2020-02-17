@@ -275,8 +275,6 @@ they are equal.</p>
     <p>Returns the value at <code>path</code> in <code>object</code>.</p>
 <pre><code><span class="token keyword">const</span> value <span class="token operator">=</span> <span class="token function">getPath</span><span class="token punctuation">(</span><span class="token string">'path.to.value'</span><span class="token punctuation">,</span> object<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
 
-    <h3 class="text-4">Get path </h3>
-
     <article class="toggle-block block" toggleable="" id="has-key-value-object">
         <h3 class="text-5 ">
             <a href="#has-key-value-object">
@@ -387,8 +385,6 @@ stream<span class="token punctuation">.</span><span class="token function">scan<
         </h3>
     <p>Sets <code>value</code> at <code>path</code> in <code>object</code>.</p>
 <pre><code>stream<span class="token punctuation">.</span><span class="token function">each</span><span class="token punctuation">(</span><span class="token function">setPath</span><span class="token punctuation">(</span><span class="token string">'prop.value'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> object<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
-
-    <h3 class="text-4">Set path </h3>
 
     <article class="toggle-block block" toggleable="" id="toarray-object">
         <h3 class="text-5 ">
@@ -852,9 +848,6 @@ to the format of the string <code>format</code>. The format string may contain t
 </ul>
 <pre><code><span class="token keyword">const</span> date <span class="token operator">=</span> <span class="token function">formatDate</span><span class="token punctuation">(</span><span class="token string">'en'</span><span class="token punctuation">,</span> <span class="token string">''</span><span class="token punctuation">,</span> <span class="token string">'YYYY'</span><span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// 2020</span></code></pre></article>
 
-    <h3 class="text-4">Months and years are not fixed durations </h3><p>– these are approximate </p>
-
-
     <article class="toggle-block block" toggleable="" id="parsetime-time">
         <h3 class="text-5 ">
             <a href="#parsetime-time">
@@ -937,18 +930,23 @@ in seconds. Returns a time in seconds.</p>
     <section class="x-1 xspan-3 @1-xspan-6 @2-xspan-9 @3-x-2 columns-grid grid" locateable="" id="observer">
         <header class="x-1 xspan-3 @1-xspan-4">
             <h2 class="text-2" style="font-size: 1.875rem;">Observer</h2>
-            <p>Import and create an observer:</p>
+            <p>An observer is an ES6 Proxy of an object that intercepts and
+            reports mutations. Import and create an observer:</p>
             <pre class=" language-js"><code class=" language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> Observer<span class="token punctuation">,</span> observe <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'/fn/module.js'</span><span class="token punctuation">;</span>
-<span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token function">Observer</span><span class="token punctuation">(</span><span class="token punctuation">{</span> a<span class="token punctuation">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+<span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token function">Observer</span><span class="token punctuation">(</span><span class="token punctuation">{</span> value<span class="token punctuation">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
             <p>
-            An observer is an ES6 Proxy of an object that intercepts and reports
-            mutations. There is only ever one observer per object, ie, calling
+            There is only ever one observer per object, ie, calling
             <code>Observer(object)</code> multiple times with the same object
-            always returns the same observer. Observers can be observed for
-            mutations with the observe function:
+            (or proxy of that object) always returns the same observer proxy.
+            Observers can be observed for mutations with the observe function:
             </p>
 
-            <pre class=" language-js"><code class=" language-js"><span class="token function">observe</span><span class="token punctuation">(</span><span class="token string">'a'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>value<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span><span class="token operator">...</span><span class="token punctuation">}</span><span class="token punctuation">,</span> data<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+            <pre class=" language-js"><code class=" language-js"><span class="token function">observe</span><span class="token punctuation">(</span><span class="token string">'value'</span><span class="token punctuation">,</span> console<span class="token punctuation">.</span>log<span class="token punctuation">,</span> data<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+
+            <p>Mutations made to the observer proxy's <code>value</code>
+            property are now logged to the console.</p>
+
+            <pre class=" language-js"><code class=" language-js">data<span class="token punctuation">.</span>value <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>   <span class="token comment">// Logs `false`</span></code></pre>
         </header>
 
         <div class="x-1 xspan-3 list-grid grid">
