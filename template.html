@@ -152,18 +152,23 @@
     <section class="x-1 xspan-3 @1-xspan-6 @2-xspan-9 @3-x-2 columns-grid grid" locateable id="observer">
         <header class="x-1 xspan-3 @1-xspan-4">
             <h2 class="text-2" style="font-size: 1.875rem;">Observer</h2>
-            <p>Import and create an observer:</p>
+            <p>An observer is an ES6 Proxy of an object that intercepts and
+            reports mutations. Import and create an observer:</p>
             <pre><code class="language-js">import { Observer, observe } from '/fn/module.js';
-const data = Observer({ a: true });</code></pre>
+const data = Observer({ value: true });</code></pre>
             <p>
-            An observer is an ES6 Proxy of an object that intercepts and reports
-            mutations. There is only ever one observer per object, ie, calling
+            There is only ever one observer per object, ie, calling
             <code>Observer(object)</code> multiple times with the same object
-            always returns the same observer. Observers can be observed for
-            mutations with the observe function:
+            (or proxy of that object) always returns the same observer proxy.
+            Observers can be observed for mutations with the observe function:
             </p>
 
-            <pre><code class="language-js">observe('a', (value) => {...}, data);</code></pre>
+            <pre><code class="language-js">observe('value', console.log, data);</code></pre>
+
+            <p>Mutations made to the observer proxy's <code>value</code>
+            property are now logged to the console.</p>
+
+            <pre><code class="language-js">data.value = false;   // Logs `false`</code></pre>
         </header>
 
         <div class="x-1 xspan-3 list-grid grid">

@@ -611,7 +611,7 @@ export function secondsToHours(n) { return n / 3600; }
 export function secondsToDays(n) { return n / 86400; }
 export function secondsToWeeks(n) { return n / 604800; }
 
-/* Months and years are not fixed durations – these are approximate */
+// Months and years are not fixed durations – these are approximate
 export function secondsToMonths(n) { return n / 2629800; }
 export function secondsToYears(n) { return n / 31557600; }
 

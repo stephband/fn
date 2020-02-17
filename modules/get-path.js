@@ -25,7 +25,7 @@ function findByProperty(key, value, array) {
 }
 
 
-/* Get path */
+// Get path
 
 function getRegexPathThing(regex, path, object, fn) {
     var tokens = regex.exec(path);
