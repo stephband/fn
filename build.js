@@ -7,7 +7,7 @@ import { Fn, compose, get, is, overload, parse } from '../fn/module.js';
 import { request } from '../dom/module.js';
 import { parseParams } from '../sparky/js/parse.js';
 import Sparky from '../sparky/module.js';
-import { attribute, before, clone, create, fragmentFromTemplate, get as getById, query, remove } from '../dom/dom.js';
+import { attribute, before, clone, create, fragmentFromTemplate, get as getById, select, remove } from '../dom/dom.js';
 
 window.Sparky = Sparky;
 
@@ -51,7 +51,7 @@ console.log(value);
 
 window.p = parseDataModule;
 
-var modules = window.modules = query('[data-module]', document)
+var modules = window.modules = select('[data-module]', document)
 .map(function(template) {
     //var params   = parseParams([], attribute('data-module', template));
     //var params = /^([^\s]*)\s+([\w]+)\(([^)])\)/.exec(attribute('data-module', template));
@@ -75,7 +75,7 @@ function formatCode(code) {
 }
 
 modules.forEach(function(data) {
-    query('[type]', data.fragment)
+    select('[type]', data.fragment)
     .forEach(overload(attributeType, {
         'text/html': function(node) {
             var html     = node.innerHTML;
@@ -111,7 +111,7 @@ Sparky.fn.modules = function(node, scopes, params) {
 Sparky(document.documentElement);
 
 // Cleanup. Remove things we don't want in the final document
-query('.remove, [data-module]', document).forEach(remove);
+select('.remove, [data-module]', document).forEach(remove);
 
 
 

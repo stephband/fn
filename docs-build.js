@@ -15,7 +15,7 @@ import './libs/prism/prism.js';
 
 
 import { invoke, nothing, requestTick } from './module.js';
-import { query } from '../dom/module.js';
+import { select } from '../dom/module.js';
 import './docs.js';
 import Sparky, { config } from '../sparky/module.js';
 
@@ -25,8 +25,8 @@ config.attributeSrc     = 'build-src';
 config.attributePrefix  = 'build-';
 
 setTimeout(function() {
-    query('[build-fn]', document).forEach(invoke('removeAttribute', ['build-fn']));
-    query('[build-remove]', document).forEach(invoke('remove', nothing));
+    select('[build-fn]', document).forEach(invoke('removeAttribute', ['build-fn']));
+    select('[build-remove]', document).forEach(invoke('remove', nothing));
     window.console.log('Document built! (this is just a cheap timeout, it may not be true)');
 }, 5000);
 
