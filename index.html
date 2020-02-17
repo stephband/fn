@@ -1103,10 +1103,7 @@ status is <code>'done'</code>.</p>
     If the stream is not writeable, it does not have a <code>.push()</code> method.</p>
 </article>
 
-    <h3 class="text-4"> </h3><p>//.chunk(n)
-    //Batches values into arrays of length <code>n</code>.
-    //</p>
-
+    <h3 class="text-4">Map </h3>
 
     <article class="toggle-block block" toggleable="" id="flat">
         <h3 class="text-5 dot-indent">
@@ -1205,12 +1202,6 @@ status is <code>'done'</code>.</p>
     <p>Filters the stream to the first <code>n</code> values.</p>
 </article>
 
-    <h3 class="text-4"> </h3><p>//.clock(timer)
-    //Emits values at the framerate of <code>timer</code>, one-per-frame. No values
-    //are discarded.
-    //</p>
-
-
     <article class="toggle-block block" toggleable="" id="throttle-time">
         <h3 class="text-5 dot-indent">
             <a href="#throttle-time">
@@ -1223,10 +1214,6 @@ status is <code>'done'</code>.</p>
     allowing the creation of, say, and animation frame throttle.</p>
 </article>
 
-        </div>
-
-        <div class="x-1 xspan-3 @2-x-7 list-grid grid">
-            
     <article class="toggle-block block" toggleable="" id="wait-time">
         <h3 class="text-5 dot-indent">
             <a href="#wait-time">
@@ -1237,6 +1224,10 @@ status is <code>'done'</code>.</p>
     Other values are discarded.</p>
 </article>
 
+        </div>
+
+        <div class="x-1 xspan-3 @2-x-7 list-grid grid">
+            
     <article class="toggle-block block" toggleable="" id="combine-fn-stream">
         <h3 class="text-5 dot-indent">
             <a href="#combine-fn-stream">
@@ -1287,13 +1278,6 @@ status is <code>'done'</code>.</p>
     <p>Consumes the stream when stopped, calling <code>fn(accumulator, value)</code>
     for each value in the stream. Returns a promise.</p>
 </article>
-
-    <h3 class="text-4"> </h3><p>//.reduce(fn, accumulator)
-    //Consumes the stream when stopped, calling <code>fn(accumulator, value)</code>
-    //for each value in the stream. Returns a promise that resolves to
-    //the last value returned by <code>fn(accumulator, value)</code>.
-    //</p>
-
 
     <article class="toggle-block block" toggleable="" id="shift">
         <h3 class="text-5 dot-indent">
