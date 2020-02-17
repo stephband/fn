@@ -1,10 +1,8 @@
 
 import { each } from './lists/core.js';
-import latest   from './latest.js';
 import noop     from './noop.js';
 import nothing  from './nothing.js';
 import now      from './now.js';
-import remove   from './lists/remove.js';
 import Timer    from './timer.js';
 import toArray  from './to-array.js';
 import choke    from './choke.js';
@@ -17,8 +15,6 @@ var assign    = Object.assign;
 
 function isDone(stream) {
     return stream.status === 'done';
-    // Accept arrays or streams
-    //return stream.length === 0 || stream.status === 'done';
 }
 
 function notify(object) {
@@ -272,10 +268,8 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
 
     /* Map */
 
-    ///*
     //.chunk(n)
     //Batches values into arrays of length `n`.
-    //*/
 
     /*
     .flat()
@@ -351,11 +345,9 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     Filters the stream to the first `n` values.
     */
 
-    ///*
     //.clock(timer)
     //Emits values at the framerate of `timer`, one-per-frame. No values
     //are discarded.
-    //*/
     //
     //clock: function clock(timer) {
     //    return this.pipe(Stream.clock(timer));
@@ -480,12 +472,10 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         });
     },
 
-    ///*
     //.reduce(fn, accumulator)
     //Consumes the stream when stopped, calling `fn(accumulator, value)`
     //for each value in the stream. Returns a promise that resolves to
     //the last value returned by `fn(accumulator, value)`.
-    //*/
 
     reduce: function reduce(fn, accumulator) {
         // Support array.reduce semantics with optional seed

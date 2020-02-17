@@ -182,11 +182,11 @@ var dateFormatters = {
 	YY:   function(date)       { return ('0' + date.getFullYear() % 100).slice(-2); },
 	MM:   function(date)       { return ('0' + (date.getMonth() + 1)).slice(-2); },
 	MMM:  function(date, lang) { return this.MMMM(date, lang).slice(0,3); },
-	MMMM: function(date, lang) { return langs[lang || Time.lang].months[date.getMonth()]; },
+	MMMM: function(date, lang) { return langs[lang].months[date.getMonth()]; },
 	D:    function(date)       { return '' + date.getDate(); },
 	DD:   function(date)       { return ('0' + date.getDate()).slice(-2); },
 	ddd:  function(date, lang) { return this.dddd(date, lang).slice(0,3); },
-	dddd: function(date, lang) { return langs[lang || Time.lang].days[date.getDay()]; },
+	dddd: function(date, lang) { return langs[lang].days[date.getDay()]; },
 	hh:   function(date)       { return ('0' + date.getHours()).slice(-2); },
 	//hh:   function(date)       { return ('0' + date.getHours() % 12).slice(-2); },
 	mm:   function(date)       { return ('0' + date.getMinutes()).slice(-2); },
@@ -200,7 +200,7 @@ var dateFormatters = {
 		return (date.getTimezoneOffset() < 0 ? '+' : '-') +
 			 ('0' + Math.round(100 * Math.abs(date.getTimezoneOffset()) / 60)).slice(-4) ;
 	},
-	th:   function(date, lang) { return langs[lang || Time.lang].ordinals[date.getDate()]; },
+	th:   function(date, lang) { return langs[lang].ordinals[date.getDate()]; },
 	n:    function(date) { return +date; },
 	ZZ:   function(date) { return -date.getTimezoneOffset() * 60; }
 };
