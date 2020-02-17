@@ -9,7 +9,6 @@ const DEBUG = true;
 if (DEBUG) { window.observeCount = 0; }
 
 const A       = Array.prototype;
-const assign  = Object.assign;
 const nothing = Object.freeze([]);
 
 //                   1 .name         [2 number  3 'quote' 4 "quote" ]
