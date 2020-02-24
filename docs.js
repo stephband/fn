@@ -52,13 +52,21 @@ const parseDoc = window.parseDoc = capture(/\/\*\s*(?:(\.)?([\w-, .]+)(?:(\([^)]
     // .method() or function()
     3: function(data, results) {
         const object  = last(data);
-        object.type   = results[1] ? 'method' : 'function' ;
+        object.type =
+            // Preceding '.' means it's a method
+            results[1] ? 'method' :
+            // Lowercase first letter it's a function
+            results[2][0].toLowerCase() === results[2][0] ? 'function' :
+            // Otherwise, it's a constructor
+            'constructor' ;
+
         object.params = results[3];
         object.title  = Prism.highlight(
             (results[1] || '') + results[2] + results[3],
             Prism.languages['js'],
             'js'
         );
+
         return data;
     },
 
@@ -196,11 +204,33 @@ register('filter-function', function(node, params) {
         return array.reduce(function(output, data) {
             // Remove preceeding title where it is not followed by a
             // data of the right type
-            if (data.type !== 'function' && output[output.length - 1] && output[output.length - 1].type === 'title') {
+            if (data.type !== 'function'
+                && output[output.length - 1]
+                && output[output.length - 1].type === 'title') {
                 --output.length;
             }
 
             if (data.type === 'function' || data.type === 'title') {
+                output.push(data);
+            }
+
+            return output;
+        }, []);
+    });
+});
+
+register('filter-constructor', function (node, params) {
+    return this.map(function (array) {
+        return array.reduce(function (output, data) {
+            // Remove preceeding title where it is not followed by a
+            // data of the right type
+            if (data.type !== 'constructor'
+                && output[output.length - 1]
+                && output[output.length - 1].type === 'title') {
+                --output.length;
+            }
+
+            if (data.type === 'constructor' || data.type === 'title') {
                 output.push(data);
             }
 
@@ -257,6 +287,18 @@ register('filter-tag', function(node, params) {
     });
 });
 
+register('filter-string', function (node, params) {
+    return this.map(function (array) {
+        return array.reduce(function (output, data) {
+            if (data.type === 'title') {
+                output.push(data);
+            }
+
+            return output;
+        }, []);
+    });
+});
+
 register('append', function(node, params) {
     const name = params[0];
     return this.tap((scope) => {
@@ -269,7 +311,7 @@ register('append', function(node, params) {
     });
 });
 
-register('after', function (node, params) {
+register('after', function(node, params) {
     const name = params[0];
     return this.tap((scope) => {
         // Avoid having Sparky parse the contents of documentation by waiting
