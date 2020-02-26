@@ -182,11 +182,11 @@ body > .demo-block + .grid {
     /*margin-top: 1.5rem;*/
 }
 
-.text-2 + .toggle-block {
+.doc-text-02 + .toggle-block {
     margin-top: 0.9375rem;
 }
 
-.text-2,  h2   { font-size: 1.5rem;   line-height: 1.5rem; }
+.doc-text-02,  h2   { font-size: 1.5rem;   line-height: 1.5rem; }
 .text-3,  h3   { font-size: 1.375rem; line-height: 1.5rem; }
 .text-4,  h4   { font-size: 0.75rem;  line-height: 0.9375rem; font-weight: 400; text-transform: uppercase; }
 .text-8,  body { font-size: 1rem;     line-height: 1.5rem; font-weight: 300; }
@@ -281,7 +281,7 @@ code.property {
     color: inherit;
 }
 
-.text-5 {
+.doc-text-05 {
     font-size:   1rem;
     line-height: 1.5rem;
 }
@@ -303,7 +303,7 @@ a:focus {
     transition-duration: 0.09s;
 }
 
-.text-5 > a {
+.doc-text-05 > a {
     text-decoration: none;
     padding-bottom: 2px;
     border-bottom: none;
@@ -315,7 +315,7 @@ a:focus {
     border-bottom: 1px solid #999999;
 }
 
-.text-5 code {
+.doc-text-05 code {
     font-size: inherit;
     font-weight: 500;
     background-color: transparent;
@@ -325,15 +325,15 @@ a:focus {
     letter-spacing: -0.0125em;
 }
 
-.text-2 + p { margin-top: 0.9375rem; }
-.text-2 + pre { margin-top: 1.875rem; }
-.text-5 + p { margin-top: 0.75rem; }
+.doc-text-02 + p { margin-top: 0.9375rem; }
+.doc-text-02 + pre { margin-top: 1.875rem; }
+.doc-text-05 + p { margin-top: 0.75rem; }
 .text-3 code > span,
-.text-5 code > span {
+.doc-text-05 code > span {
     color: var(--name-color);
 }
 
-h5, .text-5 {
+h5, .doc-text-05 {
     margin-bottom: 2px;
 }
 
@@ -505,7 +505,7 @@ line { stroke-width: 1; stroke: inherit; }
 
 
 
-.toggle-block > .text-5 {
+.toggle-block > .doc-text-05 {
     overflow: hidden;
     text-overflow: ellipsis;
     /* Make sure hanging '.' is still seen */

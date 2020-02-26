@@ -1,8 +1,8 @@
 
 <template id="header-template">
-        <h1>{[title]} <span class="text-6">{[version]}</span></h1>
+        <h1>{[title]} <span class="text-06">{[version]}</span></h1>
 
-        <p class="text-8">
+        <p class="text-08">
             {[description]}
         </p>
 
@@ -13,12 +13,12 @@
 </template>
 
 <template id="title-template">
-    <h3 class="text-4" build-fn="after:body">{[name]}</h3>
+    <h3 class="text-04" build-fn="after:body">{[name]}</h3>
 </template>
 
 <template id="h2-template">
     <header class="x-1 xspan-4 @1-x-1 @2-x-2">
-        <h2 class="text-2">
+        <h2 class="doc-text-02">
             <a href="#{[id]}">
                 <code class="language-js" build-fn="append:title" style="color: inherit;"></code>
             </a>
@@ -30,7 +30,7 @@
 
 <template id="attribute-template">
     <article build-fn="append:body" class="attribute-toggle-block toggle-block block" toggleable id="{[id]}">
-        <h3 class="text-5">
+        <h3 class="doc-text-05">
             <a href="#{[id]}">
                 <code class="token language-js"><span>[</span><span build-fn="append:title"></span><span>]</span></code>
             </a>
@@ -42,7 +42,7 @@
 
 <template id="method-template">
     <article build-fn="append:body" class="method-toggle-block toggle-block block" toggleable id="{[id]}">
-        <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+        <h3 class="doc-text-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
             <a href="#{[id]}">
                 <code build-fn="append:title" class="function language-js"></code>
             </a>
@@ -52,7 +52,7 @@
 
 <template id="property-template">
     <article build-fn="append:body" class="property-toggle-block toggle-block block" toggleable id="{[id]}">
-        <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+        <h3 class="doc-text-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
             <a href="#{[id]}">
                 <code build-fn="append:title" class="property language-js"></code>
             </a>
@@ -62,7 +62,7 @@
 
 <template id="function-template">
     <article build-fn="append:body" class="function-toggle-block toggle-block block" toggleable id="{[id]}">
-        <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+        <h3 class="doc-text-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
             <a href="#{[id]}">
                 <code build-fn="append:title" class="function language-js"></code>
             </a>
@@ -72,7 +72,7 @@
 
 <template id="fn-template">
     <article build-fn="append:body" class="fn-toggle-block toggle-block block" toggleable id="{[id]}">
-        <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+        <h3 class="doc-text-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
             <a href="#{[id]}">
                 <code build-fn="append:title" class="language-js"></code>
             </a>
@@ -82,7 +82,7 @@
 
 <template id="section-template">
     <article build-fn="append:body" class="section-toggle-block toggle-block block active" id="{[id]}">
-        <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+        <h3 class="doc-text-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
             <code build-fn="append:title" class="function language-js"></code>
         </h3>
     </article>
