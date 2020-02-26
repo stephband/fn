@@ -1,4 +1,4 @@
-/*
+/**
 requestTick(fn)
 Call `fn` on the next tick.
 */

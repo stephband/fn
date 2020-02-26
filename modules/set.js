@@ -1,4 +1,4 @@
-/*
+/**
 set(key, object, value)
 
 ```

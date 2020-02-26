@@ -1,5 +1,5 @@
 
-/*
+/**
 get(name, object)
 Get property `name` of `object`.
 */

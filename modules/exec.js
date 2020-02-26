@@ -1,4 +1,4 @@
-/*
+/**
 exec(regex, fn, string)
 
 Calls `fn` with the result of `regex.exec(string)` if that result is not null,

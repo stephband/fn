@@ -1,4 +1,4 @@
-/*
+/**
 choose(fn, map)
 Returns a function that takes its first argument as a key and uses it
 to select a function in `map` which is invoked with the remaining arguments.

@@ -36,7 +36,7 @@ const markedOptions = {
 };
 
 //                Open comment followed by spaces and (dot)(name)   ((params))   or (:params)          or (="")            OR (<tag>)               OR ({[ tag ]} or {% tag %})
-const parseDoc = window.parseDoc = capture(/\/\*\s*(?:(\.)?([\w-, .]+)(?:(\([^)]*\))|:[ \t]*([\w-, .:'"]*)|="([\w-#,/%\]}[{ .:']*)")?|(<[\w- ="]+\/?>)|(\{[\[\]\w%|:. ]+\}))/, {
+const parseDoc = window.parseDoc = capture(/\/\*\*+\s*(?:(\.)?([\w-, .]+)(?:(\([^)]*\))|:[ \t]*([\w-, .:'"]*)|="([\w-#,/%\]}[{ .:']*)")?|(<[\w- ="]+\/?>)|(\{[\[\]\w%|:. ]+\}))/, {
     // .property or title or {[tag]}
     2: function(data, results) {
         data.push({
@@ -115,7 +115,7 @@ const parseDoc = window.parseDoc = capture(/\/\*\s*(?:(\.)?([\w-, .]+)(?:(\([^)]
     },
 
     // Markdown (anything) close comment
-    close: capture(/^\s*([\s\S]*?)\*\//, {
+    close: capture(/^\s*([\s\S]*?)\*+\//, {
         1: function(data, results) {
             last(data).body = marked(results[1], markedOptions);
             return data;

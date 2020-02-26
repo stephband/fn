@@ -58,7 +58,7 @@ var rdate     = /^(-?\d{4})(?:-(0[1-9]|1[012])(?:-(0[1-9]|[12]\d|3[01])(?:T([01]
 //                sign   year        month       day               T or -
 var rdatediff = /^([+-])?(\d{2,})(?:-(\d{2,})(?:-(\d{2,}))?)?(?:([T-])|$)/;
 
-/*
+/**
 parseDate(date)
 Parse a date, where, `date` may be:
 
@@ -80,7 +80,7 @@ export const parseDate = overload(toType, {
     }
 });
 
-/*
+/**
 parseDateLocal(date)
 As `parseDate(date)`, but returns a date object with local time set to the
 result of the parse (or the original date object, if it validates).
@@ -299,7 +299,7 @@ function _formatDate(string, timezone, locale, date) {
 	});
 }
 
-/*
+/**
 formatDateLocal(format, locale, date)
 */
 
@@ -313,7 +313,7 @@ export function formatDateLocal(string, locale, date) {
 	});
 }
 
-/*
+/**
 formatDateISO(date)
 Formats `date` (a string or a number or date accepted by `parseDate(date)`) as
 a string in the ISO date format.
@@ -323,7 +323,7 @@ export function formatDateISO(date) {
 	return rdatejson.exec(JSON.stringify(parseDate(date)))[1];
 }
 
-/*
+/**
 formatDateTimeISO(date)
 Formats `date` (a string or a number or date accepted by `parseDate(date)`) as
 a string in the ISO datetime format.
@@ -342,7 +342,7 @@ var days   = {
 
 var dayMap = [6,0,1,2,3,4,5];
 
-/*
+/**
 toDay(date)
 Returns day of week as a number, where monday is `0`.
 */
@@ -351,7 +351,7 @@ export function toDay(date) {
 	return dayMap[date.getDay()];
 }
 
-/*
+/**
 cloneDate(date)
 Returns new date object set to same time.
 */
@@ -517,7 +517,7 @@ export function toTimestamp(date) {
 	return date.getTime() / 1000;
 }
 
-/*
+/**
 addDate(diff, date)
 Sums `diff` and `date`, where `diff` is a string in ISO date format. Returns
 a new date object.
@@ -534,7 +534,7 @@ export const addDate = curry(function(diff, date) {
 
 export const diffDateDays = curry(_diffDateDays);
 
-/*
+/**
 floorDate(token, date)
 Floors date to the start of nearest calendar point in time indicated by `token`:
 
@@ -562,7 +562,7 @@ export const floorDate = curry(function(token, date) {
 	return _floorDate(token, parseDate(date));
 });
 
-/*
+/**
 formatDate(locale, timezone, format, date)
 Formats `date` (a string or number or date accepted by `parseDate(date)`)
 to the format of the string `format`. The format string may contain the tokens:
@@ -628,7 +628,7 @@ function prefix(n) {
 var rtime     = /^([+-])?(\d{2,}):([0-5]\d)(?::((?:[0-5]\d|60)(?:.\d+)?))?$/;
 var rtimediff = /^([+-])?(\d{2,}):(\d{2,})(?::(\d{2,}(?:.\d+)?))?$/;
 
-/*
+/**
 parseTime(time)
 
 Where `time` is a string it is parsed as a time in ISO time format: as
@@ -717,7 +717,7 @@ export const nowTime = function() {
 	return window.performance.now();
 };
 
-/*
+/**
 formatTime(format, time)
 Formats `time` (an 'hh:mm:sss' time string or a number in seconds) to match
 `format`, a string that may contain the tokens:
@@ -839,7 +839,7 @@ export const formatTime = curry(function(string, time) {
 		formatTimeString(string, parseTime(time)) ;
 });
 
-/*
+/**
 formatTimeISO(time)
 Formats `time` (a string or a number accepted by `parseTime(time)`) as
 a string in the ISO time format.
@@ -851,7 +851,7 @@ export function formatTimeISO(time) {
 	return time === undefined ? undefined : _formatTimeISO(time);
 }
 
-/*
+/**
 addTime(time1, time2)
 Sums `time2` and `time1`, returning UNIX time as a number in seconds.
 If `time1` is a string, it is parsed as a duration, where numbers
@@ -875,7 +875,7 @@ export const diffTime = curry(function(time1, time2) {
 	return parseTime(time1) - parseTime(time2);
 });
 
-/*
+/**
 floorTime(token, time)
 Floors `time` to the nearest `token`, where `token` is one of: `'week'`, `'day'`,
 `'hour'`, `'minute'` or `'second'`. `time` may be an ISO time string or a time

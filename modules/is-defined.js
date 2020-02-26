@@ -1,4 +1,4 @@
-/*
+/**
 isDefined(value)
 Check for value – where `value` is `undefined`, `NaN` or `null`, returns
 `false`, otherwise `true`.

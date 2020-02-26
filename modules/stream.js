@@ -200,9 +200,9 @@ assign(StopSource.prototype, nothing, {
 });
 
 
-/* Construct */
+/** Construct */
 
-/*
+/**
 Stream(fn)
 
 Construct a new stream. `fn(push, stop)` is invoked when the stream is started,
@@ -258,20 +258,20 @@ export default function Stream(Source, buffer) {
 Stream.prototype = assign(Object.create(Fn.prototype), {
     constructor: Stream,
 
-    /* Write */
+    /** Write */
 
-    /*
+    /**
     .push(value)
     Pushes a `value` (or multiple values) into the head of a writeable stream.
     If the stream is not writeable, it does not have a `.push()` method.
     */
 
-    /* Map */
+    /** Map */
 
     //.chunk(n)
     //Batches values into arrays of length `n`.
 
-    /*
+    /**
     .flat()
     Flattens a stream of streams or arrays into a single stream.
     */
@@ -286,19 +286,19 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         return output;
     },
 
-    /*
+    /**
     .flatMap(fn)
     Maps values to lists – `fn(value)` must return an array, functor, stream
     (or any other duck with a `.shift()` method) and flattens those lists into a
     single stream.
     */
 
-    /*
+    /**
     .map(fn)
     Maps values to the result of `fn(value)`.
     */
 
-    /*
+    /**
     .merge(stream)
     Merges this stream with `stream`, which may be an array, array-like
     or functor.
@@ -310,37 +310,37 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         return Stream.Merge.apply(null, sources);
     },
 
-    /*
+    /**
     .scan(fn, seed)
     Calls `fn(accumulator, value)` and emits `accumulator` for each value
     in the stream.
     */
 
 
-    /* Filter */
+    /** Filter */
 
-    /*
+    /**
     .dedup()
     Filters out consecutive equal values.
     */
 
-    /*
+    /**
     .filter(fn)
     Filter values according to the truthiness of `fn(value)`.
     */
 
-    /*
+    /**
     .latest()
     When the stream has a values buffered, passes the last value
     in the buffer.
     */
 
-    /*
+    /**
     .rest(n)
     Filters the stream to the `n`th value and above.
     */
 
-    /*
+    /**
     .take(n)
     Filters the stream to the first `n` values.
     */
@@ -353,7 +353,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     //    return this.pipe(Stream.clock(timer));
     //},
 
-    /*
+    /**
     .throttle(time)
     Throttles values such that the latest value is emitted every `time` seconds.
     Other values are discarded. The parameter `time` may also be a timer options
@@ -365,7 +365,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         return this.pipe(Stream.throttle(timer));
     },
 
-    /*
+    /**
     .wait(time)
     Emits the latest value only after `time` seconds of inactivity.
     Other values are discarded.
@@ -375,7 +375,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         return this.pipe(Stream.Choke(time));
     },
 
-    /*
+    /**
     .combine(fn, stream)
     Combines the latest values from this stream and `stream` via the combinator
     `fn` any time a new value is emitted by either stream.
@@ -388,9 +388,9 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     },
 
 
-    /* Read */
+    /** Read */
 
-    /*
+    /**
     .clone()
     Creates a read-only copy of the stream.
     */
@@ -426,7 +426,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         });
     },
 
-    /*
+    /**
     .each(fn)
     Thirstilly consumes the stream, calling `fn(value)` whenever
     a value is available.
@@ -443,7 +443,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         return this.on(() => Fn.prototype.each.apply(source, args));
     },
 
-    /*
+    /**
     .last(fn)
     Consumes the stream when stopped, calling `fn(value)` with the
     last value read from the stream.
@@ -457,7 +457,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         return this;
     },
 
-    /*
+    /**
     .fold(fn, accumulator)
     Consumes the stream when stopped, calling `fn(accumulator, value)`
     for each value in the stream. Returns a promise.
@@ -484,16 +484,16 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
             this.fold((acc, value) => (acc === undefined ? value : fn(acc, value)), this.shift()) ;
     },
 
-    /*
+    /**
     .shift()
     Reads a value from the stream. If no values are in the stream, returns
     `undefined`. If this is the last value in the stream, `stream.status`
     is `'done'`.
     */
 
-    /* Lifecycle */
+    /** Lifecycle */
 
-    /*
+    /**
     .done(fn)
     Calls `fn()` after the stream is stopped and all values have been drained.
     */
@@ -510,7 +510,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         return this;
     },
 
-    /*
+    /**
     .start()
     If the stream's producer is startable, starts the stream.
     */
@@ -521,7 +521,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         return this;
     },
 
-    /*
+    /**
     .stop()
     Stops the stream. No more values can be pushed to the stream and any
     consumers added will do nothing. However, depending on the stream's source
@@ -581,7 +581,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
 });
 
 
-/*
+/**
 Stream.from(values)
 Returns a writeable stream that consumes the array or array-like `values` as
 its buffer.
@@ -597,7 +597,7 @@ Stream.from = function(values) {
 };
 
 
-/*
+/**
 Stream.fromPromise(promise)
 Returns a stream that uses the given promise as its source. When the promise
 resolves the stream is given its value and stopped. If the promise errors
@@ -723,7 +723,7 @@ assign(TimeSource.prototype, {
 });
 
 
-/*
+/**
 Stream.fromTimer(timer)
 Create a stream from a `timer` object. A `timer` is an object
 with the properties:
@@ -757,7 +757,7 @@ Stream.fromTimer = function TimeStream(timer) {
 };
 
 
-/*
+/**
 Stream.of(...values)
 Returns a stream that consumes arguments as a buffer. The stream is pushable.
 */

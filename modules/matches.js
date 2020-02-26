@@ -1,4 +1,4 @@
-/*
+/**
 matches(selector, object)
 Where `selector` is an object containing properties to be compared against
 properties of `object`. If they are all strictly equal, returns `true`,

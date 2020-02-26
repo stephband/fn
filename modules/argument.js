@@ -1,4 +1,4 @@
-/*
+/**
 argument(n)
 
 Returns a function that returns its nth argument when called.

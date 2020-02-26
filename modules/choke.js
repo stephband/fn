@@ -1,4 +1,4 @@
-/*
+/**
 choke(fn, time)
 
 Returns a function that waits for `time` seconds without being invoked

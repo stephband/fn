@@ -1,4 +1,4 @@
-/*
+/**
 parseValue(units, string)
 */
 

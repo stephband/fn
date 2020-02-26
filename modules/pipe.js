@@ -1,4 +1,4 @@
-/*
+/**
 pipe(fn1, fn2, ...)
 Returns a function that calls `fn1`, `fn2`, etc., passing the result of
 calling one function to the next and returning the the last result.

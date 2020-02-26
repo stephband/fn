@@ -1,5 +1,5 @@
 
-/*
+/**
 equals(a, b)
 Perform a deep equality comparison of `a` and `b`. Returns `true` if
 they are equal.

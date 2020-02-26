@@ -1,5 +1,5 @@
 
-/*
+/**
 getPath(path, object)
 
 Returns the value at `path` in `object`.

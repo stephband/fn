@@ -23,7 +23,7 @@ function reduce(reducers, acc, tokens) {
         acc ;
 }
 
-/*
+/**
 capture(regex, reducers, accumulator, string)
 Parse `string` with `regex`, calling functions in `reducers` to modify
 and return `accumulator`.

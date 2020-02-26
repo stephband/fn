@@ -1,4 +1,4 @@
-/*
+/**
 invoke(name, parameters, object)
 Invokes `object.name()` with `parameters` as arguments. For example:
 

@@ -1,4 +1,4 @@
-/*
+/**
 args()
 
 Returns `arguments` object.

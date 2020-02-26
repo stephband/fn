@@ -1,4 +1,4 @@
-/*
+/**
 noop()
 Returns undefined.
 */

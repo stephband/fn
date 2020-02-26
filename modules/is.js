@@ -1,5 +1,5 @@
 
-/*
+/**
 is(a, b)
 Perform a strict equality check of `a === b`.
 */

@@ -1,4 +1,4 @@
-/*
+/**
 toArray(object)
 */
 

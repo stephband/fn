@@ -1,4 +1,4 @@
-/*
+/**
 overload(fn, map)
 
 Returns a function that calls a function at the property of `object` that

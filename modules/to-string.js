@@ -1,4 +1,4 @@
-/*
+/**
 toString(object)
 Returns `object.toString()`.
 */

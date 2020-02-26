@@ -1,4 +1,4 @@
-/*
+/**
 self()
 Returns `this`.
 */

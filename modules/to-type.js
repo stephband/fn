@@ -1,4 +1,4 @@
-/*
+/**
 toType(object)
 Returns `typeof object`.
 */

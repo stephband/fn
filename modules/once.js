@@ -1,4 +1,4 @@
-/*
+/**
 once(fn)
 Returns a function that calls `fn` the first time it is invoked,
 and then becomes a noop.

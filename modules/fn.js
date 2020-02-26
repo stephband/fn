@@ -63,9 +63,9 @@ function sortIndex(array, fn) {
     return i;
 }
 
-/* Properties */
+/** Properties */
 
-/*
+/**
 .status
 Reflects the running status of the stream. When all values have been consumed
 status is `'done'`.
@@ -193,7 +193,7 @@ assign(Fn.prototype, {
         });
     },
 
-    /*
+    /**
     .unshift(...values)
     Creates a buffer of values at the end of the stream that are read first.
     */
@@ -342,7 +342,7 @@ assign(Fn.prototype, {
         return stream;
     },
 
-    /*
+    /**
     .dedup()
 
     Filters out consecutive equal values.
@@ -357,7 +357,7 @@ assign(Fn.prototype, {
         });
     },
 
-    /*
+    /**
     .filter(fn)
 
     Filter values according to the truthiness of `fn(value)`.
@@ -373,7 +373,7 @@ assign(Fn.prototype, {
         });
     },
 
-    /*
+    /**
     .flat()
     Flattens a list of lists into a single list.
     */
@@ -399,7 +399,7 @@ assign(Fn.prototype, {
         });
     },
 
-    /*
+    /**
     .flatMap()
     Maps values to lists – `fn(value)` must return an array, stream
     or other type with a `.shift()` method – and flattens those lists into a
@@ -415,7 +415,7 @@ assign(Fn.prototype, {
         return this.map(fn).flat();
     },
 
-    /*
+    /**
     .latest()
 
     When the stream has a values buffered, passes the last value
@@ -429,7 +429,7 @@ assign(Fn.prototype, {
         });
     },
 
-    /*
+    /**
     .map(fn)
     Maps values to the result of `fn(value)`.
     */
@@ -440,10 +440,10 @@ assign(Fn.prototype, {
         }, this.shift));
     },
 
-    ///*
+    ///**
     //.chunk(n)
     //Batches values into arrays of length `n`.
-    //*/
+    //**/
 
     chunk: function(n) {
         return this
@@ -514,7 +514,7 @@ assign(Fn.prototype, {
         return this.scan(fn, seed).latest().shift();
     },
 
-    /*
+    /**
     .scan(fn, seed)
 
     Calls `fn(accumulator, value)` and emits `accumulator` for each value
@@ -529,7 +529,7 @@ assign(Fn.prototype, {
         });
     },
 
-    /*
+    /**
     .take(n)
 
     Filters the stream to the first `n` values.
@@ -602,7 +602,7 @@ assign(Fn.prototype, {
         });
     },
 
-    /*
+    /**
     .rest(n)
 
     Filters the stream to all values after the `n`th value.
@@ -617,7 +617,7 @@ assign(Fn.prototype, {
         });
     },
 
-    /*
+    /**
     .unique()
 
     Filters the stream to remove any value already emitted.
@@ -662,7 +662,7 @@ assign(Fn.prototype, {
         };
     },
 
-    /*
+    /**
     .pipe(stream)
 
     Pipes the current stream into `stream`.
@@ -673,7 +673,7 @@ assign(Fn.prototype, {
         return stream;
     },
 
-    /*
+    /**
     .tap(fn)
 
     Calls `fn(value)` for each value in the stream without modifying

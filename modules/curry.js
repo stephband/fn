@@ -1,4 +1,4 @@
-/*
+/**
 curry(fn [, muteable, arity])
 */
 

@@ -1,5 +1,5 @@
 
-/*
+/**
 setPath(path, object, value)
 
 Sets `value` at `path` in `object`.
