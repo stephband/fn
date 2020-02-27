@@ -60,6 +60,16 @@
     </article>
 </template>
 
+<template id="class-template">
+    <article build-fn="append:body" class="class-toggle-block toggle-block block class-grid @3-grid @3-grid-5" toggleable id="{[id]}">
+        <h3 class="@3-x-1 @3-xspan-2 doc-text-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
+            <a href="#{[id]}">
+                <code build-fn="append:title" class=""></code>
+            </a>
+        </h3>
+    </article>
+</template>
+
 <template id="function-template">
     <article build-fn="append:body" class="function-toggle-block toggle-block block" toggleable id="{[id]}">
         <h3 class="doc-text-05 {[prefix|is:'.'|yesno:'dot-indent','']}">

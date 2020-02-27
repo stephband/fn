@@ -35,8 +35,8 @@ const markedOptions = {
     smartypants: true
 };
 
-//                Open comment followed by spaces and (dot)(name)   ((params))   or (:params)          or (="")            OR (<tag>)               OR ({[ tag ]} or {% tag %})
-const parseDoc = window.parseDoc = capture(/\/\*\*+\s*(?:(\.)?([\w-, .]+)(?:(\([^)]*\))|:[ \t]*([\w-, .:'"]*)|="([\w-#,/%\]}[{ .:']*)")?|(<[\w- ="]+\/?>)|(\{[\[\]\w%|:. ]+\}))/, {
+//                Open comment followed by    spaces and (dot)(name or selector[anything])             ((params)) or      (:params)     or (="")                 OR (<tag>)       OR ({[ tag ]} or {% tag %})
+const parseDoc = window.parseDoc = capture(/\/\*\*+\s*(?:(\.)?(\w[\w-, .]*(?:\[[^\]]+\])?)(?:(\([^)]*\))|:[ \t]*([\w-, .:'"]*)|="([\w-#,/%\]}[{ .:']*)")?|(<[\w- ="]+\/?>)|(\{[\[\]\w%|:. ]+\}))/, {
     // .property or title or {[tag]}
     2: function(data, results) {
         data.push({

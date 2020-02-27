@@ -74,4 +74,4 @@ export function capture(regex, reducers, acc, string) {
         output ;
 }
 
-export default curry(capture, true);
+export default curry(capture, true)

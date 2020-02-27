@@ -15,4 +15,4 @@ export function set(key, object, value) {
         (object[key] = value) ;
 }
 
-export default curry(set, true);
+export default curry(set, true)

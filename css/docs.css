@@ -122,7 +122,7 @@ body > .demo-block + .grid {
 .toggle-block {
     visibility: visible;
     opacity: 1;
-    min-height: 2.25rem;
+    min-height: 1.875em;
     padding-left: 0.9375rem;
     padding-right: 0.9375rem;
     padding-top: 8px;
@@ -142,7 +142,6 @@ body > .demo-block + .grid {
 }
 
 .toggle-block.active {
-    margin-top: 0.9375rem;
     padding-bottom: 1.125rem;
     max-height: 80rem;
     transition:
@@ -176,10 +175,6 @@ body > .demo-block + .grid {
 
 .toggle-block + .toggle-block {
     margin-top: 0.1875rem;
-}
-
-.toggle-block + .toggle-block.active {
-    /*margin-top: 1.5rem;*/
 }
 
 .doc-text-02 + .toggle-block {
@@ -287,7 +282,7 @@ code.property {
 }
 
 
-
+/*
 a {
     color: inherit;
     text-decoration: none;
@@ -302,7 +297,7 @@ a:focus {
     border-bottom: 2px solid rgba(51,34,86,0.8);
     transition-duration: 0.09s;
 }
-
+*/
 .doc-text-05 > a {
     text-decoration: none;
     padding-bottom: 2px;
@@ -499,6 +494,31 @@ line { stroke-width: 1; stroke: inherit; }
     margin-left: -0.9375rem;
     padding-left: 0.9375rem;
     margin-right: -0.1875rem;
+}
+
+.class-grid {
+    grid-row-gap: 0 !important;
+    justify-items: stretch;
+}
+
+.class-grid > * {
+    grid-column: 3 / span 3;
+    margin: 0;
+}
+
+.class-grid > .doc-text-05 {
+    grid-column: 1;
+    justify-self: end;
+    align-self: start;
+    overflow: visible;
+    text-align: right;
+    text-overflow: clip;
+    width: auto;
+    margin-right: 0;
+}
+
+.class-grid > .doc-text-05 + * {
+    margin-top: 0 !important;
 }
 
 /*

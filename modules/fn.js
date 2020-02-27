@@ -1,10 +1,8 @@
 
 import compose   from './compose.js';
-import deprecate from './deprecate.js';
 import latest    from './latest.js';
 import noop      from './noop.js';
 import nothing   from './nothing.js';
-import once      from './once.js';
 import prepend   from './strings/prepend.js';
 import toArray   from './to-array.js';
 
@@ -19,11 +17,6 @@ export function create(object, fn) {
     var functor = Object.create(object);
     functor.shift = fn;
     return functor;
-}
-
-function stop(functor) {
-    functor.shift = noop;
-    functor.status = 'done';
 }
 
 function arrayReducer(array, value) {
