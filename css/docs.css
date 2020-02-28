@@ -502,8 +502,11 @@ line { stroke-width: 1; stroke: inherit; }
     margin-right: -0.1875rem;
 }
 
-
-
+/*
+.component-toggle-block.active {
+    overflow: visible;
+}
+*/
 * + .component-toggle-block {
     margin-top: 0.9375rem;
 }
