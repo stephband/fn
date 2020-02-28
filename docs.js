@@ -8,7 +8,6 @@ import './libs/marked/marked.min.js';
 import './libs/prism/prism.js';
 
 import { cache, capture, id, invoke, last, nothing, slugify, Stream } from './module.js';
-import { fragmentFromHTML } from '../dom/module.js';
 import { register } from '../sparky/module.js';
 
 const Prism = window.Prism;
@@ -296,29 +295,5 @@ register('filter-string', function (node, params) {
 
             return output;
         }, []);
-    });
-});
-
-register('append', function(node, params) {
-    const name = params[0];
-    return this.tap((scope) => {
-        // Avoid having Sparky parse the contents of documentation by waiting
-        // until the next frame
-        requestAnimationFrame(function() {
-            const fragment = fragmentFromHTML(scope[name]);
-            node.appendChild(fragment);
-        });
-    });
-});
-
-register('after', function(node, params) {
-    const name = params[0];
-    return this.tap((scope) => {
-        // Avoid having Sparky parse the contents of documentation by waiting
-        // until the next frame
-        requestAnimationFrame(function () {
-            const fragment = fragmentFromHTML(scope[name]);
-            node.after(fragment);
-        });
     });
 });
