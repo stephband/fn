@@ -219,6 +219,10 @@ body > .demo-block + .grid {
     font-size: 1.0625rem;
 }
 
+* + .doctext-02 {
+    margin-top: 1.875rem;
+}
+
 .doctext-03 > code {
     color: inherit;
     font-weight: 600;
@@ -227,6 +231,10 @@ body > .demo-block + .grid {
 
 .doctext-03 a {
     text-decoration: none;
+}
+
+.doctext-03 + pre {
+    margin-top: 1.5rem;
 }
 
 .doctext-04 {
@@ -238,6 +246,13 @@ p + .doctext-04, p + h4 { margin-top: 1.5rem; }
 
 .doctext-04 + .toggle-block {
     margin-top: 9px;
+}
+
+button.doctext-09 {
+    display: inline-block;
+    min-height: 0;
+    padding-left: 0;
+    padding-right: 0;
 }
 
 a.block {
