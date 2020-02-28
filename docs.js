@@ -35,14 +35,17 @@ const markedOptions = {
 };
 
 //                Open comment followed by    spaces and (dot)(name or selector[anything])             ((params)) or      (:params)     or (="")                 OR (<tag>)       OR ({[ tag ]} or {% tag %})
-const parseDoc = window.parseDoc = capture(/\/\*\*+\s*(?:(\.)?(\w[\w-, .]*(?:\[[^\]]+\])?)(?:(\([^)]*\))|:[ \t]*([\w-, .:'"]*)|="([\w-#,/%\]}[{ .:']*)")?|(<[\w- ="]+\/?>)|(\{[\[\]\w%|:. ]+\}))/, {
+const parseDoc = window.parseDoc = capture(/\/\*\*+\s*(?:(\.|--)?(\w[\w-, .]*(?:\[[^\]]+\])?)(?:(\([^)]*\))|:[ \t]*([\w-, .:'"]*)|="([\w-#,/%\]}[{ .:']*)")?|(<[\w- ="]+\/?>)|(\{[\[\]\w%|:. ]+\}))/, {
     // .property or title or {[tag]}
     2: function(data, results) {
         data.push({
             id:     slugify(results[2] + (results[3] || '')),
             prefix: results[1],
             name:   results[2],
-            type:   results[1] ? 'property' : 'title',
+            type:   results[1] ?
+                results[1] === '.' ? 'property' :
+                'variable' :
+                'title',
             title: (results[1] || '') + results[2]
         });
         return data;

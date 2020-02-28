@@ -1,8 +1,8 @@
 
 <template id="header-template">
-    <h1>{[title]} <span class="text-06">{[version]}</span></h1>
+    <h1>{[title]} <span class="doctext-06">{[version]}</span></h1>
 
-    <p class="text-08">
+    <p class="doctext-08">
         {[description]}
     </p>
 
@@ -13,12 +13,12 @@
 </template>
 
 <template id="title-template">
-    <h3 class="text-04" build-fn="after:body">{[name]}</h3>
+    <h3 class="doctext-04" build-fn="after:body">{[name]}</h3>
 </template>
 
 <template id="h2-template">
     <header class="x-1 xspan-4 @1-x-1 @2-x-2">
-        <h2 class="doc-text-02">
+        <h2 class="doctext-02">
             <a href="#{[id]}">
                 <code class="language-js" build-fn="append:title" style="color: inherit;"></code>
             </a>
@@ -30,9 +30,9 @@
 
 <template id="attribute-template">
     <article build-fn="append:body" class="attribute-toggle-block toggle-block block" toggleable id="attribute-{[id]}">
-        <h3 class="doc-text-05">
+        <h3 class="doctext-05">
             <a href="#attribute-{[id]}">
-                <code class="token language-js"><span>[</span><span build-fn="append:title"></span><span>]</span></code>
+                <code class="token language-js">[<span build-fn="append:title"></span>]</code>
             </a>
         </h3>
 
@@ -40,9 +40,21 @@
     </article>
 </template>
 
+<template id="constructor-template">
+    <article class="function-toggle-block toggle-block block xspan-3" toggleable="" id="{[0.id]}">
+        <h3 build-fn="get:0 after:body" class="doctext-05 dot-indent">
+            <a href="#{[id]}">
+                <code class="property language-js">"{[name|lowercase]}"</code>
+            </a>
+        </h3>
+
+        <template build-src="/fn/templates.html#property-method-template"></template>
+    </article>
+</template>
+
 <template id="method-template">
     <article build-fn="append:body" class="method-toggle-block toggle-block block" toggleable id="method-{[id]}">
-        <h3 class="doc-text-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
+        <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
             <a href="#method-{[id]}">
                 <code build-fn="append:title" class="function language-js"></code>
             </a>
@@ -52,7 +64,7 @@
 
 <template id="property-template">
     <article build-fn="append:body" class="property-toggle-block toggle-block block" toggleable id="property-{[id]}">
-        <h3 class="doc-text-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
+        <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
             <a href="#property-{[id]}">
                 <code build-fn="append:title" class="property language-js"></code>
             </a>
@@ -61,8 +73,8 @@
 </template>
 
 <template id="class-template">
-    <article build-fn="append:body" class="class-toggle-block toggle-block block class-grid @3-grid @3-grid-5" toggleable id="class-{[id]}">
-        <h3 class="@3-x-1 @3-xspan-2 doc-text-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
+    <article build-fn="append:body" class="class-toggle-block toggle-block block class-grid @3-grid @3-5-grid" toggleable id="class-{[id]}">
+        <h3 class="@3-x-1 @3-xspan-2 doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
             <a href="#class-{[id]}">
                 <code build-fn="append:title" class=""></code>
             </a>
@@ -70,18 +82,41 @@
     </article>
 </template>
 
+<!--
+Component template
+
+The first documentation comment is treated as the section header. Expects
+documentation comments in the form:
+
+    /**
+    Component-title
+
+    ```html
+    <Component example HTML>
+    ```
+
+    <Component example HTML>
+
+    Description
+    **/
+
+    /**
+    CSS .class OR --variable
+
+    Description
+    **/
+-->
+
 <template id="component-template">
     <section class="component-toggle-block toggle-block block" toggleable id="component-{[0.id]}">
-        <header class="class-grid grid @3-grid @3-grid-5">
-            <h3 build-fn="after:'0.body'" class="@3-x-3 @3-xspan-2 doc-text-03 {[0.prefix|is:'.'|yesno:'dot-indent','']}">
-                <a href="#component-{[0.id]}">
-                    <code build-fn="append:'0.title'"></code>
-                </a>
+        <header class="class-grid grid @1-6-grid @2-7-grid">
+            <h3 build-fn="after:'0.body'" class="doctext-03 {[0.prefix|is:'.'|yesno:'dot-indent','']}">
+                <a build-fn="append:'0.title'" href="#component-{[0.id]}"></a>
             </h3>
         </header>
 
-        <section build-fn="rest:1 each append:body" class="block class-grid @3-grid @3-grid-5">
-            <h4 class="@3-x-1 @3-xspan-2 doc-text-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
+        <section build-fn="rest:1 each append:body" class="block class-grid grid @1-6-grid @2-7-grid">
+            <h4 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <code build-fn="append:title" class=""></code>
             </h4>
         </section>
@@ -90,7 +125,7 @@
 
 <template id="function-template">
     <article build-fn="append:body" class="function-toggle-block toggle-block block" toggleable id="function-{[id]}">
-        <h3 class="doc-text-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
+        <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
             <a href="#function-{[id]}">
                 <code build-fn="append:title" class="function language-js"></code>
             </a>
@@ -100,7 +135,7 @@
 
 <template id="fn-template">
     <article build-fn="append:body" class="fn-toggle-block toggle-block block" toggleable id="fn-{[id]}">
-        <h3 class="doc-text-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
+        <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
             <a href="#fn-{[id]}">
                 <code build-fn="append:title" class="language-js"></code>
             </a>
@@ -110,7 +145,7 @@
 
 <template id="section-template">
     <article build-fn="append:body" class="section-toggle-block toggle-block block active" id="section-{[id]}">
-        <h3 class="doc-text-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
+        <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
             <code build-fn="append:title" class="function language-js"></code>
         </h3>
     </article>

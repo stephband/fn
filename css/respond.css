@@ -12,27 +12,27 @@ This file is generated via SASS. To generate it, run `npm run sass`.
 
 .grid { display: grid !important; }
 
-.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.\32 -grid { grid-template-columns: repeat(2, 1fr); }
 
-.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.\33 -grid { grid-template-columns: repeat(3, 1fr); }
 
-.grid-4 { grid-template-columns: repeat(4, 1fr); }
+.\34 -grid { grid-template-columns: repeat(4, 1fr); }
 
-.grid-5 { grid-template-columns: repeat(5, 1fr); }
+.\35 -grid { grid-template-columns: repeat(5, 1fr); }
 
-.grid-6 { grid-template-columns: repeat(6, 1fr); }
+.\36 -grid { grid-template-columns: repeat(6, 1fr); }
 
-.grid-7 { grid-template-columns: repeat(7, 1fr); }
+.\37 -grid { grid-template-columns: repeat(7, 1fr); }
 
-.grid-8 { grid-template-columns: repeat(8, 1fr); }
+.\38 -grid { grid-template-columns: repeat(8, 1fr); }
 
-.grid-9 { grid-template-columns: repeat(9, 1fr); }
+.\39 -grid { grid-template-columns: repeat(9, 1fr); }
 
-.grid-10 { grid-template-columns: repeat(10, 1fr); }
+.\31 0-grid { grid-template-columns: repeat(10, 1fr); }
 
-.grid-11 { grid-template-columns: repeat(11, 1fr); }
+.\31 1-grid { grid-template-columns: repeat(11, 1fr); }
 
-.grid-12 { grid-template-columns: repeat(12, 1fr); }
+.\31 2-grid { grid-template-columns: repeat(12, 1fr); }
 
 .inline { display: inline-block !important; }
 
@@ -214,17 +214,17 @@ This file is generated via SASS. To generate it, run `npm run sass`.
 	.\@1-block { display: block !important; }
 	.\@1-flex { display: flex !important; }
 	.\@1-grid { display: grid !important; }
-	.\@1-grid-2 { grid-template-columns: repeat(2, 1fr); }
-	.\@1-grid-3 { grid-template-columns: repeat(3, 1fr); }
-	.\@1-grid-4 { grid-template-columns: repeat(4, 1fr); }
-	.\@1-grid-5 { grid-template-columns: repeat(5, 1fr); }
-	.\@1-grid-6 { grid-template-columns: repeat(6, 1fr); }
-	.\@1-grid-7 { grid-template-columns: repeat(7, 1fr); }
-	.\@1-grid-8 { grid-template-columns: repeat(8, 1fr); }
-	.\@1-grid-9 { grid-template-columns: repeat(9, 1fr); }
-	.\@1-grid-10 { grid-template-columns: repeat(10, 1fr); }
-	.\@1-grid-11 { grid-template-columns: repeat(11, 1fr); }
-	.\@1-grid-12 { grid-template-columns: repeat(12, 1fr); }
+	.\@1-\32 -grid { grid-template-columns: repeat(2, 1fr); }
+	.\@1-\33 -grid { grid-template-columns: repeat(3, 1fr); }
+	.\@1-\34 -grid { grid-template-columns: repeat(4, 1fr); }
+	.\@1-\35 -grid { grid-template-columns: repeat(5, 1fr); }
+	.\@1-\36 -grid { grid-template-columns: repeat(6, 1fr); }
+	.\@1-\37 -grid { grid-template-columns: repeat(7, 1fr); }
+	.\@1-\38 -grid { grid-template-columns: repeat(8, 1fr); }
+	.\@1-\39 -grid { grid-template-columns: repeat(9, 1fr); }
+	.\@1-\31 0-grid { grid-template-columns: repeat(10, 1fr); }
+	.\@1-\31 1-grid { grid-template-columns: repeat(11, 1fr); }
+	.\@1-\31 2-grid { grid-template-columns: repeat(12, 1fr); }
 	.\@1-inline { display: inline-block !important; }
 	.\@1-left { float: left !important; clear: left; }
 	.\@1-right { float: right !important; clear: right; }
@@ -319,17 +319,17 @@ This file is generated via SASS. To generate it, run `npm run sass`.
 	.\@2-block { display: block !important; }
 	.\@2-flex { display: flex !important; }
 	.\@2-grid { display: grid !important; }
-	.\@2-grid-2 { grid-template-columns: repeat(2, 1fr); }
-	.\@2-grid-3 { grid-template-columns: repeat(3, 1fr); }
-	.\@2-grid-4 { grid-template-columns: repeat(4, 1fr); }
-	.\@2-grid-5 { grid-template-columns: repeat(5, 1fr); }
-	.\@2-grid-6 { grid-template-columns: repeat(6, 1fr); }
-	.\@2-grid-7 { grid-template-columns: repeat(7, 1fr); }
-	.\@2-grid-8 { grid-template-columns: repeat(8, 1fr); }
-	.\@2-grid-9 { grid-template-columns: repeat(9, 1fr); }
-	.\@2-grid-10 { grid-template-columns: repeat(10, 1fr); }
-	.\@2-grid-11 { grid-template-columns: repeat(11, 1fr); }
-	.\@2-grid-12 { grid-template-columns: repeat(12, 1fr); }
+	.\@2-\32 -grid { grid-template-columns: repeat(2, 1fr); }
+	.\@2-\33 -grid { grid-template-columns: repeat(3, 1fr); }
+	.\@2-\34 -grid { grid-template-columns: repeat(4, 1fr); }
+	.\@2-\35 -grid { grid-template-columns: repeat(5, 1fr); }
+	.\@2-\36 -grid { grid-template-columns: repeat(6, 1fr); }
+	.\@2-\37 -grid { grid-template-columns: repeat(7, 1fr); }
+	.\@2-\38 -grid { grid-template-columns: repeat(8, 1fr); }
+	.\@2-\39 -grid { grid-template-columns: repeat(9, 1fr); }
+	.\@2-\31 0-grid { grid-template-columns: repeat(10, 1fr); }
+	.\@2-\31 1-grid { grid-template-columns: repeat(11, 1fr); }
+	.\@2-\31 2-grid { grid-template-columns: repeat(12, 1fr); }
 	.\@2-inline { display: inline-block !important; }
 	.\@2-left { float: left !important; clear: left; }
 	.\@2-right { float: right !important; clear: right; }
@@ -424,17 +424,17 @@ This file is generated via SASS. To generate it, run `npm run sass`.
 	.\@3-block { display: block !important; }
 	.\@3-flex { display: flex !important; }
 	.\@3-grid { display: grid !important; }
-	.\@3-grid-2 { grid-template-columns: repeat(2, 1fr); }
-	.\@3-grid-3 { grid-template-columns: repeat(3, 1fr); }
-	.\@3-grid-4 { grid-template-columns: repeat(4, 1fr); }
-	.\@3-grid-5 { grid-template-columns: repeat(5, 1fr); }
-	.\@3-grid-6 { grid-template-columns: repeat(6, 1fr); }
-	.\@3-grid-7 { grid-template-columns: repeat(7, 1fr); }
-	.\@3-grid-8 { grid-template-columns: repeat(8, 1fr); }
-	.\@3-grid-9 { grid-template-columns: repeat(9, 1fr); }
-	.\@3-grid-10 { grid-template-columns: repeat(10, 1fr); }
-	.\@3-grid-11 { grid-template-columns: repeat(11, 1fr); }
-	.\@3-grid-12 { grid-template-columns: repeat(12, 1fr); }
+	.\@3-\32 -grid { grid-template-columns: repeat(2, 1fr); }
+	.\@3-\33 -grid { grid-template-columns: repeat(3, 1fr); }
+	.\@3-\34 -grid { grid-template-columns: repeat(4, 1fr); }
+	.\@3-\35 -grid { grid-template-columns: repeat(5, 1fr); }
+	.\@3-\36 -grid { grid-template-columns: repeat(6, 1fr); }
+	.\@3-\37 -grid { grid-template-columns: repeat(7, 1fr); }
+	.\@3-\38 -grid { grid-template-columns: repeat(8, 1fr); }
+	.\@3-\39 -grid { grid-template-columns: repeat(9, 1fr); }
+	.\@3-\31 0-grid { grid-template-columns: repeat(10, 1fr); }
+	.\@3-\31 1-grid { grid-template-columns: repeat(11, 1fr); }
+	.\@3-\31 2-grid { grid-template-columns: repeat(12, 1fr); }
 	.\@3-inline { display: inline-block !important; }
 	.\@3-left { float: left !important; clear: left; }
 	.\@3-right { float: right !important; clear: right; }

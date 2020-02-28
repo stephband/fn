@@ -125,7 +125,7 @@ body > .demo-block + .grid {
     min-height: 1.875em;
     padding-left: 0.9375rem;
     padding-right: 0.9375rem;
-    padding-top: 8px;
+    /*padding-top: 8px;*/
     /*color: #444444;*/
     /*transition:
         max-height 400ms cubic-bezier(0, 0.5, 0.33, 1),
@@ -137,13 +137,15 @@ body > .demo-block + .grid {
     min-height: 6.75rem;
 }
 
+/*
 .toggle-block:not(.active) {
-    padding-top: 8px;
+    padding-top: 0;
 }
+*/
 
 .toggle-block.active {
     padding-bottom: 1.125rem;
-    max-height: 80rem;
+    max-height: 120rem;
     transition:
         max-height 400ms cubic-bezier(0.4, 0, 1, 0.32),
         margin-top 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89),
@@ -173,37 +175,41 @@ body > .demo-block + .grid {
     margin-bottom: 0.75rem;
 }
 
-.toggle-block + .toggle-block {
+* + .toggle-block {
     margin-top: 0.1875rem;
 }
 
-.doc-text-02 + .toggle-block {
+.doctext-02 + .toggle-block {
     margin-top: 0.9375rem;
 }
 
-.doc-text-02,  h2   { font-size: 1.5rem;   line-height: 1.5rem; }
-.text-3,  h3   { font-size: 1.375rem; line-height: 1.5rem; }
-.text-4,  h4   { font-size: 0.75rem;  line-height: 0.9375rem; font-weight: 400; text-transform: uppercase; }
-.text-8,  body { font-size: 1rem;     line-height: 1.5rem; font-weight: 300; }
-.text-10, code {
+.doctext-02,  h2   { font-size: 1.5625rem; line-height: 1.875rem; }
+.doctext-03,  h3   { font-size: 1.25rem;   line-height: 1.875rem; }
+.doctext-04,  h4   { font-size: 0.75rem;  line-height: 0.9375rem; font-weight: 400; text-transform: uppercase; }
+.doctext-08,  body { font-size: 1rem;     line-height: 1.5rem; font-weight: 300; }
+.doctext-10, code {
     font-family: 'Fira Code', 'Roboto Mono', monospace;
     font-size: 1.0625rem;
 }
 
-.text-3 > code {
+.doctext-03 > code {
     color: inherit;
     font-weight: 600;
-    	letter-spacing: 0;
+    letter-spacing: 0;
 }
 
-.text-4 {
+.doctext-03 a {
+    text-decoration: none;
+}
+
+.doctext-04 {
     opacity: 0.5;
 }
 
-.text-4 + p, h4 + p { margin-top: 0; }
-p + .text-4, p + h4 { margin-top: 1.5rem; }
+.doctext-04 + p, h4 + p { margin-top: 0; }
+p + .doctext-04, p + h4 { margin-top: 1.5rem; }
 
-.text-4 + .toggle-block {
+.doctext-04 + .toggle-block {
     margin-top: 9px;
 }
 
@@ -223,8 +229,8 @@ pre > code {
     font-size: 0.8125rem;
     margin-left: -0.75rem;
     padding-left: 0.75rem;
-    padding-top: 12px;
-    padding-bottom: 12px;
+    padding-top: 0.5625rem;
+    padding-bottom: 0.5625rem;
     padding-right: 0.75rem;
     width: calc(100% + 0.75rem + 0.75rem);
     /*color: white;*/
@@ -276,7 +282,7 @@ code.property {
     color: inherit;
 }
 
-.doc-text-05 {
+.doctext-05 {
     font-size:   1rem;
     line-height: 1.5rem;
 }
@@ -298,7 +304,7 @@ a:focus {
     transition-duration: 0.09s;
 }
 */
-.doc-text-05 > a {
+.doctext-05 > a {
     text-decoration: none;
     padding-bottom: 2px;
     border-bottom: none;
@@ -310,7 +316,7 @@ a:focus {
     border-bottom: 1px solid #999999;
 }
 
-.doc-text-05 code {
+.doctext-05 code {
     font-size: inherit;
     font-weight: 500;
     background-color: transparent;
@@ -320,15 +326,15 @@ a:focus {
     letter-spacing: -0.0125em;
 }
 
-.doc-text-02 + p { margin-top: 0.9375rem; }
-.doc-text-02 + pre { margin-top: 1.875rem; }
-.doc-text-05 + p { margin-top: 0.75rem; }
-.text-3 code > span,
-.doc-text-05 code > span {
+.doctext-02 + p { margin-top: 0.9375rem; }
+.doctext-02 + pre { margin-top: 1.875rem; }
+.doctext-05 + p { margin-top: 0.75rem; }
+.doctext-03 code > span,
+.doctext-05 code > span {
     color: var(--name-color);
 }
 
-h5, .doc-text-05 {
+h5, .doctext-05 {
     margin-bottom: 2px;
 }
 
@@ -372,7 +378,7 @@ script[type="text"] {
 
 line { stroke-width: 1; stroke: inherit; }
 
-.text-3 + .toggle-block { margin-top: 0.9375rem; }
+.doctext-03 + .toggle-block { margin-top: 0.9375rem; }
 
 
 .grid {
@@ -397,21 +403,21 @@ line { stroke-width: 1; stroke: inherit; }
     break-inside: avoid-column;
 }
 
-.columns > .text-4 ~ .text-4 {
+.columns > .doctext-04 ~ .doctext-04 {
     break-before: column;
     break-after: avoid;
     break-after: avoid-column;
 }
 
-.columns > .text-4 ~ .text-4 ~ .text-4 {
+.columns > .doctext-04 ~ .doctext-04 ~ .doctext-04 {
     break-before: auto;
 }
 
-.columns > .text-4 ~ .text-4 ~ .text-4 ~ .text-4 {
+.columns > .doctext-04 ~ .doctext-04 ~ .doctext-04 ~ .doctext-04 {
     break-before: auto;
 }
 
-.columns > .text-4 ~ .text-4 ~ .text-4 ~ .text-4 ~ .text-4 {
+.columns > .doctext-04 ~ .doctext-04 ~ .doctext-04 ~ .doctext-04 ~ .doctext-04 {
     break-before: auto;
 }
 
@@ -481,13 +487,13 @@ line { stroke-width: 1; stroke: inherit; }
     grid-row-gap: 0;
 }
 
-.list-grid > .text-4 {
+.list-grid > .doctext-04 {
     margin-top: 1.875rem;
 }
 
 
 
-.toggle-block > .doc-text-05 {
+.toggle-block > .doctext-05 {
     overflow: hidden;
     text-overflow: ellipsis;
     /* Make sure hanging '.' is still seen */
@@ -496,18 +502,34 @@ line { stroke-width: 1; stroke: inherit; }
     margin-right: -0.1875rem;
 }
 
+
+
+* + .component-toggle-block {
+    margin-top: 0.9375rem;
+}
+
+.component-toggle-block > header + .class-grid {
+    margin-top: 1.5rem;
+}
+
+
+
 .class-grid {
     grid-row-gap: 0 !important;
     justify-items: stretch;
 }
 
 .class-grid > * {
-    grid-column: 3 / span 3;
+    grid-column: 2 / span 3;
     margin: 0;
 }
 
-.class-grid > .doc-text-05 {
-    grid-column: 1;
+.class-grid > pre {
+    grid-column: 1 / span 3;
+}
+
+.class-grid > .doctext-05 {
+    grid-column: 1 / span 1;
     justify-self: end;
     align-self: start;
     overflow: visible;
@@ -517,12 +539,48 @@ line { stroke-width: 1; stroke: inherit; }
     margin-right: 0;
 }
 
-.class-grid > .doc-text-05 + * {
+.class-grid > .doctext-05 + * {
     margin-top: 0 !important;
 }
 
+/* Hack to get baseline of thumbs in the middle.
+    Todo: we should probably adopt this in Bolt. */
+.class-grid > pre + .thumb {
+    height: auto;
+    line-height: 1em;
+    padding-top: calc(23px - 0.5em);
+    padding-bottom: calc(22px - 0.5em);
+    text-indent: 45px;
+    white-space: nowrap;
+}
+
+@media (min-width: 50em) {
+    .class-grid > .doctext-05 {
+        align-self: baseline;
+    }
+
+    .class-grid > .doctext-05 + pre {
+        align-self: baseline;
+    }
+
+    .class-grid > .doctext-05 + pre + * {
+        align-self: baseline;
+    }
+}
+
+@media (min-width: 70em) {
+    .class-grid > *,
+    .class-grid > pre {
+        grid-column: 2 / span 3;
+    }
+
+    .class-grid > pre + * {
+        grid-column: 5 / span 3;
+    }
+}
+
 /*
-.columns > .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .text-4 {
+.columns > .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .doctext-04 {
     break-before: column;
 }
 */
