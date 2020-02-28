@@ -72,11 +72,13 @@
 
 <template id="component-template">
     <section class="component-toggle-block toggle-block block" toggleable id="component-{[0.id]}">
-        <h3 build-fn="after:'0.body'" class="@3-x-3 @3-xspan-2 doc-text-03 {[0.prefix|is:'.'|yesno:'dot-indent','']}">
-            <a href="#component-{[id]}">
-                <code build-fn="append:'0.title'"></code>
-            </a>
-        </h3>
+        <header class="class-grid grid @3-grid @3-grid-5">
+            <h3 build-fn="after:'0.body'" class="@3-x-3 @3-xspan-2 doc-text-03 {[0.prefix|is:'.'|yesno:'dot-indent','']}">
+                <a href="#component-{[0.id]}">
+                    <code build-fn="append:'0.title'"></code>
+                </a>
+            </h3>
+        </header>
 
         <section build-fn="rest:1 each append:body" class="block class-grid @3-grid @3-grid-5">
             <h4 class="@3-x-1 @3-xspan-2 doc-text-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
