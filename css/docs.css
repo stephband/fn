@@ -119,6 +119,31 @@ body > .demo-block + .grid {
     opacity: 1;
 }
 
+.doctoggle-button {
+    padding-left: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.doctoggle-button::before {
+    content: '';
+    position: absolute;
+    left: -1.5rem;
+    margin-left: 0.18em;
+    top: 50%;
+    margin-top: -0.18em;
+    width: 0.36em;
+    height: 0.36em;
+    border-top: 1px solid currentcolor;
+    border-right: 1px solid currentcolor;
+    transform: translate(-25%, 0) rotate(45deg);
+    transition: transform 240ms linear;
+}
+
+.doctoggle-button.on::before {
+    transform: translate(0, -25%) rotate(135deg);
+}
+
 .toggle-block {
     visibility: visible;
     opacity: 1;
@@ -171,9 +196,11 @@ body > .demo-block + .grid {
     background-color: transparent;
 }
 
+/*
 .toggle-block > .block {
     margin-bottom: 0.75rem;
 }
+*/
 
 * + .toggle-block {
     margin-top: 0.1875rem;
@@ -236,7 +263,7 @@ pre > code {
     /*color: white;*/
     border-radius: 0.375rem;
     /*border-bottom-left-radius: 0;*/
-    margin-top: 0.75rem;
+    /*margin-top: 0.75rem;*/
     overflow: auto;
     box-shadow: inset -18px 4px 110px -20px rgba(0,0,0,0.1);
 }
@@ -523,11 +550,19 @@ line { stroke-width: 1; stroke: inherit; }
 }
 
 .class-grid > * {
-    grid-column: 2 / span 3;
     margin: 0;
 }
 
+.class-grid > *,
 .class-grid > pre {
+    grid-column: 1 / span 3;
+}
+
+.class-grid > pre {
+    display: none;
+}
+
+.class-grid > pre + * {
     grid-column: 1 / span 3;
 }
 
@@ -557,7 +592,24 @@ line { stroke-width: 1; stroke: inherit; }
     white-space: nowrap;
 }
 
+.class-grid + .class-grid {
+    margin-top: 0.75rem;
+}
+
 @media (min-width: 50em) {
+    .class-grid > pre {
+        display: inline-block;
+    }
+
+    .class-grid > *,
+    .class-grid > pre {
+        grid-column: 1 / span 3;
+    }
+
+    .class-grid > pre + * {
+        grid-column: 4 / span 3;
+    }
+
     .class-grid > .doctext-05 {
         align-self: baseline;
     }
@@ -574,11 +626,11 @@ line { stroke-width: 1; stroke: inherit; }
 @media (min-width: 70em) {
     .class-grid > *,
     .class-grid > pre {
-        grid-column: 2 / span 3;
+        grid-column: 3 / span 3;
     }
 
     .class-grid > pre + * {
-        grid-column: 5 / span 3;
+        grid-column: 6 / span 3;
     }
 }
 

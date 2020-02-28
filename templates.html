@@ -73,8 +73,8 @@
 </template>
 
 <template id="class-template">
-    <article build-fn="append:body" class="class-toggle-block toggle-block block class-grid @3-grid @3-5-grid" toggleable id="class-{[id]}">
-        <h3 class="@3-x-1 @3-xspan-2 doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
+    <article build-fn="append:body" class="class-toggle-block toggle-block block class-grid grid @2-9-grid" toggleable id="class-{[id]}">
+        <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
             <a href="#class-{[id]}">
                 <code build-fn="append:title" class=""></code>
             </a>
@@ -109,14 +109,14 @@ documentation comments in the form:
 
 <template id="component-template">
     <section class="component-toggle-block toggle-block block" toggleable id="component-{[0.id]}">
-        <header class="class-grid grid @1-6-grid @2-7-grid">
-            <h3 build-fn="after:'0.body'" class="doctext-03 {[0.prefix|is:'.'|yesno:'dot-indent','']}">
-                <a build-fn="append:'0.title'" href="#component-{[0.id]}"></a>
+        <header class="class-grid grid 3-grid @1-6-grid @2-9-grid">
+            <h3 build-fn="after:'0.body'" class="x-1 xspan-3 @1-x-2 @2-x-3 doctext-03 {[0.prefix|is:'.'|yesno:'dot-indent','']}">
+                <a build-fn="append:'0.title'" class="doctoggle-button button" href="#component-{[0.id]}"></a>
             </h3>
         </header>
 
-        <section build-fn="rest:1 each append:body" class="block class-grid grid @1-6-grid @2-7-grid">
-            <h4 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
+        <section build-fn="rest:1 each append:body" class="block class-grid grid @1-6-grid @2-9-grid">
+            <h4 class="x-1 x-start xspan-3 @2-xspan-2 @2-x-end doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <code build-fn="append:title" class=""></code>
             </h4>
         </section>
