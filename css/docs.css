@@ -134,10 +134,11 @@ body > .demo-block + .grid {
     margin-top: -0.18em;
     width: 0.36em;
     height: 0.36em;
-    border-top: 1px solid currentcolor;
-    border-right: 1px solid currentcolor;
+    border-top: 2px solid currentcolor;
+    border-right: 2px solid currentcolor;
     transform: translate(-25%, 0) rotate(45deg);
     transition: transform 240ms linear;
+    opacity: 0.333333;
 }
 
 .doctoggle-button.on::before {
@@ -156,10 +157,6 @@ body > .demo-block + .grid {
         max-height 400ms cubic-bezier(0, 0.5, 0.33, 1),
         margin-top 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89),
         padding-bottom 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89);*/
-}
-
-.attribute-toggle-block {
-    min-height: 6.75rem;
 }
 
 /*
@@ -206,6 +203,10 @@ body > .demo-block + .grid {
     margin-top: 0.1875rem;
 }
 
+* + .attribute-toggle-block {
+    margin-top: 0.9375rem;
+}
+
 .doctext-02 + .toggle-block {
     margin-top: 0.9375rem;
 }
@@ -213,6 +214,7 @@ body > .demo-block + .grid {
 .doctext-02,  h2   { font-size: 1.5625rem; line-height: 1.875rem; }
 .doctext-03,  h3   { font-size: 1.25rem;   line-height: 1.875rem; }
 .doctext-04,  h4   { font-size: 0.75rem;  line-height: 0.9375rem; font-weight: 400; text-transform: uppercase; }
+.doctext-06,  h6   { font-size: 1.5rem; line-height: 1.875rem; }
 .doctext-08,  body { font-size: 1rem;     line-height: 1.5rem; font-weight: 300; }
 .doctext-10, code {
     font-family: 'Fira Code', 'Roboto Mono', monospace;
