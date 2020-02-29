@@ -424,17 +424,6 @@ line { stroke-width: 1; stroke: inherit; }
 
 .doctext-03 + .toggle-block { margin-top: 0.9375rem; }
 
-
-.grid {
-    display: grid;
-    grid-auto-columns: 1fr;
-}
-
-.grid > * {
-    margin-left: 0;
-    margin-right: 0;
-}
-
 .columns {
     column-fill: auto;
     column-gap: 1.875rem;
