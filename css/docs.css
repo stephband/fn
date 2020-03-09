@@ -570,6 +570,7 @@ line { stroke-width: 1; stroke: inherit; }
 
 .class-grid > pre + * {
     grid-column: 1 / span 3;
+    align-self: start;
 }
 
 .class-grid > .doctext-05 {
