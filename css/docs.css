@@ -145,7 +145,7 @@ body > .demo-block + .grid {
     transform: translate(0, -25%) rotate(135deg);
 }
 
-.toggle-block {
+.doc-toggle-block {
     visibility: visible;
     opacity: 1;
     min-height: 1.875em;
@@ -160,12 +160,12 @@ body > .demo-block + .grid {
 }
 
 /*
-.toggle-block:not(.active) {
+.doc-toggle-block:not(.active) {
     padding-top: 0;
 }
 */
 
-.toggle-block.active {
+.doc-toggle-block.active {
     padding-bottom: 1.125rem;
     max-height: 120rem;
     transition:
@@ -174,7 +174,7 @@ body > .demo-block + .grid {
         margin-bottom 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89);
 }
 
-.toggle-block::before {
+.doc-toggle-block::before {
     content: '';
     position: absolute;
     top: 5px;
@@ -187,27 +187,27 @@ body > .demo-block + .grid {
         bottom 0.6s linear;
 }
 
-.toggle-block.active::before {
+.doc-toggle-block.active::before {
     content: '';
     bottom: 5px;
     background-color: transparent;
 }
 
 /*
-.toggle-block > .block {
+.doc-toggle-block > .block {
     margin-bottom: 0.75rem;
 }
 */
 
-* + .toggle-block {
+* + .doc-toggle-block {
     margin-top: 0.1875rem;
 }
 
-* + .attribute-toggle-block {
+* + .attribute-.doc-toggle-block {
     margin-top: 0.9375rem;
 }
 
-.doctext-02 + .toggle-block {
+.doctext-02 + .doc-toggle-block {
     margin-top: 0.9375rem;
 }
 
@@ -246,7 +246,7 @@ body > .demo-block + .grid {
 .doctext-04 + p, h4 + p { margin-top: 0; }
 p + .doctext-04, p + h4 { margin-top: 1.5rem; }
 
-.doctext-04 + .toggle-block {
+.doctext-04 + .doc-toggle-block {
     margin-top: 9px;
 }
 
@@ -422,7 +422,7 @@ script[type="text"] {
 
 line { stroke-width: 1; stroke: inherit; }
 
-.doctext-03 + .toggle-block { margin-top: 0.9375rem; }
+.doctext-03 + .doc-toggle-block { margin-top: 0.9375rem; }
 
 .columns {
     column-fill: auto;
@@ -454,7 +454,7 @@ line { stroke-width: 1; stroke: inherit; }
     break-before: auto;
 }
 
-.columns > .toggle-block {
+.columns > .doc-toggle-block {
     break-before: avoid;
     break-before: avoid-column;
 }
@@ -471,7 +471,7 @@ line { stroke-width: 1; stroke: inherit; }
     margin-top: 1.875rem;
 }
 
-.columns-3 > * > .toggle-block {
+.columns-3 > * > .doc-toggle-block {
     margin-left: -0.9375rem;
     margin-right: -0.9375rem;
 }
@@ -526,7 +526,7 @@ line { stroke-width: 1; stroke: inherit; }
 
 
 
-.toggle-block > .doctext-05 {
+.doc-toggle-block > .doctext-05 {
     overflow: hidden;
     text-overflow: ellipsis;
     /* Make sure hanging '.' is still seen */
@@ -536,15 +536,15 @@ line { stroke-width: 1; stroke: inherit; }
 }
 
 /*
-.component-toggle-block.active {
+.component-.doc-toggle-block.active {
     overflow: visible;
 }
 */
-* + .component-toggle-block {
+* + .component-.doc-toggle-block {
     margin-top: 0.9375rem;
 }
 
-.component-toggle-block > header + .class-grid {
+.component-.doc-toggle-block > header + .class-grid {
     margin-top: 1.5rem;
 }
 
@@ -642,13 +642,13 @@ line { stroke-width: 1; stroke: inherit; }
 }
 
 /*
-.columns > .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .toggle-block + .doctext-04 {
+.columns > .doc-toggle-block + .doc-toggle-block + .doc-toggle-block + .doc-toggle-block + .doc-toggle-block + .doc-toggle-block + .doc-toggle-block + .doc-toggle-block + .doc-toggle-block + .doc-toggle-block + .doctext-04 {
     break-before: column;
 }
 */
 
 
-.grid > * > .toggle-block {
+.grid > * > .doc-toggle-block {
     margin-left: -0.9375rem;
     margin-right: -0.9375rem;
 }
