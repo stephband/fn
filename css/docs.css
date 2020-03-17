@@ -216,9 +216,15 @@ body > .demo-block + .grid {
 .doctext-04 { font-size: 0.75rem;  line-height: 0.9375rem; font-weight: 400; text-transform: uppercase; }
 .doctext-06 { font-size: 1.5rem; line-height: 1.875rem; }
 .doctext-08 { font-size: 1rem;     line-height: 1.5rem; font-weight: 300; }
-.doctext-10 {
+.doctext-10,
+.doctext-05 code,
+.doctext-05 + pre code {
     font-family: 'Fira Code', 'Roboto Mono', monospace;
     font-size: 1.0625rem;
+}
+
+.doctext-05 + pre code {
+    font-size: 0.8125rem;
 }
 
 * + .doctext-02 {
@@ -593,9 +599,9 @@ line { stroke-width: 1; stroke: inherit; }
 .class-grid > pre + .thumb {
     height: auto;
     line-height: 1em;
-    padding-top: calc(23px - 0.5em);
-    padding-bottom: calc(22px - 0.5em);
-    text-indent: 45px;
+    padding-top: calc(1.4125em - 0.5em);
+    padding-bottom: calc(1.4em - 0.5em);
+    text-indent: 2.8125em;
     white-space: nowrap;
 }
 
