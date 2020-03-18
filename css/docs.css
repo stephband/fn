@@ -245,6 +245,10 @@ body > .demo-block + .grid {
     margin-top: 1.5rem;
 }
 
+.doctext-03 + pre + * {
+    margin-top: 1.5rem;
+}
+
 .doctext-04 {
     opacity: 0.5;
 }
@@ -546,11 +550,11 @@ line { stroke-width: 1; stroke: inherit; }
     overflow: visible;
 }
 */
-* + .component-.doc-toggle-block {
+* + .component-doc-toggle-block {
     margin-top: 0.9375rem;
 }
 
-.component-.doc-toggle-block > header + .class-grid {
+.component-doc-toggle-block > header + .class-grid {
     margin-top: 1.5rem;
 }
 
