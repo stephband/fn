@@ -167,7 +167,7 @@ body > .demo-block + .grid {
 
 .doc-toggle-block.active {
     padding-bottom: 1.125rem;
-    max-height: 200rem;
+    max-height: 300rem;
     transition:
         max-height 400ms cubic-bezier(0.4, 0, 1, 0.32),
         margin-top 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89),
