@@ -532,6 +532,7 @@ line { stroke-width: 1; stroke: inherit; }
 
 .list-grid > .doctext-04 {
     margin-top: 1.875rem;
+    margin-left: 0;
 }
 
 

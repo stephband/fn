@@ -4,36 +4,40 @@ DO NOT MANUALLY EDIT THIS FILE!
 
 This file is generated via SASS. To generate it, run `npm run sass`.
 */
+/**
+.hidden
+
+Forces `display: none`. This class is also available with breakpoint prefixes
+(`@1-`, `@2-`, ...).
+
+```html
+<a class="hidden" href="...">Link</a>
+<a class="@2-hidden" href="...">Link</a>
+```
+**/
 .hidden { display: none !important; }
 
+/**
+.print-hidden
+Hide element on printed page.
+```html
+<nav class="print-hidden">...</nav>
+```
+**/
+@media print { .print-hidden { display: none !important; } }
+
+/**
+.shown
+
+Forces `display: none` below a given breakpoint. This class is only available
+with breakpoint prefixes (`@1-`, `@2-`, ...).
+
+```html
+<a class="@1-shown" href="...">Link</a>
+```
+**/
 /* Removed because we have projects that override .block - it sort of has two meanings, now, in Bolt – base class and modifier – which is a bad idea. */
 /*().block          { display: block !important; }*/
-.flex { display: flex !important; }
-
-.grid { display: grid !important; }
-
-.\32 -grid { grid-template-columns: repeat(2, 1fr); }
-
-.\33 -grid { grid-template-columns: repeat(3, 1fr); }
-
-.\34 -grid { grid-template-columns: repeat(4, 1fr); }
-
-.\35 -grid { grid-template-columns: repeat(5, 1fr); }
-
-.\36 -grid { grid-template-columns: repeat(6, 1fr); }
-
-.\37 -grid { grid-template-columns: repeat(7, 1fr); }
-
-.\38 -grid { grid-template-columns: repeat(8, 1fr); }
-
-.\39 -grid { grid-template-columns: repeat(9, 1fr); }
-
-.\31 0-grid { grid-template-columns: repeat(10, 1fr); }
-
-.\31 1-grid { grid-template-columns: repeat(11, 1fr); }
-
-.\31 2-grid { grid-template-columns: repeat(12, 1fr); }
-
 .inline { display: inline-block !important; }
 
 .left { float: left !important; clear: left; }
@@ -56,175 +60,18 @@ This file is generated via SASS. To generate it, run `npm run sass`.
 
 .justify-align { text-align: justify !important; }
 
-.x-1 { grid-column-start: 1 !important; }
-
-.x-2 { grid-column-start: 2 !important; }
-
-.x-3 { grid-column-start: 3 !important; }
-
-.x-4 { grid-column-start: 4 !important; }
-
-.x-5 { grid-column-start: 5 !important; }
-
-.x-6 { grid-column-start: 6 !important; }
-
-.x-7 { grid-column-start: 7 !important; }
-
-.x-8 { grid-column-start: 8 !important; }
-
-.x-9 { grid-column-start: 9 !important; }
-
-.x-10 { grid-column-start: 10 !important; }
-
-.x-11 { grid-column-start: 11 !important; }
-
-.x-12 { grid-column-start: 12 !important; }
-
-.xspan-1 { grid-column-end: span 1 !important; }
-
-.xspan-2 { grid-column-end: span 2 !important; }
-
-.xspan-3 { grid-column-end: span 3 !important; }
-
-.xspan-4 { grid-column-end: span 4 !important; }
-
-.xspan-5 { grid-column-end: span 5 !important; }
-
-.xspan-6 { grid-column-end: span 6 !important; }
-
-.xspan-7 { grid-column-end: span 7 !important; }
-
-.xspan-8 { grid-column-end: span 8 !important; }
-
-.xspan-9 { grid-column-end: span 9 !important; }
-
-.xspan-10 { grid-column-end: span 10 !important; }
-
-.xspan-11 { grid-column-end: span 11 !important; }
-
-.xspan-12 { grid-column-end: span 12 !important; }
-
-.xspan--1 { grid-column-end: span -1 !important; }
-
-.x-end { justify-self: end !important; }
-
-.x-start { justify-self: start !important; }
-
-.x-center { justify-self: center !important; }
-
-.x-stretch { justify-self: stretch !important; }
-
-.y-1 { grid-row-start: 1 !important; }
-
-.y-2 { grid-row-start: 2 !important; }
-
-.y-3 { grid-row-start: 3 !important; }
-
-.y-4 { grid-row-start: 4 !important; }
-
-.y-5 { grid-row-start: 5 !important; }
-
-.y-6 { grid-row-start: 6 !important; }
-
-.y-7 { grid-row-start: 7 !important; }
-
-.y-8 { grid-row-start: 8 !important; }
-
-.y-9 { grid-row-start: 9 !important; }
-
-.y-10 { grid-row-start: 10 !important; }
-
-.y-11 { grid-row-start: 11 !important; }
-
-.y-12 { grid-row-start: 12 !important; }
-
-.y-13 { grid-row-start: 13 !important; }
-
-.y-14 { grid-row-start: 14 !important; }
-
-.y-15 { grid-row-start: 15 !important; }
-
-.y-16 { grid-row-start: 16 !important; }
-
-.y-17 { grid-row-start: 17 !important; }
-
-.y-18 { grid-row-start: 18 !important; }
-
-.yspan-1 { grid-row-end: span 1 !important; }
-
-.yspan-2 { grid-row-end: span 2 !important; }
-
-.yspan-3 { grid-row-end: span 3 !important; }
-
-.yspan-4 { grid-row-end: span 4 !important; }
-
-.yspan-5 { grid-row-end: span 5 !important; }
-
-.yspan-6 { grid-row-end: span 6 !important; }
-
-.yspan-7 { grid-row-end: span 7 !important; }
-
-.yspan-8 { grid-row-end: span 8 !important; }
-
-.yspan-9 { grid-row-end: span 9 !important; }
-
-.yspan-10 { grid-row-end: span 10 !important; }
-
-.yspan-11 { grid-row-end: span 11 !important; }
-
-.yspan-12 { grid-row-end: span 12 !important; }
-
-.yspan--1 { grid-row-end: span -1 !important; }
-
-.y-end { align-self: end !important; }
-
-.y-start { align-self: start !important; }
-
-.y-center { align-self: center !important; }
-
-.y-stretch { align-self: stretch !important; }
-
-.y-baseline { align-self: baseline !important; }
-
-.columns-2 { columns: 2 !important; }
-
-.columns-3 { columns: 3 !important; }
-
-.columns-4 { columns: 4 !important; }
-
-.columns-5 { columns: 5 !important; }
-
-.columns-6 { columns: 6 !important; }
-
-.columns-7 { columns: 7 !important; }
-
-.columns-8 { columns: 8 !important; }
-
-.columns-9 { columns: 9 !important; }
-
-.columns-10 { columns: 10 !important; }
-
-.columns-11 { columns: 11 !important; }
-
-.columns-12 { columns: 12 !important; }
+/**
+.flex
+Applies `display: flex`. This class may also be used with a
+breakpoint prefix.
+**/
+.flex { display: flex !important; }
 
 @media screen and (max-width: 49.6865em) { .\@1-shown { display: none !important; } }
 
 @media screen and (min-width: 49.6875em) { .\@1-hidden { display: none !important; }
 	.\@1-block { display: block !important; }
 	.\@1-flex { display: flex !important; }
-	.\@1-grid { display: grid !important; }
-	.\@1-\32 -grid { grid-template-columns: repeat(2, 1fr); }
-	.\@1-\33 -grid { grid-template-columns: repeat(3, 1fr); }
-	.\@1-\34 -grid { grid-template-columns: repeat(4, 1fr); }
-	.\@1-\35 -grid { grid-template-columns: repeat(5, 1fr); }
-	.\@1-\36 -grid { grid-template-columns: repeat(6, 1fr); }
-	.\@1-\37 -grid { grid-template-columns: repeat(7, 1fr); }
-	.\@1-\38 -grid { grid-template-columns: repeat(8, 1fr); }
-	.\@1-\39 -grid { grid-template-columns: repeat(9, 1fr); }
-	.\@1-\31 0-grid { grid-template-columns: repeat(10, 1fr); }
-	.\@1-\31 1-grid { grid-template-columns: repeat(11, 1fr); }
-	.\@1-\31 2-grid { grid-template-columns: repeat(12, 1fr); }
 	.\@1-inline { display: inline-block !important; }
 	.\@1-left { float: left !important; clear: left; }
 	.\@1-right { float: right !important; clear: right; }
@@ -235,101 +82,13 @@ This file is generated via SASS. To generate it, run `npm run sass`.
 	.\@1-left-align { text-align: left !important; }
 	.\@1-right-align { text-align: right !important; }
 	.\@1-center-align { text-align: center !important; }
-	.\@1-justify-align { text-align: justify !important; }
-	.\@1-x-1 { grid-column-start: 1 !important; }
-	.\@1-x-2 { grid-column-start: 2 !important; }
-	.\@1-x-3 { grid-column-start: 3 !important; }
-	.\@1-x-4 { grid-column-start: 4 !important; }
-	.\@1-x-5 { grid-column-start: 5 !important; }
-	.\@1-x-6 { grid-column-start: 6 !important; }
-	.\@1-x-7 { grid-column-start: 7 !important; }
-	.\@1-x-8 { grid-column-start: 8 !important; }
-	.\@1-x-9 { grid-column-start: 9 !important; }
-	.\@1-x-10 { grid-column-start: 10 !important; }
-	.\@1-x-11 { grid-column-start: 11 !important; }
-	.\@1-x-12 { grid-column-start: 12 !important; }
-	.\@1-xspan-1 { grid-column-end: span 1 !important; }
-	.\@1-xspan-2 { grid-column-end: span 2 !important; }
-	.\@1-xspan-3 { grid-column-end: span 3 !important; }
-	.\@1-xspan-4 { grid-column-end: span 4 !important; }
-	.\@1-xspan-5 { grid-column-end: span 5 !important; }
-	.\@1-xspan-6 { grid-column-end: span 6 !important; }
-	.\@1-xspan-7 { grid-column-end: span 7 !important; }
-	.\@1-xspan-8 { grid-column-end: span 8 !important; }
-	.\@1-xspan-9 { grid-column-end: span 9 !important; }
-	.\@1-xspan-10 { grid-column-end: span 10 !important; }
-	.\@1-xspan-11 { grid-column-end: span 11 !important; }
-	.\@1-xspan-12 { grid-column-end: span 12 !important; }
-	.\@1-xspan--1 { grid-column-end: span -1 !important; }
-	.\@1-x-end { justify-self: end !important; }
-	.\@1-x-start { justify-self: start !important; }
-	.\@1-x-center { justify-self: center !important; }
-	.\@1-x-stretch { justify-self: stretch !important; }
-	.\@1-y-1 { grid-row-start: 1 !important; }
-	.\@1-y-2 { grid-row-start: 2 !important; }
-	.\@1-y-3 { grid-row-start: 3 !important; }
-	.\@1-y-4 { grid-row-start: 4 !important; }
-	.\@1-y-5 { grid-row-start: 5 !important; }
-	.\@1-y-6 { grid-row-start: 6 !important; }
-	.\@1-y-7 { grid-row-start: 7 !important; }
-	.\@1-y-8 { grid-row-start: 8 !important; }
-	.\@1-y-9 { grid-row-start: 9 !important; }
-	.\@1-y-10 { grid-row-start: 10 !important; }
-	.\@1-y-11 { grid-row-start: 11 !important; }
-	.\@1-y-12 { grid-row-start: 12 !important; }
-	.\@1-y-13 { grid-row-start: 13 !important; }
-	.\@1-y-14 { grid-row-start: 14 !important; }
-	.\@1-y-15 { grid-row-start: 15 !important; }
-	.\@1-y-16 { grid-row-start: 16 !important; }
-	.\@1-y-17 { grid-row-start: 17 !important; }
-	.\@1-y-18 { grid-row-start: 18 !important; }
-	.\@1-yspan-1 { grid-row-end: span 1 !important; }
-	.\@1-yspan-2 { grid-row-end: span 2 !important; }
-	.\@1-yspan-3 { grid-row-end: span 3 !important; }
-	.\@1-yspan-4 { grid-row-end: span 4 !important; }
-	.\@1-yspan-5 { grid-row-end: span 5 !important; }
-	.\@1-yspan-6 { grid-row-end: span 6 !important; }
-	.\@1-yspan-7 { grid-row-end: span 7 !important; }
-	.\@1-yspan-8 { grid-row-end: span 8 !important; }
-	.\@1-yspan-9 { grid-row-end: span 9 !important; }
-	.\@1-yspan-10 { grid-row-end: span 10 !important; }
-	.\@1-yspan-11 { grid-row-end: span 11 !important; }
-	.\@1-yspan-12 { grid-row-end: span 12 !important; }
-	.\@1-yspan--1 { grid-row-end: span -1 !important; }
-	.\@1-y-end { align-self: end !important; }
-	.\@1-y-start { align-self: start !important; }
-	.\@1-y-center { align-self: center !important; }
-	.\@1-y-stretch { align-self: stretch !important; }
-	.\@1-y-baseline { align-self: baseline !important; }
-	.\@1-columns-2 { columns: 2 !important; }
-	.\@1-columns-3 { columns: 3 !important; }
-	.\@1-columns-4 { columns: 4 !important; }
-	.\@1-columns-5 { columns: 5 !important; }
-	.\@1-columns-6 { columns: 6 !important; }
-	.\@1-columns-7 { columns: 7 !important; }
-	.\@1-columns-8 { columns: 8 !important; }
-	.\@1-columns-9 { columns: 9 !important; }
-	.\@1-columns-10 { columns: 10 !important; }
-	.\@1-columns-11 { columns: 11 !important; }
-	.\@1-columns-12 { columns: 12 !important; } }
+	.\@1-justify-align { text-align: justify !important; } }
 
 @media screen and (max-width: 75.9365em) { .\@2-shown { display: none !important; } }
 
 @media screen and (min-width: 75.9375em) { .\@2-hidden { display: none !important; }
 	.\@2-block { display: block !important; }
 	.\@2-flex { display: flex !important; }
-	.\@2-grid { display: grid !important; }
-	.\@2-\32 -grid { grid-template-columns: repeat(2, 1fr); }
-	.\@2-\33 -grid { grid-template-columns: repeat(3, 1fr); }
-	.\@2-\34 -grid { grid-template-columns: repeat(4, 1fr); }
-	.\@2-\35 -grid { grid-template-columns: repeat(5, 1fr); }
-	.\@2-\36 -grid { grid-template-columns: repeat(6, 1fr); }
-	.\@2-\37 -grid { grid-template-columns: repeat(7, 1fr); }
-	.\@2-\38 -grid { grid-template-columns: repeat(8, 1fr); }
-	.\@2-\39 -grid { grid-template-columns: repeat(9, 1fr); }
-	.\@2-\31 0-grid { grid-template-columns: repeat(10, 1fr); }
-	.\@2-\31 1-grid { grid-template-columns: repeat(11, 1fr); }
-	.\@2-\31 2-grid { grid-template-columns: repeat(12, 1fr); }
 	.\@2-inline { display: inline-block !important; }
 	.\@2-left { float: left !important; clear: left; }
 	.\@2-right { float: right !important; clear: right; }
@@ -340,101 +99,13 @@ This file is generated via SASS. To generate it, run `npm run sass`.
 	.\@2-left-align { text-align: left !important; }
 	.\@2-right-align { text-align: right !important; }
 	.\@2-center-align { text-align: center !important; }
-	.\@2-justify-align { text-align: justify !important; }
-	.\@2-x-1 { grid-column-start: 1 !important; }
-	.\@2-x-2 { grid-column-start: 2 !important; }
-	.\@2-x-3 { grid-column-start: 3 !important; }
-	.\@2-x-4 { grid-column-start: 4 !important; }
-	.\@2-x-5 { grid-column-start: 5 !important; }
-	.\@2-x-6 { grid-column-start: 6 !important; }
-	.\@2-x-7 { grid-column-start: 7 !important; }
-	.\@2-x-8 { grid-column-start: 8 !important; }
-	.\@2-x-9 { grid-column-start: 9 !important; }
-	.\@2-x-10 { grid-column-start: 10 !important; }
-	.\@2-x-11 { grid-column-start: 11 !important; }
-	.\@2-x-12 { grid-column-start: 12 !important; }
-	.\@2-xspan-1 { grid-column-end: span 1 !important; }
-	.\@2-xspan-2 { grid-column-end: span 2 !important; }
-	.\@2-xspan-3 { grid-column-end: span 3 !important; }
-	.\@2-xspan-4 { grid-column-end: span 4 !important; }
-	.\@2-xspan-5 { grid-column-end: span 5 !important; }
-	.\@2-xspan-6 { grid-column-end: span 6 !important; }
-	.\@2-xspan-7 { grid-column-end: span 7 !important; }
-	.\@2-xspan-8 { grid-column-end: span 8 !important; }
-	.\@2-xspan-9 { grid-column-end: span 9 !important; }
-	.\@2-xspan-10 { grid-column-end: span 10 !important; }
-	.\@2-xspan-11 { grid-column-end: span 11 !important; }
-	.\@2-xspan-12 { grid-column-end: span 12 !important; }
-	.\@2-xspan--1 { grid-column-end: span -1 !important; }
-	.\@2-x-end { justify-self: end !important; }
-	.\@2-x-start { justify-self: start !important; }
-	.\@2-x-center { justify-self: center !important; }
-	.\@2-x-stretch { justify-self: stretch !important; }
-	.\@2-y-1 { grid-row-start: 1 !important; }
-	.\@2-y-2 { grid-row-start: 2 !important; }
-	.\@2-y-3 { grid-row-start: 3 !important; }
-	.\@2-y-4 { grid-row-start: 4 !important; }
-	.\@2-y-5 { grid-row-start: 5 !important; }
-	.\@2-y-6 { grid-row-start: 6 !important; }
-	.\@2-y-7 { grid-row-start: 7 !important; }
-	.\@2-y-8 { grid-row-start: 8 !important; }
-	.\@2-y-9 { grid-row-start: 9 !important; }
-	.\@2-y-10 { grid-row-start: 10 !important; }
-	.\@2-y-11 { grid-row-start: 11 !important; }
-	.\@2-y-12 { grid-row-start: 12 !important; }
-	.\@2-y-13 { grid-row-start: 13 !important; }
-	.\@2-y-14 { grid-row-start: 14 !important; }
-	.\@2-y-15 { grid-row-start: 15 !important; }
-	.\@2-y-16 { grid-row-start: 16 !important; }
-	.\@2-y-17 { grid-row-start: 17 !important; }
-	.\@2-y-18 { grid-row-start: 18 !important; }
-	.\@2-yspan-1 { grid-row-end: span 1 !important; }
-	.\@2-yspan-2 { grid-row-end: span 2 !important; }
-	.\@2-yspan-3 { grid-row-end: span 3 !important; }
-	.\@2-yspan-4 { grid-row-end: span 4 !important; }
-	.\@2-yspan-5 { grid-row-end: span 5 !important; }
-	.\@2-yspan-6 { grid-row-end: span 6 !important; }
-	.\@2-yspan-7 { grid-row-end: span 7 !important; }
-	.\@2-yspan-8 { grid-row-end: span 8 !important; }
-	.\@2-yspan-9 { grid-row-end: span 9 !important; }
-	.\@2-yspan-10 { grid-row-end: span 10 !important; }
-	.\@2-yspan-11 { grid-row-end: span 11 !important; }
-	.\@2-yspan-12 { grid-row-end: span 12 !important; }
-	.\@2-yspan--1 { grid-row-end: span -1 !important; }
-	.\@2-y-end { align-self: end !important; }
-	.\@2-y-start { align-self: start !important; }
-	.\@2-y-center { align-self: center !important; }
-	.\@2-y-stretch { align-self: stretch !important; }
-	.\@2-y-baseline { align-self: baseline !important; }
-	.\@2-columns-2 { columns: 2 !important; }
-	.\@2-columns-3 { columns: 3 !important; }
-	.\@2-columns-4 { columns: 4 !important; }
-	.\@2-columns-5 { columns: 5 !important; }
-	.\@2-columns-6 { columns: 6 !important; }
-	.\@2-columns-7 { columns: 7 !important; }
-	.\@2-columns-8 { columns: 8 !important; }
-	.\@2-columns-9 { columns: 9 !important; }
-	.\@2-columns-10 { columns: 10 !important; }
-	.\@2-columns-11 { columns: 11 !important; }
-	.\@2-columns-12 { columns: 12 !important; } }
+	.\@2-justify-align { text-align: justify !important; } }
 
 @media screen and (max-width: 99.999em) { .\@3-shown { display: none !important; } }
 
 @media screen and (min-width: 100em) { .\@3-hidden { display: none !important; }
 	.\@3-block { display: block !important; }
 	.\@3-flex { display: flex !important; }
-	.\@3-grid { display: grid !important; }
-	.\@3-\32 -grid { grid-template-columns: repeat(2, 1fr); }
-	.\@3-\33 -grid { grid-template-columns: repeat(3, 1fr); }
-	.\@3-\34 -grid { grid-template-columns: repeat(4, 1fr); }
-	.\@3-\35 -grid { grid-template-columns: repeat(5, 1fr); }
-	.\@3-\36 -grid { grid-template-columns: repeat(6, 1fr); }
-	.\@3-\37 -grid { grid-template-columns: repeat(7, 1fr); }
-	.\@3-\38 -grid { grid-template-columns: repeat(8, 1fr); }
-	.\@3-\39 -grid { grid-template-columns: repeat(9, 1fr); }
-	.\@3-\31 0-grid { grid-template-columns: repeat(10, 1fr); }
-	.\@3-\31 1-grid { grid-template-columns: repeat(11, 1fr); }
-	.\@3-\31 2-grid { grid-template-columns: repeat(12, 1fr); }
 	.\@3-inline { display: inline-block !important; }
 	.\@3-left { float: left !important; clear: left; }
 	.\@3-right { float: right !important; clear: right; }
@@ -445,80 +116,4 @@ This file is generated via SASS. To generate it, run `npm run sass`.
 	.\@3-left-align { text-align: left !important; }
 	.\@3-right-align { text-align: right !important; }
 	.\@3-center-align { text-align: center !important; }
-	.\@3-justify-align { text-align: justify !important; }
-	.\@3-x-1 { grid-column-start: 1 !important; }
-	.\@3-x-2 { grid-column-start: 2 !important; }
-	.\@3-x-3 { grid-column-start: 3 !important; }
-	.\@3-x-4 { grid-column-start: 4 !important; }
-	.\@3-x-5 { grid-column-start: 5 !important; }
-	.\@3-x-6 { grid-column-start: 6 !important; }
-	.\@3-x-7 { grid-column-start: 7 !important; }
-	.\@3-x-8 { grid-column-start: 8 !important; }
-	.\@3-x-9 { grid-column-start: 9 !important; }
-	.\@3-x-10 { grid-column-start: 10 !important; }
-	.\@3-x-11 { grid-column-start: 11 !important; }
-	.\@3-x-12 { grid-column-start: 12 !important; }
-	.\@3-xspan-1 { grid-column-end: span 1 !important; }
-	.\@3-xspan-2 { grid-column-end: span 2 !important; }
-	.\@3-xspan-3 { grid-column-end: span 3 !important; }
-	.\@3-xspan-4 { grid-column-end: span 4 !important; }
-	.\@3-xspan-5 { grid-column-end: span 5 !important; }
-	.\@3-xspan-6 { grid-column-end: span 6 !important; }
-	.\@3-xspan-7 { grid-column-end: span 7 !important; }
-	.\@3-xspan-8 { grid-column-end: span 8 !important; }
-	.\@3-xspan-9 { grid-column-end: span 9 !important; }
-	.\@3-xspan-10 { grid-column-end: span 10 !important; }
-	.\@3-xspan-11 { grid-column-end: span 11 !important; }
-	.\@3-xspan-12 { grid-column-end: span 12 !important; }
-	.\@3-xspan--1 { grid-column-end: span -1 !important; }
-	.\@3-x-end { justify-self: end !important; }
-	.\@3-x-start { justify-self: start !important; }
-	.\@3-x-center { justify-self: center !important; }
-	.\@3-x-stretch { justify-self: stretch !important; }
-	.\@3-y-1 { grid-row-start: 1 !important; }
-	.\@3-y-2 { grid-row-start: 2 !important; }
-	.\@3-y-3 { grid-row-start: 3 !important; }
-	.\@3-y-4 { grid-row-start: 4 !important; }
-	.\@3-y-5 { grid-row-start: 5 !important; }
-	.\@3-y-6 { grid-row-start: 6 !important; }
-	.\@3-y-7 { grid-row-start: 7 !important; }
-	.\@3-y-8 { grid-row-start: 8 !important; }
-	.\@3-y-9 { grid-row-start: 9 !important; }
-	.\@3-y-10 { grid-row-start: 10 !important; }
-	.\@3-y-11 { grid-row-start: 11 !important; }
-	.\@3-y-12 { grid-row-start: 12 !important; }
-	.\@3-y-13 { grid-row-start: 13 !important; }
-	.\@3-y-14 { grid-row-start: 14 !important; }
-	.\@3-y-15 { grid-row-start: 15 !important; }
-	.\@3-y-16 { grid-row-start: 16 !important; }
-	.\@3-y-17 { grid-row-start: 17 !important; }
-	.\@3-y-18 { grid-row-start: 18 !important; }
-	.\@3-yspan-1 { grid-row-end: span 1 !important; }
-	.\@3-yspan-2 { grid-row-end: span 2 !important; }
-	.\@3-yspan-3 { grid-row-end: span 3 !important; }
-	.\@3-yspan-4 { grid-row-end: span 4 !important; }
-	.\@3-yspan-5 { grid-row-end: span 5 !important; }
-	.\@3-yspan-6 { grid-row-end: span 6 !important; }
-	.\@3-yspan-7 { grid-row-end: span 7 !important; }
-	.\@3-yspan-8 { grid-row-end: span 8 !important; }
-	.\@3-yspan-9 { grid-row-end: span 9 !important; }
-	.\@3-yspan-10 { grid-row-end: span 10 !important; }
-	.\@3-yspan-11 { grid-row-end: span 11 !important; }
-	.\@3-yspan-12 { grid-row-end: span 12 !important; }
-	.\@3-yspan--1 { grid-row-end: span -1 !important; }
-	.\@3-y-end { align-self: end !important; }
-	.\@3-y-start { align-self: start !important; }
-	.\@3-y-center { align-self: center !important; }
-	.\@3-y-stretch { align-self: stretch !important; }
-	.\@3-y-baseline { align-self: baseline !important; }
-	.\@3-columns-2 { columns: 2 !important; }
-	.\@3-columns-3 { columns: 3 !important; }
-	.\@3-columns-4 { columns: 4 !important; }
-	.\@3-columns-5 { columns: 5 !important; }
-	.\@3-columns-6 { columns: 6 !important; }
-	.\@3-columns-7 { columns: 7 !important; }
-	.\@3-columns-8 { columns: 8 !important; }
-	.\@3-columns-9 { columns: 9 !important; }
-	.\@3-columns-10 { columns: 10 !important; }
-	.\@3-columns-11 { columns: 11 !important; }
-	.\@3-columns-12 { columns: 12 !important; } }
+	.\@3-justify-align { text-align: justify !important; } }

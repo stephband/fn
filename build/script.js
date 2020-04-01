@@ -1,7 +1,7 @@
 var Fn = (function (exports) {
     'use strict';
 
-    /*
+    /**
     cache(fn)
     Returns a function that caches the output values of `fn(input)`
     against input values in a map, such that for each input value
@@ -23,7 +23,7 @@ var Fn = (function (exports) {
         };
     }
 
-    /*
+    /**
     curry(fn [, muteable, arity])
     */
     const A     = Array.prototype;
@@ -127,7 +127,7 @@ var Fn = (function (exports) {
         return a;
     }
 
-    /*
+    /**
     choose(fn, map)
     Returns a function that takes its first argument as a key and uses it
     to select a function in `map` which is invoked with the remaining arguments.
@@ -152,14 +152,14 @@ var Fn = (function (exports) {
         };
     }
 
-    /*
+    /**
     noop()
     Returns undefined.
     */
 
     function noop() {}
 
-    /*
+    /**
     requestTick(fn)
     Call `fn` on the next tick.
     */
@@ -245,7 +245,7 @@ var Fn = (function (exports) {
     	};
     }
 
-    /*
+    /**
     toArray(object)
     */
 
@@ -374,7 +374,7 @@ var Fn = (function (exports) {
         };
     }
 
-    /*
+    /**
     args()
 
     Returns `arguments` object.
@@ -387,7 +387,7 @@ var Fn = (function (exports) {
 
     function args() { return arguments; }
 
-    /*
+    /**
     argument(n)
 
     Returns a function that returns its nth argument when called.
@@ -399,7 +399,7 @@ var Fn = (function (exports) {
         }
     }
 
-    /*
+    /**
     call(fn)
     Returns a function that calls `fn()` with no arguments.
     */
@@ -408,7 +408,7 @@ var Fn = (function (exports) {
         return fn();
     }
 
-    /*
+    /**
     exec(regex, fn, string)
 
     Calls `fn` with the result of `regex.exec(string)` if that result is not null,
@@ -469,7 +469,7 @@ var Fn = (function (exports) {
             acc ;
     }
 
-    /*
+    /**
     capture(regex, reducers, accumulator, string)
     Parse `string` with `regex`, calling functions in `reducers` to modify
     and return `accumulator`.
@@ -522,7 +522,7 @@ var Fn = (function (exports) {
 
     var capture$1 = curry$1(capture, true);
 
-    /*
+    /**
     choke(fn, time)
 
     Returns a function that waits for `time` seconds without being invoked
@@ -577,7 +577,7 @@ var Fn = (function (exports) {
     //		};
     //	}
 
-    /*
+    /**
     compose(fn2, fn1)
     Calls `fn1`, passes the result to `fn2`, and returns that result.
     */
@@ -693,7 +693,7 @@ var Fn = (function (exports) {
 
     var getPath$1 = curry$1(getPath, true);
 
-    /*
+    /**
     has(key, value, object)
     Returns `true` if `object[key]` is strictly equal to `value`.
     */
@@ -704,14 +704,14 @@ var Fn = (function (exports) {
 
     var has$1 = curry$1(has, true);
 
-    /*
+    /**
     id(value)
     Returns `value`.
     */
 
     function id(value) { return value; }
 
-    /*
+    /**
     invoke(name, parameters, object)
     Invokes `object.name()` with `parameters` as arguments. For example:
 
@@ -730,7 +730,7 @@ var Fn = (function (exports) {
 
     var is$1 = curry$1(is, true);
 
-    /*
+    /**
     isDefined(value)
     Check for value – where `value` is `undefined`, `NaN` or `null`, returns
     `false`, otherwise `true`.
@@ -748,7 +748,7 @@ var Fn = (function (exports) {
         return value === undefined ? arguments[1] : latest(source, value) ;
     }
 
-    /*
+    /**
     matches(selector, object)
     Where `selector` is an object containing properties to be compared against
     properties of `object`. If they are all strictly equal, returns `true`,
@@ -769,7 +769,7 @@ var Fn = (function (exports) {
 
     var matches$1 = curry$1(matches, true);
 
-    /*
+    /**
     not(value)
     Returns `!value`.
     */
@@ -800,7 +800,7 @@ var Fn = (function (exports) {
         return +new Date() / 1000;
     }
 
-    /*
+    /**
     once(fn)
     Returns a function that calls `fn` the first time it is invoked,
     and then becomes a noop.
@@ -814,7 +814,7 @@ var Fn = (function (exports) {
         };
     }
 
-    /*
+    /**
     overload(fn, map)
 
     Returns a function that calls a function at the property of `object` that
@@ -846,7 +846,7 @@ var Fn = (function (exports) {
             } ;
     }
 
-    /*
+    /**
     parseInt(string)
     Parse to integer without having to worry about the radix parameter,
     making it suitable, for example, to use in `array.map(parseInt)`.
@@ -862,7 +862,7 @@ var Fn = (function (exports) {
         return fn(value);
     }
 
-    /*
+    /**
     pipe(fn1, fn2, ...)
     Returns a function that calls `fn1`, `fn2`, etc., passing the result of
     calling one function to the next and returning the the last result.
@@ -887,14 +887,14 @@ var Fn = (function (exports) {
             })[$private] ;
     }
 
-    /*
+    /**
     self()
     Returns `this`.
     */
 
     function self() { return this; }
 
-    /*
+    /**
     set(key, object, value)
 
     ```
@@ -979,7 +979,7 @@ var Fn = (function (exports) {
 
     var setPath$1 = curry$1(setPath, true);
 
-    /*
+    /**
     toClass(object)
     */
 
@@ -989,7 +989,7 @@ var Fn = (function (exports) {
         return O.toString.apply(object).slice(8, -1);
     }
 
-    /*
+    /**
     toFixed(number)
     */
 
@@ -1007,7 +1007,7 @@ var Fn = (function (exports) {
 
     var toFixed$1 = curry$1(toFixed, true);
 
-    /*
+    /**
     toString(object)
     Returns `object.toString()`.
     */
@@ -1016,7 +1016,7 @@ var Fn = (function (exports) {
     	return object.toString();
     }
 
-    /*
+    /**
     toType(object)
     Returns `typeof object`.
     */
@@ -1025,7 +1025,7 @@ var Fn = (function (exports) {
         return typeof object;
     }
 
-    /*
+    /**
     weakCache(fn)
     Returns a function that caches the return values of `fn()`
     against input values in a WeakMap, such that for each input value
@@ -1102,9 +1102,9 @@ var Fn = (function (exports) {
         return i;
     }
 
-    /* Properties */
+    /** Properties */
 
-    /*
+    /**
     .status
     Reflects the running status of the stream. When all values have been consumed
     status is `'done'`.
@@ -1232,7 +1232,7 @@ var Fn = (function (exports) {
             });
         },
 
-        /*
+        /**
         .unshift(...values)
         Creates a buffer of values at the end of the stream that are read first.
         */
@@ -1381,7 +1381,7 @@ var Fn = (function (exports) {
             return stream;
         },
 
-        /*
+        /**
         .dedup()
 
         Filters out consecutive equal values.
@@ -1396,7 +1396,7 @@ var Fn = (function (exports) {
             });
         },
 
-        /*
+        /**
         .filter(fn)
 
         Filter values according to the truthiness of `fn(value)`.
@@ -1412,7 +1412,7 @@ var Fn = (function (exports) {
             });
         },
 
-        /*
+        /**
         .flat()
         Flattens a list of lists into a single list.
         */
@@ -1438,7 +1438,7 @@ var Fn = (function (exports) {
             });
         },
 
-        /*
+        /**
         .flatMap()
         Maps values to lists – `fn(value)` must return an array, stream
         or other type with a `.shift()` method – and flattens those lists into a
@@ -1454,7 +1454,7 @@ var Fn = (function (exports) {
             return this.map(fn).flat();
         },
 
-        /*
+        /**
         .latest()
 
         When the stream has a values buffered, passes the last value
@@ -1468,7 +1468,7 @@ var Fn = (function (exports) {
             });
         },
 
-        /*
+        /**
         .map(fn)
         Maps values to the result of `fn(value)`.
         */
@@ -1479,10 +1479,10 @@ var Fn = (function (exports) {
             }, this.shift));
         },
 
-        ///*
+        ///**
         //.chunk(n)
         //Batches values into arrays of length `n`.
-        //*/
+        //**/
 
         chunk: function(n) {
             return this
@@ -1553,7 +1553,7 @@ var Fn = (function (exports) {
             return this.scan(fn, seed).latest().shift();
         },
 
-        /*
+        /**
         .scan(fn, seed)
 
         Calls `fn(accumulator, value)` and emits `accumulator` for each value
@@ -1568,7 +1568,7 @@ var Fn = (function (exports) {
             });
         },
 
-        /*
+        /**
         .take(n)
 
         Filters the stream to the first `n` values.
@@ -1641,7 +1641,7 @@ var Fn = (function (exports) {
             });
         },
 
-        /*
+        /**
         .rest(n)
 
         Filters the stream to all values after the `n`th value.
@@ -1656,7 +1656,7 @@ var Fn = (function (exports) {
             });
         },
 
-        /*
+        /**
         .unique()
 
         Filters the stream to remove any value already emitted.
@@ -1701,7 +1701,7 @@ var Fn = (function (exports) {
             };
         },
 
-        /*
+        /**
         .pipe(stream)
 
         Pipes the current stream into `stream`.
@@ -1712,7 +1712,7 @@ var Fn = (function (exports) {
             return stream;
         },
 
-        /*
+        /**
         .tap(fn)
 
         Calls `fn(value)` for each value in the stream without modifying
@@ -1768,7 +1768,7 @@ var Fn = (function (exports) {
         };
     }
 
-    /*
+    /**
     Timer(duration, getTime)
 
     Create an object with a request/cancel pair of functions that
@@ -2028,9 +2028,9 @@ var Fn = (function (exports) {
     });
 
 
-    /* Construct */
+    /** Construct */
 
-    /*
+    /**
     Stream(fn)
 
     Construct a new stream. `fn(push, stop)` is invoked when the stream is started,
@@ -2086,20 +2086,20 @@ var Fn = (function (exports) {
     Stream$1.prototype = assign$1(Object.create(Fn.prototype), {
         constructor: Stream$1,
 
-        /* Write */
+        /** Write */
 
-        /*
+        /**
         .push(value)
         Pushes a `value` (or multiple values) into the head of a writeable stream.
         If the stream is not writeable, it does not have a `.push()` method.
         */
 
-        /* Map */
+        /** Map */
 
         //.chunk(n)
         //Batches values into arrays of length `n`.
 
-        /*
+        /**
         .flat()
         Flattens a stream of streams or arrays into a single stream.
         */
@@ -2114,19 +2114,19 @@ var Fn = (function (exports) {
             return output;
         },
 
-        /*
+        /**
         .flatMap(fn)
         Maps values to lists – `fn(value)` must return an array, functor, stream
         (or any other duck with a `.shift()` method) and flattens those lists into a
         single stream.
         */
 
-        /*
+        /**
         .map(fn)
         Maps values to the result of `fn(value)`.
         */
 
-        /*
+        /**
         .merge(stream)
         Merges this stream with `stream`, which may be an array, array-like
         or functor.
@@ -2138,37 +2138,37 @@ var Fn = (function (exports) {
             return Stream$1.Merge.apply(null, sources);
         },
 
-        /*
+        /**
         .scan(fn, seed)
         Calls `fn(accumulator, value)` and emits `accumulator` for each value
         in the stream.
         */
 
 
-        /* Filter */
+        /** Filter */
 
-        /*
+        /**
         .dedup()
         Filters out consecutive equal values.
         */
 
-        /*
+        /**
         .filter(fn)
         Filter values according to the truthiness of `fn(value)`.
         */
 
-        /*
+        /**
         .latest()
         When the stream has a values buffered, passes the last value
         in the buffer.
         */
 
-        /*
+        /**
         .rest(n)
         Filters the stream to the `n`th value and above.
         */
 
-        /*
+        /**
         .take(n)
         Filters the stream to the first `n` values.
         */
@@ -2181,7 +2181,7 @@ var Fn = (function (exports) {
         //    return this.pipe(Stream.clock(timer));
         //},
 
-        /*
+        /**
         .throttle(time)
         Throttles values such that the latest value is emitted every `time` seconds.
         Other values are discarded. The parameter `time` may also be a timer options
@@ -2193,7 +2193,7 @@ var Fn = (function (exports) {
             return this.pipe(Stream$1.throttle(timer));
         },
 
-        /*
+        /**
         .wait(time)
         Emits the latest value only after `time` seconds of inactivity.
         Other values are discarded.
@@ -2203,7 +2203,7 @@ var Fn = (function (exports) {
             return this.pipe(Stream$1.Choke(time));
         },
 
-        /*
+        /**
         .combine(fn, stream)
         Combines the latest values from this stream and `stream` via the combinator
         `fn` any time a new value is emitted by either stream.
@@ -2216,9 +2216,9 @@ var Fn = (function (exports) {
         },
 
 
-        /* Read */
+        /** Read */
 
-        /*
+        /**
         .clone()
         Creates a read-only copy of the stream.
         */
@@ -2254,7 +2254,7 @@ var Fn = (function (exports) {
             });
         },
 
-        /*
+        /**
         .each(fn)
         Thirstilly consumes the stream, calling `fn(value)` whenever
         a value is available.
@@ -2271,7 +2271,7 @@ var Fn = (function (exports) {
             return this.on(() => Fn.prototype.each.apply(source, args));
         },
 
-        /*
+        /**
         .last(fn)
         Consumes the stream when stopped, calling `fn(value)` with the
         last value read from the stream.
@@ -2285,7 +2285,7 @@ var Fn = (function (exports) {
             return this;
         },
 
-        /*
+        /**
         .fold(fn, accumulator)
         Consumes the stream when stopped, calling `fn(accumulator, value)`
         for each value in the stream. Returns a promise.
@@ -2312,16 +2312,16 @@ var Fn = (function (exports) {
                 this.fold((acc, value) => (acc === undefined ? value : fn(acc, value)), this.shift()) ;
         },
 
-        /*
+        /**
         .shift()
         Reads a value from the stream. If no values are in the stream, returns
         `undefined`. If this is the last value in the stream, `stream.status`
         is `'done'`.
         */
 
-        /* Lifecycle */
+        /** Lifecycle */
 
-        /*
+        /**
         .done(fn)
         Calls `fn()` after the stream is stopped and all values have been drained.
         */
@@ -2338,7 +2338,7 @@ var Fn = (function (exports) {
             return this;
         },
 
-        /*
+        /**
         .start()
         If the stream's producer is startable, starts the stream.
         */
@@ -2349,7 +2349,7 @@ var Fn = (function (exports) {
             return this;
         },
 
-        /*
+        /**
         .stop()
         Stops the stream. No more values can be pushed to the stream and any
         consumers added will do nothing. However, depending on the stream's source
@@ -2409,7 +2409,7 @@ var Fn = (function (exports) {
     });
 
 
-    /*
+    /**
     Stream.from(values)
     Returns a writeable stream that consumes the array or array-like `values` as
     its buffer.
@@ -2425,7 +2425,7 @@ var Fn = (function (exports) {
     };
 
 
-    /*
+    /**
     Stream.fromPromise(promise)
     Returns a stream that uses the given promise as its source. When the promise
     resolves the stream is given its value and stopped. If the promise errors
@@ -2551,7 +2551,7 @@ var Fn = (function (exports) {
     });
 
 
-    /*
+    /**
     Stream.fromTimer(timer)
     Create a stream from a `timer` object. A `timer` is an object
     with the properties:
@@ -2585,7 +2585,7 @@ var Fn = (function (exports) {
     };
 
 
-    /*
+    /**
     Stream.of(...values)
     Returns a stream that consumes arguments as a buffer. The stream is pushable.
     */
@@ -4225,7 +4225,7 @@ var Fn = (function (exports) {
     //                sign   year        month       day               T or -
     var rdatediff = /^([+-])?(\d{2,})(?:-(\d{2,})(?:-(\d{2,}))?)?(?:([T-])|$)/;
 
-    /*
+    /**
     parseDate(date)
     Parse a date, where, `date` may be:
 
@@ -4247,7 +4247,7 @@ var Fn = (function (exports) {
         }
     });
 
-    /*
+    /**
     parseDateLocal(date)
     As `parseDate(date)`, but returns a date object with local time set to the
     result of the parse (or the original date object, if it validates).
@@ -4466,7 +4466,7 @@ var Fn = (function (exports) {
     	});
     }
 
-    /*
+    /**
     formatDateLocal(format, locale, date)
     */
 
@@ -4480,7 +4480,7 @@ var Fn = (function (exports) {
     	});
     }
 
-    /*
+    /**
     formatDateISO(date)
     Formats `date` (a string or a number or date accepted by `parseDate(date)`) as
     a string in the ISO date format.
@@ -4490,7 +4490,7 @@ var Fn = (function (exports) {
     	return rdatejson.exec(JSON.stringify(parseDate(date)))[1];
     }
 
-    /*
+    /**
     formatDateTimeISO(date)
     Formats `date` (a string or a number or date accepted by `parseDate(date)`) as
     a string in the ISO datetime format.
@@ -4509,7 +4509,7 @@ var Fn = (function (exports) {
 
     var dayMap = [6,0,1,2,3,4,5];
 
-    /*
+    /**
     toDay(date)
     Returns day of week as a number, where monday is `0`.
     */
@@ -4518,7 +4518,7 @@ var Fn = (function (exports) {
     	return dayMap[date.getDay()];
     }
 
-    /*
+    /**
     cloneDate(date)
     Returns new date object set to same time.
     */
@@ -4684,7 +4684,7 @@ var Fn = (function (exports) {
     	return date.getTime() / 1000;
     }
 
-    /*
+    /**
     addDate(diff, date)
     Sums `diff` and `date`, where `diff` is a string in ISO date format. Returns
     a new date object.
@@ -4701,7 +4701,7 @@ var Fn = (function (exports) {
 
     const diffDateDays = curry$1(_diffDateDays);
 
-    /*
+    /**
     floorDate(token, date)
     Floors date to the start of nearest calendar point in time indicated by `token`:
 
@@ -4729,7 +4729,7 @@ var Fn = (function (exports) {
     	return _floorDate(token, parseDate(date));
     });
 
-    /*
+    /**
     formatDate(locale, timezone, format, date)
     Formats `date` (a string or number or date accepted by `parseDate(date)`)
     to the format of the string `format`. The format string may contain the tokens:
@@ -4795,7 +4795,7 @@ var Fn = (function (exports) {
     var rtime     = /^([+-])?(\d{2,}):([0-5]\d)(?::((?:[0-5]\d|60)(?:.\d+)?))?$/;
     var rtimediff = /^([+-])?(\d{2,}):(\d{2,})(?::(\d{2,}(?:.\d+)?))?$/;
 
-    /*
+    /**
     parseTime(time)
 
     Where `time` is a string it is parsed as a time in ISO time format: as
@@ -4884,7 +4884,7 @@ var Fn = (function (exports) {
     	return window.performance.now();
     };
 
-    /*
+    /**
     formatTime(format, time)
     Formats `time` (an 'hh:mm:sss' time string or a number in seconds) to match
     `format`, a string that may contain the tokens:
@@ -5006,7 +5006,7 @@ var Fn = (function (exports) {
     		formatTimeString(string, parseTime(time)) ;
     });
 
-    /*
+    /**
     formatTimeISO(time)
     Formats `time` (a string or a number accepted by `parseTime(time)`) as
     a string in the ISO time format.
@@ -5018,7 +5018,7 @@ var Fn = (function (exports) {
     	return time === undefined ? undefined : _formatTimeISO(time);
     }
 
-    /*
+    /**
     addTime(time1, time2)
     Sums `time2` and `time1`, returning UNIX time as a number in seconds.
     If `time1` is a string, it is parsed as a duration, where numbers
@@ -5042,7 +5042,7 @@ var Fn = (function (exports) {
     	return parseTime(time1) - parseTime(time2);
     });
 
-    /*
+    /**
     floorTime(token, time)
     Floors `time` to the nearest `token`, where `token` is one of: `'week'`, `'day'`,
     `'hour'`, `'minute'` or `'second'`. `time` may be an ISO time string or a time
