@@ -44,7 +44,7 @@ const parseDoc = window.parseDoc = capture(/\/\*\*+\s*(?:(\.|--)?(\w[\w-, .]*(?:
             name:   results[2],
             type:   results[1] ?
                 results[1] === '.' ? 'property' :
-                'variable' :
+                'var' :
                 'title',
             title: (results[1] || '') + results[2]
         });
@@ -119,7 +119,19 @@ const parseDoc = window.parseDoc = capture(/\/\*\*+\s*(?:(\.|--)?(\w[\w-, .]*(?:
     // Markdown (anything) close comment
     close: capture(/^\s*([\s\S]*?)\*+\//, {
         1: function(data, results) {
-            last(data).body = marked(results[1], markedOptions);
+            var exampleHTML;
+
+            last(data).body = marked(results[1], Object.assign(markedOptions, {
+                // Highlight code blocks
+                highlight: function (code, lang, callback) {
+                    // Grab the first HTML code block and use it as example code
+                    exampleHTML = exampleHTML || (lang === 'html' && code);
+                    return Prism.highlight(code, Prism.languages[lang || 'js'], lang || 'js');
+                }
+            }));
+
+            last(data).example = exampleHTML || '';
+
             return data;
         },
 
@@ -245,6 +257,30 @@ register('filter-fn', function (node, params) {
     return this.map(function (array) {
         return array.reduce(function (output, data) {
             if (data.type === 'fn') {
+                output.push(data);
+            }
+
+            return output;
+        }, []);
+    });
+});
+
+register('filter-var', function (node, params) {
+    return this.map(function (array) {
+        return array.reduce(function (output, data) {
+            if (data.type === 'var') {
+                output.push(data);
+            }
+
+            return output;
+        }, []);
+    });
+});
+
+register('filter-not-var', function (node, params) {
+    return this.map(function (array) {
+        return array.reduce(function (output, data) {
+            if (data.type !== 'var') {
                 output.push(data);
             }
 
