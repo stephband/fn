@@ -123,8 +123,7 @@ body > .demo-block + .grid {
     padding-left: 0 !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
-    --button-padding-top: 0;
-    --button-padding-bottom: 0;
+    background-color: transparent;
 }
 
 .doctoggle-button::before {
