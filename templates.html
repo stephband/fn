@@ -134,12 +134,12 @@ documentation comments in the form:
 
         <section build-fn="rest:1 filter-not-var" class="x-1 xspan-5 y-2 grid" style="grid-auto-flow: row; align-content: start;" id="component-{[0.id]}">
             <template build-fn="each">
-                <h4 class="x-1 xspan-2 x-end y-baseline doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
-                    <a href="#{[id]}"><code build-fn="append:title"></code></a>
+                <h4 class="x-1 xspan-2 x-end y-baseline doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']} right-align">
+                    <a href="#{[id]}" title="Show HTML markup"><code build-fn="title-replace-comma-br append:title"></code></a>
                 </h4>
                 <div class="x-3 xspan-2 x-stretch y-baseline block" build-fn="prepend:example"></div>
                 <div class="x-5 x-stretch block">
-                    <div class="bottom-right-bubble right-bubble bubble" style="width: calc(300% + 2 * var(--column-gap)); max-width: calc(300% + 2 * var(--column-gap)); min-width: 20rem;" popable build-fn="append:body" id="{[id]}"></div>
+                    <div class="bottom-right-bubble right-bubble bubble" style="width: calc(300% + 2 * var(--column-gap)); max-width: calc(300% + 2 * var(--column-gap)); min-width: 20rem; top: 0.75rem;" popable build-fn="append:body" id="{[id]}"></div>
                 </div>
             </template>
         </section>
