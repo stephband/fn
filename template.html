@@ -38,18 +38,18 @@
 </head>
 
 <body class="grid">
-    <header class="x-1 xspan-3 @1-xspan-6 @2-xspan-9 @3-x-2 @3-xspan-11" id="header">
+    <header class="x-1 3x @1-6x @2-9x @3-x-2 @3-11x" id="header">
         <template build-fn="fetch:package.json" build-src="/fn/templates.html#header-template"></template>
     </header>
 
-    <section class="x-1 xspan-3 @1-xspan-6 @2-xspan-9 @3-x-2 grid" locateable id="functions">
-        <header class="x-1 xspan-3 @1-xspan-4">
+    <section class="x-1 3x @1-6x @2-9x @3-x-2 grid" locateable id="functions">
+        <header class="x-1 3x @1-4x">
             <h2 class="text-2">Functions</h2>
             <p>Import functions from the Fn module:</p>
             <pre><code class="language-js">import { get, matches } from '/fn/module.js';</code></pre>
         </header>
 
-        <div class="x-1 xspan-3">
+        <div class="x-1 3x">
             <h4 class="text-4">Functions</h4>
             <template build-fn="docs:
             modules/cache.js,
@@ -63,14 +63,14 @@
             filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
         </div>
 
-        <div class="x-1 xspan-3 @2-xspan-4">
+        <div class="x-1 3x @2-4x">
             <p>
             The functions below are curried (where they take more than one
             parameter), allowing them to be partially applied.
             </p>
         </div>
 
-        <div class="x-1 xspan-3 column-grid grid">
+        <div class="x-1 3x column-grid grid">
             <div class="x-1">
                 <h4 class="text-4">Objects</h4>
                 <template build-fn="docs:
@@ -100,7 +100,7 @@
             </div>
         </div>
 
-        <div class="x-1 xspan-3 @1-x-4 column-grid grid">
+        <div class="x-1 3x @1-x-4 column-grid grid">
             <div class="x-1">
                 <h4 class="text-4">Strings</h4>
                 <template build-fn="docs:
@@ -125,7 +125,7 @@
             </div>
         </div>
 
-        <div class="x-1 xspan-3 @2-x-7 column-grid grid">
+        <div class="x-1 3x @2-x-7 column-grid grid">
             <div class="x-1">
                 <h4 class="text-4">Arrays</h4>
                 <template build-fn="docs:
@@ -149,8 +149,8 @@
         </div>
     </section>
 
-    <section class="x-1 xspan-3 @1-xspan-6 @2-xspan-9 @3-x-2 columns-grid grid" locateable id="observer">
-        <header class="x-1 xspan-3 @1-xspan-4">
+    <section class="x-1 3x @1-6x @2-9x @3-x-2 columns-grid grid" locateable id="observer">
+        <header class="x-1 3x @1-4x">
             <h2 class="text-2" style="font-size: 1.875rem;">Observer</h2>
             <p>An observer is an ES6 Proxy of an object that intercepts and
             reports mutations. Import and create an observer:</p>
@@ -171,7 +171,7 @@ const data = Observer({ value: true });</code></pre>
             <pre><code class="language-js">data.value = false;   // Logs `false`</code></pre>
         </header>
 
-        <div class="x-1 xspan-3 list-grid grid">
+        <div class="x-1 3x list-grid grid">
             <template build-fn="docs:
             modules/observer/observer.js,
             modules/observer/observe.js
@@ -179,30 +179,30 @@ const data = Observer({ value: true });</code></pre>
         </div>
     </section>
 
-    <!--div class="x-1 xspan-3 @2-x-2 @3-xspan-6 @4-xspan-5 @5-xspan-3">
+    <!--div class="x-1 3x @2-x-2 @3-6x @4-5x @5-3x">
         <p>Text things</p>
     </div-->
 
-    <!--div class="x-1 xspan-3 @2-x-2 @3-xspan-6 @4-xspan-5 @5-xspan-3" build-fn="docs:'./modules/stream.js'"></div-->
+    <!--div class="x-1 3x @2-x-2 @3-6x @4-5x @5-3x" build-fn="docs:'./modules/stream.js'"></div-->
 
-    <section class="x-1 xspan-3 @1-xspan-6 @2-xspan-9 @3-x-2 columns-grid grid" locateable id="stream">
-        <header class="x-1 xspan-3 @1-xspan-4">
+    <section class="x-1 3x @1-6x @2-9x @3-x-2 columns-grid grid" locateable id="stream">
+        <header class="x-1 3x @1-4x">
             <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
             <p>Import and create a stream:</p>
             <pre><code class="language-js">import { Stream } from '/fn/module.js';
 const stream = Stream.of(1,2,3,4);</code></pre>
         </header>
 
-        <div class="x-1 xspan-3 list-grid grid">
+        <div class="x-1 3x list-grid grid">
             <template build-fn="docs:modules/stream.js filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
             <template build-fn="docs:modules/fn.js filter-property each" build-src="/fn/templates.html#{[type]}-template"></template>
         </div>
 
-        <div class="x-1 xspan-3 @1-x-4 list-grid grid">
+        <div class="x-1 3x @1-x-4 list-grid grid">
             <template build-fn="docs:modules/stream.js filter-method take:16 each" build-src="/fn/templates.html#{[type]}-template"></template>
         </div>
 
-        <div class="x-1 xspan-3 @2-x-7 list-grid grid">
+        <div class="x-1 3x @2-x-7 list-grid grid">
             <template build-fn="docs:modules/stream.js filter-method rest:16 each" build-src="/fn/templates.html#{[type]}-template"></template>
         </div>
     </section>
