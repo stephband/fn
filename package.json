@@ -32,8 +32,8 @@
         "js",
         "javascript"
     ],
-    "homepage": "http://stephen.band/fn",
-    "docs": "http://github.com/stephband/fn",
+    "homepage": "http://stephen.band/fn/",
+    "docs": "http://stephen.band/fn/",
     "devDependencies": {
         "rollup": "^1.27.9",
         "eslint": "^6.5.1",

@@ -514,6 +514,7 @@ line { stroke-width: 1; stroke: inherit; }
     margin-right: -0.9375rem;
     padding-left: 0.9375rem;
     padding-right: 0.9375rem;
+    padding-bottom: 0.9375rem;
 }
 
 .list-grid {
