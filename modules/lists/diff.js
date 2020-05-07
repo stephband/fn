@@ -1,6 +1,10 @@
 import toArray    from '../to-array.js';
 import { filter } from './core.js';
 
+/**
+diff(array1, array2)
+**/
+
 export default function diff(array, object) {
     var values = toArray(array);
 

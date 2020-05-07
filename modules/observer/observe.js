@@ -146,7 +146,7 @@ function observeUnknown(object, path, data) {
         readSelector(object, isMatch, path, data) ;
 }
 
-/*
+/**
 observe(path, fn, object [, init])
 
 Observe `path` in `object` and call `fn(value)` with the value at the
@@ -161,7 +161,7 @@ callback to be called.
 (To force the callback to always be called on setup, pass in `NaN` as an
 `init` value. In JS `NaN` is not equal to anything, even `NaN`, so it
 always initialises.)
-*/
+**/
 
 export function observe(path, fn, object, initialValue) {
     return observeUnknown(Observer(object) || object, path + '', {

@@ -1,7 +1,7 @@
-/*
+/**
 last(array)
 Gets the last value from an array.
-*/
+**/
 
 export default function last(array) {
     if (typeof array.length === 'number') {
@@ -9,4 +9,4 @@ export default function last(array) {
     }
 
     // Todo: handle Fns and Streams
-};
+}

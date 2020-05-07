@@ -243,12 +243,12 @@ export function notify(object, path, value) {
 	fire(mutate, object);
 }
 
-/*
+/**
 Observer(object)
 Create an Observer proxy around `object`. In order for `observe(...)` to detect
 mutations, changes must be made to this proxy rather than the original
 `object`.
-*/
+**/
 
 export function Observer(object) {
 	return !object ? undefined :

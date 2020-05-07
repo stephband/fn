@@ -7,7 +7,7 @@
 
 body {
     padding-top: 1.875rem;
-    padding-bottom: 2.8125rem;
+    padding-bottom: 3.75rem;
     padding-left: 1.5rem;
     padding-right: 1.5rem;
 }
@@ -157,6 +157,10 @@ p + fieldset, .doctext-08 + fieldset { margin-top: 2rem; }
 .doctext-05 + pre code {
     font-family: 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
     font-size: 1.0625rem;
+}
+
+.doctext-05 + pre {
+    margin-top: 0.75rem;
 }
 
 .doctext-05 + pre code {

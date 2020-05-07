@@ -1,6 +1,11 @@
 
 import curry from '../curry.js';
 
+/**
+postpad(chars, n, string)
+Pads `string` to `n` characters by appending `chars`.
+**/
+
 export function postpad(chars, n, value) {
     var string = value + '';
 

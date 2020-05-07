@@ -3,7 +3,7 @@ import toArray from '../to-array.js';
 const A = Array.prototype;
 const S = String.prototype;
 
-/*
+/**
 by(fn, a, b)
 Compares `fn(a)` against `fn(b)` and returns `-1`, `0` or `1`. Useful for sorting
 objects by property:
@@ -11,7 +11,7 @@ objects by property:
 ```
 [{id: '2'}, {id: '1'}].sort(by(get('id')));  // [{id: '1'}, {id: '2'}]
 ```
-*/
+**/
 
 export function by(fn, a, b) {
     const fna = fn(a);
@@ -19,9 +19,19 @@ export function by(fn, a, b) {
     return fnb === fna ? 0 : fna > fnb ? 1 : -1 ;
 }
 
+/**
+byAlphabet(a, b)
+Compares `a` against `b` alphabetically using the current locale alphabet.
+**/
+
 export function byAlphabet(a, b) {
     return S.localeCompare.call(a, b);
 }
+
+/**
+each(fn, array)
+Calls `fn` for each member in `array`.
+**/
 
 export function each(fn, object) {
     // A stricter version of .forEach, where the callback fn
@@ -40,15 +50,32 @@ export function each(fn, object) {
     return object;
 }
 
+/**
+map(fn, object)
+Delegates to `object.map` or `Array.map` to return a new collection of mapped
+values.
+**/
+
 export function map(fn, object) {
     return object && object.map ? object.map(fn) : A.map.call(object, fn) ;
 }
+
+/**
+filter(fn, object)
+Delegates to `object.filter` or `Array.filter` to return a new collection of
+filtered objects.
+**/
 
 export function filter(fn, object) {
     return object.filter ?
         object.filter(fn) :
         A.filter.call(object, fn) ;
 }
+
+/**
+reduce(fn, seed, object)
+Delegates to `object.reduce` or `Array.reduce` to return a reduced value.
+**/
 
 export function reduce(fn, seed, object) {
     return object.reduce ?
@@ -59,6 +86,12 @@ export function reduce(fn, seed, object) {
 export function sort(fn, object) {
     return object.sort ? object.sort(fn) : A.sort.call(object, fn);
 }
+
+/**
+concat(array2, array1)
+Where JavaScript's Array.concat only works reliably on arrays, `concat`
+will glue together any old array-like object.
+**/
 
 export function concat(array2, array1) {
     // A.concat only works with arrays - it does not flatten array-like
