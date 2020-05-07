@@ -7,16 +7,13 @@
         "url": "http://stephen.band",
         "twitter": "stephband"
     },
-
     "repository": {
         "type": "git",
         "url": "https://github.com/stephband/fn.git"
     },
-
     "bugs": {
         "url": "https://github.com/stephband/fn/issues"
     },
-
     "licenses": [
         {
             "url": "http://unlicense.org/"
@@ -41,7 +38,8 @@
         "rollup": "^1.27.9",
         "eslint": "^6.5.1",
         "node-sass": "^4.13.0",
-        "puppeteer": "^1.20.0"
+        "puppeteer": "^1.20.0",
+        "http-server": "^0.12.1"
     },
     "module": "module.js",
     "main": "index.js",
