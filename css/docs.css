@@ -73,9 +73,162 @@ body > .docdemo-block + .grid {
 }
 
 
+/* .doctext */
+
+.doctext-01,
+.doctext-02,
+.doctext-03,
+.doctext-04,
+.doctext-05,
+.doctext-06,
+.doctext-08, body,
+.doctext-09 {
+	font-family: Helvetica, Arial, sans-serif;
+	font-style: none;
+	text-transform: none;
+}
+
+.doctext-07, code {
+	font-family: 'Fira Code', 'Fira Mono', 'Roboto Mono', Courier, monospace;
+	font-style: normal;
+	text-transform: none;
+}
+
+.doctext-01       { font-size: 2.5rem;    line-height: 2.625rem;  font-weight: 700; }
+.doctext-02       { font-size: 1.5625rem; line-height: 1.875rem;  font-weight: 700; }
+.doctext-03       { font-size: 1.25rem;   line-height: 1.875rem;  font-weight: 600; }
+.doctext-04       { font-size: 0.75rem;   line-height: 0.9375rem; font-weight: 400; text-transform: uppercase; }
+.doctext-05       { font-size: 1rem;      line-height: 1.375rem;  font-weight: 700; }
+.doctext-06       { font-size: 1.5rem;    line-height: 1.875rem;  font-weight: 300; }
+.doctext-07       { font-size: 0.9375rem; line-height: 1.5rem;    font-weight: 400; }
+.doctext-08, body { font-size: 1rem;      line-height: 1.5rem;    font-weight: 300; }
+.doctext-09       { font-size: 0.9375rem; line-height: 1.5rem;    font-weight: 400; }
+
+/* Vertical typographic spacings pairs.
+   (We use 'body' in 'body tag + .class' to increase the
+   specificity of that selector by 1, making it override
+   '.class + tag' but not '.class + .class'). */
+
+* + .doctext-01                                            { margin-top: 2.5rem; }
+* + .doctext-02                                            { margin-top: 2.5rem; }
+.doctext-08 + .doctext-02, body p + .doctext-02, .doctext-08 + .doctext-02 { margin-top: 2.5rem; }
+* + .doctext-03                                            { margin-top: 1.25rem; }
+.doctext-02 + h3,   body h2 + .doctext-03,   .doctext-02 + .doctext-03 { margin-top: 1.5625rem; }
+.doctext-08 + h3,  body p  + .doctext-03,  .doctext-08 + .doctext-03,
+dl + .doctext-03,
+ul + .doctext-03                                          { margin-top: 2.5rem; }
+ * + .doctext-04                                           { margin-top: 1.25rem; }
+ .doctext-01 + h4,  body h1 + .doctext-04,  .doctext-01 + .doctext-04,
+ .doctext-02 + h4,  body h2 + .doctext-04,  .doctext-02 + .doctext-04  { margin-top: 1.625rem; }
+ .doctext-03 + h4,  body h3 + .doctext-04,  .doctext-03 + .doctext-04  { margin-top: 1.125rem; }
+ .doctext-08 + h4,  body p  + .doctext-04,  .doctext-08 + .doctext-04,
+ dl + .doctext-04,
+ ul + .doctext-04                                          { margin-top: 2.5rem; }
+ * + .doctext-05                                           { margin-top: 1.25rem; }
+ .doctext-02 + h5,  body h2 + .doctext-05,  .doctext-02 + .doctext-05  { margin-top: 1.25rem; }
+ .doctext-04 + h5,  body h4 + .doctext-05,  .doctext-04 + .doctext-05,
+ .doctext-08 + h5,  body p  + .doctext-05,  .doctext-08 + .doctext-05  { margin-top: 0.9375rem; }
+ * + .doctext-08                                           { margin-top: 0.625rem; }
+ .doctext-01 + p,   body h1 + .doctext-08,  .doctext-01 + .doctext-08  { margin-top: 2.1875rem; }
+ .doctext-03 + p,   body h3 + .doctext-08,  .doctext-03 + .doctext-08  { margin-top: 0.625rem; }
+ .doctext-05 + p,   body h5 + .doctext-08,  .doctext-05 + .doctext-08,
+ .doctext-05 + ul                                          { margin-top: 0; }
+ .doctext-08 + p,   body p  + .doctext-08,  .doctext-08 + .doctext-08  { margin-top: 0.9375rem; }
+
+
+h2 + ul,   .doctext-02 + ul { margin-top: 1.875rem; }
+h3 + ul,   .doctext-03 + ul { margin-top: 1.25rem; }
+p + pre,  .doctext-08 + pre, pre + p,  pre + .doctext-08 { margin-top: 1.25rem; }
+
+p + form,     .doctext-08 + form     { margin-top: 0.5rem; }
+p + fieldset, .doctext-08 + fieldset { margin-top: 2rem; }
+
+
+.doctext-02 + .doc-toggle-block {
+    margin-top: 0.9375rem;
+}
+
+.doctext-03 + .doc-toggle-block {
+    margin-top: 0rem;
+}
+
+.doctext-10,
+.doctext-05 code,
+.doctext-05 + pre code {
+    font-family: 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
+    font-size: 1.0625rem;
+}
+
+.doctext-05 + pre code {
+    font-size: 0.8125rem;
+}
+
+* + .doctext-02 {
+    margin-top: 1.875rem;
+}
+
+.doctext-03 > code {
+    color: inherit;
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.doctext-03 a {
+    text-decoration: none;
+}
+
+.doctext-03 + pre {
+    margin-top: 1.5rem;
+}
+
+.doctext-03 + pre + * {
+    margin-top: 1.5rem;
+}
+
+.doctext-04 {
+    /* WHY? */
+    opacity: 0.5;
+}
+
+.doctext-04 + p, h4 + p { margin-top: 0; }
+p + .doctext-04, p + h4 { margin-top: 1.5rem; }
+
+.doctext-04 + .doc-toggle-block {
+    margin-top: 9px;
+}
+
+.doctext-08 + .index {
+    margin-top: 0.9375rem;
+}
+
+button.doctext-09 {
+    display: inline-block;
+    min-height: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+
+/*  */
+
+a.block {
+    position: relative;
+    text-decoration: none;
+}
+
+a.block:hover {
+    border-bottom: 1px solid #999999;
+}
+
+.key-device a:focus {
+    border-bottom: 1px solid #999999;
+}
+
+
 /* .doctoggle-button */
 
 .doctoggle-button {
+    min-height: 1.5rem;
     padding-left: 0 !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
@@ -152,114 +305,12 @@ body > .docdemo-block + .grid {
     margin-right: -0.1875rem;
 }
 
-
-/* .doctext */
-
-.doctext-02 + .doc-toggle-block {
-    margin-top: 0.9375rem;
-}
-
-.doctext-03 + .doc-toggle-block {
-    margin-top: 0rem;
-}
-
-
-.doctext-02 { font-size: 1.5625rem; line-height: 1.875rem; }
-.doctext-03 { font-size: 1.25rem;   line-height: 1.875rem; }
-.doctext-04 { font-size: 0.75rem;  line-height: 0.9375rem; font-weight: 400; text-transform: uppercase; }
-.doctext-06 { font-size: 1.5rem; line-height: 1.875rem; }
-.doctext-08 { font-size: 1rem;     line-height: 1.5rem; font-weight: 300; }
-.doctext-10,
-.doctext-05 code,
-.doctext-05 + pre code {
-    font-family: 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
-    font-size: 1.0625rem;
-}
-
-.doctext-07, code {
-    font-family: 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
-}
-
-.doctext-05 + pre code {
-    font-size: 0.8125rem;
-}
-
-* + .doctext-02 {
-    margin-top: 1.875rem;
-}
-
-.doctext-03 > code {
-    color: inherit;
-    font-weight: 600;
-    letter-spacing: 0;
-}
-
-.doctext-03 a {
-    text-decoration: none;
-}
-
-.doctext-03 + pre {
-    margin-top: 1.5rem;
-}
-
-.doctext-03 + pre + * {
-    margin-top: 1.5rem;
-}
-
-.doctext-04 {
-    opacity: 0.5;
-}
-
-.doctext-04 + p, h4 + p { margin-top: 0; }
-p + .doctext-04, p + h4 { margin-top: 1.5rem; }
-
-.doctext-04 + .doc-toggle-block {
-    margin-top: 9px;
-}
-
-.doctext-08 + .index {
-    margin-top: 0.9375rem;
-}
-
-button.doctext-09 {
-    display: inline-block;
-    min-height: 0;
-    padding-left: 0;
-    padding-right: 0;
-}
-
-
-/*  */
-
-a.block {
-    position: relative;
-    text-decoration: none;
-}
-
-a.block:hover {
-    border-bottom: 1px solid #999999;
-}
-
-
-
-.doctext-05 {
-    font-size:   1rem;
-    line-height: 1.5rem;
-}
-
-
-
 .doctext-05 > a {
     text-decoration: none;
     padding-bottom: 2px;
     border-bottom: none;
 }
 
-
-
-.key-device a:focus {
-    border-bottom: 1px solid #999999;
-}
 
 .doctext-05 code {
     font-size: inherit;

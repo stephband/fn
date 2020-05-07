@@ -77,6 +77,9 @@ const parseDoc = window.parseDoc = capture(/\/\*\*+\s*(?:(\.|--)?(\w[\w-, .…]*
         const object = last(data);
         object.type  = 'fn';
         object.title = results[4] ?
+                // Catch the case where token is a .thumb-3:4 class. Very dodgy,
+                // ultimately we need to make this parser more robust!
+                results[1] ? results[1] + results[2] + ':' + results[4] :
             results[2] + ': ' + results[4] :
             results[2] ;
         return data;
