@@ -1,89 +1,62 @@
 :root {
     scroll-padding-top: 5.625rem;
     --site-padding: 1.5rem;
+    --column-gap: 1.875rem;
+    --row-gap: 2.25rem;
 }
 
 body {
     padding-top: 1.875rem;
-    padding-bottom: 2.25rem;
-    padding-left: 1.875rem;
-    padding-right: 1.875rem;
+    padding-bottom: 2.8125rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
 }
 
-body > .grid + .grid,
-body > header + .grid {
-    margin-top: 5.625rem;
+body > .bleed-x {
+    margin-left:  -1.5rem;
+    margin-right: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    width: auto;
 }
 
-body > .\31-grid + .\31-2-3-grid {
-    margin-top: 1.875rem;
-}
-
-@media (min-width: 49.6875em) {
-    body {
-        padding-left: 2.8125rem;
-        padding-right: 2.8125rem;
+@media(min-width: 50em) {
+    :root {
+        --column-gap: 2.8125rem;
+        --row-gap: 2.8125rem;
     }
-}
 
-@media (min-width: 76.875em) {
     body {
-        padding-top: 1.875rem;
-        padding-bottom: 7.5rem;
+        padding-left: 1.875rem;
+        padding-right: 1.875rem;
+    }
+
+    body > .bleed-x {
+        margin-left:  -1.875rem;
+        margin-right: -1.875rem;
         padding-left: 1.875rem;
         padding-right: 1.875rem;
     }
 }
 
-@media (min-width: 101.25em) {
-
+@media(min-width: 70em) {
+    :root {
+        --row-gap: 3.75rem;
+    }
 }
 
-.grid {
-    justify-items: stretch;
+@media(min-width: 90em) {
+    :root {
+        --column-gap: 3.75rem;
+    }
 }
 
 
+/*
+.docdemo-block
+*/
 
-body > .grid-block {
-    margin-left: auto;
-    margin-right: auto;
-}
-
-body > .grid-block + .grid-block {
-    margin-top: 72px;
-}
-
-.doc-block { font-size: 0.9375rem; }
-.doc-block h4 { font-size: 0.9375rem; }
-
-.doc-block > ul {
-	/* Remove default styling from list items. */
-	list-style: none;
-	margin: 0;
-    padding: 0;
-}
-
-.doc-block > ul > li {
-	display: block;
-
-	/* Specifically remove default margin and padding from
-	   list items in case some typography rules have added
-	   these back in after the reset. */
-	margin: 0;
-	padding: 0;
-}
-
-.doc-block p + p,
-.doc-block p + h4,
-.doc-block p + ul,
-.doc-block ul + p,
-.doc-block ul + h4,
-.doc-block ul + ul { margin-top: 0.9375rem; }
-
-.doc-block h4 + ul { margin-top: 0; }
-
-.demo-block {
+.docdemo-block {
     color: var(--code-fg);
     background-color: var(--code-bg);
     margin-left:  -1.875rem;
@@ -94,30 +67,13 @@ body > .grid-block + .grid-block {
     padding-bottom: 0.9375rem;
 }
 
-body > .\31-grid + .\30-grid {
+
+body > .docdemo-block + .grid {
     margin-top: 2.8125rem;
 }
 
-body > .\31-grid + .demo-block {
-    margin-top: 7.5rem;
-}
 
-body > .demo-block + .grid {
-    margin-top: 2.8125rem;
-}
-
-.hint {
-    visibility: hidden;
-    opacity: 0;
-    transition:
-        visibility 800ms linear,
-        opacity 800ms linear;
-}
-
-.hint.active {
-    visibility: visible;
-    opacity: 1;
-}
+/* .doctoggle-button */
 
 .doctoggle-button {
     padding-left: 0 !important;
@@ -146,33 +102,18 @@ body > .demo-block + .grid {
     transform: translate(0, -25%) rotate(135deg);
 }
 
+
+/* .doc-toggle-block */
+
 .doc-toggle-block {
     visibility: visible;
     opacity: 1;
-    min-height: 1.875em;
-    padding-left: 0.9375rem;
-    padding-right: 0.9375rem;
-    /*padding-top: 8px;*/
-    /*color: #444444;*/
-    /*transition:
-        max-height 400ms cubic-bezier(0, 0.5, 0.33, 1),
-        margin-top 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89),
-        padding-bottom 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89);*/
+    min-height: 3rem;
 }
-
-/*
-.doc-toggle-block:not(.active) {
-    padding-top: 0;
-}
-*/
 
 .doc-toggle-block.active {
-    padding-bottom: 1.125rem;
+    /*padding-bottom: 3.75rem;*/
     max-height: 300rem;
-    transition:
-        max-height 400ms cubic-bezier(0.4, 0, 1, 0.32),
-        margin-top 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89),
-        margin-bottom 400ms cubic-bezier(0.41,-0.17, 0.25, 0.89);
 }
 
 .doc-toggle-block::before {
@@ -194,23 +135,34 @@ body > .demo-block + .grid {
     background-color: transparent;
 }
 
-/*
-.doc-toggle-block > .block {
-    margin-bottom: 0.75rem;
-}
-*/
-
-* + .doc-toggle-block {
-    margin-top: 0.1875rem;
+.doc-toggle-block + .doc-toggle-block {
+    margin-top: 0rem;
 }
 
-* + .attribute-.doc-toggle-block {
-    margin-top: 0.9375rem;
+.doc-toggle-block.active + .doc-toggle-block {
+    margin-top: 1.5rem;
 }
+
+.doc-toggle-block > .doctext-05 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Make sure hanging '.' is still seen */
+    margin-left: -0.9375rem;
+    padding-left: 0.9375rem;
+    margin-right: -0.1875rem;
+}
+
+
+/* .doctext */
 
 .doctext-02 + .doc-toggle-block {
     margin-top: 0.9375rem;
 }
+
+.doctext-03 + .doc-toggle-block {
+    margin-top: 0rem;
+}
+
 
 .doctext-02 { font-size: 1.5625rem; line-height: 1.875rem; }
 .doctext-03 { font-size: 1.25rem;   line-height: 1.875rem; }
@@ -220,8 +172,12 @@ body > .demo-block + .grid {
 .doctext-10,
 .doctext-05 code,
 .doctext-05 + pre code {
-    font-family: 'Fira Code', 'Roboto Mono', monospace;
+    font-family: 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
     font-size: 1.0625rem;
+}
+
+.doctext-07, code {
+    font-family: 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
 }
 
 .doctext-05 + pre code {
@@ -261,12 +217,19 @@ p + .doctext-04, p + h4 { margin-top: 1.5rem; }
     margin-top: 9px;
 }
 
+.doctext-08 + .index {
+    margin-top: 0.9375rem;
+}
+
 button.doctext-09 {
     display: inline-block;
     min-height: 0;
     padding-left: 0;
     padding-right: 0;
 }
+
+
+/*  */
 
 a.block {
     position: relative;
@@ -277,53 +240,7 @@ a.block:hover {
     border-bottom: 1px solid #999999;
 }
 
-code.block,
-pre > code {
-     border-radius: 0.375rem;
-    width: calc(100% + 0.75rem + 0.75rem);
-    margin-left: -0.75rem;
-}
 
-code.block {
-    white-space: pre;
-}
-
-.js.block + p,
-.html-code.block + p {
-    margin-top: 1.125rem;
-}
-
-pre > code .comment {
-	color: #75858c;
-}
-
-
-code {
-    font-size: 0.966666667em;
-    font-weight: 400;
-    color:#46789a;
-    /*background-color: rgba(0,0,0,0.0667);*/
-    /*background-color: #b7d6e7;*/
-    padding-left: 2px;
-    padding-right: 2px;
-    margin-left: -1px;
-    margin-right: -1px;
-    padding-bottom: 2px;
-    padding-top: 0px;
-    border-radius: 4px;
-    word-spacing: -0.125em;
-    white-space: nowrap;
-    letter-spacing: -0.0125em;
-}
-
-code > .params {
-    color:#46789a;
-    font-weight: 400;
-}
-
-code.property {
-    color: inherit;
-}
 
 .doctext-05 {
     font-size:   1rem;
@@ -331,22 +248,7 @@ code.property {
 }
 
 
-/*
-a {
-    color: inherit;
-    text-decoration: none;
-    padding-bottom: 1px;
-    border-bottom: 2px solid rgba(51,34,86,0.4);
-    transition: border-bottom-color 0.240s linear;
-}
 
-a:hover,
-a:focus {
-    text-decoration: none;
-    border-bottom: 2px solid rgba(51,34,86,0.8);
-    transition-duration: 0.09s;
-}
-*/
 .doctext-05 > a {
     text-decoration: none;
     padding-bottom: 2px;
@@ -393,19 +295,68 @@ p + pre {
     margin-top: 18px;
 }
 
-.spaced-grid-block > .block {
-    margin-top: 1.125rem;
-    margin-bottom: 1.125rem;
-}
-
-pre {
-    white-space: pre;
-}
-
 .dot-indent {
     text-indent: -0.5625em;
 }
 
+
+/* Code */
+
+pre > code,
+code.block {
+    border-radius: 0.375rem;
+    width: calc(100% + 0.75rem + 0.75rem);
+    margin-left: -0.75rem;
+}
+
+pre,
+code.block {
+    white-space: pre;
+}
+
+.js.block + p,
+.html-code.block + p {
+    margin-top: 1.125rem;
+}
+
+pre > code .comment {
+	color: #75858c;
+}
+
+code {
+    font-size: 0.966666667em;
+    font-weight: 400;
+    color:#46789a;
+    /*background-color: rgba(0,0,0,0.0667);*/
+    /*background-color: #b7d6e7;*/
+    padding-left: 2px;
+    padding-right: 2px;
+    margin-left: -1px;
+    margin-right: -1px;
+    padding-bottom: 2px;
+    padding-top: 0px;
+    border-radius: 4px;
+    word-spacing: -0.125em;
+    white-space: nowrap;
+    letter-spacing: -0.0125em;
+}
+
+code > .params {
+    color:#46789a;
+    font-weight: 400;
+}
+
+code.property {
+    color: inherit;
+}
+
+
+
+
+
+
+
+/* Legacy styles. Review and discard! */
 
 script[type="text"] {
 	white-space: pre;
@@ -420,8 +371,6 @@ script[type="text"] {
 }
 
 line { stroke-width: 1; stroke: inherit; }
-
-.doctext-03 + .doc-toggle-block { margin-top: 0.9375rem; }
 
 .columns {
     column-fill: auto;
@@ -524,16 +473,6 @@ line { stroke-width: 1; stroke: inherit; }
     margin-left: 0;
 }
 
-
-
-.doc-toggle-block > .doctext-05 {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    /* Make sure hanging '.' is still seen */
-    margin-left: -0.9375rem;
-    padding-left: 0.9375rem;
-    margin-right: -0.1875rem;
-}
 
 /*
 .component-.doc-toggle-block.active {
@@ -657,14 +596,6 @@ header + .component-doc-toggle-block {
     break-before: column;
 }
 */
-
-
-.grid > * > .doc-toggle-block {
-    margin-left: -0.9375rem;
-    margin-right: -0.9375rem;
-}
-
-
 
 
 .note {
