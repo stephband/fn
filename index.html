@@ -10,7 +10,7 @@
     <meta property="og:url" content="http://stephen.band/fn/">
     <meta property="og:title" content="Fn">
     <meta property="og:description" content="A library of functions, observers and streams, published as ES6 modules.">
-    <meta property="og:image" content="images/logo.png">
+    <meta property="og:image" content="">
 
     <title>Fn</title>
 
@@ -455,34 +455,6 @@ has not been made (where <code>'catch'</code> is not defined an error is thrown)
 and returns the resulting value.</p>
 </article>
 
-    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-parsedate-date">
-        <h3 class="doctext-05 ">
-            <a href="#function-parsedate-date">
-                <code class="function language-js"><span class="token function">parseDate</span><span class="token punctuation">(</span>date<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Parse a date, where, <code>date</code> may be:</p>
-<ul>
-<li>a string in ISO date format</li>
-<li>a number in seconds UNIX time</li>
-<li>a date object</li>
-</ul>
-<p>Returns a date object, or <em>the</em> date object, if it validates.</p>
-</article>
-
-    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-parsetime-time">
-        <h3 class="doctext-05 ">
-            <a href="#function-parsetime-time">
-                <code class="function language-js"><span class="token function">parseTime</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Where <code>time</code> is a string it is parsed as a time in ISO time format: as
-hours <code>'13'</code>, with minutes <code>'13:25'</code>, with seconds <code>'13:25:14'</code> or with
-decimal seconds <code>'13:25:14.001'</code>. Returns a number in seconds.</p>
-<pre><code><span class="token keyword">const</span> time <span class="token operator">=</span> <span class="token function">parseTime</span><span class="token punctuation">(</span><span class="token string">'13:25:14.001'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// 48314.001</span></code></pre><p>Where <code>time</code> is a number it is assumed to represent a time in seconds
-and is returned directly.</p>
-<pre><code><span class="token keyword">const</span> time <span class="token operator">=</span> <span class="token function">parseTime</span><span class="token punctuation">(</span><span class="token number">60</span><span class="token punctuation">)</span><span class="token punctuation">;</span>               <span class="token comment">// 60</span></code></pre></article>
-
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-parseint-string">
         <h3 class="doctext-05 ">
             <a href="#function-parseint-string">
@@ -809,7 +781,7 @@ in <code>target</code> that are not matched to <code>source</code> objects are d
 <li>a number in seconds UNIX time</li>
 <li>a date object</li>
 </ul>
-<p>Returns a date object, or <em>the</em> date object, if it validates.</p>
+<p>Returns a date object (or <em>the</em> date object, if it represents a valid date).</p>
 </article>
 
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-parsedatelocal-date">
@@ -819,8 +791,35 @@ in <code>target</code> that are not matched to <code>source</code> objects are d
             </a>
         </h3>
     <p>As <code>parseDate(date)</code>, but returns a date object with local time set to the
-result of the parse (or the original date object, if it validates).</p>
+result of the parse.</p>
 </article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-formatdate-format-locale-timezone-date">
+        <h3 class="doctext-05 ">
+            <a href="#function-formatdate-format-locale-timezone-date">
+                <code class="function language-js"><span class="token function">formatDate</span><span class="token punctuation">(</span>format<span class="token punctuation">,</span> locale<span class="token punctuation">,</span> timezone<span class="token punctuation">,</span> date<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Formats <code>date</code>, an ISO string or number in seconds or a JS date object,
+to the format of the string <code>format</code>. The format string may contain the tokens:</p>
+<ul>
+<li><code>'YYYY'</code> years</li>
+<li><code>'YY'</code>   2-digit year</li>
+<li><code>'MM'</code>   month, 2-digit</li>
+<li><code>'MMM'</code>  month, 3-letter</li>
+<li><code>'MMMM'</code> month, full name</li>
+<li><code>'D'</code>    day of week</li>
+<li><code>'DD'</code>   day of week, two-digit</li>
+<li><code>'DDD'</code>  weekday, 3-letter</li>
+<li><code>'DDDD'</code> weekday, full name</li>
+<li><code>'hh'</code>   hours</li>
+<li><code>'mm'</code>   minutes</li>
+<li><code>'ss'</code>   seconds</li>
+</ul>
+<p>The <code>locale</code> string may be <code>'en'</code> or <code>'fr'</code>. The <code>'timezone'</code> parameter is
+either <code>'UTC'</code> or an IANA timezone such as ‘<code>Europe/Zurich</code>‘
+(<a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">timezones on Wikipedia</a>).</p>
+<pre><code><span class="token keyword">const</span> date <span class="token operator">=</span> <span class="token function">formatDate</span><span class="token punctuation">(</span><span class="token string">'YYYY'</span><span class="token punctuation">,</span> <span class="token string">'en'</span><span class="token punctuation">,</span> <span class="token string">'UTC'</span><span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// 2020</span></code></pre></article>
 
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-formatdatelocal-format-locale-date">
         <h3 class="doctext-05 ">
@@ -828,7 +827,9 @@ result of the parse (or the original date object, if it validates).</p>
                 <code class="function language-js"><span class="token function">formatDateLocal</span><span class="token punctuation">(</span>format<span class="token punctuation">,</span> locale<span class="token punctuation">,</span> date<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    </article>
+    <p>As <code>formatDate(date)</code>, but returns a date object with local time set to the
+result of the parse.</p>
+</article>
 
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-formatdateiso-date">
         <h3 class="doctext-05 ">
@@ -850,24 +851,6 @@ a string in the ISO date format.</p>
 a string in the ISO datetime format.</p>
 </article>
 
-    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-today-date">
-        <h3 class="doctext-05 ">
-            <a href="#function-today-date">
-                <code class="function language-js"><span class="token function">toDay</span><span class="token punctuation">(</span>date<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Returns day of week as a number, where monday is <code>0</code>.</p>
-</article>
-
-    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-clonedate-date">
-        <h3 class="doctext-05 ">
-            <a href="#function-clonedate-date">
-                <code class="function language-js"><span class="token function">cloneDate</span><span class="token punctuation">(</span>date<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Returns new date object set to same time.</p>
-</article>
-
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-adddate-diff-date">
         <h3 class="doctext-05 ">
             <a href="#function-adddate-diff-date">
@@ -885,7 +868,8 @@ a new date object.</p>
                 <code class="function language-js"><span class="token function">floorDate</span><span class="token punctuation">(</span>token<span class="token punctuation">,</span> date<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    <p>Floors date to the start of nearest calendar point in time indicated by <code>token</code>:</p>
+    <p>Floors date to the start of nearest calendar point in increment indicated
+by <code>token</code>:</p>
 <ul>
 <li><code>'Y'</code>   Year</li>
 <li><code>'M'</code>   Month</li>
@@ -902,31 +886,7 @@ a new date object.</p>
 <li><code>'sat'</code> Saturday</li>
 <li><code>'sun'</code> Sunday</li>
 </ul>
-<pre><code><span class="token keyword">const</span> dayCounts <span class="token operator">=</span> times<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token function">floorTime</span><span class="token punctuation">(</span><span class="token string">'days'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
-
-    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-formatdate-locale-timezone-format-date">
-        <h3 class="doctext-05 ">
-            <a href="#function-formatdate-locale-timezone-format-date">
-                <code class="function language-js"><span class="token function">formatDate</span><span class="token punctuation">(</span>locale<span class="token punctuation">,</span> timezone<span class="token punctuation">,</span> format<span class="token punctuation">,</span> date<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Formats <code>date</code> (a string or number or date accepted by <code>parseDate(date)</code>)
-to the format of the string <code>format</code>. The format string may contain the tokens:</p>
-<ul>
-<li><code>'YYYY'</code> years</li>
-<li><code>'YY'</code>   2-digit year</li>
-<li><code>'MM'</code>   month, 2-digit</li>
-<li><code>'MMM'</code>  month, 3-letter</li>
-<li><code>'MMMM'</code> month, full name</li>
-<li><code>'D'</code>    day of week</li>
-<li><code>'DD'</code>   day of week, two-digit</li>
-<li><code>'DDD'</code>  weekday, 3-letter</li>
-<li><code>'DDDD'</code> weekday, full name</li>
-<li><code>'hh'</code>   hours</li>
-<li><code>'mm'</code>   minutes</li>
-<li><code>'ss'</code>   seconds</li>
-</ul>
-<pre><code><span class="token keyword">const</span> date <span class="token operator">=</span> <span class="token function">formatDate</span><span class="token punctuation">(</span><span class="token string">'en'</span><span class="token punctuation">,</span> <span class="token string">''</span><span class="token punctuation">,</span> <span class="token string">'YYYY'</span><span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// 2020</span></code></pre></article>
+<pre><code><span class="token keyword">const</span> dayCounts <span class="token operator">=</span> times<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token function">floorDate</span><span class="token punctuation">(</span><span class="token string">'d'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
 
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-parsetime-time">
         <h3 class="doctext-05 ">
@@ -947,7 +907,7 @@ and is returned directly.</p>
                 <code class="function language-js"><span class="token function">formatTime</span><span class="token punctuation">(</span>format<span class="token punctuation">,</span> time<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    <p>Formats <code>time</code> (an ‘hh:mm:sss’ time string or a number in seconds) to match
+    <p>Formats <code>time</code>, an ‘hh:mm:ss’ time string or a number in seconds, to match
 <code>format</code>, a string that may contain the tokens:</p>
 <ul>
 <li><code>'±'</code>   Sign, renders ‘-‘ if time is negative, otherwise nothing</li>
@@ -975,8 +935,8 @@ and is returned directly.</p>
                 <code class="function language-js"><span class="token function">formatTimeISO</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    <p>Formats <code>time</code> (a string or a number accepted by <code>parseTime(time)</code>) as
-a string in the ISO time format.
+    <p>Formats <code>time</code>, an ‘hh:mm:sss’ time string or a number in seconds, as a string
+in the ISO time format.
 <code>`</code></p>
 </article>
 
@@ -986,11 +946,11 @@ a string in the ISO time format.
                 <code class="function language-js"><span class="token function">addTime</span><span class="token punctuation">(</span>time1<span class="token punctuation">,</span> time2<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    <p>Sums <code>time2</code> and <code>time1</code>, returning UNIX time as a number in seconds.
-If <code>time1</code> is a string, it is parsed as a duration, where numbers
-are accepted outside the bounds of 0-24 hours or 0-60 minutes or seconds.
-For example, to add 72 minutes to a list of times:</p>
-<pre><code><span class="token keyword">const</span> laters <span class="token operator">=</span> times<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token function">addTime</span><span class="token punctuation">(</span><span class="token string">'00:72'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
+    <p>Sums <code>time2</code> and <code>time1</code>, which may be ‘hh:mm:sss’ time strings or numbers in
+seconds, and returns time as a number in seconds. <code>time1</code> may contain hours
+outside the range 0-24 or minutes or seconds outside the range 0-60. For
+example, to add 75 minutes to a list of times you may write:</p>
+<pre><code><span class="token keyword">const</span> laters <span class="token operator">=</span> times<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token function">addTime</span><span class="token punctuation">(</span><span class="token string">'00:75'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
 
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-floortime-token-time">
         <h3 class="doctext-05 ">
@@ -998,10 +958,17 @@ For example, to add 72 minutes to a list of times:</p>
                 <code class="function language-js"><span class="token function">floorTime</span><span class="token punctuation">(</span>token<span class="token punctuation">,</span> time<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    <p>Floors <code>time</code> to the nearest <code>token</code>, where <code>token</code> is one of: <code>'week'</code>, <code>'day'</code>,
-<code>'hour'</code>, <code>'minute'</code> or <code>'second'</code>. <code>time</code> may be an ISO time string or a time
-in seconds. Returns a time in seconds.</p>
-<pre><code><span class="token keyword">const</span> hourCounts <span class="token operator">=</span> times<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token function">floorTime</span><span class="token punctuation">(</span><span class="token string">'hour'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
+    <p>Floors time to the start of the nearest <code>token</code>, where <code>token</code> is one of:</p>
+<ul>
+<li><code>'w'</code>   Week</li>
+<li><code>'d'</code>   Day</li>
+<li><code>'h'</code>   Hour</li>
+<li><code>'m'</code>   Minute</li>
+<li><code>'s'</code>   Second</li>
+<li><code>'ms'</code>  Millisecond</li>
+</ul>
+<p><code>time</code> may be an ISO time string or a time in seconds. Returns a time in seconds.</p>
+<pre><code><span class="token keyword">const</span> hourCounts <span class="token operator">=</span> times<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token function">floorTime</span><span class="token punctuation">(</span><span class="token string">'h'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
 
             </div>
         </div>
