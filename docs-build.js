@@ -28,7 +28,7 @@ setTimeout(function() {
     select('[build-fn]', document).forEach(invoke('removeAttribute', ['build-fn']));
     select('[build-remove]', document).forEach(invoke('remove', nothing));
     // Brave inserts some detection script
-    select('[data-dapp-detection]', document).forEach(invoke('remove', nothing));
+    // select('[data-dapp-detection]', document).forEach(invoke('remove', nothing));
     window.console.log('Document built! (this is just a cheap timeout, it may not be true)');
 }, 3000);
 
