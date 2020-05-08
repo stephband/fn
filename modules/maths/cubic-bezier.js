@@ -2,10 +2,10 @@
 // webkit source by Christian Effenberger):
 // http://www.netzgesta.de/dev/cubic-bezier-timing-function.html
 
-/*
+/**
 cubicBezier(point1, point2, duration, x)
-Where `point1` and `point2` are `[x, y]` arrays describing control points.
-*/
+Where `point1` and `point2` are `[x, y]` vectors describing control points.
+**/
 
 import curry from '../curry.js';
 

@@ -1,6 +1,6 @@
-/*
+/**
 rest(n, array)
-*/
+**/
 
 export default function rest(i, object) {
     if (object.slice) { return object.slice(i); }

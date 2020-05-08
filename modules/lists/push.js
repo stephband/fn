@@ -1,8 +1,8 @@
-/*
+/**
 .push(array, value)
 
 
-*/
+**/
 
 const A = Array.prototype;
 

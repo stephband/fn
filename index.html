@@ -1,15 +1,23 @@
-<!DOCTYPE html><html lang="en" is="sparky" class="js"><head>
+<!DOCTYPE html><html lang="en" class=" js content-loading loading"><head>
+    
     <meta charset="utf-8">
-
-    <meta name="author" content="@stephband">
+    <meta name="author" content="stephband">
     <meta name="description" content="Documentation for Fn. A library of functions, observers and streams, published as ES6 modules.">
     <meta name="viewport" content="width=device-width">
 
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@stephband">
+    <meta property="og:url" content="http://stephen.band/fn/">
+    <meta property="og:title" content="Fn">
+    <meta property="og:description" content="A library of functions, observers and streams, published as ES6 modules.">
+    <meta property="og:image" content="">
+
     <title>Fn</title>
 
-    <script>
-    document.documentElement.className = 'js';
-    window.DEBUG = false;
+    <script title="load">
+    document.documentElement.className += ' js content-loading loading';
+    window.addEventListener('DOMContentLoaded', () => document.documentElement.classList.remove('content-loading'));
+    window.addEventListener('load', () => document.documentElement.classList.remove('loading'));
     </script>
 
     <link rel="shortcut icon" href="images/logo-64x64.ico">
@@ -17,139 +25,20 @@
     <link rel="icon" type="image/png" href="images/logo-64x64.png" sizes="64x64">
     <link rel="icon" type="image/png" href="images/logo-128x128.png" sizes="128x128">
 
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono:100,300,400,500,700">
 
-    <link rel="stylesheet" href="../bolt/css/html.css">
-    <link rel="stylesheet" href="../bolt/css/root.css">
-    <link rel="stylesheet" href="../bolt/css/body.css">
-    <link rel="stylesheet" href="../bolt/css/block.css">
-    <link rel="stylesheet" href="../bolt/css/type.css">
-    <link rel="stylesheet" href="../bolt/css/text.css">
-    <link rel="stylesheet" href="../bolt/css/color.css">
+    
 
-    <link rel="stylesheet" href="../dom/css/dom.css">
-    <link rel="stylesheet" href="../fn/css/prism-cruncher.css">
-    <link rel="stylesheet" href="../fn/css/tests.css">
-    <link rel="stylesheet" href="css/docs.css">
-    <link rel="stylesheet" href="css/theme.css">
-    <link rel="stylesheet" href="css/respond.css">
-<template id="header-template" title="/fn/">
-    <h1>{[title]} <span class="doctext-06">{[version]}</span></h1>
+    <link rel="stylesheet" href="style.min.css">
 
-    <p class="doctext-08">
-        {[description]}
-    </p>
+    <!--template build-fn="get:style each">
+        <link rel="stylesheet" href="{[.]}" />
+    </template-->
+</head>
 
-    <ul class="link-index index">
-        <li><strong>repo:</strong> <a href="{[repository.url]}">{[repository.url]}</a></li>
-        <li><strong>bugs:</strong> <a href="{[bugs.url]}">{[bugs.url]}</a></li>
-    </ul>
-</template><template id="title-template" title="/fn/">
-    <h3 class="doctext-04" build-fn="after:body">{[name]}</h3>
-</template><template id="h2-template" title="/fn/">
-    <header class="x-1 4x @1-x-1 @2-x-2">
-        <h2 class="doctext-02">
-            <a href="#{[id]}">
-                <code class="language-js" build-fn="append:title" style="color: inherit;"></code>
-            </a>
-        </h2>
-    </header>
-
-    <div class="x-1 3x @2-x-2" build-fn="append:body"></div>
-</template><template id="attribute-template" title="/fn/">
-    <article build-fn="append:body" class="attribute-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="attribute-{[id]}">
-        <h3 class="doctext-05">
-            <a href="#attribute-{[id]}">
-                <code class="token language-js">[<span build-fn="append:title"></span>]</code>
-            </a>
-        </h3>
-    </article>
-</template><template id="constructor-template" title="/fn/">
-    <article class="function-doc-toggle-block doc-toggle-block toggle-block block 3x" toggleable="" id="{[0.id]}">
-        <h3 build-fn="get:0 after:body" class="doctext-05 dot-indent">
-            <a href="#{[id]}">
-                <code class="property language-js">"{[name|lowercase]}"</code>
-            </a>
-        </h3>
-
-        <template build-src="/fn/templates.html#property-method-template"></template>
-    </article>
-</template><template id="method-template" title="/fn/">
-    <article build-fn="append:body" class="method-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="method-{[id]}">
-        <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
-            <a href="#method-{[id]}">
-                <code build-fn="append:title" class="function language-js"></code>
-            </a>
-        </h3>
-    </article>
-</template><template id="property-template" title="/fn/">
-    <article build-fn="append:body" class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-{[id]}">
-        <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
-            <a href="#property-{[id]}">
-                <code build-fn="append:title" class="property language-js"></code>
-            </a>
-        </h3>
-    </article>
-</template><template id="class-template" title="/fn/">
-    <article build-fn="append:body" class="class-doc-toggle-block doc-toggle-block toggle-block block class-grid grid @2-9-grid" toggleable="" id="class-{[id]}">
-        <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
-            <a href="#class-{[id]}">
-                <code build-fn="append:title" class=""></code>
-            </a>
-        </h3>
-    </article>
-</template><template id="component-template" title="/fn/">
-    <section class="component-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="component-{[0.id]}">
-        <header class="class-grid grid 3-grid @1-6-grid @2-9-grid">
-            <h3 build-fn="after:'0.body'" class="x-1 3x @1-x-2 @2-x-3 doctext-03 {[0.prefix|is:'.'|yesno:'dot-indent','']}">
-                <a build-fn="append:'0.title'" class="doctoggle-button button" href="#component-{[0.id]}"></a>
-            </h3>
-        </header>
-
-        <section build-fn="rest:1 each append:body" class="block class-grid grid @1-6-grid @2-9-grid">
-            <h4 class="x-1 start-x 3x @2-2x @2-end-x doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
-                <code build-fn="append:title" class=""></code>
-            </h4>
-        </section>
-    </section>
-</template><template id="function-template" title="/fn/">
-    <article build-fn="append:body" class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-{[id]}">
-        <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
-            <a href="#function-{[id]}">
-                <code build-fn="append:title" class="function language-js"></code>
-            </a>
-        </h3>
-    </article>
-</template><template id="fn-template" title="/fn/">
-    <article build-fn="append:body" class="fn-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="fn-{[id]}">
-        <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
-            <a href="#fn-{[id]}">
-                <code build-fn="append:title" class="language-js"></code>
-            </a>
-        </h3>
-    </article>
-</template><template id="section-template" title="/fn/">
-    <article build-fn="append:body" class="section-doc-toggle-block doc-toggle-block toggle-block block active" id="section-{[id]}">
-        <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
-            <code build-fn="append:title" class="function language-js"></code>
-        </h3>
-    </article>
-</template><template id="body-template" title="/fn/">
-    <article build-fn="append:body" class="body-doc-toggle-block doc-toggle-block toggle-block block active" id="{[id]}"></article>
-</template><template id="property-method-template" title="/fn/">
-    <section class="x-1 2x @1-x-1 @2-x-2">
-        <template build-fn="filter-property each" build-src="/fn/templates.html#{[type]}-template"></template>
-    </section>
-
-    <section class="x-1 2x @1-x-3 @2-x-4">
-        <template build-fn="filter-method each" build-src="/fn/templates.html#{[type]}-template"></template>
-    </section>
-</template></head>
-
-<body class="grid">
+<body class="grid @1-6x-grid @3-9x-grid">
     <header class="x-1 3x @1-6x @2-9x @3-x-2 @3-11x" id="header">
-
-    <h1>Fn <span class="doctext-06">1.4.0</span></h1>
+        
+    <h1 class="doctext-01">Fn <span class="doctext-06">1.4.0</span></h1>
 
     <p class="doctext-08">
         A library of functions, observers and streams, published as ES6 modules.
@@ -164,14 +53,14 @@
 
     <section class="x-1 3x @1-6x @2-9x @3-x-2 grid" locateable="" id="functions">
         <header class="x-1 3x @1-4x">
-            <h2 class="text-2">Functions</h2>
-            <p>Import functions from the Fn module:</p>
+            <h2 class="doctext-02">Functions</h2>
+            <p class="doctext-08">Import functions from the Fn module:</p>
             <pre class=" language-js"><code class=" language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> <span class="token keyword">get</span><span class="token punctuation">,</span> matches <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'/fn/module.js'</span><span class="token punctuation">;</span></code></pre>
         </header>
 
         <div class="x-1 3x">
-            <h4 class="text-4">Functions</h4>
-
+            <h4 class="doctext-03">Functions</h4>
+            <!--template-->
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-cache-fn">
         <h3 class="doctext-05 ">
             <a href="#function-cache-fn">
@@ -198,7 +87,8 @@ against input values in a map, such that for each input value
                 <code class="function language-js"><span class="token function">curry</span><span class="token punctuation">(</span>fn <span class="token punctuation">[</span><span class="token punctuation">,</span> muteable<span class="token punctuation">,</span> arity<span class="token punctuation">]</span><span class="token punctuation">)</span></code>
             </a>
         </h3>
-    </article>
+    <p>Returns a function that wraps <code>fn</code> and makes it partially applicable.</p>
+</article>
 
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-choose-fn-map">
         <h3 class="doctext-05 ">
@@ -267,16 +157,16 @@ against input values in a WeakMap, such that for each input value
         </div>
 
         <div class="x-1 3x @2-4x">
-            <p>
+            <p class="doctext-08">
             The functions below are curried (where they take more than one
-            parameter), allowing them to be partially applied.
+            parameter). They may be partially applied.
             </p>
         </div>
 
         <div class="x-1 3x column-grid grid">
             <div class="x-1">
-                <h4 class="text-4">Objects</h4>
-
+                <h4 class="doctext-03">Objects</h4>
+                <!--template-->
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-argument-n">
         <h3 class="doctext-05 ">
             <a href="#function-argument-n">
@@ -481,7 +371,43 @@ stream<span class="token punctuation">.</span><span class="token function">scan<
 
         <div class="x-1 3x @1-x-4 column-grid grid">
             <div class="x-1">
-                <h4 class="text-4">Strings</h4>
+                <h4 class="doctext-03">Strings</h4>
+                <!--template-->
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-append-str2-str1">
+        <h3 class="doctext-05 ">
+            <a href="#function-append-str2-str1">
+                <code class="function language-js"><span class="token function">append</span><span class="token punctuation">(</span>str2<span class="token punctuation">,</span> str1<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns <code>str1 + str2</code>.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-prepend-string1-string2">
+        <h3 class="doctext-05 ">
+            <a href="#function-prepend-string1-string2">
+                <code class="function language-js"><span class="token function">prepend</span><span class="token punctuation">(</span>string1<span class="token punctuation">,</span> string2<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns <code>str1 + str2</code>.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-prepad-chars-n-string">
+        <h3 class="doctext-05 ">
+            <a href="#function-prepad-chars-n-string">
+                <code class="function language-js"><span class="token function">prepad</span><span class="token punctuation">(</span>chars<span class="token punctuation">,</span> n<span class="token punctuation">,</span> string<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Pads <code>string</code> to <code>n</code> characters by prepending <code>chars</code>.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-postpad-chars-n-string">
+        <h3 class="doctext-05 ">
+            <a href="#function-postpad-chars-n-string">
+                <code class="function language-js"><span class="token function">postpad</span><span class="token punctuation">(</span>chars<span class="token punctuation">,</span> n<span class="token punctuation">,</span> string<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Pads <code>string</code> to <code>n</code> characters by appending <code>chars</code>.</p>
+</article>
 
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-capture-regex-reducers-accumulator-string">
         <h3 class="doctext-05 ">
@@ -539,31 +465,312 @@ and returns the resulting value.</p>
 making it suitable, for example, to use in <code>array.map(parseInt)</code>.</p>
 </article>
 
-    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-parsevalue-units-string">
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-slugify-string">
         <h3 class="doctext-05 ">
-            <a href="#function-parsevalue-units-string">
-                <code class="function language-js"><span class="token function">parseValue</span><span class="token punctuation">(</span>units<span class="token punctuation">,</span> string<span class="token punctuation">)</span></code>
+            <a href="#function-slugify-string">
+                <code class="function language-js"><span class="token function">slugify</span><span class="token punctuation">(</span>string<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    </article>
+    <p>Replaces any series of non-word characters with a <code>'-'</code> and lowercases the rest.</p>
+<pre><code class="language-js">    <span class="token function">slugify</span><span class="token punctuation">(</span><span class="token string">'Party on #mydudes!'</span><span class="token punctuation">)</span> <span class="token comment">// 'party-on-mydudes'</span></code></pre>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-tocamelcase-string">
+        <h3 class="doctext-05 ">
+            <a href="#function-tocamelcase-string">
+                <code class="function language-js"><span class="token function">toCamelCase</span><span class="token punctuation">(</span>string<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Capitalises any Letter following a <code>'-'</code> and removes the dash.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-toplaintext-string">
+        <h3 class="doctext-05 ">
+            <a href="#function-toplaintext-string">
+                <code class="function language-js"><span class="token function">toPlainText</span><span class="token punctuation">(</span>string<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Normalises string as plain text without accents using canonical decomposition
+(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize">https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize</a>).</p>
+</article>
 
             </div>
 
             <div class="x-1">
-                <h4 class="text-4">Numbers</h4>
+                <h4 class="doctext-03">Maths</h4>
+                <!--template-->
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-clamp-min-max-n">
+        <h3 class="doctext-05 ">
+            <a href="#function-clamp-min-max-n">
+                <code class="function language-js"><span class="token function">clamp</span><span class="token punctuation">(</span>min<span class="token punctuation">,</span> max<span class="token punctuation">,</span> n<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-wrap-min-max-n">
+        <h3 class="doctext-05 ">
+            <a href="#function-wrap-min-max-n">
+                <code class="function language-js"><span class="token function">wrap</span><span class="token punctuation">(</span>min<span class="token punctuation">,</span> max<span class="token punctuation">,</span> n<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-gaussian">
+        <h3 class="doctext-05 ">
+            <a href="#function-gaussian">
+                <code class="function language-js"><span class="token function">gaussian</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Generate a random number with a gaussian distribution centred
+at 0 with limits -1 to 1.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-todb-level">
+        <h3 class="doctext-05 ">
+            <a href="#function-todb-level">
+                <code class="function language-js"><span class="token function">todB</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Converts a value to decibels relative to unity (dBFS).</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-tolevel-db">
+        <h3 class="doctext-05 ">
+            <a href="#function-tolevel-db">
+                <code class="function language-js"><span class="token function">toLevel</span><span class="token punctuation">(</span>dB<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Converts a dB value relative to unity (dBFS) to unit value.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-torad-deg">
+        <h3 class="doctext-05 ">
+            <a href="#function-torad-deg">
+                <code class="function language-js"><span class="token function">toRad</span><span class="token punctuation">(</span>deg<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-todeg-rad">
+        <h3 class="doctext-05 ">
+            <a href="#function-todeg-rad">
+                <code class="function language-js"><span class="token function">toDeg</span><span class="token punctuation">(</span>rad<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-mod-divisor-n">
+        <h3 class="doctext-05 ">
+            <a href="#function-mod-divisor-n">
+                <code class="function language-js"><span class="token function">mod</span><span class="token punctuation">(</span>divisor<span class="token punctuation">,</span> n<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>JavaScript’s modulu operator (<code>%</code>) uses Euclidean division, but for
+stuff that cycles through 0 the symmetrics of floored division are often
+are more useful. This function implements floored division.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-gcd-a-b">
+        <h3 class="doctext-05 ">
+            <a href="#function-gcd-a-b">
+                <code class="function language-js"><span class="token function">gcd</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> b<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns the greatest common divider of a and b.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-lcm-a-b">
+        <h3 class="doctext-05 ">
+            <a href="#function-lcm-a-b">
+                <code class="function language-js"><span class="token function">lcm</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> b<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns the lowest common multiple of a and b.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-factorise-array">
+        <h3 class="doctext-05 ">
+            <a href="#function-factorise-array">
+                <code class="function language-js"><span class="token function">factorise</span><span class="token punctuation">(</span>array<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Reduces a fraction (represented by <code>array</code> in the form
+<code>[numerator, denominator]</code>) by finding the greatest common divisor and
+dividing by it both values by it.</p>
+<p>Returns a new array in the form <code>[numerator, denominator]</code>.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-cubicbezier-point1-point2-duration-x">
+        <h3 class="doctext-05 ">
+            <a href="#function-cubicbezier-point1-point2-duration-x">
+                <code class="function language-js"><span class="token function">cubicBezier</span><span class="token punctuation">(</span>point1<span class="token punctuation">,</span> point2<span class="token punctuation">,</span> duration<span class="token punctuation">,</span> x<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Where <code>point1</code> and <code>point2</code> are <code>[x, y]</code> vectors describing control points.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-tocartesian-polar">
+        <h3 class="doctext-05 ">
+            <a href="#function-tocartesian-polar">
+                <code class="function language-js"><span class="token function">toCartesian</span><span class="token punctuation">(</span>polar<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-topolar-cartesian">
+        <h3 class="doctext-05 ">
+            <a href="#function-topolar-cartesian">
+                <code class="function language-js"><span class="token function">toPolar</span><span class="token punctuation">(</span>cartesian<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
 
             </div>
         </div>
 
         <div class="x-1 3x @2-x-7 column-grid grid">
             <div class="x-1">
-                <h4 class="text-4">Arrays</h4>
+                <h4 class="doctext-03">Arrays</h4>
+                <!--template-->
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-by-fn-a-b">
+        <h3 class="doctext-05 ">
+            <a href="#function-by-fn-a-b">
+                <code class="function language-js"><span class="token function">by</span><span class="token punctuation">(</span>fn<span class="token punctuation">,</span> a<span class="token punctuation">,</span> b<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Compares <code>fn(a)</code> against <code>fn(b)</code> and returns <code>-1</code>, <code>0</code> or <code>1</code>. Useful for sorting
+objects by property:</p>
+<pre><code><span class="token punctuation">[</span><span class="token punctuation">{</span>id<span class="token punctuation">:</span> <span class="token string">'2'</span><span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>id<span class="token punctuation">:</span> <span class="token string">'1'</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">sort</span><span class="token punctuation">(</span><span class="token function">by</span><span class="token punctuation">(</span><span class="token keyword">get</span><span class="token punctuation">(</span><span class="token string">'id'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// [{id: '1'}, {id: '2'}]</span></code></pre></article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-byalphabet-a-b">
+        <h3 class="doctext-05 ">
+            <a href="#function-byalphabet-a-b">
+                <code class="function language-js"><span class="token function">byAlphabet</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> b<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Compares <code>a</code> against <code>b</code> alphabetically using the current locale alphabet.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-each-fn-array">
+        <h3 class="doctext-05 ">
+            <a href="#function-each-fn-array">
+                <code class="function language-js"><span class="token function">each</span><span class="token punctuation">(</span>fn<span class="token punctuation">,</span> array<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Calls <code>fn</code> for each member in <code>array</code>.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-map-fn-object">
+        <h3 class="doctext-05 ">
+            <a href="#function-map-fn-object">
+                <code class="function language-js"><span class="token function">map</span><span class="token punctuation">(</span>fn<span class="token punctuation">,</span> object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Delegates to <code>object.map</code> or <code>Array.map</code> to return a new collection of mapped
+values.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-filter-fn-object">
+        <h3 class="doctext-05 ">
+            <a href="#function-filter-fn-object">
+                <code class="function language-js"><span class="token function">filter</span><span class="token punctuation">(</span>fn<span class="token punctuation">,</span> object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Delegates to <code>object.filter</code> or <code>Array.filter</code> to return a new collection of
+filtered objects.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-reduce-fn-seed-object">
+        <h3 class="doctext-05 ">
+            <a href="#function-reduce-fn-seed-object">
+                <code class="function language-js"><span class="token function">reduce</span><span class="token punctuation">(</span>fn<span class="token punctuation">,</span> seed<span class="token punctuation">,</span> object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Delegates to <code>object.reduce</code> or <code>Array.reduce</code> to return a reduced value.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-concat-array2-array1">
+        <h3 class="doctext-05 ">
+            <a href="#function-concat-array2-array1">
+                <code class="function language-js"><span class="token function">concat</span><span class="token punctuation">(</span>array2<span class="token punctuation">,</span> array1<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Where JavaScript’s Array.concat only works reliably on arrays, <code>concat</code>
+will glue together any old array-like object.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-insert-fn-array-object">
+        <h3 class="doctext-05 ">
+            <a href="#function-insert-fn-array-object">
+                <code class="function language-js"><span class="token function">insert</span><span class="token punctuation">(</span>fn<span class="token punctuation">,</span> array<span class="token punctuation">,</span> object<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Inserts <code>object</code> into <code>array</code> at the first index where the result of
+<code>fn(object)</code> is greater than <code>fn(array[index])</code>.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-last-array">
+        <h3 class="doctext-05 ">
+            <a href="#function-last-array">
+                <code class="function language-js"><span class="token function">last</span><span class="token punctuation">(</span>array<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Gets the last value from an array.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-remove-array-value">
+        <h3 class="doctext-05 ">
+            <a href="#function-remove-array-value">
+                <code class="function language-js"><span class="token function">remove</span><span class="token punctuation">(</span>array<span class="token punctuation">,</span> value<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Remove <code>value</code> from <code>array</code>. Where <code>value</code> is not in <code>array</code>, does nothing.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-rest-n-array">
+        <h3 class="doctext-05 ">
+            <a href="#function-rest-n-array">
+                <code class="function language-js"><span class="token function">rest</span><span class="token punctuation">(</span>n<span class="token punctuation">,</span> array<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-take-n-array">
+        <h3 class="doctext-05 ">
+            <a href="#function-take-n-array">
+                <code class="function language-js"><span class="token function">take</span><span class="token punctuation">(</span>n<span class="token punctuation">,</span> array<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-unique-array">
+        <h3 class="doctext-05 ">
+            <a href="#function-unique-array">
+                <code class="function language-js"><span class="token function">unique</span><span class="token punctuation">(</span>array<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Takes an array or stream as <code>array</code>, returns an object of the same
+type without duplicate values.</p>
+</article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-update-create-destroy-fn-target-source">
+        <h3 class="doctext-05 ">
+            <a href="#function-update-create-destroy-fn-target-source">
+                <code class="function language-js"><span class="token function">update</span><span class="token punctuation">(</span>create<span class="token punctuation">,</span> destroy<span class="token punctuation">,</span> fn<span class="token punctuation">,</span> target<span class="token punctuation">,</span> source<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Returns a new array containing items that are either matched objects from
+<code>target</code> assigned new data from <code>source</code> objects or, where no match is found,
+new objects created by calling <code>create</code> on a <code>source</code> object. Any objects
+in <code>target</code> that are not matched to <code>source</code> objects are destroyed by calling
+<code>destroy</code> on them.</p>
+</article>
 
             </div>
 
             <div class="x-1">
-                <h4 class="text-4">Time</h4>
-
+                <h4 class="doctext-03">Time</h4>
+                <!--template-->
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-parsedate-date">
         <h3 class="doctext-05 ">
             <a href="#function-parsedate-date">
@@ -576,7 +783,7 @@ making it suitable, for example, to use in <code>array.map(parseInt)</code>.</p>
 <li>a number in seconds UNIX time</li>
 <li>a date object</li>
 </ul>
-<p>Returns a date object, or <em>the</em> date object, if it validates.</p>
+<p>Returns a date object (or <em>the</em> date object, if it represents a valid date).</p>
 </article>
 
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-parsedatelocal-date">
@@ -586,8 +793,35 @@ making it suitable, for example, to use in <code>array.map(parseInt)</code>.</p>
             </a>
         </h3>
     <p>As <code>parseDate(date)</code>, but returns a date object with local time set to the
-result of the parse (or the original date object, if it validates).</p>
+result of the parse.</p>
 </article>
+
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-formatdate-format-locale-timezone-date">
+        <h3 class="doctext-05 ">
+            <a href="#function-formatdate-format-locale-timezone-date">
+                <code class="function language-js"><span class="token function">formatDate</span><span class="token punctuation">(</span>format<span class="token punctuation">,</span> locale<span class="token punctuation">,</span> timezone<span class="token punctuation">,</span> date<span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Formats <code>date</code>, an ISO string or number in seconds or a JS date object,
+to the format of the string <code>format</code>. The format string may contain the tokens:</p>
+<ul>
+<li><code>'YYYY'</code> years</li>
+<li><code>'YY'</code>   2-digit year</li>
+<li><code>'MM'</code>   month, 2-digit</li>
+<li><code>'MMM'</code>  month, 3-letter</li>
+<li><code>'MMMM'</code> month, full name</li>
+<li><code>'D'</code>    day of week</li>
+<li><code>'DD'</code>   day of week, two-digit</li>
+<li><code>'DDD'</code>  weekday, 3-letter</li>
+<li><code>'DDDD'</code> weekday, full name</li>
+<li><code>'hh'</code>   hours</li>
+<li><code>'mm'</code>   minutes</li>
+<li><code>'ss'</code>   seconds</li>
+</ul>
+<p>The <code>locale</code> string may be <code>'en'</code> or <code>'fr'</code>. The <code>'timezone'</code> parameter is
+either <code>'UTC'</code> or an IANA timezone such as ‘<code>Europe/Zurich</code>‘
+(<a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">timezones on Wikipedia</a>).</p>
+<pre><code><span class="token keyword">const</span> date <span class="token operator">=</span> <span class="token function">formatDate</span><span class="token punctuation">(</span><span class="token string">'YYYY'</span><span class="token punctuation">,</span> <span class="token string">'en'</span><span class="token punctuation">,</span> <span class="token string">'UTC'</span><span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// 2020</span></code></pre></article>
 
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-formatdatelocal-format-locale-date">
         <h3 class="doctext-05 ">
@@ -595,7 +829,9 @@ result of the parse (or the original date object, if it validates).</p>
                 <code class="function language-js"><span class="token function">formatDateLocal</span><span class="token punctuation">(</span>format<span class="token punctuation">,</span> locale<span class="token punctuation">,</span> date<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    </article>
+    <p>As <code>formatDate(date)</code>, but returns a date object with local time set to the
+result of the parse.</p>
+</article>
 
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-formatdateiso-date">
         <h3 class="doctext-05 ">
@@ -617,24 +853,6 @@ a string in the ISO date format.</p>
 a string in the ISO datetime format.</p>
 </article>
 
-    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-today-date">
-        <h3 class="doctext-05 ">
-            <a href="#function-today-date">
-                <code class="function language-js"><span class="token function">toDay</span><span class="token punctuation">(</span>date<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Returns day of week as a number, where monday is <code>0</code>.</p>
-</article>
-
-    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-clonedate-date">
-        <h3 class="doctext-05 ">
-            <a href="#function-clonedate-date">
-                <code class="function language-js"><span class="token function">cloneDate</span><span class="token punctuation">(</span>date<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Returns new date object set to same time.</p>
-</article>
-
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-adddate-diff-date">
         <h3 class="doctext-05 ">
             <a href="#function-adddate-diff-date">
@@ -652,7 +870,8 @@ a new date object.</p>
                 <code class="function language-js"><span class="token function">floorDate</span><span class="token punctuation">(</span>token<span class="token punctuation">,</span> date<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    <p>Floors date to the start of nearest calendar point in time indicated by <code>token</code>:</p>
+    <p>Floors date to the start of nearest calendar point in increment indicated
+by <code>token</code>:</p>
 <ul>
 <li><code>'Y'</code>   Year</li>
 <li><code>'M'</code>   Month</li>
@@ -669,31 +888,7 @@ a new date object.</p>
 <li><code>'sat'</code> Saturday</li>
 <li><code>'sun'</code> Sunday</li>
 </ul>
-<pre><code><span class="token keyword">const</span> dayCounts <span class="token operator">=</span> times<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token function">floorTime</span><span class="token punctuation">(</span><span class="token string">'days'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
-
-    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-formatdate-locale-timezone-format-date">
-        <h3 class="doctext-05 ">
-            <a href="#function-formatdate-locale-timezone-format-date">
-                <code class="function language-js"><span class="token function">formatDate</span><span class="token punctuation">(</span>locale<span class="token punctuation">,</span> timezone<span class="token punctuation">,</span> format<span class="token punctuation">,</span> date<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Formats <code>date</code> (a string or number or date accepted by <code>parseDate(date)</code>)
-to the format of the string <code>format</code>. The format string may contain the tokens:</p>
-<ul>
-<li><code>'YYYY'</code> years</li>
-<li><code>'YY'</code>   2-digit year</li>
-<li><code>'MM'</code>   month, 2-digit</li>
-<li><code>'MMM'</code>  month, 3-letter</li>
-<li><code>'MMMM'</code> month, full name</li>
-<li><code>'D'</code>    day of week</li>
-<li><code>'DD'</code>   day of week, two-digit</li>
-<li><code>'DDD'</code>  weekday, 3-letter</li>
-<li><code>'DDDD'</code> weekday, full name</li>
-<li><code>'hh'</code>   hours</li>
-<li><code>'mm'</code>   minutes</li>
-<li><code>'ss'</code>   seconds</li>
-</ul>
-<pre><code><span class="token keyword">const</span> date <span class="token operator">=</span> <span class="token function">formatDate</span><span class="token punctuation">(</span><span class="token string">'en'</span><span class="token punctuation">,</span> <span class="token string">''</span><span class="token punctuation">,</span> <span class="token string">'YYYY'</span><span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// 2020</span></code></pre></article>
+<pre><code><span class="token keyword">const</span> dayCounts <span class="token operator">=</span> times<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token function">floorDate</span><span class="token punctuation">(</span><span class="token string">'d'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
 
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-parsetime-time">
         <h3 class="doctext-05 ">
@@ -714,7 +909,7 @@ and is returned directly.</p>
                 <code class="function language-js"><span class="token function">formatTime</span><span class="token punctuation">(</span>format<span class="token punctuation">,</span> time<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    <p>Formats <code>time</code> (an ‘hh:mm:sss’ time string or a number in seconds) to match
+    <p>Formats <code>time</code>, an ‘hh:mm:ss’ time string or a number in seconds, to match
 <code>format</code>, a string that may contain the tokens:</p>
 <ul>
 <li><code>'±'</code>   Sign, renders ‘-‘ if time is negative, otherwise nothing</li>
@@ -742,8 +937,8 @@ and is returned directly.</p>
                 <code class="function language-js"><span class="token function">formatTimeISO</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    <p>Formats <code>time</code> (a string or a number accepted by <code>parseTime(time)</code>) as
-a string in the ISO time format.
+    <p>Formats <code>time</code>, an ‘hh:mm:sss’ time string or a number in seconds, as a string
+in the ISO time format.
 <code>`</code></p>
 </article>
 
@@ -753,11 +948,11 @@ a string in the ISO time format.
                 <code class="function language-js"><span class="token function">addTime</span><span class="token punctuation">(</span>time1<span class="token punctuation">,</span> time2<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    <p>Sums <code>time2</code> and <code>time1</code>, returning UNIX time as a number in seconds.
-If <code>time1</code> is a string, it is parsed as a duration, where numbers
-are accepted outside the bounds of 0-24 hours or 0-60 minutes or seconds.
-For example, to add 72 minutes to a list of times:</p>
-<pre><code><span class="token keyword">const</span> laters <span class="token operator">=</span> times<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token function">addTime</span><span class="token punctuation">(</span><span class="token string">'00:72'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
+    <p>Sums <code>time2</code> and <code>time1</code>, which may be ‘hh:mm:sss’ time strings or numbers in
+seconds, and returns time as a number in seconds. <code>time1</code> may contain hours
+outside the range 0-24 or minutes or seconds outside the range 0-60. For
+example, to add 75 minutes to a list of times you may write:</p>
+<pre><code><span class="token keyword">const</span> laters <span class="token operator">=</span> times<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token function">addTime</span><span class="token punctuation">(</span><span class="token string">'00:75'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
 
     <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-floortime-token-time">
         <h3 class="doctext-05 ">
@@ -765,10 +960,17 @@ For example, to add 72 minutes to a list of times:</p>
                 <code class="function language-js"><span class="token function">floorTime</span><span class="token punctuation">(</span>token<span class="token punctuation">,</span> time<span class="token punctuation">)</span></code>
             </a>
         </h3>
-    <p>Floors <code>time</code> to the nearest <code>token</code>, where <code>token</code> is one of: <code>'week'</code>, <code>'day'</code>,
-<code>'hour'</code>, <code>'minute'</code> or <code>'second'</code>. <code>time</code> may be an ISO time string or a time
-in seconds. Returns a time in seconds.</p>
-<pre><code><span class="token keyword">const</span> hourCounts <span class="token operator">=</span> times<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token function">floorTime</span><span class="token punctuation">(</span><span class="token string">'hour'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
+    <p>Floors time to the start of the nearest <code>token</code>, where <code>token</code> is one of:</p>
+<ul>
+<li><code>'w'</code>   Week</li>
+<li><code>'d'</code>   Day</li>
+<li><code>'h'</code>   Hour</li>
+<li><code>'m'</code>   Minute</li>
+<li><code>'s'</code>   Second</li>
+<li><code>'ms'</code>  Millisecond</li>
+</ul>
+<p><code>time</code> may be an ISO time string or a time in seconds. Returns a time in seconds.</p>
+<pre><code><span class="token keyword">const</span> hourCounts <span class="token operator">=</span> times<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token function">floorTime</span><span class="token punctuation">(</span><span class="token string">'h'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></article>
 
             </div>
         </div>
@@ -776,12 +978,12 @@ in seconds. Returns a time in seconds.</p>
 
     <section class="x-1 3x @1-6x @2-9x @3-x-2 columns-grid grid" locateable="" id="observer">
         <header class="x-1 3x @1-4x">
-            <h2 class="text-2" style="font-size: 1.875rem;">Observer</h2>
-            <p>An observer is an ES6 Proxy of an object that intercepts and
+            <h2 class="doctext-02" style="font-size: 1.875rem;">Observer</h2>
+            <p class="doctext-08">An observer is an ES6 Proxy of an object that intercepts and
             reports mutations. Import and create an observer:</p>
             <pre class=" language-js"><code class=" language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> Observer<span class="token punctuation">,</span> observe <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'/fn/module.js'</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token function">Observer</span><span class="token punctuation">(</span><span class="token punctuation">{</span> value<span class="token punctuation">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
-            <p>
+            <p class="doctext-08">
             There is only ever one observer per object, ie, calling
             <code>Observer(object)</code> multiple times with the same object
             (or proxy of that object) always returns the same observer proxy.
@@ -790,34 +992,52 @@ in seconds. Returns a time in seconds.</p>
 
             <pre class=" language-js"><code class=" language-js"><span class="token function">observe</span><span class="token punctuation">(</span><span class="token string">'value'</span><span class="token punctuation">,</span> console<span class="token punctuation">.</span>log<span class="token punctuation">,</span> data<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 
-            <p>Mutations made to the observer proxy's <code>value</code>
+            <p class="doctext-08">Mutations made to the observer proxy's <code>value</code>
             property are now logged to the console.</p>
 
             <pre class=" language-js"><code class=" language-js">data<span class="token punctuation">.</span>value <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>   <span class="token comment">// Logs `false`</span></code></pre>
         </header>
 
         <div class="x-1 3x list-grid grid">
+            <!--template-->
+    <article class="function-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="function-observe-path-fn-object-init">
+        <h3 class="doctext-05 ">
+            <a href="#function-observe-path-fn-object-init">
+                <code class="function language-js"><span class="token function">observe</span><span class="token punctuation">(</span>path<span class="token punctuation">,</span> fn<span class="token punctuation">,</span> object <span class="token punctuation">[</span><span class="token punctuation">,</span> init<span class="token punctuation">]</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    <p>Observe <code>path</code> in <code>object</code> and call <code>fn(value)</code> with the value at the
+end of that path when it mutates. Returns a function that destroys this
+observer.</p>
+<p>The callback <code>fn</code> is called immediately on initialisation if the value at
+the end of the path is not equal to <code>init</code>. In the default case where
+<code>init</code> is <code>undefined</code>, paths that end in <code>undefined</code> do not cause the
+callback to be called.</p>
+<p>(To force the callback to always be called on setup, pass in <code>NaN</code> as an
+<code>init</code> value. In JS <code>NaN</code> is not equal to anything, even <code>NaN</code>, so it
+always initialises.)</p>
+</article>
 
         </div>
     </section>
 
     <!--div class="x-1 3x @2-x-2 @3-6x @4-5x @5-3x">
-        <p>Text things</p>
+        <p class="doctext-08">Text things</p>
     </div-->
 
     <!--div class="x-1 3x @2-x-2 @3-6x @4-5x @5-3x" build-fn="docs:'./modules/stream.js'"></div-->
 
     <section class="x-1 3x @1-6x @2-9x @3-x-2 columns-grid grid" locateable="" id="stream">
         <header class="x-1 3x @1-4x">
-            <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
-            <p>Import and create a stream:</p>
+            <h2 class="doctext-02" style="font-size: 1.875rem;">Stream</h2>
+            <p class="doctext-08">Import and create a stream:</p>
             <pre class=" language-js"><code class=" language-js"><span class="token keyword">import</span> <span class="token punctuation">{</span> Stream <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'/fn/module.js'</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> stream <span class="token operator">=</span> Stream<span class="token punctuation">.</span><span class="token keyword">of</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token number">4</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
         </header>
 
         <div class="x-1 3x list-grid grid">
-
-
+            <!--template-->
+            <!--template-->
     <h3 class="doctext-04">Properties </h3>
 
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-status">
@@ -833,7 +1053,7 @@ status is <code>'done'</code>.</p>
         </div>
 
         <div class="x-1 3x @1-x-4 list-grid grid">
-
+            <!--template-->
     <h3 class="doctext-04">Write </h3>
 
     <article class="method-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="method-push-value">
@@ -970,7 +1190,7 @@ status is <code>'done'</code>.</p>
         </div>
 
         <div class="x-1 3x @2-x-7 list-grid grid">
-
+            <!--template-->
     <article class="method-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="method-combine-fn-stream">
         <h3 class="doctext-05 dot-indent">
             <a href="#method-combine-fn-stream">
@@ -1069,8 +1289,7 @@ status is <code>'done'</code>.</p>
         </div>
     </section>
 
-    <!-- Build document -->
-
+    
 
     <!-- Document interactivity -->
     <script type="module">

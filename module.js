@@ -173,6 +173,7 @@ export const add = curry(function (a, b) {
 
 /* Time */
 
+export * from './modules/date.js';
 export * from './modules/time.js';
 
 /* Test */

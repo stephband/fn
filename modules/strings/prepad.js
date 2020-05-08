@@ -1,6 +1,11 @@
 
 import curry from '../curry.js';
 
+/**
+prepad(chars, n, string)
+Pads `string` to `n` characters by prepending `chars`.
+**/
+
 export function prepad(chars, n, value) {
     var string = value + '';
     var i = -1;

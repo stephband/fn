@@ -22,6 +22,7 @@ function cache(fn) {
 
 /**
 curry(fn [, muteable, arity])
+Returns a function that wraps `fn` and makes it partially applicable.
 */
 const A     = Array.prototype;
 
@@ -110,9 +111,9 @@ function curry(fn, muteable, arity) {
 
 var curry$1 = curry;
 
-/*
+/**
 rest(n, array)
-*/
+**/
 
 function rest(i, object) {
     if (object.slice) { return object.slice(i); }
@@ -270,7 +271,7 @@ function toArray(object) {
 const A$1 = Array.prototype;
 const S = String.prototype;
 
-/*
+/**
 by(fn, a, b)
 Compares `fn(a)` against `fn(b)` and returns `-1`, `0` or `1`. Useful for sorting
 objects by property:
@@ -278,7 +279,7 @@ objects by property:
 ```
 [{id: '2'}, {id: '1'}].sort(by(get('id')));  // [{id: '1'}, {id: '2'}]
 ```
-*/
+**/
 
 function by(fn, a, b) {
     const fna = fn(a);
@@ -286,9 +287,19 @@ function by(fn, a, b) {
     return fnb === fna ? 0 : fna > fnb ? 1 : -1 ;
 }
 
+/**
+byAlphabet(a, b)
+Compares `a` against `b` alphabetically using the current locale alphabet.
+**/
+
 function byAlphabet(a, b) {
     return S.localeCompare.call(a, b);
 }
+
+/**
+each(fn, array)
+Calls `fn` for each member in `array`.
+**/
 
 function each(fn, object) {
     // A stricter version of .forEach, where the callback fn
@@ -307,15 +318,32 @@ function each(fn, object) {
     return object;
 }
 
+/**
+map(fn, object)
+Delegates to `object.map` or `Array.map` to return a new collection of mapped
+values.
+**/
+
 function map(fn, object) {
     return object && object.map ? object.map(fn) : A$1.map.call(object, fn) ;
 }
+
+/**
+filter(fn, object)
+Delegates to `object.filter` or `Array.filter` to return a new collection of
+filtered objects.
+**/
 
 function filter(fn, object) {
     return object.filter ?
         object.filter(fn) :
         A$1.filter.call(object, fn) ;
 }
+
+/**
+reduce(fn, seed, object)
+Delegates to `object.reduce` or `Array.reduce` to return a reduced value.
+**/
 
 function reduce(fn, seed, object) {
     return object.reduce ?
@@ -326,6 +354,12 @@ function reduce(fn, seed, object) {
 function sort(fn, object) {
     return object.sort ? object.sort(fn) : A$1.sort.call(object, fn);
 }
+
+/**
+concat(array2, array1)
+Where JavaScript's Array.concat only works reliably on arrays, `concat`
+will glue together any old array-like object.
+**/
 
 function concat(array2, array1) {
     // A.concat only works with arrays - it does not flatten array-like
@@ -417,8 +451,8 @@ function exec(regex, fn, string) {
 
     // If string looks like a regex result, get rest of string
     // from latest index
-    if (string.input !== undefined && string.index !== undefined) {
-        data   = string;
+    if (typeof string !== 'string' && string.input !== undefined && string.index !== undefined) {
+        data = string;
         string = data.input.slice(
             string.index
             + string[0].length
@@ -1043,6 +1077,11 @@ function weakCache(fn) {
         return value;
     };
 }
+
+/**
+prepend(string1, string2)
+Returns `str1 + str2`.
+**/
 
 function prepend(string1, string2) {
     return '' + string1 + string2;
@@ -2789,10 +2828,10 @@ Stream$1.throttle = function(timer) {
     });
 };
 
-/*
+/**
 remove(array, value)
 Remove `value` from `array`. Where `value` is not in `array`, does nothing.
-*/
+**/
 
 function remove(array, value) {
     if (array.remove) { array.remove(value); }
@@ -3045,12 +3084,12 @@ function notify$1(object, path, value) {
 	fire(mutate, object);
 }
 
-/*
+/**
 Observer(object)
 Create an Observer proxy around `object`. In order for `observe(...)` to detect
 mutations, changes must be made to this proxy rather than the original
 `object`.
-*/
+**/
 
 function Observer(object) {
 	return !object ? undefined :
@@ -3071,12 +3110,12 @@ function Target(object) {
 		|| object ;
 }
 
-/*
+/**
 parseSelector(string)
 
 Takes a string of the form '[key=value, ... ]' and returns a function isMatch
 that returns true when passed an object that matches the selector.
-*/
+**/
 
 //                 1 key                 2 quote 3 value           4 comma 5 closing bracket
 const rselector = /^([^\]=,\s]+)\s*(?:=\s*(['"])?([^\]=,\s]+)\2\s*)?(?:(,)|(])(\s*\.$)?)\s*/;
@@ -3290,7 +3329,7 @@ function observeUnknown(object, path, data) {
         readSelector(object, isMatch, path, data) ;
 }
 
-/*
+/**
 observe(path, fn, object [, init])
 
 Observe `path` in `object` and call `fn(value)` with the value at the
@@ -3305,7 +3344,7 @@ callback to be called.
 (To force the callback to always be called on setup, pass in `NaN` as an
 `init` value. In JS `NaN` is not equal to anything, even `NaN`, so it
 always initialises.)
-*/
+**/
 
 function observe(path, fn, object, initialValue) {
     return observeUnknown(Observer(object) || object, path + '', {
@@ -3400,17 +3439,21 @@ Pool.snapshot = function() {
 	.toJSON();
 };
 
-/*
-.append(str2, str1)
+/**
+append(str2, str1)
+Returns `str1 + str2`.
+**/
 
-Returns `str1 + str2` as string.
-*/
-
-function append(string1, string2) {
-    return '' + string2 + string1;
+function append(string2, string1) {
+    return '' + string1 + string2;
 }
 
 var append$1 = curry$1(append);
+
+/**
+prepad(chars, n, string)
+Pads `string` to `n` characters by prepending `chars`.
+**/
 
 function prepad(chars, n, value) {
     var string = value + '';
@@ -3427,6 +3470,11 @@ function prepad(chars, n, value) {
 
 var prepad$1 = curry$1(prepad);
 
+/**
+postpad(chars, n, string)
+Pads `string` to `n` characters by appending `chars`.
+**/
+
 function postpad(chars, n, value) {
     var string = value + '';
 
@@ -3439,13 +3487,15 @@ function postpad(chars, n, value) {
 
 var postpad$1 = curry$1(postpad);
 
-/*
+/**
 slugify(string)
 
 Replaces any series of non-word characters with a `'-'` and lowercases the rest.
 
+```js
     slugify('Party on #mydudes!') // 'party-on-mydudes'
-*/
+```
+**/
 
 function slugify(string) {
     if (typeof string !== 'string') { return; }
@@ -3457,12 +3507,23 @@ function slugify(string) {
     .replace(/[\W_]+/g, '-');
 }
 
+/**
+toCamelCase(string)
+Capitalises any Letter following a `'-'` and removes the dash.
+**/
+
 function toCamelCase(string) {
     // Be gracious in what we accept as input
     return string.replace(/-(\w)?/g, function($0, letter) {
         return letter ? letter.toUpperCase() : '';
     });
 }
+
+/**
+toPlainText(string)
+Normalises string as plain text without accents using canonical decomposition
+(https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize).
+**/
 
 function toPlainText(string) {
     return string
@@ -3527,11 +3588,11 @@ function ap(data, fns) {
 	}
 }
 
-/*
+/**
 insert(fn, array, object)
 Inserts `object` into `array` at the first index where the result of
 `fn(object)` is greater than `fn(array[index])`.
-*/
+**/
 
 const A$5 = Array.prototype;
 
@@ -3544,9 +3605,9 @@ function insert(fn, array, object) {
     return object;
 }
 
-/*
+/**
 take(n, array)
-*/
+**/
 
 function take(i, object) {
     if (object.slice) { return object.slice(0, i); }
@@ -3558,11 +3619,11 @@ function take(i, object) {
     return a;
 }
 
-/*
+/**
 unique(array)
 Takes an array or stream as `array`, returns an object of the same
 type without duplicate values.
-*/
+**/
 
 function uniqueReducer(array, value) {
     if (array.indexOf(value) === -1) { array.push(value); }
@@ -3575,7 +3636,7 @@ function unique(object) {
         reduce(uniqueReducer, [], object) ;
 }
 
-/*
+/**
 update(create, destroy, fn, target, source)
 
 Returns a new array containing items that are either matched objects from
@@ -3583,7 +3644,7 @@ Returns a new array containing items that are either matched objects from
 new objects created by calling `create` on a `source` object. Any objects
 in `target` that are not matched to `source` objects are destroyed by calling
 `destroy` on them.
-*/
+**/
 
 const assign$2 = Object.assign;
 
@@ -3617,6 +3678,10 @@ function update(create, destroy, fn, target, source) {
 
     return output;
 }
+
+/**
+diff(array1, array2)
+**/
 
 function diff(array, object) {
     var values = toArray(array);
@@ -3652,10 +3717,10 @@ function unite(array, object) {
     .concat(values);
 }
 
-/*
+/**
 last(array)
 Gets the last value from an array.
-*/
+**/
 
 function last(array) {
     if (typeof array.length === 'number') {
@@ -3672,28 +3737,29 @@ function exp(n, x) { return Math.pow(n, x); }
 function log(n, x) { return Math.log(x) / Math.log(n); }
 function root(n, x) { return Math.pow(x, 1/n); }
 
-/*
-limit(min, max, n)
-*/
+/**
+clamp(min, max, n)
+**/
 
 function limit(min, max, n) {
+    console.trace('Deprecated: Fn limit() is now clamp()');
     return n > max ? max : n < min ? min : n;
 }
 
-/*
+/**
 wrap(min, max, n)
-*/
+**/
 
 function wrap(min, max, n) {
     return (n < min ? max : min) + (n - min) % (max - min);
 }
 
-/*
+/**
 gaussian()
 
 Generate a random number with a gaussian distribution centred
 at 0 with limits -1 to 1.
-*/
+**/
 
 function gaussian() {
     return Math.random() + Math.random() - 1;
@@ -3710,9 +3776,9 @@ const curriedRoot  = curry$1(root);
 const curriedLimit = curry$1(limit);
 const curriedWrap  = curry$1(wrap);
 
-/*
+/**
 todB(level)
-*/
+**/
 
 // A bit disturbingly, a correction factor is needed to make todB() and
 // to toLevel() reciprocate more accurately. This is quite a lot to be off
@@ -3721,31 +3787,31 @@ const dBCorrectionFactor = (60 / 60.205999132796244);
 
 function todB(n)    { return 20 * Math.log10(n) * dBCorrectionFactor; }
 
-/*
+/**
 toLevel(dB)
-*/
+**/
 
 function toLevel(n) { return Math.pow(2, n / 6); }
 
-/*
+/**
 toRad(deg)
-*/
+**/
 
 const angleFactor = 180 / Math.PI;
 
 function toRad(n) { return n / angleFactor; }
 
-/*
+/**
 toDeg(rad)
-*/
+**/
 
 function toDeg(n)   { return n * angleFactor; }
 
-/*
+/**
 gcd(a, b)
 
 Returns the greatest common divider of a and b.
-*/
+**/
 
 function gcd(a, b) {
     return b ? gcd(b, a % b) : a;
@@ -3753,11 +3819,11 @@ function gcd(a, b) {
 
 const curriedGcd = curry$1(gcd);
 
-/*
+/**
 lcm(a, b)
 
 Returns the lowest common multiple of a and b.
-*/
+**/
 
 function lcm(a, b) {
     return a * b / gcd(a, b);
@@ -3765,7 +3831,7 @@ function lcm(a, b) {
 
 const curriedLcm = curry$1(lcm);
 
-/*
+/**
 factorise(array)
 
 Reduces a fraction (represented by `array` in the form
@@ -3773,20 +3839,20 @@ Reduces a fraction (represented by `array` in the form
 dividing by it both values by it.
 
 Returns a new array in the form `[numerator, denominator]`.
-*/
+**/
 
 function factorise(array) {
     var f = gcd(array[0], array[1]);
     return [array[0] / f, array[1] / f];
 }
 
-/*
+/**
 mod(divisor, n)
 
 JavaScript's modulu operator (`%`) uses Euclidean division, but for
 stuff that cycles through 0 the symmetrics of floored division are often
 are more useful. This function implements floored division.
-*/
+**/
 
 function mod(d, n) {
     var value = n % d;
@@ -3795,9 +3861,9 @@ function mod(d, n) {
 
 var mod$1 = curry$1(mod);
 
-/*
+/**
 toPolar(cartesian)
-*/
+**/
 
 function toPolar(cartesian) {
     var x = cartesian[0];
@@ -3815,9 +3881,9 @@ function toPolar(cartesian) {
     ];
 }
 
-/*
+/**
 toCartesian(polar)
-*/
+**/
 
 function toCartesian(polar) {
     var d = polar[0];
@@ -4171,6 +4237,315 @@ function exponentialOut(e, x) {
     return 1 - Math.pow(1 - x, e);
 }
 
+// Time
+
+// Decimal places to round to when comparing times
+const precision = 9;
+
+// Find template tokens for replacement
+var rtoken = /([YZMDdhmswz]{2,4}|D|\+-)/g;
+
+function millisecondsToSeconds(n) { return n / 1000; }
+function minutesToSeconds(n) { return n * 60; }
+function hoursToSeconds(n) { return n * 3600; }
+function daysToSeconds(n) { return n * 86400; }
+function weeksToSeconds(n) { return n * 604800; }
+
+function secondsToMilliseconds(n) { return n * 1000; }
+function secondsToMinutes(n) { return n / 60; }
+function secondsToHours(n) { return n / 3600; }
+function secondsToDays(n) { return n / 86400; }
+function secondsToWeeks(n) { return n / 604800; }
+
+// Months and years are not fixed durations – these are approximate
+function secondsToMonths(n) { return n / 2629800; }
+function secondsToYears(n) { return n / 31557600; }
+
+
+function prefix(n) {
+	return n >= 10 ? '' : '0';
+}
+
+// Hours:   00-23 - 24 should be allowed according to spec
+// Minutes: 00-59 -
+// Seconds: 00-60 - 60 is allowed, denoting a leap second
+
+//                sign   hh       mm           ss
+var rtime     = /^([+-])?(\d{2,}):([0-5]\d)(?::((?:[0-5]\d|60)(?:.\d+)?))?$/;
+var rtimediff = /^([+-])?(\d{2,}):(\d{2,})(?::(\d{2,}(?:.\d+)?))?$/;
+
+/**
+parseTime(time)
+
+Where `time` is a string it is parsed as a time in ISO time format: as
+hours `'13'`, with minutes `'13:25'`, with seconds `'13:25:14'` or with
+decimal seconds `'13:25:14.001'`. Returns a number in seconds.
+
+```
+const time = parseTime('13:25:14.001');   // 48314.001
+```
+
+Where `time` is a number it is assumed to represent a time in seconds
+and is returned directly.
+
+```
+const time = parseTime(60);               // 60
+```
+**/
+
+const parseTime = overload(toType, {
+	number:  id,
+	string:  exec$1(rtime, createTime),
+	default: function(object) {
+		throw new Error('parseTime() does not accept objects of type ' + (typeof object));
+	}
+});
+
+const parseTimeDiff = overload(toType, {
+	number:  id,
+	string:  exec$1(rtimediff, createTime),
+	default: function(object) {
+		throw new Error('parseTime() does not accept objects of type ' + (typeof object));
+	}
+});
+
+
+function createTime(match, sign, hh, mm, sss) {
+	var time = hoursToSeconds(parseInt(hh, 10))
+        + (mm ? minutesToSeconds(parseInt(mm, 10))
+            + (sss ? parseFloat(sss, 10) : 0)
+        : 0) ;
+
+	return sign === '-' ? -time : time ;
+}
+
+function formatTimeString(string, time) {
+	return string.replace(rtoken, function($0) {
+		return timeFormatters[$0] ? timeFormatters[$0](time) : $0 ;
+	}) ;
+}
+
+function _formatTimeISO(time) {
+	var sign = time < 0 ? '-' : '' ;
+
+	if (time < 0) { time = -time; }
+
+	var hours = Math.floor(time / 3600);
+	var hh = prefix(hours) + hours ;
+	time = time % 3600;
+	if (time === 0) { return sign + hh + ':00'; }
+
+	var minutes = Math.floor(time / 60);
+	var mm = prefix(minutes) + minutes ;
+	time = time % 60;
+	if (time === 0) { return sign + hh + ':' + mm; }
+
+	var sss = prefix(time) + toMaxDecimals(precision, time);
+	return sign + hh + ':' + mm + ':' + sss;
+}
+
+function toMaxDecimals(precision, n) {
+	// Make some effort to keep rounding errors under control by fixing
+	// decimals and lopping off trailing zeros
+	return n.toFixed(precision).replace(/\.?0+$/, '');
+}
+
+
+const nowTime = function() {
+	return window.performance.now();
+};
+
+/**
+formatTime(format, time)
+Formats `time`, an 'hh:mm:ss' time string or a number in seconds, to match
+`format`, a string that may contain the tokens:
+
+- `'±'`   Sign, renders '-' if time is negative, otherwise nothing
+- `'Y'`   Years, approx.
+- `'M'`   Months, approx.
+- `'MM'`  Months, remainder from years (max 12), approx.
+- `'w'`   Weeks
+- `'ww'`  Weeks, remainder from months (max 4)
+- `'d'`   Days
+- `'dd'`  Days, remainder from weeks (max 7)
+- `'h'`   Hours
+- `'hh'`  Hours, remainder from days (max 24), 2-digit format
+- `'m'`   Minutes
+- `'mm'`  Minutes, remainder from hours (max 60), 2-digit format
+- `'s'`   Seconds
+- `'ss'`  Seconds, remainder from minutes (max 60), 2-digit format
+- `'sss'` Seconds, remainder from minutes (max 60), fractional
+- `'ms'`  Milliseconds, remainder from seconds (max 1000), 3-digit format
+
+```
+const time = formatTime('±hh:mm:ss', 3600);   // 01:00:00
+```
+**/
+
+var timeFormatters = {
+	'±': function sign(time) {
+		return time < 0 ? '-' : '';
+	},
+
+	Y: function Y(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(secondsToYears(time));
+	},
+
+	M: function M(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(secondsToMonths(time));
+	},
+
+	MM: function MM(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(secondsToMonths(time % 31557600));
+	},
+
+	W: function W(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(secondsToWeeks(time));
+	},
+
+	WW: function WW(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(secondsToDays(time % 2629800));
+	},
+
+	d: function dd(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(secondsToDays(time));
+	},
+
+	dd: function dd(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(secondsToDays(time % 604800));
+	},
+
+	h: function hhh(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(secondsToHours(time));
+	},
+
+	hh: function hh(time) {
+		time = time < 0 ? -time : time;
+		var hours = Math.floor(secondsToHours(time % 86400));
+		return prefix(hours) + hours;
+	},
+
+	m: function mm(time) {
+		time = time < 0 ? -time : time;
+		var minutes = Math.floor(secondsToMinutes(time));
+		return prefix(minutes) + minutes;
+	},
+
+	mm: function mm(time) {
+		time = time < 0 ? -time : time;
+		var minutes = Math.floor(secondsToMinutes(time % 3600));
+		return prefix(minutes) + minutes;
+	},
+
+	s: function s(time) {
+		time = time < 0 ? -time : time;
+		return Math.floor(time);
+	},
+
+	ss: function ss(time) {
+		time = time < 0 ? -time : time;
+		var seconds = Math.floor(time % 60);
+		return prefix(seconds) + seconds;
+	},
+
+	sss: function sss(time) {
+		time = time < 0 ? -time : time;
+		var seconds = time % 60;
+		return prefix(seconds) + toMaxDecimals(precision, seconds);
+	},
+
+	ms: function ms(time) {
+		time = time < 0 ? -time : time;
+		var ms = Math.floor(secondsToMilliseconds(time % 1));
+		return ms >= 100 ? ms :
+			ms >= 10 ? '0' + ms :
+				'00' + ms;
+	}
+};
+
+const formatTime = curry$1(function(string, time) {
+	return string === 'ISO' ?
+		_formatTimeISO(parseTime(time)) :
+		formatTimeString(string, parseTime(time)) ;
+});
+
+/**
+formatTimeISO(time)
+Formats `time`, an 'hh:mm:sss' time string or a number in seconds, as a string
+in the ISO time format.
+```
+**/
+
+function formatTimeISO(time) {
+	// Undefined causes problems by outputting dates full of NaNs
+	return time === undefined ? undefined : _formatTimeISO(time);
+}
+
+/**
+addTime(time1, time2)
+
+Sums `time2` and `time1`, which may be 'hh:mm:sss' time strings or numbers in
+seconds, and returns time as a number in seconds. `time1` may contain hours
+outside the range 0-24 or minutes or seconds outside the range 0-60. For
+example, to add 75 minutes to a list of times you may write:
+
+```
+const laters = times.map(addTime('00:75'));
+```
+*/
+
+const addTime = curry$1(function(time1, time2) {
+	return parseTime(time2) + parseTimeDiff(time1);
+});
+
+const subTime = curry$1(function(time1, time2) {
+	return parseTime(time2) - parseTimeDiff(time1);
+});
+
+const diffTime = curry$1(function(time1, time2) {
+	return parseTime(time1) - parseTime(time2);
+});
+
+/**
+floorTime(token, time)
+
+Floors time to the start of the nearest `token`, where `token` is one of:
+
+- `'w'`   Week
+- `'d'`   Day
+- `'h'`   Hour
+- `'m'`   Minute
+- `'s'`   Second
+- `'ms'`  Millisecond
+
+`time` may be an ISO time string or a time in seconds. Returns a time in seconds.
+
+```
+const hourCounts = times.map(floorTime('h'));
+```
+**/
+
+var _floorTime = choose({
+	w:  function(time) { return time - mod(604800, time); },
+	d:  function(time) { return time - mod(86400, time); },
+	h:  function(time) { return time - mod(3600, time); },
+	m:  function(time) { return time - mod(60, time); },
+	s:  function(time) { return time - mod(1, time); },
+	ms: function(time) { return time - mod(0.001, time); }
+});
+
+const floorTime = curry$1(function(token, time) {
+	return _floorTime(token, parseTime(time));
+});
+
 function createOrdinals(ordinals) {
 	var array = [], n = 0;
 
@@ -4224,18 +4599,19 @@ var rdatediff = /^([+-])?(\d{2,})(?:-(\d{2,})(?:-(\d{2,}))?)?(?:([T-])|$)/;
 
 /**
 parseDate(date)
+
 Parse a date, where, `date` may be:
 
 - a string in ISO date format
 - a number in seconds UNIX time
 - a date object
 
-Returns a date object, or *the* date object, if it validates.
-*/
+Returns a date object (or *the* date object, if it represents a valid date).
+**/
 
 const parseDate = overload(toType, {
 	number:  secondsToDate,
-	string:  exec$2(rdate, createDate),
+	string:  exec$1(rdate, createDate),
 	object:  function(date) {
 		return isValidDate(date) ? date : undefined ;
 	},
@@ -4246,13 +4622,14 @@ const parseDate = overload(toType, {
 
 /**
 parseDateLocal(date)
+
 As `parseDate(date)`, but returns a date object with local time set to the
-result of the parse (or the original date object, if it validates).
-*/
+result of the parse.
+**/
 
 const parseDateLocal = overload(toType, {
 	number:  secondsToDate,
-	string:  exec$2(rdate, createDateLocal),
+	string:  exec$1(rdate, createDateLocal),
 	object:  function(date) {
 		return isValidDate(date) ? date : undefined ;
 	},
@@ -4303,18 +4680,8 @@ function createDateLocal(year, month, day, hour, minute, second, ms, zone) {
 		new Date(year) ;
 }
 
-function exec$2(regex, fn, error) {
-	return function exec(string) {
-		var parts = regex.exec(string);
-		if (!parts && error) { throw error; }
-		return parts ?
-			fn.apply(null, parts) :
-			undefined ;
-	};
-}
-
 function secondsToDate(n) {
-	return new Date(secondsToMilliseconds(n));
+	return new Date(n * 1000);
 }
 
 function setTimeZoneOffset(sign, hour, minute, date) {
@@ -4413,7 +4780,7 @@ var options = {
 	//timeZoneName:  'short'
 };
 
-var rtoken    = /([YZMDdhmswz]{2,4}|D|\+-)/g;
+var rtoken$1    = /([YZMDdhmswz]{2,4}|D|\+-)/g;
 var rusdate   = /\w{3,}|\d+/g;
 var rdatejson = /^"(-?\d{4,}-\d\d-\d\d)/;
 
@@ -4456,7 +4823,7 @@ function _formatDate(string, timezone, locale, date) {
 	var data    = toLocaleComponents(timezone, locale, date);
 	var formats = componentFormatters;
 
-	return string.replace(rtoken, function($0) {
+	return string.replace(rtoken$1, function($0) {
 		return formats[$0] ?
 			formats[$0](data, lang) :
 			$0 ;
@@ -4464,15 +4831,53 @@ function _formatDate(string, timezone, locale, date) {
 }
 
 /**
-formatDateLocal(format, locale, date)
+formatDate(format, locale, timezone, date)
+Formats `date`, an ISO string or number in seconds or a JS date object,
+to the format of the string `format`. The format string may contain the tokens:
+
+- `'YYYY'` years
+- `'YY'`   2-digit year
+- `'MM'`   month, 2-digit
+- `'MMM'`  month, 3-letter
+- `'MMMM'` month, full name
+- `'D'`    day of week
+- `'DD'`   day of week, two-digit
+- `'DDD'`  weekday, 3-letter
+- `'DDDD'` weekday, full name
+- `'hh'`   hours
+- `'mm'`   minutes
+- `'ss'`   seconds
+
+The `locale` string may be `'en'` or `'fr'`. The `'timezone'` parameter is
+either `'UTC'` or an IANA timezone such as '`Europe/Zurich`'
+([timezones on Wikipedia](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)).
+
+```
+const date = formatDate('YYYY', 'en', 'UTC', new Date());   // 2020
+```
 */
 
-function formatDateLocal(string, locale, date) {
+const formatDate = curry$1(function (format, locale, timezone, date) {
+	return format === 'ISO' ?
+		formatDateISO(parseDate(date)) :
+	timezone === 'local' ?
+		formatDateLocal(format, locale, date) :
+	_formatDate(format, timezone, locale, parseDate(date)) ;
+});
+
+/**
+formatDateLocal(format, locale, date)
+
+As `formatDate(date)`, but returns a date object with local time set to the
+result of the parse.
+**/
+
+function formatDateLocal(format, locale, date) {
 	var formatters = dateFormatters;
 	var lang = locale.slice(0, 2);
 
 	// Use date formatters to get time as current local time
-	return string.replace(rtoken, function($0) {
+	return format.replace(rtoken$1, function($0) {
 		return formatters[$0] ? formatters[$0](date, lang) : $0 ;
 	});
 }
@@ -4498,26 +4903,29 @@ function formatDateTimeISO(date) {
 }
 
 
+
 // Time operations
 
 var days   = {
 	mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 0
 };
 
-var dayMap = [6,0,1,2,3,4,5];
 
-/**
+
+/*
 toDay(date)
 Returns day of week as a number, where monday is `0`.
 */
+
+const dayMap = [6,0,1,2,3,4,5];
 
 function toDay(date) {
 	return dayMap[date.getDay()];
 }
 
-/**
+/*
 cloneDate(date)
-Returns new date object set to same time.
+Returns new date object set to same date.
 */
 
 function cloneDate(date) {
@@ -4530,7 +4938,7 @@ function addDateComponents(sign, yy, mm, dd, date) {
 	if (!mm) { return; }
 
 	// Adding and subtracting months can give weird results with the JS
-	// date object. For example, taking a montha way from 2018-03-31 results
+	// date object. For example, taking a month away from 2018-03-31 results
 	// in 2018-03-03 (or the 31st of February), whereas adding a month on to
 	// 2018-05-31 results in the 2018-07-01 (31st of June).
 	//
@@ -4700,7 +5108,8 @@ const diffDateDays = curry$1(_diffDateDays);
 
 /**
 floorDate(token, date)
-Floors date to the start of nearest calendar point in time indicated by `token`:
+Floors date to the start of nearest calendar point in increment indicated
+by `token`:
 
 - `'Y'`   Year
 - `'M'`   Month
@@ -4718,340 +5127,12 @@ Floors date to the start of nearest calendar point in time indicated by `token`:
 - `'sun'` Sunday
 
 ```
-const dayCounts = times.map(floorTime('days'));
+const dayCounts = times.map(floorDate('d'));
 ```
 */
 
 const floorDate = curry$1(function(token, date) {
 	return _floorDate(token, parseDate(date));
-});
-
-/**
-formatDate(locale, timezone, format, date)
-Formats `date` (a string or number or date accepted by `parseDate(date)`)
-to the format of the string `format`. The format string may contain the tokens:
-
-- `'YYYY'` years
-- `'YY'`   2-digit year
-- `'MM'`   month, 2-digit
-- `'MMM'`  month, 3-letter
-- `'MMMM'` month, full name
-- `'D'`    day of week
-- `'DD'`   day of week, two-digit
-- `'DDD'`  weekday, 3-letter
-- `'DDDD'` weekday, full name
-- `'hh'`   hours
-- `'mm'`   minutes
-- `'ss'`   seconds
-
-```
-const date = formatDate('en', '', 'YYYY', new Date());   // 2020
-```
-*/
-
-const formatDate = curry$1(function (timezone, locale, format, date) {
-	return format === 'ISO' ?
-		formatDateISO(parseDate(date)) :
-	timezone === 'local' ?
-		formatDateLocal(format, locale, date) :
-	_formatDate(format, timezone, locale, parseDate(date)) ;
-});
-
-
-// Time
-
-// Decimal places to round to when comparing times
-var precision = 9;
-
-function millisecondsToSeconds(n) { return n / 1000; }
-function minutesToSeconds(n) { return n * 60; }
-function hoursToSeconds(n) { return n * 3600; }
-function daysToSeconds(n) { return n * 86400; }
-function weeksToSeconds(n) { return n * 604800; }
-
-function secondsToMilliseconds(n) { return n * 1000; }
-function secondsToMinutes(n) { return n / 60; }
-function secondsToHours(n) { return n / 3600; }
-function secondsToDays(n) { return n / 86400; }
-function secondsToWeeks(n) { return n / 604800; }
-
-// Months and years are not fixed durations – these are approximate
-function secondsToMonths(n) { return n / 2629800; }
-function secondsToYears(n) { return n / 31557600; }
-
-
-function prefix(n) {
-	return n >= 10 ? '' : '0';
-}
-
-// Hours:   00-23 - 24 should be allowed according to spec
-// Minutes: 00-59 -
-// Seconds: 00-60 - 60 is allowed, denoting a leap second
-
-//                sign   hh       mm           ss
-var rtime     = /^([+-])?(\d{2,}):([0-5]\d)(?::((?:[0-5]\d|60)(?:.\d+)?))?$/;
-var rtimediff = /^([+-])?(\d{2,}):(\d{2,})(?::(\d{2,}(?:.\d+)?))?$/;
-
-/**
-parseTime(time)
-
-Where `time` is a string it is parsed as a time in ISO time format: as
-hours `'13'`, with minutes `'13:25'`, with seconds `'13:25:14'` or with
-decimal seconds `'13:25:14.001'`. Returns a number in seconds.
-
-```
-const time = parseTime('13:25:14.001');   // 48314.001
-```
-
-Where `time` is a number it is assumed to represent a time in seconds
-and is returned directly.
-
-```
-const time = parseTime(60);               // 60
-```
-*/
-
-const parseTime = overload(toType, {
-	number:  id,
-	string:  exec$2(rtime, createTime),
-	default: function(object) {
-		throw new Error('parseTime() does not accept objects of type ' + (typeof object));
-	}
-});
-
-var parseTimeDiff = overload(toType, {
-	number:  id,
-	string:  exec$2(rtimediff, createTime),
-	default: function(object) {
-		throw new Error('parseTime() does not accept objects of type ' + (typeof object));
-	}
-});
-
-var _floorTime = choose({
-	week:   function(time) { return time - mod(604800, time); },
-	day:    function(time) { return time - mod(86400, time); },
-	hour:   function(time) { return time - mod(3600, time); },
-	minute: function(time) { return time - mod(60, time); },
-	second: function(time) { return time - mod(1, time); }
-});
-
-
-function createTime(match, sign, hh, mm, sss) {
-	var time = hoursToSeconds(parseInt(hh, 10))
-        + (mm ? minutesToSeconds(parseInt(mm, 10))
-            + (sss ? parseFloat(sss, 10) : 0)
-        : 0) ;
-
-	return sign === '-' ? -time : time ;
-}
-
-function formatTimeString(string, time) {
-	return string.replace(rtoken, function($0) {
-		return timeFormatters[$0] ? timeFormatters[$0](time) : $0 ;
-	}) ;
-}
-
-function _formatTimeISO(time) {
-	var sign = time < 0 ? '-' : '' ;
-
-	if (time < 0) { time = -time; }
-
-	var hours = Math.floor(time / 3600);
-	var hh = prefix(hours) + hours ;
-	time = time % 3600;
-	if (time === 0) { return sign + hh + ':00'; }
-
-	var minutes = Math.floor(time / 60);
-	var mm = prefix(minutes) + minutes ;
-	time = time % 60;
-	if (time === 0) { return sign + hh + ':' + mm; }
-
-	var sss = prefix(time) + toMaxDecimals(precision, time);
-	return sign + hh + ':' + mm + ':' + sss;
-}
-
-function toMaxDecimals(precision, n) {
-	// Make some effort to keep rounding errors under control by fixing
-	// decimals and lopping off trailing zeros
-	return n.toFixed(precision).replace(/\.?0+$/, '');
-}
-
-
-const nowTime = function() {
-	return window.performance.now();
-};
-
-/**
-formatTime(format, time)
-Formats `time` (an 'hh:mm:sss' time string or a number in seconds) to match
-`format`, a string that may contain the tokens:
-
-- `'±'`   Sign, renders '-' if time is negative, otherwise nothing
-- `'Y'`   Years, approx.
-- `'M'`   Months, approx.
-- `'MM'`  Months, remainder from years (max 12), approx.
-- `'w'`   Weeks
-- `'ww'`  Weeks, remainder from months (max 4)
-- `'d'`   Days
-- `'dd'`  Days, remainder from weeks (max 7)
-- `'h'`   Hours
-- `'hh'`  Hours, remainder from days (max 24), 2-digit format
-- `'m'`   Minutes
-- `'mm'`  Minutes, remainder from hours (max 60), 2-digit format
-- `'s'`   Seconds
-- `'ss'`  Seconds, remainder from minutes (max 60), 2-digit format
-- `'sss'` Seconds, remainder from minutes (max 60), fractional
-- `'ms'`  Milliseconds, remainder from seconds (max 1000), 3-digit format
-
-```
-const time = formatTime('±hh:mm:ss', 3600);   // 01:00:00
-```
-*/
-
-var timeFormatters = {
-	'±': function sign(time) {
-		return time < 0 ? '-' : '';
-	},
-
-	Y: function Y(time) {
-		time = time < 0 ? -time : time;
-		return Math.floor(secondsToYears(time));
-	},
-
-	M: function M(time) {
-		time = time < 0 ? -time : time;
-		return Math.floor(secondsToMonths(time));
-	},
-
-	MM: function MM(time) {
-		time = time < 0 ? -time : time;
-		return Math.floor(secondsToMonths(time % 31557600));
-	},
-
-	W: function W(time) {
-		time = time < 0 ? -time : time;
-		return Math.floor(secondsToWeeks(time));
-	},
-
-	WW: function WW(time) {
-		time = time < 0 ? -time : time;
-		return Math.floor(secondsToDays(time % 2629800));
-	},
-
-	d: function dd(time) {
-		time = time < 0 ? -time : time;
-		return Math.floor(secondsToDays(time));
-	},
-
-	dd: function dd(time) {
-		time = time < 0 ? -time : time;
-		return Math.floor(secondsToDays(time % 604800));
-	},
-
-	h: function hhh(time) {
-		time = time < 0 ? -time : time;
-		return Math.floor(secondsToHours(time));
-	},
-
-	hh: function hh(time) {
-		time = time < 0 ? -time : time;
-		var hours = Math.floor(secondsToHours(time % 86400));
-		return prefix(hours) + hours;
-	},
-
-	m: function mm(time) {
-		time = time < 0 ? -time : time;
-		var minutes = Math.floor(secondsToMinutes(time));
-		return prefix(minutes) + minutes;
-	},
-
-	mm: function mm(time) {
-		time = time < 0 ? -time : time;
-		var minutes = Math.floor(secondsToMinutes(time % 3600));
-		return prefix(minutes) + minutes;
-	},
-
-	s: function s(time) {
-		time = time < 0 ? -time : time;
-		return Math.floor(time);
-	},
-
-	ss: function ss(time) {
-		time = time < 0 ? -time : time;
-		var seconds = Math.floor(time % 60);
-		return prefix(seconds) + seconds;
-	},
-
-	sss: function sss(time) {
-		time = time < 0 ? -time : time;
-		var seconds = time % 60;
-		return prefix(seconds) + toMaxDecimals(precision, seconds);
-	},
-
-	ms: function ms(time) {
-		time = time < 0 ? -time : time;
-		var ms = Math.floor(secondsToMilliseconds(time % 1));
-		return ms >= 100 ? ms :
-			ms >= 10 ? '0' + ms :
-				'00' + ms;
-	}
-};
-
-const formatTime = curry$1(function(string, time) {
-	return string === 'ISO' ?
-		_formatTimeISO(parseTime(time)) :
-		formatTimeString(string, parseTime(time)) ;
-});
-
-/**
-formatTimeISO(time)
-Formats `time` (a string or a number accepted by `parseTime(time)`) as
-a string in the ISO time format.
-```
-*/
-
-function formatTimeISO(time) {
-	// Undefined causes problems by outputting dates full of NaNs
-	return time === undefined ? undefined : _formatTimeISO(time);
-}
-
-/**
-addTime(time1, time2)
-Sums `time2` and `time1`, returning UNIX time as a number in seconds.
-If `time1` is a string, it is parsed as a duration, where numbers
-are accepted outside the bounds of 0-24 hours or 0-60 minutes or seconds.
-For example, to add 72 minutes to a list of times:
-
-```
-const laters = times.map(addTime('00:72'));
-```
-*/
-
-const addTime = curry$1(function(time1, time2) {
-	return parseTime(time2) + parseTimeDiff(time1);
-});
-
-const subTime = curry$1(function(time1, time2) {
-	return parseTime(time2) - parseTimeDiff(time1);
-});
-
-const diffTime = curry$1(function(time1, time2) {
-	return parseTime(time1) - parseTime(time2);
-});
-
-/**
-floorTime(token, time)
-Floors `time` to the nearest `token`, where `token` is one of: `'week'`, `'day'`,
-`'hour'`, `'minute'` or `'second'`. `time` may be an ISO time string or a time
-in seconds. Returns a time in seconds.
-
-```
-const hourCounts = times.map(floorTime('hour'));
-```
-*/
-
-const floorTime = curry$1(function(token, time) {
-	return _floorTime(token, parseTime(time));
 });
 
 var rcomment = /\s*\/\*([\s\S]*)\*\/\s*/;
@@ -5278,4 +5359,4 @@ const add = curry$1(function (a, b) {
     return a + b;
 });
 
-export { Fn, mutations as Observable, Observer, Pool, privates as Privates, Throttle$1 as PromiseThrottle, Stream$1 as Stream, Target, Throttle, Timer, add, addDate, addTime, and, ap$1 as ap, append$1 as append, args, argument, assign$3 as assign, by$1 as by, byAlphabet$1 as byAlphabet, cache, call, cancelTime, capture$1 as capture, choke, choose, cloneDate, compose, concat$1 as concat, contains$1 as contains, bezierify as cubicBezier, curry$1 as curry, dateDiff, daysToSeconds, define, denormalise, deprecate, diff$2 as diff, diffDateDays, diffTime, each$1 as each, equals$1 as equals, exec$1 as exec, curriedExp as exp, exponentialOut$1 as exponentialOut, factorise, filter$1 as filter, find$1 as find, floorDate, floorTime, formatDate, formatDateISO, formatDateLocal, formatDateTimeISO, formatTime, formatTimeISO, gaussian, curriedGcd as gcd, get$1 as get, getPath$1 as getPath, has$1 as has, hoursToSeconds, id, insert$1 as insert, intersect$1 as intersect, invoke$1 as invoke, is$1 as is, isDefined, last, latest, curriedLcm as lcm, curriedLimit as limit, curriedLog as log, map$1 as map, matches$1 as matches, curriedMax as max, millisecondsToSeconds, curriedMin as min, minutesToSeconds, mod$1 as mod, curriedMultiply as multiply, mutations, noop, normalise, not, nothing, notify$1 as notify, now, nowDate, nowTime, observe, once, or, overload, parseDate, parseDateLocal, parseInteger as parseInt, parseTime, pipe, postpad$1 as postpad, curriedPow as pow, prepad$1 as prepad, prepend$1 as prepend, print, reduce$2 as reduce, remove$1 as remove, requestTick, requestTime$1 as requestTime, rest$1 as rest, curriedRoot as root, secondsToDays, secondsToHours, secondsToMilliseconds, secondsToMinutes, secondsToMonths, secondsToWeeks, secondsToYears, self, set$1 as set, setPath$1 as setPath, slice$1 as slice, slugify, sort$1 as sort, subTime, curriedSum as sum, take$1 as take, group as test, throttle, toArray, toCamelCase, toCartesian, toClass, toDay, toDeg, toFixed$1 as toFixed, toFloat, toLevel, toPlainText, toPolar, toRad, toString, toStringType, toTimestamp, toType, todB, unique, unite$1 as unite, update$1 as update, weakCache, weeksToSeconds, curriedWrap as wrap, xor };
+export { Fn, mutations as Observable, Observer, Pool, privates as Privates, Throttle$1 as PromiseThrottle, Stream$1 as Stream, Target, Throttle, Timer, add, addDate, addTime, and, ap$1 as ap, append$1 as append, args, argument, assign$3 as assign, by$1 as by, byAlphabet$1 as byAlphabet, cache, call, cancelTime, capture$1 as capture, choke, choose, cloneDate, compose, concat$1 as concat, contains$1 as contains, bezierify as cubicBezier, curry$1 as curry, dateDiff, daysToSeconds, define, denormalise, deprecate, diff$2 as diff, diffDateDays, diffTime, each$1 as each, equals$1 as equals, exec$1 as exec, curriedExp as exp, exponentialOut$1 as exponentialOut, factorise, filter$1 as filter, find$1 as find, floorDate, floorTime, formatDate, formatDateISO, formatDateLocal, formatDateTimeISO, formatTime, formatTimeISO, gaussian, curriedGcd as gcd, get$1 as get, getPath$1 as getPath, has$1 as has, hoursToSeconds, id, insert$1 as insert, intersect$1 as intersect, invoke$1 as invoke, is$1 as is, isDefined, last, latest, curriedLcm as lcm, curriedLimit as limit, curriedLog as log, map$1 as map, matches$1 as matches, curriedMax as max, millisecondsToSeconds, curriedMin as min, minutesToSeconds, mod$1 as mod, curriedMultiply as multiply, mutations, noop, normalise, not, nothing, notify$1 as notify, now, nowDate, nowTime, observe, once, or, overload, parseDate, parseDateLocal, parseInteger as parseInt, parseTime, parseTimeDiff, pipe, postpad$1 as postpad, curriedPow as pow, prepad$1 as prepad, prepend$1 as prepend, print, reduce$2 as reduce, remove$1 as remove, requestTick, requestTime$1 as requestTime, rest$1 as rest, curriedRoot as root, secondsToDays, secondsToHours, secondsToMilliseconds, secondsToMinutes, secondsToMonths, secondsToWeeks, secondsToYears, self, set$1 as set, setPath$1 as setPath, slice$1 as slice, slugify, sort$1 as sort, subTime, curriedSum as sum, take$1 as take, group as test, throttle, toArray, toCamelCase, toCartesian, toClass, toDay, toDeg, toFixed$1 as toFixed, toFloat, toLevel, toPlainText, toPolar, toRad, toString, toStringType, toTimestamp, toType, todB, unique, unite$1 as unite, update$1 as update, weakCache, weeksToSeconds, curriedWrap as wrap, xor };

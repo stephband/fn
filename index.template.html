@@ -1,56 +1,33 @@
 <!DOCTYPE html>
-<html lang="en" is="sparky">
+<html lang="en">
 <head build-fn="fetch:package.json">
-    <meta charset="utf-8" />
+    <template build-src="/fn/templates.html#head-template"></template>
 
-    <meta name="author" content="@{[author.twitter]}" />
-    <meta name="description" content="Documentation for {[title]}. {[description]}" />
-    <meta name="viewport" content="width=device-width" />
-
-    <title>{[title]}</title>
-
-    <script>
-    document.documentElement.className = 'js';
-    window.DEBUG = false;
+    <script build-remove>
+    window.DEBUG = true;
     </script>
 
-    <link rel="shortcut icon" href="images/logo-64x64.ico" />
-    <link rel="icon" type="image/png" href="images/logo-32x32.png" sizes="32x32">
-    <link rel="icon" type="image/png" href="images/logo-64x64.png" sizes="64x64">
-    <link rel="icon" type="image/png" href="images/logo-128x128.png" sizes="128x128">
+    <link rel="stylesheet" href="style.min.css" />
 
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono:100,300,400,500,700" />
-
-    <link rel="stylesheet" href="../bolt/css/html.css" />
-    <link rel="stylesheet" href="../bolt/css/root.css" />
-    <link rel="stylesheet" href="../bolt/css/body.css" />
-    <link rel="stylesheet" href="../bolt/css/block.css" />
-    <link rel="stylesheet" href="../bolt/css/type.css" />
-    <link rel="stylesheet" href="../bolt/css/text.css" />
-    <link rel="stylesheet" href="../bolt/css/color.css" />
-
-    <link rel="stylesheet" href="../dom/css/dom.css" />
-    <link rel="stylesheet" href="../fn/css/prism-cruncher.css" />
-    <link rel="stylesheet" href="../fn/css/tests.css" />
-    <link rel="stylesheet" href="css/docs.css" />
-    <link rel="stylesheet" href="css/theme.css" />
-    <link rel="stylesheet" href="css/respond.css" />
+    <!--template build-fn="get:style each">
+        <link rel="stylesheet" href="{[.]}" />
+    </template-->
 </head>
 
-<body class="grid">
+<body class="grid @1-6x-grid @3-9x-grid">
     <header class="x-1 3x @1-6x @2-9x @3-x-2 @3-11x" id="header">
         <template build-fn="fetch:package.json" build-src="/fn/templates.html#header-template"></template>
     </header>
 
     <section class="x-1 3x @1-6x @2-9x @3-x-2 grid" locateable id="functions">
         <header class="x-1 3x @1-4x">
-            <h2 class="text-2">Functions</h2>
-            <p>Import functions from the Fn module:</p>
+            <h2 class="doctext-02">Functions</h2>
+            <p class="doctext-08">Import functions from the Fn module:</p>
             <pre><code class="language-js">import { get, matches } from '/fn/module.js';</code></pre>
         </header>
 
         <div class="x-1 3x">
-            <h4 class="text-4">Functions</h4>
+            <h4 class="doctext-03">Functions</h4>
             <template build-fn="docs:
             modules/cache.js,
             modules/compose.js,
@@ -64,15 +41,15 @@
         </div>
 
         <div class="x-1 3x @2-4x">
-            <p>
+            <p class="doctext-08">
             The functions below are curried (where they take more than one
-            parameter), allowing them to be partially applied.
+            parameter). They may be partially applied.
             </p>
         </div>
 
         <div class="x-1 3x column-grid grid">
             <div class="x-1">
-                <h4 class="text-4">Objects</h4>
+                <h4 class="doctext-03">Objects</h4>
                 <template build-fn="docs:
                 modules/argument.js,
                 modules/call.js,
@@ -102,18 +79,23 @@
 
         <div class="x-1 3x @1-x-4 column-grid grid">
             <div class="x-1">
-                <h4 class="text-4">Strings</h4>
+                <h4 class="doctext-03">Strings</h4>
                 <template build-fn="docs:
+                modules/strings/append.js,
+                modules/strings/prepend.js,
+                modules/strings/prepad.js,
+                modules/strings/postpad.js,
                 modules/capture.js,
                 modules/exec.js,
-                'modules/time.js?parseDate,parseTime',
                 modules/parse-int.js,
-                modules/parse-value.js
+                modules/strings/slugify.js,
+                modules/strings/to-camel-case.js,
+                modules/strings/to-plain-text.js
                 filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
             </div>
 
             <div class="x-1">
-                <h4 class="text-4">Numbers</h4>
+                <h4 class="doctext-03">Maths</h4>
                 <template build-fn="docs:
                 modules/maths/core.js,
                 modules/maths/mod.js,
@@ -127,7 +109,7 @@
 
         <div class="x-1 3x @2-x-7 column-grid grid">
             <div class="x-1">
-                <h4 class="text-4">Arrays</h4>
+                <h4 class="doctext-03">Arrays</h4>
                 <template build-fn="docs:
                 modules/lists/core.js,
                 modules/lists/insert.js,
@@ -141,8 +123,9 @@
             </div>
 
             <div class="x-1">
-                <h4 class="text-4">Time</h4>
+                <h4 class="doctext-03">Time</h4>
                 <template build-fn="docs:
+                modules/date.js,
                 modules/time.js
                 filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
             </div>
@@ -151,12 +134,12 @@
 
     <section class="x-1 3x @1-6x @2-9x @3-x-2 columns-grid grid" locateable id="observer">
         <header class="x-1 3x @1-4x">
-            <h2 class="text-2" style="font-size: 1.875rem;">Observer</h2>
-            <p>An observer is an ES6 Proxy of an object that intercepts and
+            <h2 class="doctext-02" style="font-size: 1.875rem;">Observer</h2>
+            <p class="doctext-08">An observer is an ES6 Proxy of an object that intercepts and
             reports mutations. Import and create an observer:</p>
             <pre><code class="language-js">import { Observer, observe } from '/fn/module.js';
 const data = Observer({ value: true });</code></pre>
-            <p>
+            <p class="doctext-08">
             There is only ever one observer per object, ie, calling
             <code>Observer(object)</code> multiple times with the same object
             (or proxy of that object) always returns the same observer proxy.
@@ -165,7 +148,7 @@ const data = Observer({ value: true });</code></pre>
 
             <pre><code class="language-js">observe('value', console.log, data);</code></pre>
 
-            <p>Mutations made to the observer proxy's <code>value</code>
+            <p class="doctext-08">Mutations made to the observer proxy's <code>value</code>
             property are now logged to the console.</p>
 
             <pre><code class="language-js">data.value = false;   // Logs `false`</code></pre>
@@ -180,15 +163,15 @@ const data = Observer({ value: true });</code></pre>
     </section>
 
     <!--div class="x-1 3x @2-x-2 @3-6x @4-5x @5-3x">
-        <p>Text things</p>
+        <p class="doctext-08">Text things</p>
     </div-->
 
     <!--div class="x-1 3x @2-x-2 @3-6x @4-5x @5-3x" build-fn="docs:'./modules/stream.js'"></div-->
 
     <section class="x-1 3x @1-6x @2-9x @3-x-2 columns-grid grid" locateable id="stream">
         <header class="x-1 3x @1-4x">
-            <h2 class="text-2" style="font-size: 1.875rem;">Stream</h2>
-            <p>Import and create a stream:</p>
+            <h2 class="doctext-02" style="font-size: 1.875rem;">Stream</h2>
+            <p class="doctext-08">Import and create a stream:</p>
             <pre><code class="language-js">import { Stream } from '/fn/module.js';
 const stream = Stream.of(1,2,3,4);</code></pre>
         </header>
@@ -207,10 +190,7 @@ const stream = Stream.of(1,2,3,4);</code></pre>
         </div>
     </section>
 
-    <!-- Build document -->
-    <script type="module" build-remove>
-        import '../fn/docs-build.js';
-    </script>
+    <script build-remove type="module" src="../fn/docs-build.js"></script>
 
     <!-- Document interactivity -->
     <script type="module">

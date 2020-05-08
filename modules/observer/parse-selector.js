@@ -1,9 +1,9 @@
-/*
+/**
 parseSelector(string)
 
 Takes a string of the form '[key=value, ... ]' and returns a function isMatch
 that returns true when passed an object that matches the selector.
-*/
+**/
 
 //                 1 key                 2 quote 3 value           4 comma 5 closing bracket
 const rselector = /^([^\]=,\s]+)\s*(?:=\s*(['"])?([^\]=,\s]+)\2\s*)?(?:(,)|(])(\s*\.$)?)\s*/;

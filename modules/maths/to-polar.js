@@ -1,6 +1,6 @@
-/*
+/**
 toPolar(cartesian)
-*/
+**/
 
 export default function toPolar(cartesian) {
     var x = cartesian[0];
@@ -16,4 +16,4 @@ export default function toPolar(cartesian) {
         // Angle
         Math.atan2(x, y)
     ];
-};
+}

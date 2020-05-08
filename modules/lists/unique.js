@@ -1,8 +1,8 @@
-/*
+/**
 unique(array)
 Takes an array or stream as `array`, returns an object of the same
 type without duplicate values.
-*/
+**/
 
 import { reduce } from './core.js';
 

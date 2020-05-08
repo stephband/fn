@@ -1,7 +1,7 @@
 
-/*
+/**
 toCartesian(polar)
-*/
+**/
 
 export default function toCartesian(polar) {
     var d = polar[0];
@@ -11,4 +11,4 @@ export default function toCartesian(polar) {
         Math.sin(a) * d ,
         Math.cos(a) * d
     ];
-};
+}

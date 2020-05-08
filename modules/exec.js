@@ -12,8 +12,8 @@ export function exec(regex, fn, string) {
 
     // If string looks like a regex result, get rest of string
     // from latest index
-    if (string.input !== undefined && string.index !== undefined) {
-        data   = string;
+    if (typeof string !== 'string' && string.input !== undefined && string.index !== undefined) {
+        data = string;
         string = data.input.slice(
             string.index
             + string[0].length

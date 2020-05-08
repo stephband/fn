@@ -1,5 +1,6 @@
 /**
 curry(fn [, muteable, arity])
+Returns a function that wraps `fn` and makes it partially applicable.
 */
 
 import cache from './cache.js';
