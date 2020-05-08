@@ -53,6 +53,8 @@ export const curriedWrap  = curry(wrap);
 
 /**
 todB(level)
+
+Converts a value to decibels relative to unity (dBFS).
 **/
 
 // A bit disturbingly, a correction factor is needed to make todB() and
@@ -64,6 +66,8 @@ export function todB(n)    { return 20 * Math.log10(n) * dBCorrectionFactor; }
 
 /**
 toLevel(dB)
+
+Converts a dB value relative to unity (dBFS) to unit value.
 **/
 
 export function toLevel(n) { return Math.pow(2, n / 6); }
