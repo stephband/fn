@@ -16,14 +16,12 @@ if (args.length < 2) {
 }
 
 // Get the name of the current working directory
-const path = process.cwd().split('/');
-const dir  = path[path.length - 1] + '/';
-
+const dir     = process.cwd();
 const source  = args[0].replace(/^\.\//, '');
 const target  = args[1] || 'style.min.css';
 
 // Get style property of source JSON
-const files    = require('../' + dir + source).style;
+const files    = require(dir + '/' + source).style;
 const CleanCSS = require('clean-css');
 const fs       = require('fs');
 
