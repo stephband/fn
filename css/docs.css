@@ -49,6 +49,11 @@ body > .bleed-x {
     :root {
         --column-gap: 3.75rem;
     }
+
+    body {
+        padding-left: calc(0.5 * var(--column-gap));
+        padding-right: calc(0.5 * var(--column-gap));
+    }
 }
 
 
