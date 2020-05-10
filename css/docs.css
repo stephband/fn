@@ -56,6 +56,18 @@ body > .bleed-x {
     }
 }
 
+/*
+Colour
+*/
+
+.doc-navy-fg { color: #005177; }
+.doc-navy-bg { background-color: #005177; }
+
+.doc-aqua-fg { color: #026f63; }
+.doc-aqua-bg { background-color: #026f63; }
+
+.doc-blue-fg { color: #46789a; }
+.doc-blue-bg { background-color: #46789a; }
 
 /*
 .docdemo-block
