@@ -49,8 +49,25 @@ body > .bleed-x {
     :root {
         --column-gap: 3.75rem;
     }
+
+    body {
+        padding-left: calc(0.5 * var(--column-gap));
+        padding-right: calc(0.5 * var(--column-gap));
+    }
 }
 
+/*
+Colour
+*/
+
+.doc-navy-fg { color: #005177; }
+.doc-navy-bg { background-color: #005177; }
+
+.doc-aqua-fg { color: #026f63; }
+.doc-aqua-bg { background-color: #026f63; }
+
+.doc-blue-fg { color: #46789a; }
+.doc-blue-bg { background-color: #46789a; }
 
 /*
 .docdemo-block
@@ -83,26 +100,26 @@ body > .docdemo-block + .grid {
 .doctext-06,
 .doctext-08,
 .doctext-09 {
-	font-family: Helvetica, Arial, sans-serif;
-	font-style: none;
-	text-transform: none;
+    font-family: Helvetica, Arial, sans-serif;
+    font-style: none;
+    text-transform: none;
 }
 
 .doctext-07, code {
-	font-family: 'Fira Code', 'Fira Mono', 'Roboto Mono', Courier, monospace;
-	font-style: normal;
-	text-transform: none;
+    font-family: 'Fira Code', 'Fira Mono', 'Roboto Mono', Courier, monospace;
+    font-style: normal;
+    text-transform: none;
 }
 
-.doctext-01  { font-size: 2.5rem;    line-height: 2.625rem;  font-weight: 700; }
-.doctext-02  { font-size: 1.5625rem; line-height: 1.875rem;  font-weight: 700; }
-.doctext-03  { font-size: 1.25rem;   line-height: 1.875rem;  font-weight: 600; }
-.doctext-04  { font-size: 0.75rem;   line-height: 0.9375rem; font-weight: 400; text-transform: uppercase; }
-.doctext-05  { font-size: 1rem;      line-height: 1.375rem;  font-weight: 700; }
-.doctext-06  { font-size: 1.5rem;    line-height: 1.875rem;  font-weight: 300; }
-.doctext-07  { font-size: 0.9375rem; line-height: 1.5rem;    font-weight: 400; }
-.doctext-08  { font-size: 1rem;      line-height: 1.5rem;    font-weight: 300; }
-.doctext-09  { font-size: 0.9375rem; line-height: 1.5rem;    font-weight: 400; }
+.doctext-01 { font-size: 2.5rem;    line-height: 2.625rem;  font-weight: 700; }
+.doctext-02 { font-size: 1.5625rem; line-height: 1.875rem;  font-weight: 700; }
+.doctext-03 { font-size: 1.25rem;   line-height: 1.875rem;  font-weight: 600; }
+.doctext-04 { font-size: 0.75rem;   line-height: 0.9375rem; font-weight: 400; text-transform: uppercase; }
+.doctext-05 { font-size: 1rem;      line-height: 1.375rem;  font-weight: 700; }
+.doctext-06 { font-size: 1.5rem;    line-height: 1.875rem;  font-weight: 300; }
+.doctext-07 { font-size: 0.9375rem; line-height: 1.5rem;    font-weight: 400; }
+.doctext-08 { font-size: 1rem;      line-height: 1.5rem;    font-weight: 300; }
+.doctext-09 { font-size: 0.9375rem; line-height: 1.5rem;    font-weight: 400; }
 
 /* Vertical typographic spacings pairs.
    (We use 'body' in 'body tag + .class' to increase the
@@ -211,6 +228,36 @@ button.doctext-09 {
     padding-left: 0;
     padding-right: 0;
 }
+
+
+/* doc bubbles */
+
+.docbubble-thumb {
+    font-size: 0.5rem;
+    line-height: 1rem;
+    height: 1rem;
+    width: 1rem;
+    padding-left: 1rem;
+    padding-top: 0;
+    vertical-align: -3px;
+    color: #eef9ff;
+    background-color: #026f63;
+    background-color: #005177;
+    background-color: #46789a;
+    border-radius: 50%;
+}
+
+.docbubble-thumb::before {
+    content: '';
+    position: absolute;
+    top: 0.1875rem;
+    left: 0.375rem;
+    width: 1rem;
+    border-left: 0.375rem solid currentcolor;
+    border-top: 0.3125rem solid transparent;
+    border-bottom: 0.3125rem solid transparent;
+}
+
 
 
 /*  */
@@ -375,7 +422,7 @@ code.block {
 }
 
 pre > code .comment {
-	color: #75858c;
+    color: #75858c;
 }
 
 code {
@@ -414,15 +461,15 @@ code.property {
 /* Legacy styles. Review and discard! */
 
 script[type="text"] {
-	white-space: pre;
-	border-width: 0;
-	padding: 0;
-	line-height: inherit;
-	tab-size: 2;
-	margin-left: -4.875rem;
-	margin-top: -1.5rem;
-	margin-bottom: -1.5rem;
-	background-color: transparent;
+    white-space: pre;
+    border-width: 0;
+    padding: 0;
+    line-height: inherit;
+    tab-size: 2;
+    margin-left: -4.875rem;
+    margin-top: -1.5rem;
+    margin-bottom: -1.5rem;
+    background-color: transparent;
 }
 
 line { stroke-width: 1; stroke: inherit; }

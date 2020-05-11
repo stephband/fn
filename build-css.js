@@ -15,15 +15,10 @@ if (args.length < 2) {
     throw new Error("build-css requires the arguments: source.json target.css");
 }
 
-// Get the name of the current working directory
-const path = process.cwd().split('/');
-const dir  = path[path.length - 1] + '/';
-
 const source  = args[0].replace(/^\.\//, '');
 const target  = args[1] || 'style.min.css';
 
 // Get style property of source JSON
-const files    = require('../' + dir + source).style;
 const CleanCSS = require('clean-css');
 const fs       = require('fs');
 
@@ -32,11 +27,13 @@ function logError(error) {
 }
 
 // Minify the files
-const output = new CleanCSS({}).minify(files);
+const output = new CleanCSS({
+    inline: ['all']
+}).minify([source]);
 
 fs.writeFile(target, output.styles, logError);
 
-console.log(cyan, 'CSS ' + source + ' style ('
+console.log(cyan, 'CSS ' + source + ' ('
     + (output.stats.originalSize / 1000).toFixed(1) + 'kB) minified to '
     + target + ' (' + (output.stats.minifiedSize / 1000).toFixed(1) + 'kB) in '
     + output.stats.timeSpent + 'ms'
