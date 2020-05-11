@@ -81,7 +81,7 @@ body > .docdemo-block + .grid {
 .doctext-04,
 .doctext-05,
 .doctext-06,
-.doctext-08, body,
+.doctext-08,
 .doctext-09 {
 	font-family: Helvetica, Arial, sans-serif;
 	font-style: none;
@@ -94,15 +94,15 @@ body > .docdemo-block + .grid {
 	text-transform: none;
 }
 
-.doctext-01       { font-size: 2.5rem;    line-height: 2.625rem;  font-weight: 700; }
-.doctext-02       { font-size: 1.5625rem; line-height: 1.875rem;  font-weight: 700; }
-.doctext-03       { font-size: 1.25rem;   line-height: 1.875rem;  font-weight: 600; }
-.doctext-04       { font-size: 0.75rem;   line-height: 0.9375rem; font-weight: 400; text-transform: uppercase; }
-.doctext-05       { font-size: 1rem;      line-height: 1.375rem;  font-weight: 700; }
-.doctext-06       { font-size: 1.5rem;    line-height: 1.875rem;  font-weight: 300; }
-.doctext-07       { font-size: 0.9375rem; line-height: 1.5rem;    font-weight: 400; }
-.doctext-08, body { font-size: 1rem;      line-height: 1.5rem;    font-weight: 300; }
-.doctext-09       { font-size: 0.9375rem; line-height: 1.5rem;    font-weight: 400; }
+.doctext-01  { font-size: 2.5rem;    line-height: 2.625rem;  font-weight: 700; }
+.doctext-02  { font-size: 1.5625rem; line-height: 1.875rem;  font-weight: 700; }
+.doctext-03  { font-size: 1.25rem;   line-height: 1.875rem;  font-weight: 600; }
+.doctext-04  { font-size: 0.75rem;   line-height: 0.9375rem; font-weight: 400; text-transform: uppercase; }
+.doctext-05  { font-size: 1rem;      line-height: 1.375rem;  font-weight: 700; }
+.doctext-06  { font-size: 1.5rem;    line-height: 1.875rem;  font-weight: 300; }
+.doctext-07  { font-size: 0.9375rem; line-height: 1.5rem;    font-weight: 400; }
+.doctext-08  { font-size: 1rem;      line-height: 1.5rem;    font-weight: 300; }
+.doctext-09  { font-size: 0.9375rem; line-height: 1.5rem;    font-weight: 400; }
 
 /* Vertical typographic spacings pairs.
    (We use 'body' in 'body tag + .class' to increase the
