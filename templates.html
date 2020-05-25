@@ -140,19 +140,19 @@ documentation comments in the form:
         </header>
 
         <section build-fn="rest:1 each" class="block class-grid grid @1-6-grid @2-9-grid">
-            <h4 class="x-1 start-x 3x @2-2x @2-end-x doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
+            <h4 class="x-1 x-start 3x @2-2x @2-x-end doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <code build-fn="append:title" class=""></code>
             </h4>
 
-            <div class="block x-3 2x baseline-y" build-fn="append:example"></div>
-            <div hidden class="block x-6 3x start-y" build-fn="append:body"></div>
+            <div class="block x-3 2x y-baseline" build-fn="append:example"></div>
+            <div hidden class="block x-6 3x y-start" build-fn="append:body"></div>
         </section>
     </section>
 </template>
 
 <template build-remove id="css-template">
     <section class="x-1 9x grid" style="--row-gap: var(--input-margin);" id="components" locateable>
-        <header class="x-3 2x start-x">
+        <header class="x-3 2x x-start">
             <h3 build-fn="get:0 after:body" class="doctext-03 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <a build-fn="append:title" class="doctoggle-button button" href="#component-{[id]}"></a>
             </h3>
@@ -160,11 +160,11 @@ documentation comments in the form:
 
         <section build-fn="rest:1 filter-not-var" class="x-1 5x y-2 grid" style="grid-auto-flow: row; align-content: start;" id="component-{[0.id]}">
             <template build-fn="each">
-                <h4 class="x-1 2x end-x baseline-y doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']} right-align">
+                <h4 class="x-1 2x x-end y-baseline doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']} right-align">
                     <a href="#{[id]}" title="Show HTML markup"><code build-fn="title-replace-comma-br append:title"></code></a>
                 </h4>
-                <div class="x-3 2x stretch-x baseline-y block" build-fn="prepend:example"></div>
-                <div class="x-5 stretch-x block">
+                <div class="x-3 2x x-stretch y-baseline block" build-fn="prepend:example"></div>
+                <div class="x-5 x-stretch block">
                     <div class="bottom-right-bubble right-bubble bubble" style="width: calc(300% + 2 * var(--column-gap)); max-width: calc(300% + 2 * var(--column-gap)); min-width: 20rem; top: 0.75rem;" popable build-fn="append:body" id="{[id]}"></div>
                 </div>
             </template>
@@ -172,10 +172,10 @@ documentation comments in the form:
 
         <section build-fn="rest:1 filter-var" class="x-5 5x y-2 grid" style="grid-auto-flow: row; align-content: start; column-gap: 1em;">
             <template build-fn="each">
-                <label class="x-1 2x end-x baseline-y doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}" for="doc-var-{[id]}">
+                <label class="x-1 2x x-end y-baseline doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}" for="doc-var-{[id]}">
                     <code build-fn="append:title" style="color: #888888;"></code><span style="color: transparent;">:</span>
                 </label>
-                <input class="x-3 1x stretch-x baseline-y doc-var-input pill-input" style="color: #666666;" name="--{[id]}" id="doc-var-{[id]}" type="text" placeholder="value"/>
+                <input class="x-3 1x x-stretch y-baseline doc-var-input pill-input" style="color: #666666;" name="--{[id]}" id="doc-var-{[id]}" type="text" placeholder="value"/>
                 <div class="x-4 2x" style="color: transparent;">;</div>
             </template>
         </section>
@@ -184,7 +184,7 @@ documentation comments in the form:
 
 <template build-remove id="styleguide-template">
     <section class="x-1 9x 9x-grid grid" style="--row-gap: var(--input-margin);" id="components" locateable>
-        <header class="x-3 2x start-x">
+        <header class="x-3 2x x-start">
             <h3 build-fn="get:0 after:body" class="doctext-03 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <a build-fn="append:title" class="doctoggle-button button" href="#component-{[id]}"></a>
             </h3>
@@ -192,11 +192,11 @@ documentation comments in the form:
 
         <section build-fn="rest:1 filter-not-var" class="x-1 5x y-2 grid" style="grid-auto-flow: row; align-content: start;" id="component-{[0.id]}">
             <template build-fn="each">
-                <h4 class="x-1 2x end-x baseline-y doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']} right-align">
+                <h4 class="x-1 2x x-end y-baseline doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']} right-align">
                     <a href="#{[id]}" title="Show HTML markup"><code build-fn="title-replace-comma-br append:title"></code></a>
                 </h4>
-                <div class="x-3 2x stretch-x baseline-y block" build-fn="prepend:example"></div>
-                <div class="x-5 stretch-x baseline-y block">
+                <div class="x-3 2x x-stretch y-baseline block" build-fn="prepend:example"></div>
+                <div class="x-5 x-stretch y-baseline block">
                     <a class="docbubble-thumb thumb" href="#{[id]}" style="text-decoration: none;"><code>Code</code></a>
                     <div class="bottom-right-bubble right-bubble bubble" style="width: calc(300% + 2 * var(--column-gap)); max-width: calc(300% + 2 * var(--column-gap)); min-width: 20rem; top: 0.75rem; left: 2.5rem;" popable build-fn="append:body" id="{[id]}"></div>
                 </div>
