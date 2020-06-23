@@ -9,19 +9,6 @@ export function log(n, x) { return Math.log(x) / Math.log(n); }
 export function root(n, x) { return Math.pow(x, 1/n); }
 
 /**
-clamp(min, max, n)
-**/
-
-export function limit(min, max, n) {
-    console.trace('Deprecated: Fn limit() is now clamp()');
-    return n > max ? max : n < min ? min : n;
-}
-
-export function clamp(min, max, n) {
-    return n > max ? max : n < min ? min : n;
-}
-
-/**
 wrap(min, max, n)
 **/
 
@@ -48,7 +35,6 @@ export const curriedPow   = curry(pow);
 export const curriedExp   = curry(exp);
 export const curriedLog   = curry(log);
 export const curriedRoot  = curry(root);
-export const curriedLimit = curry(limit);
 export const curriedWrap  = curry(wrap);
 
 /**

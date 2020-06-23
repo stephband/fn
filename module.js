@@ -136,7 +136,6 @@ export {
     curriedPow   as pow,
     curriedRoot  as root,
     curriedSum   as sum,
-    curriedLimit as limit,
     curriedWrap  as wrap,
     gaussian,
     todB,
@@ -151,6 +150,7 @@ export {
     factorise
 } from './modules/maths/ratios.js';
 
+export { default as clamp } from './modules/maths/clamp.js';
 export { default as mod } from './modules/maths/mod.js';
 export { default as toPolar } from './modules/maths/to-polar.js';
 export { default as toCartesian } from './modules/maths/to-cartesian.js';
