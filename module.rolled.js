@@ -3738,15 +3738,6 @@ function log(n, x) { return Math.log(x) / Math.log(n); }
 function root(n, x) { return Math.pow(x, 1/n); }
 
 /**
-clamp(min, max, n)
-**/
-
-function limit(min, max, n) {
-    console.trace('Deprecated: Fn limit() is now clamp()');
-    return n > max ? max : n < min ? min : n;
-}
-
-/**
 wrap(min, max, n)
 **/
 
@@ -3773,11 +3764,12 @@ const curriedPow   = curry$1(pow);
 const curriedExp   = curry$1(exp);
 const curriedLog   = curry$1(log);
 const curriedRoot  = curry$1(root);
-const curriedLimit = curry$1(limit);
 const curriedWrap  = curry$1(wrap);
 
 /**
 todB(level)
+
+Converts a value to decibels relative to unity (dBFS).
 **/
 
 // A bit disturbingly, a correction factor is needed to make todB() and
@@ -3789,6 +3781,8 @@ function todB(n)    { return 20 * Math.log10(n) * dBCorrectionFactor; }
 
 /**
 toLevel(dB)
+
+Converts a dB value relative to unity (dBFS) to unit value.
 **/
 
 function toLevel(n) { return Math.pow(2, n / 6); }
@@ -3845,6 +3839,16 @@ function factorise(array) {
     var f = gcd(array[0], array[1]);
     return [array[0] / f, array[1] / f];
 }
+
+/**
+clamp(min, max, n)
+**/
+
+function clamp(min, max, n) {
+    return n > max ? max : n < min ? min : n;
+}
+
+var clamp$1 = curry$1(clamp);
 
 /**
 mod(divisor, n)
@@ -5359,4 +5363,4 @@ const add = curry$1(function (a, b) {
     return a + b;
 });
 
-export { Fn, mutations as Observable, Observer, Pool, privates as Privates, Throttle$1 as PromiseThrottle, Stream$1 as Stream, Target, Throttle, Timer, add, addDate, addTime, and, ap$1 as ap, append$1 as append, args, argument, assign$3 as assign, by$1 as by, byAlphabet$1 as byAlphabet, cache, call, cancelTime, capture$1 as capture, choke, choose, cloneDate, compose, concat$1 as concat, contains$1 as contains, bezierify as cubicBezier, curry$1 as curry, dateDiff, daysToSeconds, define, denormalise, deprecate, diff$2 as diff, diffDateDays, diffTime, each$1 as each, equals$1 as equals, exec$1 as exec, curriedExp as exp, exponentialOut$1 as exponentialOut, factorise, filter$1 as filter, find$1 as find, floorDate, floorTime, formatDate, formatDateISO, formatDateLocal, formatDateTimeISO, formatTime, formatTimeISO, gaussian, curriedGcd as gcd, get$1 as get, getPath$1 as getPath, has$1 as has, hoursToSeconds, id, insert$1 as insert, intersect$1 as intersect, invoke$1 as invoke, is$1 as is, isDefined, last, latest, curriedLcm as lcm, curriedLimit as limit, curriedLog as log, map$1 as map, matches$1 as matches, curriedMax as max, millisecondsToSeconds, curriedMin as min, minutesToSeconds, mod$1 as mod, curriedMultiply as multiply, mutations, noop, normalise, not, nothing, notify$1 as notify, now, nowDate, nowTime, observe, once, or, overload, parseDate, parseDateLocal, parseInteger as parseInt, parseTime, parseTimeDiff, pipe, postpad$1 as postpad, curriedPow as pow, prepad$1 as prepad, prepend$1 as prepend, print, reduce$2 as reduce, remove$1 as remove, requestTick, requestTime$1 as requestTime, rest$1 as rest, curriedRoot as root, secondsToDays, secondsToHours, secondsToMilliseconds, secondsToMinutes, secondsToMonths, secondsToWeeks, secondsToYears, self, set$1 as set, setPath$1 as setPath, slice$1 as slice, slugify, sort$1 as sort, subTime, curriedSum as sum, take$1 as take, group as test, throttle, toArray, toCamelCase, toCartesian, toClass, toDay, toDeg, toFixed$1 as toFixed, toFloat, toLevel, toPlainText, toPolar, toRad, toString, toStringType, toTimestamp, toType, todB, unique, unite$1 as unite, update$1 as update, weakCache, weeksToSeconds, curriedWrap as wrap, xor };
+export { Fn, mutations as Observable, Observer, Pool, privates as Privates, Throttle$1 as PromiseThrottle, Stream$1 as Stream, Target, Throttle, Timer, add, addDate, addTime, and, ap$1 as ap, append$1 as append, args, argument, assign$3 as assign, by$1 as by, byAlphabet$1 as byAlphabet, cache, call, cancelTime, capture$1 as capture, choke, choose, clamp$1 as clamp, cloneDate, compose, concat$1 as concat, contains$1 as contains, bezierify as cubicBezier, curry$1 as curry, dateDiff, daysToSeconds, define, denormalise, deprecate, diff$2 as diff, diffDateDays, diffTime, each$1 as each, equals$1 as equals, exec$1 as exec, curriedExp as exp, exponentialOut$1 as exponentialOut, factorise, filter$1 as filter, find$1 as find, floorDate, floorTime, formatDate, formatDateISO, formatDateLocal, formatDateTimeISO, formatTime, formatTimeISO, gaussian, curriedGcd as gcd, get$1 as get, getPath$1 as getPath, has$1 as has, hoursToSeconds, id, insert$1 as insert, intersect$1 as intersect, invoke$1 as invoke, is$1 as is, isDefined, last, latest, curriedLcm as lcm, curriedLog as log, map$1 as map, matches$1 as matches, curriedMax as max, millisecondsToSeconds, curriedMin as min, minutesToSeconds, mod$1 as mod, curriedMultiply as multiply, mutations, noop, normalise, not, nothing, notify$1 as notify, now, nowDate, nowTime, observe, once, or, overload, parseDate, parseDateLocal, parseInteger as parseInt, parseTime, parseTimeDiff, pipe, postpad$1 as postpad, curriedPow as pow, prepad$1 as prepad, prepend$1 as prepend, print, reduce$2 as reduce, remove$1 as remove, requestTick, requestTime$1 as requestTime, rest$1 as rest, curriedRoot as root, secondsToDays, secondsToHours, secondsToMilliseconds, secondsToMinutes, secondsToMonths, secondsToWeeks, secondsToYears, self, set$1 as set, setPath$1 as setPath, slice$1 as slice, slugify, sort$1 as sort, subTime, curriedSum as sum, take$1 as take, group as test, throttle, toArray, toCamelCase, toCartesian, toClass, toDay, toDeg, toFixed$1 as toFixed, toFloat, toLevel, toPlainText, toPolar, toRad, toString, toStringType, toTimestamp, toType, todB, unique, unite$1 as unite, update$1 as update, weakCache, weeksToSeconds, curriedWrap as wrap, xor };
