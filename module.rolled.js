@@ -484,7 +484,7 @@ function error(regex, reducers, string) {
         string = string.input;
     }
 
-    throw new Error('Cannot parse invalid string "' + string + '"');
+    throw new Error('Cannot parse string "' + string + '"');
 }
 
 function reduce$1(reducers, acc, tokens) {
@@ -814,6 +814,7 @@ var nothing = Object.freeze({
     // Standard array methods
     shift: noop,
     push:  noop,
+    join:  function() { return ''; },
 
     // Stream methods
     start: noop,
@@ -888,6 +889,49 @@ function parseInteger(object) {
         undefined :
         parseInt(object, 10);
 }
+
+/**
+parseValue(units, string)
+
+Parse `string` as a value with a unit (such as `"3px"`). Parameter `units` is an
+object of functions keyed by the unit postfix. It may also have a `catch`
+function.
+
+```js=
+const value = parseValue({
+    px: function(n) {
+        return n;
+    },
+
+    catch: function(string) {
+        if (typeof string === 'number') {
+            return string;
+        }
+
+        throw new Error('Cannot parse px value');
+    }
+}, '36px');
+```
+**/
+
+// Be generous in what we accept, space-wise
+const runit = /^\s*(-?\d*\.?\d+)(\w+|%)?\s*$/;
+
+function parseValue(units, string) {
+    var entry = runit.exec(string);
+
+    if (!entry || !units[entry[2]]) {
+        if (!units.catch) {
+            throw new Error('Cannot parse value "' + string + '"');
+        }
+
+        return units.catch(string);
+    }
+
+    return units[entry[2]](parseFloat(entry[1]));
+}
+
+var parseValue$1 = curry$1(parseValue);
 
 function apply(value, fn) {
     return fn(value);
@@ -5363,4 +5407,4 @@ const add = curry$1(function (a, b) {
     return a + b;
 });
 
-export { Fn, mutations as Observable, Observer, Pool, privates as Privates, Throttle$1 as PromiseThrottle, Stream$1 as Stream, Target, Throttle, Timer, add, addDate, addTime, and, ap$1 as ap, append$1 as append, args, argument, assign$3 as assign, by$1 as by, byAlphabet$1 as byAlphabet, cache, call, cancelTime, capture$1 as capture, choke, choose, clamp$1 as clamp, cloneDate, compose, concat$1 as concat, contains$1 as contains, bezierify as cubicBezier, curry$1 as curry, dateDiff, daysToSeconds, define, denormalise, deprecate, diff$2 as diff, diffDateDays, diffTime, each$1 as each, equals$1 as equals, exec$1 as exec, curriedExp as exp, exponentialOut$1 as exponentialOut, factorise, filter$1 as filter, find$1 as find, floorDate, floorTime, formatDate, formatDateISO, formatDateLocal, formatDateTimeISO, formatTime, formatTimeISO, gaussian, curriedGcd as gcd, get$1 as get, getPath$1 as getPath, has$1 as has, hoursToSeconds, id, insert$1 as insert, intersect$1 as intersect, invoke$1 as invoke, is$1 as is, isDefined, last, latest, curriedLcm as lcm, curriedLog as log, map$1 as map, matches$1 as matches, curriedMax as max, millisecondsToSeconds, curriedMin as min, minutesToSeconds, mod$1 as mod, curriedMultiply as multiply, mutations, noop, normalise, not, nothing, notify$1 as notify, now, nowDate, nowTime, observe, once, or, overload, parseDate, parseDateLocal, parseInteger as parseInt, parseTime, parseTimeDiff, pipe, postpad$1 as postpad, curriedPow as pow, prepad$1 as prepad, prepend$1 as prepend, print, reduce$2 as reduce, remove$1 as remove, requestTick, requestTime$1 as requestTime, rest$1 as rest, curriedRoot as root, secondsToDays, secondsToHours, secondsToMilliseconds, secondsToMinutes, secondsToMonths, secondsToWeeks, secondsToYears, self, set$1 as set, setPath$1 as setPath, slice$1 as slice, slugify, sort$1 as sort, subTime, curriedSum as sum, take$1 as take, group as test, throttle, toArray, toCamelCase, toCartesian, toClass, toDay, toDeg, toFixed$1 as toFixed, toFloat, toLevel, toPlainText, toPolar, toRad, toString, toStringType, toTimestamp, toType, todB, unique, unite$1 as unite, update$1 as update, weakCache, weeksToSeconds, curriedWrap as wrap, xor };
+export { Fn, mutations as Observable, Observer, Pool, privates as Privates, Throttle$1 as PromiseThrottle, Stream$1 as Stream, Target, Throttle, Timer, add, addDate, addTime, and, ap$1 as ap, append$1 as append, args, argument, assign$3 as assign, by$1 as by, byAlphabet$1 as byAlphabet, cache, call, cancelTime, capture$1 as capture, choke, choose, clamp$1 as clamp, cloneDate, compose, concat$1 as concat, contains$1 as contains, bezierify as cubicBezier, curry$1 as curry, dateDiff, daysToSeconds, define, denormalise, deprecate, diff$2 as diff, diffDateDays, diffTime, each$1 as each, equals$1 as equals, exec$1 as exec, curriedExp as exp, exponentialOut$1 as exponentialOut, factorise, filter$1 as filter, find$1 as find, floorDate, floorTime, formatDate, formatDateISO, formatDateLocal, formatDateTimeISO, formatTime, formatTimeISO, gaussian, curriedGcd as gcd, get$1 as get, getPath$1 as getPath, has$1 as has, hoursToSeconds, id, insert$1 as insert, intersect$1 as intersect, invoke$1 as invoke, is$1 as is, isDefined, last, latest, curriedLcm as lcm, curriedLog as log, map$1 as map, matches$1 as matches, curriedMax as max, millisecondsToSeconds, curriedMin as min, minutesToSeconds, mod$1 as mod, curriedMultiply as multiply, mutations, noop, normalise, not, nothing, notify$1 as notify, now, nowDate, nowTime, observe, once, or, overload, parseDate, parseDateLocal, parseInteger as parseInt, parseTime, parseTimeDiff, parseValue$1 as parseValue, pipe, postpad$1 as postpad, curriedPow as pow, prepad$1 as prepad, prepend$1 as prepend, print, reduce$2 as reduce, remove$1 as remove, requestTick, requestTime$1 as requestTime, rest$1 as rest, curriedRoot as root, secondsToDays, secondsToHours, secondsToMilliseconds, secondsToMinutes, secondsToMonths, secondsToWeeks, secondsToYears, self, set$1 as set, setPath$1 as setPath, slice$1 as slice, slugify, sort$1 as sort, subTime, curriedSum as sum, take$1 as take, group as test, throttle, toArray, toCamelCase, toCartesian, toClass, toDay, toDeg, toFixed$1 as toFixed, toFloat, toLevel, toPlainText, toPolar, toRad, toString, toStringType, toTimestamp, toType, todB, unique, unite$1 as unite, update$1 as update, weakCache, weeksToSeconds, curriedWrap as wrap, xor };
