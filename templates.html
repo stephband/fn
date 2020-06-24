@@ -161,16 +161,16 @@ documentation comments in the form:
         <section build-fn="rest:1 filter-not-var" class="x-1 5x y-2 grid" style="grid-auto-flow: row; align-content: start;" id="component-{[0.id]}">
             <template build-fn="each">
                 <h4 class="x-1 2x x-end y-baseline doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']} right-align">
-                    <a href="#{[id]}" title="Show HTML markup"><code build-fn="title-replace-comma-br append:title"></code></a>
+                    <a href="#{[id]}-description" title="Show HTML markup"><code build-fn="title-replace-comma-br append:title"></code></a>
                 </h4>
                 <div class="x-3 2x x-stretch y-baseline block" build-fn="prepend:example"></div>
                 <div class="@2-x-5 x-stretch block">
-                    <div class="bottom-right-bubble right-bubble bubble" style="width: calc(300% + 2 * var(--column-gap)); max-width: calc(300% + 2 * var(--column-gap)); min-width: 20rem; top: 0.75rem;" popable build-fn="append:body" id="{[id]}"></div>
+                    <div class="bottom-right-bubble right-bubble bubble" style="width: calc(300% + 2 * var(--column-gap)); max-width: calc(300% + 2 * var(--column-gap)); min-width: 20rem; top: 0.75rem;" popable build-fn="append:body" id="{[id]}-description"></div>
                 </div>
             </template>
         </section>
 
-        <section build-fn="rest:1 filter-var" class="x-1 @2-x-5 5x y-2 grid" style="grid-auto-flow: row; align-content: start; column-gap: 1em;">
+        <section build-fn="rest:1 filter-var" class="x-1 @2-x-5 5x y-2 grid" style="grid-auto-flow: row; align-content: start; column-gap: 1em; row-gap: 0.33333333em;">
             <template build-fn="each">
                 <label class="x-1 2x x-end y-baseline doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}" for="doc-var-{[id]}">
                     <code build-fn="append:title" style="color: #888888;"></code><span style="color: transparent;">:</span>
@@ -193,12 +193,12 @@ documentation comments in the form:
         <section build-fn="rest:1 filter-not-var" class="x-1 6x @1-6x @2-5x y-2 grid" style="grid-auto-flow: row; align-content: start;" id="component-{[0.id]}">
             <template build-fn="each">
                 <h4 class="x-1 2x x-start @1-2x @1-x-end y-baseline doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']} right-align">
-                    <a href="#{[id]}" title="Show HTML markup"><code build-fn="title-replace-comma-br append:title"></code></a>
+                    <a href="#{[id]}-description" title="Show HTML markup"><code build-fn="title-replace-comma-br append:title"></code></a>
                 </h4>
                 <div class="x-1 3x @1-x-3 @1-4x @2-2x x-stretch y-baseline block" build-fn="prepend:example"></div>
                 <div class="x-1 3x @1-2x @2-x-5 x-stretch y-baseline block">
                     <a class="docbubble-thumb thumb" href="#{[id]}" style="text-decoration: none;"><code>Code</code></a>
-                    <div class="bottom-right-bubble right-bubble bubble" style="width: calc(300% + 2 * var(--column-gap)); max-width: calc(300% + 2 * var(--column-gap)); min-width: 20rem; top: 0.75rem; left: 2.5rem;" popable build-fn="append:body" id="{[id]}"></div>
+                    <div class="bottom-right-bubble right-bubble bubble" style="width: calc(300% + 2 * var(--column-gap)); max-width: calc(300% + 2 * var(--column-gap)); min-width: 20rem; top: 0.75rem; left: 2.5rem;" popable build-fn="append:body" id="{[id]}-description"></div>
                 </div>
             </template>
         </section>

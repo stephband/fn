@@ -7,7 +7,7 @@ function error(regex, reducers, string) {
         string = string.input;
     }
 
-    throw new Error('Cannot parse invalid string "' + string + '"');
+    throw new Error('Cannot parse string "' + string + '"');
 }
 
 function reduce(reducers, acc, tokens) {
@@ -74,4 +74,4 @@ export function capture(regex, reducers, acc, string) {
         output ;
 }
 
-export default curry(capture, true)
+export default curry(capture, true);

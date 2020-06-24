@@ -40,6 +40,7 @@ export { default as now }         from './modules/now.js';
 export { default as once }        from './modules/once.js';
 export { default as overload }    from './modules/overload.js';
 export { default as parseInt }    from './modules/parse-int.js';
+export { default as parseValue }  from './modules/parse-value.js';
 export { default as pipe }        from './modules/pipe.js';
 export { default as Privates }    from './modules/privates.js';
 export { default as self }        from './modules/self.js';

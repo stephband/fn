@@ -7,6 +7,7 @@ export default Object.freeze({
     // Standard array methods
     shift: noop,
     push:  noop,
+    join:  function() { return ''; },
 
     // Stream methods
     start: noop,
