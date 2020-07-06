@@ -40,7 +40,8 @@
         "node-sass": "^4.13.0",
         "node-static": "^0.7.11",
         "puppeteer": "^1.20.0",
-        "rollup": "^1.27.9"
+        "rollup": "^1.27.9",
+        "madge": "^3.9.2"
     },
     "module": "module.js",
     "main": "index.js",
@@ -50,6 +51,7 @@
         "build-css": "node ../fn/build-css.js style.css style.min.css",
         "build-module": "rollup ./module.js --o ./module.rolled.js --f esm",
         "build-docs": "node ../fn/build-html.js index.template.html index.html",
+        "graph": "madge --image ./module.svg ./module.js",
         "publish": "git pull origin master && npm run build-css && npm run build-module && git add --all && git commit -am 'Builds version 2.1.1' && git push"
     },
     "dependencies": {}
