@@ -27,13 +27,11 @@ config.attributePrefix  = 'build-';
 setTimeout(function() {
     select('[build-fn]', document).forEach(invoke('removeAttribute', ['build-fn']));
     select('[build-remove]', document).forEach(invoke('remove', nothing));
-    // Brave inserts some detection script
-    // select('[data-dapp-detection]', document).forEach(invoke('remove', nothing));
     window.console.log('Document built! (this is just a cheap timeout, it may not be true)');
 }, 3000);
 
 // Run Sparky on the whoooole document
-requestTick(function() {
-    window.console.log('Build...');
-    Sparky(document.documentElement).push({});
-});
+//requestTick(function() {
+//    window.console.log('Build...');
+//    Sparky(document.documentElement).push({});
+//});
