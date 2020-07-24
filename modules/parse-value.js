@@ -25,12 +25,12 @@ const value = parseValue({
 **/
 
 // Be generous in what we accept, space-wise
-const runit = /^\s*(-?\d*\.?\d+)(\w+|%)?\s*$/;
+const runit = /^\s*(-?\d*\.?\d+)(\w*|%)?\s*$/;
 
 export function parseValue(units, string) {
     var entry = runit.exec(string);
 
-    if (!entry || !units[entry[2]]) {
+    if (!entry || !units[entry[2] || '']) {
         if (!units.catch) {
             throw new Error('Cannot parse value "' + string + '"');
         }
@@ -38,7 +38,7 @@ export function parseValue(units, string) {
         return units.catch(string);
     }
 
-    return units[entry[2]](parseFloat(entry[1]));
+    return units[entry[2] || ''](parseFloat(entry[1]));
 }
 
 export default curry(parseValue);
