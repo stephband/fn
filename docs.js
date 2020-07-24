@@ -8,7 +8,9 @@ import './libs/marked/marked.min.js';
 import './libs/prism/prism.js';
 
 import { cache, capture, id, invoke, last, nothing, slugify, Stream } from './module.js';
-import { register } from '../sparky/module.js';
+
+// Import from direct path so that Sparky is not launched on templates immediately
+import { register } from '../sparky/modules/fn.js';
 
 const Prism = window.Prism;
 const marked = window.marked;
