@@ -84,6 +84,7 @@ export const and     = curry(function and(a, b) { return !!(a && b); });
 export const or      = curry(function or(a, b) { return a || b; });
 export const xor     = curry(function xor(a, b) { return (a || b) && (!!a !== !!b); });
 export const assign  = curry(Object.assign, true, 2);
+export { default as deep } from './modules/deep.js';
 export const define  = curry(Object.defineProperties, true, 2);
 
 /* Lists */
