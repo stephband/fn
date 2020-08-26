@@ -9,7 +9,7 @@ import choke    from './choke.js';
 import Privates from './privates.js';
 import Fn       from './fn.js';
 
-var DEBUG     = window.DEBUG !== false;
+var DEBUG     = self.DEBUG !== false;
 var assign    = Object.assign;
 
 
@@ -898,8 +898,8 @@ Stream.Choke = function(time) {
 
 var frameTimer = {
     now:     now,
-    request: requestAnimationFrame.bind(window),
-    cancel:  cancelAnimationFrame.bind(window)
+//    request: requestAnimationFrame.bind(window),
+//    cancel:  cancelAnimationFrame.bind(window)
 };
 
 

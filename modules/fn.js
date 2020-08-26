@@ -715,7 +715,7 @@ Fn.prototype.toArray = Fn.prototype.toJSON;
 // promap: 'fantasy-land/promap'
 
 
-if (window.Symbol) {
+if (Symbol) {
     // A functor is it's own iterator
     Fn.prototype[Symbol.iterator] = function() {
         return this;

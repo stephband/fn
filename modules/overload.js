@@ -22,6 +22,7 @@ export default function overload(fn, map) {
             var key = fn.apply(null, arguments);
             return map.get(key).apply(this, arguments);
         } :
+
         function overload() {
             const key     = fn.apply(null, arguments);
             const handler = (map[key] || map.default);
