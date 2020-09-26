@@ -5,9 +5,12 @@ const iterator = { next: () => done };
 
 export default Object.freeze({
     // Standard array methods
-    shift: noop,
-    push:  noop,
-    join:  function() { return ''; },
+    shift:   noop,
+    push:    noop,
+    join:    function() { return ''; },
+    forEach: noop,
+    map:     function() { return this; },
+    filter:  function() { return this; },
 
     // Stream methods
     start: noop,
