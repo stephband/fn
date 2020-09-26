@@ -1,10 +1,7 @@
 
-const $private = Symbol('private');
+const $privates = Symbol('privates');
 
 export default function privates(object) {
-    return object[$private] ?
-        object[$private] :
-        Object.defineProperty(object, $private, {
-            value: {}
-        })[$private] ;
+    return object[$privates]
+        || Object.defineProperty(object, $privates, { value: {} })[$privates] ;
 }

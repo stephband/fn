@@ -16,6 +16,7 @@ import './libs/prism/prism.js';
 import { invoke, nothing } from './module.js';
 import { select } from '../dom/module.js';
 import './docs.js';
+import Sparky from '../sparky/module.js';
 
 setTimeout(function() {
     select('[fn]', document).forEach(invoke('removeAttribute', ['fn']));
