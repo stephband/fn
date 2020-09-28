@@ -170,7 +170,7 @@ p + fieldset, .doctext-08 + fieldset { margin-top: 2rem; }
 }
 
 .doctext-10,
-.doctext-05 code,
+.doctext-05 code:not(.pill),
 .doctext-05 + pre code {
     font-family: 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
     font-size: 1.0625rem;
@@ -353,7 +353,9 @@ a.block:hover {
     /* Make sure hanging '.' is still seen */
     margin-left: -0.9375rem;
     padding-left: 0.9375rem;
-    margin-right: -0.1875rem;
+    /* Not sure why */
+    /*margin-right: -0.1875rem;*/
+    margin-right: 0;
 }
 
 .doctext-05 > a {
@@ -362,8 +364,7 @@ a.block:hover {
     border-bottom: none;
 }
 
-
-.doctext-05 code {
+.doctext-05 code:not(.pill) {
     font-size: inherit;
     font-weight: 500;
     background-color: transparent;
@@ -376,8 +377,8 @@ a.block:hover {
 .doctext-02 + p { margin-top: 0.9375rem; }
 .doctext-02 + pre { margin-top: 1.875rem; }
 .doctext-05 + p { margin-top: 0.75rem; }
-.doctext-03 code > span,
-.doctext-05 code > span {
+.doctext-03 code:not(.pill) > span,
+.doctext-05 code:not(.pill) > span {
     color: var(--name-color);
 }
 
@@ -428,7 +429,7 @@ pre > code .comment {
 code {
     font-size: 0.966666667em;
     font-weight: 400;
-    color:#46789a;
+    /*color:#46789a;*/
     /*background-color: rgba(0,0,0,0.0667);*/
     /*background-color: #b7d6e7;*/
     padding-left: 2px;
@@ -448,9 +449,9 @@ code > .params {
     font-weight: 400;
 }
 
-code.property {
+/*code.property {
     color: inherit;
-}
+}*/
 
 
 

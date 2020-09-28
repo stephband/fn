@@ -37,7 +37,7 @@ const markedOptions = {
 };
 
 //                Open comment followed by    spaces and (dot)(name or selector[anything])      ((params)) or (:params)       or (="")                    OR (<tag>)       OR ({[ tag ]} or {% tag %})
-const parseDoc = window.parseDoc = capture(/\/\*\*+\s*(?:(\.|--)?(\w[\w-, .…]*(?:\[[^\]]+\])?)(?:(\([^)]*\))|:[ \t]*([\w-, .:'"…]*)|="([\w-#,/%\]}[{ .:']*)")?|(<[\w- ="]+\/?>)|(\{[\[\]\w%|:. ]+\}))/, {
+const parseDoc = window.parseDoc = capture(/\/\*\*+\s*(?:(\.|--|::part\(|")?(\w[\w-, .…"]*(?:\[[^\]]+\])?)(?:(\([^)]*\))|:[ \t]*([\w-, .:'"…]*)|=(["\w-#,/%\]}[{ .:']*))?|(<[\w- ="]+\/?>)|(\{[\[\]\w%|:. ]+\}))/, {
     // .property or title or {[tag]}
     2: function(data, results) {
         data.push({
@@ -46,9 +46,11 @@ const parseDoc = window.parseDoc = capture(/\/\*\*+\s*(?:(\.|--)?(\w[\w-, .…]*
             name:   results[2],
             type:   results[1] ?
                 results[1] === '.' ? 'property' :
+                results[1] === '::part(' ? 'part' :
+                results[1] === '"' ? 'string' :
                 'var' :
                 'title',
-            title: (results[1] || '') + results[2]
+            title: (results[1] === undefined || results[1] === '::part(' ? '' : results[1]) + results[2]
         });
         return data;
     },
@@ -90,13 +92,22 @@ const parseDoc = window.parseDoc = capture(/\/\*\*+\s*(?:(\.|--)?(\w[\w-, .…]*
     // attribute="value"
     5: function(data, results) {
         const object = last(data);
+        if (results[1]) {
+            // Default of a property or var
+            object.default = results[5];
+            return data;
+        }
+
         object.type  = 'attribute';
-        object.title = results[2] + '="' + results[5] + '"';
+        object.title  = results[2];
+        // Don't include empty strings
+        object.default = results[5] !== '""' && results[5];
         return data;
     },
 
     // <element>
     6: function(data, results) {
+        console.log('TAG', results)
         data.push({
             id:     slugify(results[6]),
             prefix: '',
