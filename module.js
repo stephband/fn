@@ -103,8 +103,8 @@ import _unite       from './modules/lists/unite.js';
 
 export { default as last }   from './modules/lists/last.js';
 export { default as unique } from './modules/lists/unique.js';
+export { default as by }     from './modules/by.js';
 
-export const by          = curry(lists.by, true);
 export const byAlphabet  = curry(lists.byAlphabet);
 
 export const ap          = curry(_ap, true);
@@ -140,8 +140,6 @@ export {
     curriedSum   as sum,
     curriedWrap  as wrap,
     gaussian,
-    todB,
-    toLevel,
     toRad,
     toDeg
 } from './modules/maths/core.js';
@@ -152,6 +150,8 @@ export {
     factorise
 } from './modules/maths/ratios.js';
 
+export { default as todB } from './modules/maths/to-db.js';
+export { default as toLevel } from './modules/maths/to-gain.js';
 export { default as clamp } from './modules/maths/clamp.js';
 export { default as mod } from './modules/maths/mod.js';
 export { default as toPolar } from './modules/maths/to-polar.js';
