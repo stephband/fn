@@ -52,3 +52,11 @@ export const cubicBezier = def(
         1: normalise(begin.point[1], end.point[1], end.handle[1])
     }, 1, value))
 );
+
+
+
+/* Todo: does it do as we intend?? */
+export const tanh = def(
+    'Number, Number, Number => Number',
+    (min, max, value) => (Math.tanh(value) / 2 + 0.5) * (max - min) + min
+);

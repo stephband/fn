@@ -358,5 +358,3 @@ register('title-replace-comma-br', function(node, params) {
         object.title = object.title.replace(/,/g, '<br/>');
     });
 });
-
-

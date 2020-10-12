@@ -9,16 +9,17 @@ Build HTML from a template.
 const cyan    = "\x1b[36m%s\x1b[0m";
 
 // Arguments
-const args   = process.argv.slice(2);
+const args = process.argv.slice(2);
 
 if (args.length < 2) {
     throw new Error("build-html requires the arguments: source.html target.html [time]");
 }
 
-// Lop of any leading './' on source name
+// Lop off any leading './' on source name
 const source = args[0].replace(/^\.\//, '');
 const target = args[1];
 const time   = args[2] || 4;
+const port   = args[3] || 8080;
 
 // Import
 const nodestatic = require("node-static");
@@ -28,7 +29,6 @@ const fs         = require("fs");
 
 // Start serving static files from ../ on port :8080
 const server = new nodestatic.Server('../');
-const port   = 8080;
 const root   = 'http://127.0.0.1:' + port + '/';
 
 http.createServer(function(request, response) {
