@@ -34,7 +34,9 @@ const root   = 'http://127.0.0.1:' + port + '/';
 http.createServer(function(request, response) {
     request.addListener('end', function() {
         server.serve(request, response);
-        console.log(response.statusCode, request.url);
+        if (response.statusCode !== 200) {
+            console.log(response.statusCode, request.url);
+        }
     }).resume();
 }).listen(port);
 

@@ -9,14 +9,6 @@ export function log(n, x) { return Math.log(x) / Math.log(n); }
 export function root(n, x) { return Math.pow(x, 1/n); }
 
 /**
-wrap(min, max, n)
-**/
-
-export function wrap(min, max, n) {
-    return (n < min ? max : min) + (n - min) % (max - min);
-}
-
-/**
 gaussian()
 
 Generate a random number with a gaussian distribution centred
@@ -35,7 +27,6 @@ export const curriedPow   = curry(pow);
 export const curriedExp   = curry(exp);
 export const curriedLog   = curry(log);
 export const curriedRoot  = curry(root);
-export const curriedWrap  = curry(wrap);
 
 /**
 toRad(deg)

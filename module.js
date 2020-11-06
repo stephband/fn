@@ -138,7 +138,6 @@ export {
     curriedPow   as pow,
     curriedRoot  as root,
     curriedSum   as sum,
-    curriedWrap  as wrap,
     gaussian,
     toRad,
     toDeg
@@ -150,6 +149,7 @@ export {
     factorise
 } from './modules/maths/ratios.js';
 
+export { default as wrap } from './modules/maths/wrap.js';
 export { default as todB } from './modules/maths/to-db.js';
 export { default as toLevel } from './modules/maths/to-gain.js';
 export { default as clamp } from './modules/maths/clamp.js';

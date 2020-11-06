@@ -458,7 +458,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         // Support array.reduce semantics with optional seed
         return accumulator ?
             this.fold(fn, accumulator) :
-            this.fold((acc, value) => (acc === undefined ? value : fn(acc, value)), this.shift()) ;
+            this.fold((acc, value) => (acc === undefined ? value : fn(acc, value))) ;
     },
 
     /**

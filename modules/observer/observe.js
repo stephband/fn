@@ -169,3 +169,25 @@ export function observe(path, fn, object, initialValue) {
         fn:    fn
     });
 }
+
+export function observeAll(paths, object, initialValues) {
+    const unobservers = Object
+        .keys(paths)
+        .map((path) => observe(path, paths[path], object, initialValues && initialValues[path]));
+
+    return function unobserve() {
+        unobservers.forEach((unobserve) => unobserve());
+    };
+}
+
+
+/* FUTURE returns observer object */
+
+function Observe(path, fn, object, initialValue) {
+    this.value = initialValue;
+    this.fn    = fn;
+
+    observeUnknown(Observer(object) || object, path + '', this);
+}
+
+Observe.prototype.stop = function stop() {};

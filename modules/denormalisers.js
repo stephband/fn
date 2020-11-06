@@ -56,6 +56,9 @@ export const cubicBezier = def(
 
 
 /* Todo: does it do as we intend?? */
+// Todo: implement tanh with min max scaling or gradient and crossover 
+// centering or one or two of these others
+// https://en.wikipedia.org/wiki/Sigmoid_function#/media/File:Gjl-t(x).svg
 export const tanh = def(
     'Number, Number, Number => Number',
     (min, max, value) => (Math.tanh(value) / 2 + 0.5) * (max - min) + min

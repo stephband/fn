@@ -24,15 +24,21 @@ const value = parseValue({
 ```
 **/
 
-// Be generous in what we accept, space-wise
-const runit = /^\s*(-?\d*\.?\d+)(\w*|%)?\s*$/;
+// Be generous in what we accept, space-wise, but exclude spaces between the 
+// number and the unit
+const runit = /^\s*([+-]?\d*\.?\d+)([^\s\d]*)\s*$/;
 
 export function parseValue(units, string) {
+    // Allow number to pass through
+    if (typeof string === 'number') {
+        return string;        
+    }
+
     var entry = runit.exec(string);
 
     if (!entry || !units[entry[2] || '']) {
         if (!units.catch) {
-            throw new Error('Cannot parse value "' + string + '"');
+            throw new Error('Cannot parse value "' + string + '" with provided units ' + Object.keys(units).join(', '));
         }
 
         return units.catch(string);

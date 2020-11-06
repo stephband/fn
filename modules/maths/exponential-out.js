@@ -8,6 +8,10 @@
 // var easeOutCubic = exponentialOut(3);
 // var easeOutQuart = exponentialOut(4);
 
-export default function exponentialOut(e, x) {
+import curry from '../curry.js';
+
+export function exponentialOut(e, x) {
     return 1 - Math.pow(1 - x, e);
 };
+
+export default curry(exponentialOut);
