@@ -1,6 +1,6 @@
 import noop from './noop.js';
 
-const DEBUG = window.DEBUG === undefined || window.DEBUG;
+const DEBUG = false;//window.DEBUG === undefined || window.DEBUG;
 
 const defs = {
     // Primitive types
