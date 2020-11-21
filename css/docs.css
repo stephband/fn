@@ -402,6 +402,14 @@ p + pre {
     text-indent: -0.5625em;
 }
 
+.quote-indent {
+    text-indent: -0.5625em;
+}
+
+.doubledash-indent {
+    text-indent: -1.125em;
+}
+
 
 /* Code */
 
