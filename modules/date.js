@@ -74,7 +74,9 @@ export const parseDate = overload(toType, {
 	number:  secondsToDate,
 	string:  exec(rdate, createDate),
 	object:  function(date) {
-		return isValidDate(date) ? date : undefined ;
+		return isValidDate(date) ?
+			date : 
+			undefined ;
 	},
 	default: function(date) {
         throw new TypeError('parseDate(date) date is not of a supported type (' + (typeof date) + ')');
@@ -103,9 +105,11 @@ function isValidDate(date) {
 	return toClass(date) === "Date" && !Number.isNaN(date.getTime()) ;
 }
 
-function createDate(match, year, month, day, hour, minute, second, ms, zone, zoneHour, zoneMinute) {
+function createDate(match) {
+	const [unused, year, mon, day, hour, minute, second, ms, zone, zoneHour, zoneMinute] = match;
+
 	// Month must be 0-indexed for the Date constructor
-	month = parseInt(month, 10) - 1;
+	const month = parseInt(mon, 10) - 1;
 
 	var date = new Date(
 		ms ?     Date.UTC(year, month, day, hour, minute, second, ms) :
@@ -124,13 +128,15 @@ function createDate(match, year, month, day, hour, minute, second, ms, zone, zon
 	return date;
 }
 
-function createDateLocal(year, month, day, hour, minute, second, ms, zone) {
+function createDateLocal(match) {
+	const [unused, year, mon, day, hour, minute, second, ms, zone] = match;
+
 	if (zone) {
 		throw new Error('createDateLocal() will not parse a string with a time zone "' + zone + '".');
 	}
 
 	// Month must be 0-indexed for the Date constructor
-	month = parseInt(month, 10) - 1;
+	const month = parseInt(mon, 10) - 1;
 
 	return ms ?  new Date(year, month, day, hour, minute, second, ms) :
 		second ? new Date(year, month, day, hour, minute, second) :
