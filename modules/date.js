@@ -335,7 +335,7 @@ export const formatDate = curry(function (format, locale, timezone, date) {
 /**
 formatDateLocal(format, locale, date)
 
-As `formatDate(date)`, but returns a date object with local time set to the
+As `formatDate()`, but returns a date object with local time set to the
 result of the parse.
 **/
 
