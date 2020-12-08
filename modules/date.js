@@ -351,7 +351,7 @@ export function formatDateLocal(format, locale, date) {
 
 /**
 formatDateISO(date)
-Formats `date` (a string or a number or date accepted by `parseDate(date)`) as
+Formats `date` (a string or a number or date accepted by `parseDate()`) as
 a string in the ISO date format.
 */
 
@@ -361,7 +361,7 @@ export function formatDateISO(date) {
 
 /**
 formatDateTimeISO(date)
-Formats `date` (a string or a number or date accepted by `parseDate(date)`) as
+Formats `date` (a string or a number or date accepted by `parseDate()`) as
 a string in the ISO datetime format.
 */
 
