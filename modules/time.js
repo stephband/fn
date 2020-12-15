@@ -14,7 +14,7 @@ import toType    from './to-type.js';
 const precision = 9;
 
 // Find template tokens for replacement
-var rtoken = /([YZMDdhmswz]{2,4}|D|\+-)/g;
+var rtoken = /([YMWdhms]{2,3}|[hsmdwMY]|ms|±)/g;
 
 export function millisecondsToSeconds(n) { return n / 1000; }
 export function minutesToSeconds(n) { return n * 60; }
@@ -81,7 +81,8 @@ export const parseTimeDiff = overload(toType, {
 });
 
 
-function createTime(match, sign, hh, mm, sss) {
+function createTime(match) {
+	const [unused, sign, hh, mm, sss] = match;
 	var time = hoursToSeconds(parseInt(hh, 10))
         + (mm ? minutesToSeconds(parseInt(mm, 10))
             + (sss ? parseFloat(sss, 10) : 0)
