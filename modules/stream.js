@@ -2,8 +2,6 @@
 import { each } from './lists/core.js';
 import noop     from './noop.js';
 import nothing  from './nothing.js';
-import now      from './now.js';
-import Timer    from './timer.js';
 import toArray  from './to-array.js';
 import Privates from './privates.js';
 import Fn       from './fn.js';
@@ -466,7 +464,21 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     Reads a value from the stream. If no values are in the stream, returns
     `undefined`. If this is the last value in the stream, `stream.status`
     is `'done'`.
+    **/
+
+    /**
+    .unshift(...values)
+    Creates a buffer of values at the end of the stream that are read first.
     */
+    
+    unshift: function() {
+        var source = this;
+        var buffer = toArray(arguments);
+    
+        return create(this, function() {
+            return (buffer.length ? buffer : source).shift() ;
+        });
+    },
 
     /** Lifecycle */
 
@@ -654,44 +666,36 @@ export function CombineStream(fn, streams) {
 
 // Stream.Merge
 
-function MergeSource(notify, stop, sources) {
-    var values = [];
-
+function MergeSource(push, stop, sources) {
     function update(source) {
-        values.push.apply(values, toArray(source));
+
+        const value = source.shift();
+console.log('UPDATE', value, source)
+        if (value === undefined) { return; }
+        push(value);
     }
 
-    this.values  = values;
     this.notify  = notify;
     this.sources = sources;
     this.update  = update;
     this.cueStop = stop;
 
-    each(function(source) {
+    sources.forEach((source) => {
         // Flush the source
         update(source);
 
         // Listen for incoming values
         source.on(update);
-        source.on(notify);
-    }, sources);
+    });
 }
 
 assign(MergeSource.prototype, {
-    shift: function() {
-        if (this.sources.every(isDone)) {
-            this.stop();
-        }
-
-        return this.values.shift();
-    },
-
     stop: function() {
         this.cueStop(this.values.length);
     }
 });
 
-Stream.Merge = function(source1, source2) {
+Stream.fromStreams = function(source1, source2) {
     const sources = Array.from(arguments);
     return new Stream(function(push, stop) {
         return new MergeSource(push, stop, sources);

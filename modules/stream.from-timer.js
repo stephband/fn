@@ -1,6 +1,8 @@
 
+import Timer from './timer.js';
 import Stream from './stream.js';
 
+const assign = Object.assign;
 
 // Clock Stream
 
@@ -108,8 +110,14 @@ assign(TimeSource.prototype, {
 
 
 /**
+Stream.fromTimer(duration, getCurrentTime)
+Create a TimeStream from a `duration` in seconds and a `getCurrentTime` 
+function that should return current time in seconds.
+**/
+
+/**
 Stream.fromTimer(timer)
-Create a stream from a `timer` object. A `timer` is an object
+Create a TimeStream from a `timer` object. A `timer` is an object
 with the properties:
 
 ```
@@ -131,11 +139,15 @@ const frames = Stream.fromTimer({
 });
 ```
 
-This stream is not pushable.
-*/
+A TimeStream is not pushable.
+**/
 
-Stream.fromTimer = function TimeStream(timer) {
+export default Stream.fromTimer = function TimeStream(duration, getCurrentTime) {
     return new Stream(function(push, stop) {
+        const timer = typeof duration === 'number' ?
+            new Timer(duration, getCurrentTime) :
+            duration ;
+
         return new TimeSource(push, stop, timer);
     });
 };
