@@ -17,9 +17,11 @@ function reduce(reducers, acc, tokens) {
         acc = (tokens[n] !== undefined && reducers[n]) ? reducers[n](acc, tokens) : acc ;
     }
 
-    // Call the optional close fn
-    return reducers.close ?
-        reducers.close(acc, tokens) :
+    // Call the optional done fn
+    return reducers.done ? reducers.done(acc, tokens) :
+        // Support the old .close() name
+        reducers.close ? reducers.close(acc, tokens) :
+        // Return the result
         acc ;
 }
 
@@ -32,7 +34,7 @@ Reducers is an object of functions keyed by the index of their capturing
 group in the regexp result (`0` corresponding to the entire regex match,
 the first capturing group being at index `1`). Reducer functions are
 called in capture order for all capturing groups that captured something.
-Reducers may also define the function 'close', which is called at the end
+Reducers may also define the function 'done', which is called at the end
 of every capture. All reducer functions are passed the paremeters
 `(accumulator, tokens)`, where `tokens` is the regexp result, and are expected
 to return a value that is passed as an accumulator to the next reducer function.
