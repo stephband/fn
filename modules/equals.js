@@ -22,6 +22,7 @@ export function equals(a, b) {
 
     // Compare their enumerable keys
     const akeys = Object.keys(a);
+    const bkeys = Object.keys(b);
 
     let n = akeys.length;
     while (n--) {
@@ -38,6 +39,26 @@ export function equals(a, b) {
             if (!b.hasOwnProperty(akeys[n]) || !equals(a[akeys[n]], b[akeys[n]])) {
                 return false;
             }
+        }
+
+        const i = bkeys.indexOf(akeys[n]);
+        if (i > -1) {
+            bkeys.splice(i, 1);
+        }
+    }
+
+    n = bkeys.length;
+    while (n--) {
+        // Has the property been set to undefined on b?
+        if (b[bkeys[n]] === undefined) {
+            if (a[bkeys[n]] !== undefined) {
+                return false;
+            }
+        }
+        else {
+            // We already know a does not have own property bkeys[n], because
+            // we have already been through all the enumerable properties
+            return false;
         }
     }
 
