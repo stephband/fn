@@ -1,5 +1,4 @@
 
-import { each } from './lists/core.js';
 import noop     from './noop.js';
 import nothing  from './nothing.js';
 import toArray  from './to-array.js';
