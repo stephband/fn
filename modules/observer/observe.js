@@ -1,6 +1,6 @@
 
 import noop from '../noop.js';
-import remove from '../lists/remove.js';
+import { remove } from '../remove.js';
 import { getListeners, Observer, $observer } from './observer.js';
 import parseSelector from './parse-selector.js';
 
@@ -169,6 +169,9 @@ export function observe(path, fn, object, initialValue) {
         fn:    fn
     });
 }
+
+// TODO: remove the named export in favour of this default
+export default observe;
 
 export function observeAll(paths, object, initialValues) {
     const unobservers = Object

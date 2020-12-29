@@ -2,9 +2,9 @@
 take(n, array)
 **/
 
-console.trace('fn/modules/lists/take.js is now at fn/modules/take.js');
+import curry from './curry.js';
 
-export default function take(i, object) {
+export function take(i, object) {
     if (object.slice) { return object.slice(0, i); }
     if (object.take)  { return object.take(i); }
 
@@ -13,3 +13,5 @@ export default function take(i, object) {
     while (n--) { a[n] = object[n]; }
     return a;
 }
+
+export default curry(take, true);

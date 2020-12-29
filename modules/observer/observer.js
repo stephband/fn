@@ -258,6 +258,9 @@ export function Observer(object) {
 			undefined ;
 }
 
+// TODO: remove named export in favour of this default?
+export default Observer;
+
 ///*
 //Target(object)
 //*/

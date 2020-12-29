@@ -63,16 +63,15 @@ export { observe }                from './modules/observer/observe.js';
 
 /* Strings */
 
+export { default as toCamelCase } from './modules/to-camel-case.js';
+export { default as toPlainText } from './modules/to-plain-text.js';
+export { default as toStringType } from './modules/to-string-type.js';
+
 export { default as append }      from './modules/strings/append.js';
 export { default as prepend }     from './modules/strings/prepend.js';
 export { default as prepad }      from './modules/strings/prepad.js';
 export { default as postpad }     from './modules/strings/postpad.js';
 export { default as slugify }     from './modules/strings/slugify.js';
-export { default as toCamelCase } from './modules/strings/to-camel-case.js';
-export { default as toPlainText } from './modules/strings/to-plain-text.js';
-export { default as toStringType } from './modules/strings/to-string-type.js';
-
-
 
 export { default as requestTick } from './modules/request-tick.js';
 import { requestTime as _requestTime } from './modules/request-time.js';
@@ -89,12 +88,13 @@ export const define  = curry(Object.defineProperties, true, 2);
 
 /* Lists */
 
+export { default as rest } from './modules/rest.js';
+export { default as take } from './modules/take.js';
+import { default as remove } from './modules/remove.js';
+
 import * as lists   from './modules/lists/core.js';
 import _ap          from './modules/lists/ap.js';
 import _insert      from './modules/lists/insert.js';
-import _rest        from './modules/lists/rest.js';
-import _remove      from './modules/lists/remove.js';
-import _take        from './modules/lists/take.js';
 import _unique      from './modules/lists/unique.js';
 import _update      from './modules/lists/update.js';
 import _diff        from './modules/lists/diff.js';
@@ -115,12 +115,9 @@ export const filter      = curry(lists.filter, true);
 export const find        = curry(lists.find, true);
 export const map         = curry(lists.map, true);
 export const reduce      = curry(lists.reduce, true);
-export const remove      = curry(_remove, true);
-export const rest        = curry(_rest, true);
 export const slice       = curry(lists.slice, true, 3);
 export const sort        = curry(lists.sort, true);
 export const insert      = curry(_insert, true);
-export const take        = curry(_take, true);
 export const update      = curry(_update, true);
 
 export const diff        = curry(_diff, true);
