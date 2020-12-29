@@ -13,7 +13,7 @@ export function postpad(chars, n, value) {
         string = string + chars;
     }
 
-    return string.slice(0, n);
+    return string; //.slice(0, n);
 }
 
 export default curry(postpad);

@@ -669,7 +669,7 @@ function MergeSource(push, stop, sources) {
     function update(source) {
 
         const value = source.shift();
-console.log('UPDATE', value, source)
+//console.log('UPDATE', value, source)
         if (value === undefined) { return; }
         push(value);
     }
