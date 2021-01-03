@@ -33,10 +33,11 @@ function curry(fn, muteable, arity) {
             partial :
         arguments.length === 1 ?
             memo(object) :
-        arguments.length === arity ?
+        arguments.length >= arity ?
             fn.apply(null, arguments) :
-        arguments.length > arity ?
-            applyFn(fn.apply(null, A.splice.call(arguments, 0, arity)), arguments) :
+        // This is bad, I think. We don't want [[fn],[fn]].map(get(0)) to be firing the fns
+        //arguments.length > arity ?
+        //    applyFn(fn.apply(null, A.splice.call(arguments, 0, arity)), arguments) :
         applyFn(memo(object), A.slice.call(arguments, 1)) ;
     };
 }
