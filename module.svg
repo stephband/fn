@@ -867,15 +867,15 @@
 <path fill="none" stroke="#757575" d="M40.09,-1688.26C46.49,-1733.91 72.01,-1898.49 111,-1930.5 220.58,-2020.47 649.22,-2006.77 845,-1995.33"/>
 <polygon fill="#757575" stroke="#757575" points="845.22,-1998.83 854.99,-1994.74 844.8,-1991.84 845.22,-1998.83"/>
 </g>
-<!-- modules/strings/slugify.js -->
+<!-- modules/slugify.js -->
 <g id="node73" class="node">
-<title>modules/strings/slugify.js</title>
+<title>modules/slugify.js</title>
 <path fill="none" stroke="#cfffac" d="M296.33,-228C296.33,-228 144.67,-228 144.67,-228 140.83,-228 137,-224.17 137,-220.33 137,-220.33 137,-212.67 137,-212.67 137,-208.83 140.83,-205 144.67,-205 144.67,-205 296.33,-205 296.33,-205 300.17,-205 304,-208.83 304,-212.67 304,-212.67 304,-220.33 304,-220.33 304,-224.17 300.17,-228 296.33,-228"/>
-<text text-anchor="middle" x="220.5" y="-212.8" font-family="Arial" font-size="14.00" fill="#cfffac">modules/strings/slugify.js</text>
+<text text-anchor="middle" x="220.5" y="-212.8" font-family="Arial" font-size="14.00" fill="#cfffac">modules/slugify.js</text>
 </g>
-<!-- module.js&#45;&gt;modules/strings/slugify.js -->
+<!-- module.js&#45;&gt;modules/slugify.js -->
 <g id="edge72" class="edge">
-<title>module.js&#45;&gt;modules/strings/slugify.js</title>
+<title>module.js&#45;&gt;modules/slugify.js</title>
 <path fill="none" stroke="#757575" d="M38.67,-1664.98C40.71,-1532.09 61.05,-293.52 111,-236.5 115.71,-231.13 121.34,-226.9 127.54,-223.59"/>
 <polygon fill="#757575" stroke="#757575" points="129.27,-226.65 136.98,-219.37 126.42,-220.25 129.27,-226.65"/>
 </g>

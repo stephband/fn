@@ -71,7 +71,7 @@ export { default as append }      from './modules/strings/append.js';
 export { default as prepend }     from './modules/strings/prepend.js';
 export { default as prepad }      from './modules/strings/prepad.js';
 export { default as postpad }     from './modules/strings/postpad.js';
-export { default as slugify }     from './modules/strings/slugify.js';
+export { default as slugify }     from './modules/slugify.js';
 
 export { default as requestTick } from './modules/request-tick.js';
 import { requestTime as _requestTime } from './modules/request-time.js';

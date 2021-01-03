@@ -41,7 +41,9 @@ export function parseValue(units, string) {
             throw new Error('Cannot parse value "' + string + '" with provided units ' + Object.keys(units).join(', '));
         }
 
-        return units.catch(string);
+        return entry ?
+            units.catch(parseFloat(entry[1]), entry[2]) :
+            units.catch(parseFloat(string)) ;
     }
 
     return units[entry[2] || ''](parseFloat(entry[1]));
