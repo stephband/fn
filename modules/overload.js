@@ -18,7 +18,7 @@ fn(1, 2);     // Returns b(1, 2)
 
 export default function overload(fn, map) {
     return function overload() {
-        const key     = fn.apply(null, arguments);
+        const key     = fn.apply(this, arguments);
         const handler = (map[key] || map.default);
 
         if (!handler) {
