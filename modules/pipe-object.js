@@ -4,13 +4,12 @@ Returns a function that calls `fn1`, `fn2`, etc., passing the result of
 calling one function to the next and returning the the last result.
 */
 
-import noop         from './noop.js';
-import overload     from './overload.js';
-import self         from './self.js';
-import compileArrow from './compile-arrow.js';
+import noop            from './noop.js';
+import overload        from './overload.js';
+import self            from './self.js';
 import compileFunction from './compile-function.js';
-import { addDate }  from './date.js';
-import { addTime }  from './time.js';
+import { addDate }     from './date.js';
+import { addTime }     from './time.js';
 
 const DEBUG = true;
 
@@ -24,6 +23,8 @@ function toAddType(n) {
     type;
 }
 */
+
+const nothing = Object.freeze(Object.create(null));
 
 const illegal = {
     'code':     true,
@@ -112,12 +113,13 @@ function createFunction(array) {
     }
 
     const code = createCode('value', names);
-    return compileArrow(scope, null, 'value', code);
+    // Pass an object as context to get an arrow function
+    return compileFunction(scope, 'value', code, nothing);
 }
 
 function methodify(prototype, name, fn) {
     if (prototype[name]) {
-        console.warn('Pipe: overriding pipe .' + name + '()');
+        console.warn('Pipe overriding pipe.' + name + '()');
     }
 
     if (illegal[name]) {
