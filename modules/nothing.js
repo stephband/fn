@@ -11,6 +11,7 @@ export default Object.freeze({
     forEach: noop,
     map:     function() { return this; },
     filter:  function() { return this; },
+    indexOf: function() { return -1; },
 
     // Stream methods
     start: noop,
