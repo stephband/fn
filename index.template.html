@@ -16,7 +16,7 @@
         <template build-fn="fetch:package.json" build-src="/fn/templates.html#header-template"></template>
     </header>
 
-    <section class="x-1 3x @1-6x @2-9x @3-x-2 grid" locateable id="functions">
+    <section class="x-1 3x @1-6x @2-9x @3-x-2 grid" targetable id="functions">
         <header class="x-1 3x @1-4x">
             <h2 class="doctext-02">Functions</h2>
             <p class="doctext-08">Import functions from the Fn module:</p>
@@ -130,7 +130,7 @@
         </div>
     </section>
 
-    <section class="x-1 3x @1-6x @2-9x @3-x-2 columns-grid grid" locateable id="observer">
+    <section class="x-1 3x @1-6x @2-9x @3-x-2 columns-grid grid" targetable id="observer">
         <header class="x-1 3x @1-4x">
             <h2 class="doctext-02" style="font-size: 1.875rem;">Observer</h2>
             <p class="doctext-08">An observer is an ES6 Proxy of an object that intercepts and
@@ -166,7 +166,7 @@ const data = Observer({ value: true });</code></pre>
 
     <!--div class="x-1 3x @2-x-2 @3-6x @4-5x @5-3x" build-fn="docs:'./modules/stream.js'"></div-->
 
-    <section class="x-1 3x @1-6x @2-9x @3-x-2 columns-grid grid" locateable id="stream">
+    <section class="x-1 3x @1-6x @2-9x @3-x-2 columns-grid grid" targetable id="stream">
         <header class="x-1 3x @1-4x">
             <h2 class="doctext-02" style="font-size: 1.875rem;">Stream</h2>
             <p class="doctext-08">Import and create a stream:</p>
@@ -194,7 +194,7 @@ const stream = Stream.of(1,2,3,4);</code></pre>
     <script type="module">
         import '../bolt/modules/device.js';
         import '../bolt/modules/toggleable.js';
-        import '../bolt/modules/locateable.js';
+        import '../bolt/modules/targetable.js';
         import * as Fn from './module.js';
         window.Fn = Fn;
     </script>
