@@ -18,7 +18,7 @@
     document.documentElement.className += ' js content-loading loading';
     window.addEventListener('DOMContentLoaded', () => document.documentElement.classList.remove('content-loading'));
     // Wait for other load handlers to run first - Bolt does a few things on
-    // load (eg. targetable scrolls) and we want them to run before the loading
+    // load (eg. data-targetable scrolls) and we want them to run before the loading
     // class is removed
     window.addEventListener('load', () => window.requestAnimationFrame(() => document.documentElement.classList.remove('loading')));
     </script>
@@ -151,7 +151,7 @@ documentation comments in the form:
 </template>
 
 <template build-remove id="css-template">
-    <section class="x-1 9x grid" style="--row-gap: var(--input-margin);" id="components" targetable>
+    <section class="x-1 9x grid" style="--row-gap: var(--input-margin);" id="components" data-targetable>
         <header class="x-3 2x x-start">
             <h3 build-fn="get:0 after:body" class="doctext-03 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <a build-fn="append:title" class="doctoggle-button button" href="#component-{[id]}"></a>
@@ -183,7 +183,7 @@ documentation comments in the form:
 </template>
 
 <template build-remove id="styleguide-template">
-    <section class="x-1 9x 6x-grid @2-9x-grid grid" style="--row-gap: var(--input-margin);" id="components" targetable>
+    <section class="x-1 9x 6x-grid @2-9x-grid grid" style="--row-gap: var(--input-margin);" id="components" data-targetable>
         <header class="x-1 3x @1-x-3 @1-4x @2-2x x-start">
             <h3 build-fn="get:0 after:body" class="doctext-03 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <a build-fn="append:title" class="doctoggle-button button" href="#component-{[id]}"></a>

@@ -18,7 +18,7 @@
     document.documentElement.className += ' js content-loading loading';
     window.addEventListener('DOMContentLoaded', () => document.documentElement.classList.remove('content-loading'));
     // Wait for other load handlers to run first - Bolt does a few things on
-    // load (eg. targetable scrolls) and we want them to run before the loading
+    // load (eg. data-targetable scrolls) and we want them to run before the loading
     // class is removed
     window.addEventListener('load', () => window.requestAnimationFrame(() => document.documentElement.classList.remove('loading')));
     </script>
@@ -47,7 +47,7 @@
 
     </header>
 
-    <section class="x-1 3x @1-6x @2-9x @3-x-2 grid" targetable="" id="functions">
+    <section class="x-1 3x @1-6x @2-9x @3-x-2 grid" data-targetable="" id="functions">
         <header class="x-1 3x @1-4x">
             <h2 class="doctext-02">Functions</h2>
             <p class="doctext-08">Import functions from the Fn module:</p>
@@ -972,7 +972,7 @@ example, to add 75 minutes to a list of times you may write:</p>
         </div>
     </section>
 
-    <section class="x-1 3x @1-6x @2-9x @3-x-2 columns-grid grid" targetable="" id="observer">
+    <section class="x-1 3x @1-6x @2-9x @3-x-2 columns-grid grid" data-targetable="" id="observer">
         <header class="x-1 3x @1-4x">
             <h2 class="doctext-02" style="font-size: 1.875rem;">Observer</h2>
             <p class="doctext-08">An observer is an ES6 Proxy of an object that intercepts and
@@ -1023,7 +1023,7 @@ always initialises.)</p>
 
     <!--div class="x-1 3x @2-x-2 @3-6x @4-5x @5-3x" build-fn="docs:'./modules/stream.js'"></div-->
 
-    <section class="x-1 3x @1-6x @2-9x @3-x-2 columns-grid grid" targetable="" id="stream">
+    <section class="x-1 3x @1-6x @2-9x @3-x-2 columns-grid grid" data-targetable="" id="stream">
         <header class="x-1 3x @1-4x">
             <h2 class="doctext-02" style="font-size: 1.875rem;">Stream</h2>
             <p class="doctext-08">Import and create a stream:</p>
@@ -1291,7 +1291,7 @@ status is <code>'done'</code>.</p>
     <script type="module">
         import '../bolt/modules/device.js';
         import '../bolt/modules/toggleable.js';
-        import '../bolt/modules/targetable.js';
+        import '../bolt/modules/data-targetable.js';
         import * as Fn from './module.js';
         window.Fn = Fn;
     </script>
