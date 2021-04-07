@@ -1,6 +1,6 @@
 
 /** 
-compileFunction(scope, paramString, code, context)
+compile(scope, paramString, code, context)
 
 Compiles a new function from `code` that runs in `scope` with the arguments 
 listed in `paramString`. If a `context` is passed in, you get an arrow function,
@@ -8,7 +8,7 @@ otherwise a normal function (leaving you the possibility to set the context at
 runtime with `fn.apply(context, params)`).
 **/
 
-export default function compileFunction(scope, paramString, code, context) {
+export default function compile(scope, paramString, code, context) {
     const keys   = Object.keys(scope);
     const values = Object.values(scope);
     return context ?
