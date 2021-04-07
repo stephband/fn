@@ -8,9 +8,18 @@ otherwise a normal function (leaving you the possibility to set the context at
 runtime with `fn.apply(context, params)`).
 **/
 
-export default function compile(scope, paramString, code, context) {
-    const keys   = Object.keys(scope);
-    const values = Object.values(scope);
+import get from './get.js';
+
+function isValidConst(namevalue) {
+    const name = namevalue[0];
+    return /^\w/.test(name);
+}
+
+export default function compile(scope = {}, paramString, code, context) {
+    const entries = Object.entries(scope).filter(isValidConst);
+    const keys    = entries.map(get(0));
+    const values  = entries.map(get(1));
+
     return context ?
         // The arrow function has it's context set
         new Function(...keys, 'return (' + paramString + ') => {' + (code || '') + '}')

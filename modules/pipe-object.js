@@ -114,7 +114,7 @@ function createFunction(array) {
 
     const code = createCode('value', names);
     // Pass an object as context to get an arrow function
-    return compileFunction(scope, 'value', code, nothing);
+    return compileFunction('value', code, scope, nothing);
 }
 
 function methodify(prototype, name, fn) {
