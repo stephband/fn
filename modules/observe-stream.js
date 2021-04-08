@@ -1,3 +1,1 @@
-console.trace('observe-stream.js is now mutations.js');
-
-export * from './mutations.js';
+console.trace('fn/modules/observe-stream.js is now fn/modules/mutations.js');

@@ -53,8 +53,7 @@ export { default as toString }    from './modules/to-string.js';
 export { default as toType }      from './modules/to-type.js';
 export { default as weakCache }   from './modules/weak-cache.js';
 export { default as Fn }          from './modules/fn.js';
-export { default as Observable }  from './modules/observe-stream.js';
-export { default as mutations }   from './modules/observe-stream.js';
+export { default as mutations }   from './modules/mutations.js';
 export { default as Stream }      from './modules/stream.js';
 export { default as Timer }       from './modules/timer.js';
 export { default as Pool }        from './modules/pool.js';
@@ -149,7 +148,7 @@ export {
 export { default as wrap } from './modules/maths/wrap.js';
 export { default as todB } from './modules/maths/to-db.js';
 export { default as toLevel } from './modules/maths/to-gain.js';
-export { default as clamp } from './modules/maths/clamp.js';
+export { default as clamp } from './modules/clamp.js';
 export { default as mod } from './modules/maths/mod.js';
 export { default as toPolar } from './modules/maths/to-polar.js';
 export { default as toCartesian } from './modules/maths/to-cartesian.js';
