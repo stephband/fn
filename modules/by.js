@@ -17,4 +17,3 @@ export function by(fn, a, b) {
 }
 
 export default curry(by, true);
-
