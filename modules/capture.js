@@ -65,7 +65,7 @@ const value = parseValue('36rem');    // { number: 36, unit: 'rem' }
 export function capture(regex, reducers, acc, string) {
     const output = exec(regex, (tokens) => reduce(reducers, acc, tokens), string);
 
-    // If tokens is undefined exec has failed apply regex to string
+    // If tokens is undefined exec has failed to apply regex to string
     return output === undefined ?
         // If there is a catch function, call it, otherwise error out
         reducers.catch ?
