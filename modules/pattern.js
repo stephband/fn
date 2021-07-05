@@ -21,7 +21,7 @@ location.on(pattern(get('path'), {
 **/
 
 export default function pattern(toString, patterns) {
-    const regexps = Object.keys(patterns).map(RegExp);
+    const regexps = Object.keys(patterns).map((pattern) => RegExp(pattern));
     return function route(data) {
         const path = toString.apply(this, arguments);
         if (!path) { return; }
@@ -30,7 +30,8 @@ export default function pattern(toString, patterns) {
             captures = regexp.exec(path);
             if (captures) {
                 captures[0] = path.slice(captures.index + captures[0].length);
-                return patterns[regexp.source].call(this, data, captures);
+                console.log(regexp.source.replace('\\/', '/'), patterns)
+                return patterns[regexp.source.replace('\\/', '/')].call(this, data, captures);
             }
         }
     };
