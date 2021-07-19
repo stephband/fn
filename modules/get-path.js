@@ -11,47 +11,25 @@ const value = getPath('path.to.value', object);
 
 import curry from './curry.js';
 
-var rpath  = /\[?([-\w]+)(?:=(['"])([^\2]+)\2|(true|false)|((?:\d*\.)?\d+))?\]?\.?/g;
+const rpath = /\.?([\w-]+)/g;
 
-function findByProperty(key, value, array) {
-    var l = array.length;
-    var n = -1;
-
-    while (++n < l) {
-        if (array[n][key] === value) {
-            return array[n];
-        }
-    }
-}
-
-
-// Get path
-
-function getRegexPathThing(regex, path, object, fn) {
+function getRegexPathThing(regex, path, object) {
     var tokens = regex.exec(path);
 
     if (!tokens) {
-        throw new Error('Fn.getPath(path, object): invalid path "' + path + '"');
+        throw new Error('getPath(path, object): invalid path "' + path + '" at index ' + regex.lastIndex);
     }
 
-    var key      = tokens[1];
-    var property = tokens[3] ?
-        findByProperty(key,
-            tokens[2] ? tokens[3] :
-            tokens[4] ? Boolean(tokens[4]) :
-            parseFloat(tokens[5]),
-        object) :
-        object[key] ;
-
-    return fn(regex, path, property);
+    return getRegexPath(regex, path, object[tokens[1]]);
 }
 
 function getRegexPath(regex, path, object) {
-    return regex.lastIndex === path.length ?
-        object :
-    !(object && typeof object === 'object') ?
-        undefined :
-    getRegexPathThing(regex, path, object, getRegexPath) ;
+        // At the end of a path return what we've got there
+    return regex.lastIndex === path.length ? object :
+        // Otherwise where object is falsy further drilldown is not possoble
+        !object ? undefined :
+        // Otherwise drill down
+        getRegexPathThing(regex, path, object) ;
 }
 
 export function getPath(path, object) {
