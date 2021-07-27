@@ -127,6 +127,18 @@ function flat(output, input) {
     return output;
 }
 
+function getPromise(stream) {
+    const privates = Privates(stream);
+    return privates.promise || (privates.promise =
+        stream.status === 'done' ?
+            Promise.resolve() :
+            new Promise((resolve, reject) => (
+                privates.resolve = resolve,
+                privates.reject = reject)
+            )
+    );
+}
+
 // StartSource
 
 function StartSource(stream, privates, Source, buffer) {
@@ -435,7 +447,7 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     .fold(fn, accumulator)
     Consumes the stream when stopped, calling `fn(accumulator, value)`
     for each value in the stream. Returns a promise.
-    */
+    **/
 
     fold: function fold(fn, accumulator) {
         // Fold to promise
@@ -446,16 +458,15 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
         });
     },
 
-    //.reduce(fn, accumulator)
-    //Consumes the stream when stopped, calling `fn(accumulator, value)`
-    //for each value in the stream. Returns a promise that resolves to
-    //the last value returned by `fn(accumulator, value)`.
+    /**
+    .reduce(fn, accumulator)
+    Consumes the stream calling `fn(accumulator, value)` for each value in the 
+    stream. Returns the accumulator.
+    **/
 
-    reduce: function reduce(fn, accumulator) {
-        // Support array.reduce semantics with optional seed
-        return accumulator ?
-            this.fold(fn, accumulator) :
-            this.fold((acc, value) => (acc === undefined ? value : fn(acc, value))) ;
+    reduce: function(fn, accumulator) {
+        this.each((value) => accumulator = fn(accumulator, value))
+        return getPromise(this).then(() => accumulator);
     },
 
     /**
@@ -487,16 +498,15 @@ Stream.prototype = assign(Object.create(Fn.prototype), {
     */
 
     done: function done(fn) {
-        const privates = Privates(this);
-        const promise = privates.promise || (
-            privates.promise = this.status === 'done' ?
-                Promise.resolve() :
-                new Promise((resolve, reject) => assign(privates, { resolve, reject }))
-        );
-
-        promise.then(fn);
+        getPromise(this).then(fn);
         return this;
     },
+
+    /*
+    then: function(fn) {
+        return getPromise(this).then(fn);
+    },
+    */
 
     /**
     .start()
