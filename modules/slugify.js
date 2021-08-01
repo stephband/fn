@@ -9,11 +9,16 @@ Replaces any series of non-word characters with a `'-'` and lowercases the rest.
 **/
 
 export default function slugify(string) {
+    // Accept a number or string
+    string = typeof string === 'number' ?
+        string + '' : 
+        string.trim() ;
+
     if (typeof string !== 'string') { return; }
+
     return string
-    .trim()
     .toLowerCase()
     .replace(/^[\W_]+/, '')
     .replace(/[\W_]+$/, '')
     .replace(/[\W_]+/g, '-');
-};
+}
