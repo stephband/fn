@@ -4,18 +4,19 @@ const done     = { done: true };
 const iterator = { next: () => done };
 
 export default Object.freeze({
-    // Standard array methods
+    // Make array and stream methods no-ops
     shift:   noop,
     push:    noop,
-    join:    function() { return ''; },
+    each:    noop,
     forEach: noop,
+    start:   noop,
+    stop:    noop,
+    done:    noop,
+
+    join:    function() { return ''; },
     map:     function() { return this; },
     filter:  function() { return this; },
     indexOf: function() { return -1; },
-
-    // Stream methods
-    start: noop,
-    stop:  noop,
 
     // Make it look like an empty array
     length: 0,
