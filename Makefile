@@ -5,7 +5,7 @@ DEBUG=
 
 # Must format with tabs not spaces
 literal:
-	deno run --allow-read --allow-env --allow-net --allow-write --allow-run --unstable ../literal/generate.js ./ debug
+	deno run --allow-read --allow-env --allow-net --allow-write --allow-run --unstable ../literal/deno/make-literal.js ./ debug
 
 modules:
 	deno run --allow-read --allow-env --allow-net --allow-write --allow-run ./deno/make-modules.js ./build ./module.js
