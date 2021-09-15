@@ -8,4 +8,4 @@ literal:
 	deno run --allow-read --allow-env --allow-net --allow-write --allow-run --unstable ../literal/generate.js ./ debug
 
 modules:
-	deno run --allow-read --allow-env --allow-net --allow-write --allow-run ./deno/build-modules.js ./ module.js
+	deno run --allow-read --allow-env --allow-net --allow-write --allow-run ./deno/make-modules.js ./build ./module.js

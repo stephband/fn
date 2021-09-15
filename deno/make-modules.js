@@ -1,12 +1,24 @@
 
-import * as es from 'https://deno.land/x/esbuild@v0.11.10/mod.js'
-//import es         from 'esbuild';
-//import madge      from 'madge';
+// Run this file with:
+// deno run --allow-read --allow-env --allow-net --allow-write --allow-run ./build-modules.js outfile infile
+// or
+// deno run --allow-read --allow-env --allow-net --allow-write --allow-run ./build-modules.js outdir infile1 infile2 ...
+
+// Find latest version here:
+// https://deno.land/x/esbuild
+import * as es from 'https://deno.land/x/esbuild@v0.12.28/mod.js'
 
 // Arguments
-const args      = Deno.args;
-const builddir  = args[0] || '';
-const modules   = args.slice(1) || '';
+const args    = Deno.args;
+
+// First argument is name of output file (if it has a file extension), otherwise 
+// name of output directory
+const outfile = /\.\w+$/.test(args[0]) ? args[0] : undefined ;
+const outdir  = /\.\w+$/.test(args[0]) ? undefined : args[0] ;
+
+// Next arguments are names of entry points. If output argument was name of file
+// there can only be one entry point
+const modules = args.slice(1) || '';
 
 // Directories
 const workingdir = Deno.cwd() + '/';
@@ -45,14 +57,17 @@ Deno
     // Modules become entry points
     entryPoints: modules,
 
-    // and are built into static/build-xxx along with shared chunks
-    outdir:    builddir,
+    // and are built into outdir along with shared chunks, or into outfile
+    outdir:    outdir,
+    outfile:   outfile,
+
+    // Code splitting requires outdir, not outfile
+    splitting: !!outdir,
 
     // Specify which environments to support
     //target:    ['es2016'],
 
     minify:    true,
-    splitting: true,
     bundle:    true,
     format:    'esm',
     logLevel:  'info'

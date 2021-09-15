@@ -1,9 +1,10 @@
 {
     "name": "fn",
     "title": "Fn",
-    "version": "1.4.0",
+    "version": "1.5.0",
+    "description": "A library of functions, observers and streams, published as ES6 modules.",
     "author": {
-        "name": "stephband",
+        "name": "Stephen Band",
         "url": "http://stephen.band",
         "twitter": "stephband"
     },
@@ -19,10 +20,6 @@
             "url": "http://unlicense.org/"
         }
     ],
-    "files": [
-        "js/fn.js"
-    ],
-    "description": "A library of functions, observers and streams, published as ES6 modules.",
     "keywords": [
         "browser",
         "web",
@@ -32,28 +29,5 @@
         "js",
         "javascript"
     ],
-    "homepage": "http://stephen.band/fn/",
-    "docs": "http://stephen.band/fn/",
-    "devDependencies": {
-        "eslint": "^6.5.1",
-        "clean-css": "^4.2.3",
-        "node-sass": "^4.13.0",
-        "node-static": "^0.7.11",
-        "puppeteer": "^5.0.0",
-        "rollup": "^2.21.0",
-        "madge": "^3.9.2"
-    },
-    "type": "module",
-    "module": "module.js",
-    "main": "index.js",
-    "scripts": {
-        "lint": "eslint modules/*.js",
-        "build": "npm run build-module && npm run build-css && npm run build-docs",
-        "build-css": "node ../fn/build-css.js style.css style.min.css",
-        "build-module": "rollup ./module.js --o ./module.rolled.js --f esm",
-        "build-docs": "node ../fn/build-html.js index.template.html index.html",
-        "graph": "madge --image ./module.svg ./module.js",
-        "publish": "git pull origin master && npm run build-css && npm run build-module && git add --all && git commit -am 'Builds version 2.1.1' && git push"
-    },
-    "dependencies": {}
+    "homepage": "http://stephen.band/fn/"
 }
