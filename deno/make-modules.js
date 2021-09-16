@@ -65,12 +65,37 @@ Deno
     splitting: !!outdir,
 
     // Specify which environments to support
-    //target:    ['es2016'],
+    // https://esbuild.github.io/content-types/
+    target:    ['es2018'],
 
     minify:    true,
     bundle:    true,
     format:    'esm',
-    logLevel:  'info'
+    logLevel:  'info',
+
+    plugins: [{
+        // Mark .png, .svg and on as external files to avoid them being bundled.
+        // Ideally, we want to rewrite their paths here. TODO! 
+        name: 'external',
+        setup: (build) => build.onResolve({
+            filter: /\.(?:png|svg|woff|woff2|eot|ttf)$/
+        }, (args) => {
+            console.warn('URL not rewritten:', args.path);
+            return { path: args.path, external: true };
+        })
+    }],
+
+    loader: {
+        // These have been marked as external in the plugin above, so this does 
+        // nothing. I leave it here for indication how to bundle url(image) 
+        // stuff with a 'file' loader should you need to.
+        '.eot':   'file',
+        '.woff':  'file',
+        '.woff2': 'file',
+        '.svg':   'file',
+        '.ttf':   'file',
+        '.png':   'file'
+    }
 }))
 
 // Explicitly stop esbuild
