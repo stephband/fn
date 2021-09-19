@@ -151,7 +151,7 @@ documentation comments in the form:
 </template>
 
 <template build-remove id="css-template">
-    <section class="x-1 9x grid" style="--row-gap: var(--input-margin);" id="components" data-targetable>
+    <section class="x-1 9x grid" style="--y-gap: var(--input-margin);" id="components" data-targetable>
         <header class="x-3 2x x-start">
             <h3 build-fn="get:0 after:body" class="doctext-03 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <a build-fn="append:title" class="doctoggle-button button" href="#component-{[id]}"></a>
@@ -165,7 +165,7 @@ documentation comments in the form:
                 </h4>
                 <div class="x-3 2x x-stretch y-baseline block" build-fn="prepend:example"></div>
                 <div class="@2-x-5 x-stretch block">
-                    <div class="bottom-right-bubble right-bubble bubble" style="width: calc(300% + 2 * var(--column-gap)); max-width: calc(300% + 2 * var(--column-gap)); min-width: 20rem; top: 0.75rem;" popable build-fn="append:body" id="{[id]}-description"></div>
+                    <div class="bottom-right-bubble right-bubble bubble" style="width: calc(300% + 2 * var(--x-gap)); max-width: calc(300% + 2 * var(--x-gap)); min-width: 20rem; top: 0.75rem;" popable build-fn="append:body" id="{[id]}-description"></div>
                 </div>
             </template>
         </section>
@@ -183,7 +183,7 @@ documentation comments in the form:
 </template>
 
 <template build-remove id="styleguide-template">
-    <section class="x-1 9x 6x-grid @2-9x-grid grid" style="--row-gap: var(--input-margin);" id="components" data-targetable>
+    <section class="x-1 9x 6x-grid @2-9x-grid grid" style="--y-gap: var(--input-margin);" id="components" data-targetable>
         <header class="x-1 3x @1-x-3 @1-4x @2-2x x-start">
             <h3 build-fn="get:0 after:body" class="doctext-03 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <a build-fn="append:title" class="doctoggle-button button" href="#component-{[id]}"></a>
@@ -198,7 +198,7 @@ documentation comments in the form:
                 <div class="x-1 3x @1-x-3 @1-4x @2-2x x-stretch y-baseline block" build-fn="prepend:example"></div>
                 <div class="x-1 3x @1-2x @2-x-5 x-stretch y-baseline block">
                     <a class="docbubble-thumb thumb" href="#{[id]}-description" style="text-decoration: none;">Code</a>
-                    <div class="bottom-right-bubble right-bubble bubble" style="width: calc(300% + 2 * var(--column-gap)); max-width: calc(300% + 2 * var(--column-gap)); min-width: 20rem; top: 0.75rem; left: 2.5rem;" popable build-fn="append:body" id="{[id]}-description"></div>
+                    <div class="bottom-right-bubble right-bubble bubble" style="width: calc(300% + 2 * var(--x-gap)); max-width: calc(300% + 2 * var(--x-gap)); min-width: 20rem; top: 0.75rem; left: 2.5rem;" popable build-fn="append:body" id="{[id]}-description"></div>
                 </div>
             </template>
         </section>
