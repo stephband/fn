@@ -68,6 +68,9 @@ Deno
     // https://esbuild.github.io/content-types/
     target:    ['es2018'],
 
+    // Yeah, I suppose we oughtta have sourcemaps so we can debug the bugs
+    sourcemap: true,
+
     minify:    true,
     bundle:    true,
     format:    'esm',
