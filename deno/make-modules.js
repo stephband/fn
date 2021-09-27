@@ -66,7 +66,7 @@ Deno
 
     // Specify which environments to support
     // https://esbuild.github.io/content-types/
-    target:    ['es2018'],
+    target:    ['es2020'],
 
     // Yeah, I suppose we oughtta have sourcemaps so we can debug the bugs
     sourcemap: true,
@@ -77,8 +77,8 @@ Deno
     logLevel:  'info',
 
     plugins: [{
-        // Mark .png, .svg and on as external files to avoid them being bundled.
-        // Ideally, we want to rewrite their paths here. TODO! 
+        // Mark .png, .svg and so on as external files to avoid them being 
+        // bundled. Ideally, we want to rewrite their paths here. TODO! 
         name: 'external',
         setup: (build) => build.onResolve({
             filter: /\.(?:png|svg|woff|woff2|eot|ttf|otf)$/
