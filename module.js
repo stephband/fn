@@ -54,7 +54,7 @@ export { default as toType }      from './modules/to-type.js';
 export { default as weakCache }   from './modules/weak-cache.js';
 export { default as Fn }          from './modules/fn.js';
 export { default as mutations }   from './modules/mutations.js';
-export { default as Stream }      from './modules/stream.js';
+export { default as Stream }      from './stream/stream.js';
 export { default as Timer }       from './modules/timer.js';
 export { default as Pool }        from './modules/pool.js';
 export { Observer, Target, notify } from './modules/observer/observer.js';
