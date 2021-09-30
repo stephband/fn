@@ -73,7 +73,7 @@ assign(Stream.prototype, {
     .reduce()
     **/
     reduce: function(fn, accumulator) {
-        return this.pipe(new Reduce(fn, accumulator));
+        return this.pipe(new Reduce(fn, accumulator)).start();
     },
 
     /** 
@@ -199,17 +199,40 @@ Filter.prototype.push = function push(value) {
 Reduce()
 */
 
-const reduceProperties = assign({ accumulator: { writable: true } }, mapProperties);
+const reduceProperties = assign({ value: { writable: true } }, mapProperties);
 
 function Reduce(fn, accumulator) {
     reduceProperties.fn.value = fn;
-    reduceProperties.accumulator.value = accumulator;
+    reduceProperties.value.value = accumulator;
     define(this, reduceProperties);
 }
 
 Reduce.prototype = create(Stream.prototype);
 
 Reduce.prototype.push = function(value) {
+    if (value !== undefined) {
+        this.value = this.fn(this.value, value);
+    }
+
+    return new Promise((resolve, reject) => {
+        this.done(() => resolve(this.value));
+    });
+};
+
+
+/*
+Scan()
+*/
+
+function Scan(fn, accumulator) {
+    reduceProperties.fn.value = fn;
+    reduceProperties.value.value = accumulator;
+    define(this, reduceProperties);
+}
+
+Scan.prototype = create(Stream.prototype);
+
+Scan.prototype.push = function(value) {
     if (value !== undefined) {
         this.value = this.fn(this.value, value);
         this.consumer.push(this.value);
