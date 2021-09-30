@@ -13,7 +13,7 @@ changes. This object is internal-only.
 **/
 
 import Stream from '../stream/stream.js';
-import { Observer, analytics, remove, getObservables } from './observer.js';
+import { Observer, analytics, remove, getObservables, getMutationObservables } from './observer.js';
 
 //const DEBUG = window.DEBUG === true;
 const assign = Object.assign;
@@ -34,26 +34,32 @@ function Observe(path, index, target, output) {
         throw new Error('Cant parse path ' + this.path + ' at index ' + this.index);
     }
 
-    // Check that if there is no key we are being instructed to observe all 
-    // mutations with a '.' at the end of path (TODO)
-    if (!r[2]) {
-        console.log('r[1] must be "." (', r[1], path, ') Todo: observe all mutations');
-        return;
-    }
-
     this.target = target;
     this.path   = path;
     this.index  = rkey.lastIndex;
-    this.key    = r[2];
     this.output = output;
-
+    
     // Are we at the end of the path?
     if (this.index >= this.path.length) {
         this.fn = this.output;
     }
 
-    this.listen();    
-    this.fn(this.target[this.key]);
+    if (!r[2]) {
+        // Check that if there is no key we are being instructed to observe all 
+        // mutations with a '.' at the end of path (TODO)
+        if (r[1] !== '.') {
+            throw new Error('Path must end with "." (', r[1], path, ') Todo: observe all mutations');
+        }
+
+        this.key = '.';    
+        this.listen();
+        this.fn(this.target);
+    }
+    else {
+        this.key    = r[2];
+        this.listen();    
+        this.fn(this.target[this.key]);
+    }
 
     if (DEBUG) { ++analytics.observes; }
 }
@@ -63,7 +69,7 @@ assign(Observe.prototype, {
         const type = typeof value;
 
         // We already know that we are not at path end here, as this.fn is 
-        // replaced with a consumer at path end (in the contructor).
+        // replaced with a consumer at path end (in the constructor).
 
         // If the value is immutable we have no business observing it
         if (!value || (type !== 'object' && type !== 'function')) {
@@ -88,6 +94,11 @@ assign(Observe.prototype, {
             this.child = new Observe(this.path, this.index, value, this.output);
         }
 
+        // If this.child.key is '.' we have a problem
+        if (this.child.key === '.') {
+            throw new Error('Arrrrgh');
+        }
+
         this.child.fn(value[this.child.key]);
     },
 
@@ -99,19 +110,25 @@ assign(Observe.prototype, {
             return;
         }
 
-        const observables = getObservables(this.key, this.target);
+        const observables = this.key === '.' ?
+            getMutationObservables(this.target) :
+            getObservables(this.key, this.target) ;
+
         if (observables.includes(this)) {
             throw new Error('observe.listen this is already bound');
         }
 
         observables.push(this);
     },
-    
+
     unlisten: function() {
-        const observables = getObservables(this.key, this.target);
+        const observables = this.key === '.' ?
+            getMutationObservables(this.target) :
+            getObservables(this.key, this.target) ;
+
         remove(observables, this);
     },
-    
+
     stop: function() {
         this.unlisten();
         this.child && this.child.stop();

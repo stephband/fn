@@ -23,24 +23,23 @@ export function getTarget(object) {
 }
 
 export function getObservables(key, target) {
-    const handlers = target[$observer];
-    const observables = handlers.observables || (handlers.observables = {});
+    const handlers    = target[$observer];
+    const observables = handlers.observables || (console.log('We can never get in here'),  handlers.observables = {});
     return observables[key] || (observables[key] = []);
 }
 
+export function getMutationObservables(target) {
+    return target[$observer].sets || (target[$observer].sets = []);
+}
+
 function fire(fns, name, value) {
-    if (!fns) { return 0; }
+    if (!fns || !fns.length) { return 0; }
     fns = fns.slice(0);
     var n = -1;
 
     while (fns[++n]) {
-        // Support objects or functions (TEMP)
-        if (fns[n].fn) {
-            fns[n].fn(name, value);
-        }
-        else {
-            fns[n](name, value);
-        }
+        // Observables are objects with a fn property
+        fns[n].fn(name, value);
     }
 
     return n;
@@ -206,6 +205,7 @@ const properties = {
 function ObjectTrap() {
     this.observables = {};
     this.gets = [];
+    this.sets = undefined;
 }
 
 assign(ObjectTrap.prototype, {
@@ -273,10 +273,8 @@ assign(ObjectTrap.prototype, {
         target[name] = getTarget(value);
         value = target[name];
 
-        const observables = this.observables[name]; 
-        if (observables) {
-            fire(observables, value);
-        }
+        fire(this.observables[name], value);
+        fire(this.sets, value);
 
         // Return true to indicate success to Proxy
         return true;
