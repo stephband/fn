@@ -87,6 +87,7 @@ assign(Stream.prototype, {
     .pipe()
     **/
     pipe: function(consumer) {
+        // TODO: find a less smelly mechanism than this
         consumer.start = this.start;
         consumer.done && consumer.done(this);
         return this.consumer = consumer;
@@ -180,7 +181,7 @@ Filter()
 
 function Filter(fn) {
     mapProperties.fn.value = fn;
-    define(this, properties);
+    define(this, mapProperties);
 }
 
 Filter.prototype = create(Stream.prototype);
