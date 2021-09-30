@@ -71,9 +71,17 @@ assign(Stream.prototype, {
 
     /** 
     .reduce()
+    Consumes the stream, returns a promise of the accumulated value.
     **/
     reduce: function(fn, accumulator) {
         return this.pipe(new Reduce(fn, accumulator)).start();
+    },
+
+    /** 
+    .scan()
+    **/
+    scan: function(fn, accumulator) {
+        return this.pipe(new Scan(fn, accumulator));
     },
 
     /** 

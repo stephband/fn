@@ -56,5 +56,5 @@ export function observe(paths, object) {
 
     return observables.length > 1 ?
         new Combine(observables) :
-        new Observable(paths, getTarget(object), arguments[0]) ;
+        observables[0] ;
 }
