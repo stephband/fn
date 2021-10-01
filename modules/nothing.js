@@ -1,26 +1,23 @@
 import noop from './noop.js';
 
-const done     = { done: true };
-const iterator = { next: () => done };
+const define = Object.defineProperties;
+const freeze = Object.freeze;
 
-export default Object.freeze({
+function self() {
+    return this;
+}
+
+export default freeze(define([], {
     // Make array and stream methods no-ops
-    shift:   noop,
-    push:    noop,
-    each:    noop,
-    forEach: noop,
-    start:   noop,
-    stop:    noop,
-    done:    noop,
-
-    join:    function() { return ''; },
-    map:     function() { return this; },
-    filter:  function() { return this; },
-    indexOf: function() { return -1; },
-
-    // Make it look like an empty array
-    length: 0,
-
-    // Make it an iterable with nothing in it
-    [Symbol.iterator]: () => iterator
-});
+    shift:   { value: noop },
+    push:    { value: noop },
+    each:    { value: noop },
+    forEach: { value: noop },
+    start:   { value: noop },
+    stop:    { value: noop },
+    done:    { value: noop },
+    join:    { value: function() { return ''; } },
+    map:     { value: self },
+    filter:  { value: self },
+    reduce:  { value: function(fn, accumulator) { return accumulator; } }
+}));
