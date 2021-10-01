@@ -1,4 +1,6 @@
 
+console.warn('fn/modules/stream.js deprecated in favour of fn/stream/stream.js');
+
 import noop     from './noop.js';
 import nothing  from './nothing.js';
 import toArray  from './to-array.js';
