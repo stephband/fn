@@ -100,6 +100,11 @@ assign(Stream.prototype, {
         consumer.done && consumer.done(this);
         return this.consumer = consumer;
     },
+    
+    
+    take: function(n) {
+        this.pipe(new Take(n));
+    },
 
     /** 
     .done()
@@ -197,6 +202,35 @@ Filter.prototype = create(Stream.prototype);
 Filter.prototype.push = function push(value) {
     if (value !== undefined && this.fn(value)) {
         this.consumer.push(value);
+    }
+
+    return this;
+};
+
+
+/*
+Take()
+*/
+
+const takeProperties = assign({ n: { value: 0 }}, properties);
+
+function Take(n) {
+    if (typeof n !== 'number' || n < 1) {
+        throw new Error('stream.take(n) accepts non-zero positive integers as n (' + n + ')');
+    }
+
+    takeProperties.n.value = n;
+    define(this, takeProperties);
+}
+
+Take.prototype = create(Stream.prototype);
+
+Take.prototype.push = function push(value) {
+    this.consumer.push(value);
+
+    if (!(--this.n)) {
+        // Stream is dead TODO stop only downstream objects
+        this.stop();
     }
 
     return this;
