@@ -24,7 +24,7 @@ const producerProperties = {
             this.consumer.push(arguments[n]);
         }
     },
-    
+
     stop: function() {
         //console.log('stream.stop()');
     }

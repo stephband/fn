@@ -4,14 +4,14 @@ import Stream from './stream.js';
 const assign = Object.assign;
 
 export function Combine(streams) {
-    return new Stream((source) => {
+    return new Stream((controller) => {
         const values = {};
         let i = -1, stream;
         while (stream = streams[++i]) {
             const n = i;
             stream.each((value) => {
                 values[n] = value;
-                source.push(assign({}, values));
+                controller.push(assign({}, values));
             });
         }
     });
