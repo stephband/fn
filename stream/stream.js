@@ -26,7 +26,7 @@ const producerProperties = {
     },
     
     stop: function() {
-        console.log('stream.stop()');
+        //console.log('stream.stop()');
     }
 };
 
