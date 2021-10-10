@@ -12,13 +12,13 @@ function toObject(object, buffer, i) {
 
 export function Zip(streams) {
     const buffers = streams.map(() => []);
-    return new Stream((push) =>
+    return new Stream((controller) =>
         streams.forEach((stream, i) => {
             const buffer = buffer[i];
             stream.each((value) => {
                 buffer.push(value);
                 if (buffers.every(hasLength)) {
-                    push(buffers.reduce(toObject, {}));
+                    controller.push(buffers.reduce(toObject, {}));
                 }
             })
         })

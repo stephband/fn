@@ -1,4 +1,5 @@
 
+import Stream from '../stream/stream.js';
 import { remove, getTarget, $observer } from './observer.js';
 
 //const DEBUG = window.DEBUG === true;
@@ -16,23 +17,23 @@ function stop(gets) {
     gets.stop();
 }
 
-function ChildGets(target, path, output) {
+function Gets(target, path, root) {
     this.children = {};
 
     // For some reason child proxies are being set... dunno how...
     this.target = getTarget(target);
     this.path   = path;
-    this.output = output;
+    this.root   = root;
 
     target[$observer].gets.push(this);
 }
 
-assign(ChildGets.prototype, {
+assign(Gets.prototype, {
     listen: function(key) {
         // We may only create one child observer per key
         if (this.children[key]) { return; }
         const path = this.path ? this.path + '.' : '';
-        this.children[key] = new ChildGets(this.target[key], path + key, this.output);
+        this.children[key] = new Gets(this.target[key], path + key, this.root);
     },
 
     unlisten: function(key) {
@@ -45,8 +46,8 @@ assign(ChildGets.prototype, {
     // Named fn because that is what is called by Observer's ObjectTrap
     fn: function(key) {
         const path = this.path ? this.path + '.' : '';
-        // Pass concated path to parent fn
-        this.output(path + key);
+        // Pass concatenated path to parent fn
+        this.root.push(path + key);
     },
 
     stop: function() {
@@ -55,30 +56,6 @@ assign(ChildGets.prototype, {
     }
 });
 
-function Gets(target) {
-    this.children = {};
-    this.target   = target;
-    this.path     = '';
-
-    this.output = (path) => {
-        this.fnEach && this.fnEach(path);
-    };
-
-    target[$observer].gets.push(this);
-}
-
-assign(Gets.prototype, ChildGets.prototype, {
-    each: function(fn) {
-        this.fnEach = fn;
-        return this;
-    },
-
-    stop: function() {
-        ChildGets.prototype.stop.apply(this);
-        return this;
-    }
-});
-
 export default function reads(observer) {
-    return new Gets(getTarget(observer));
+    return new Stream((controller) => controller.done(new Gets(getTarget(observer), '', controller)));
 }

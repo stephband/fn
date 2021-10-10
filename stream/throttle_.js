@@ -1,6 +1,10 @@
 
+import noop   from '../modules/noop.js';
+import now    from '../modules/now.js';
+import Timer  from '../modules/timer.js';
 import Stream from './stream.js';
 
+const assign = Object.assign;
 
 // Frame timer
 
@@ -62,7 +66,7 @@ assign(ThrottleSource.prototype, {
     }
 });
 
-Stream.throttle = function(timer) {
+export function throttle(timer) {
     return new Stream(function(notify, stop) {
         timer = typeof timer === 'number' ? new Timer(timer) :
             timer ? timer :
@@ -70,7 +74,8 @@ Stream.throttle = function(timer) {
 
         return new ThrottleSource(notify, stop, timer);
     });
-};
+}
+
 
 /**
 .throttle(time)
@@ -80,6 +85,8 @@ object, an object with `{ request, cancel, now }` functions,
 allowing the creation of, say, and animation frame throttle.
 */
 
+/*
 Stream.prototype.throttle = function throttle(timer) {
     return this.pipe(Stream.throttle(timer));
 }
+*/
