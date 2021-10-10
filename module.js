@@ -13,7 +13,6 @@ export { curry, choose };
 export * from './modules/throttle.js';
 export { default as PromiseThrottle } from './modules/promise-throttle.js';
 export { default as print }       from './modules/print.js';
-
 export { default as args }        from './modules/args.js';
 export { default as argument }    from './modules/argument.js';
 export { default as cache }       from './modules/cache.js';

@@ -54,6 +54,12 @@ Deno
     // Disable ASCII character escaping
     charset:   'utf8',
 
+    // Set DEBUG to false to remove any conditions that depend on it
+    define: {
+        'window.DEBUG': false,
+        'DEBUG':        false
+    },
+
     // Modules become entry points
     entryPoints: modules,
 
@@ -66,7 +72,12 @@ Deno
 
     // Specify which environments to support
     // https://esbuild.github.io/content-types/
-    target:    ['es2020'],
+    target:    [
+        'chrome58',
+        'firefox57',
+        'safari11',
+        'edge16'
+    ],
 
     // Yeah, I suppose we oughtta have sourcemaps so we can debug the bugs
     sourcemap: true,

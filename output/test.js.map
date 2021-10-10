@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../test.js"],
+  "sourcesContent": ["\nif (window.DEBUG !== false) {\n    console.log('Strip me');\n}\n\nexport function a() {\n    if (window.DEBUG !== false) {\n        console.log('Strip me');\n    }\n}\n\nexport function b() {\n    if (window.DEBUG !== false) {\n        console.log('Strip me');\n    }\n}\n"],
+  "mappings": ";;;AAKO,YAAa,EAMb,YAAa",
+  "names": []
+}
