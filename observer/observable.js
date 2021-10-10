@@ -15,7 +15,6 @@ changes. This object is internal-only.
 import Stream from '../stream/stream.js';
 import { Observer, analytics, remove, getObservables, getMutationObservables } from './observer.js';
 
-//const DEBUG = window.DEBUG === true;
 const assign = Object.assign;
 
 const rkey = /(^\.?|\.)\s*([\w-]*)\s*/g;
@@ -61,7 +60,7 @@ function Observe(path, index, target, output) {
         this.fn(this.target[this.key]);
     }
 
-    if (DEBUG) { ++analytics.observes; }
+    if (window.DEBUG) { ++analytics.observes; }
 }
 
 assign(Observe.prototype, {
@@ -106,7 +105,10 @@ assign(Observe.prototype, {
         const observer = Observer(this.target);
 
         if (!observer) {
-            console.log('CANNOT LISTEN TO UNOBSERVABLE', this.target);
+            if (window.DEBUG) {
+                console.log('CANNOT LISTEN TO UNOBSERVABLE', this.target);
+            }
+
             return;
         }
 
@@ -133,7 +135,7 @@ assign(Observe.prototype, {
         this.unlisten();
         this.child && this.child.stop();
         this.child = undefined;
-        if (DEBUG) { --analytics.observes; }
+        if (window.DEBUG) { --analytics.observes; }
     }
 });
 

@@ -5,17 +5,15 @@ against input values in a map, such that for each input value
 `fn` is only ever called once.
 */
 
-const DEBUG = false;
-
 export default function cache(fn) {
     var map = new Map();
 
     return function cache(object) {
-        if (DEBUG && object === undefined) {
+        if (window.DEBUG && object === undefined) {
             throw new Error('Fn: cache() called with undefined.');
         }
 
-        if (DEBUG && arguments.length > 1) {
+        if (window.DEBUG && arguments.length > 1) {
             throw new Error('Fn: cache() called with ' + arguments.length + ' arguments. Accepts exactly 1.');
         }
 

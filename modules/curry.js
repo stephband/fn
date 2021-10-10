@@ -5,7 +5,6 @@ Returns a function that wraps `fn` and makes it partially applicable.
 
 import cache from './cache.js';
 
-const DEBUG = false;//true;
 const A     = Array.prototype;
 
 function applyFn(fn, args) {
@@ -51,7 +50,7 @@ function curry(fn, muteable, arity) {
 //    };
 //}
 
-if (DEBUG) {
+if (window.DEBUG) {
     const _curry = curry;
 
     // Feature test

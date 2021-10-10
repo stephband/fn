@@ -24,7 +24,7 @@ export function getTarget(object) {
 
 export function getObservables(key, target) {
     const handlers    = target[$observer];
-    const observables = handlers.observables || (console.log('We can never get in here'),  handlers.observables = {});
+    const observables = handlers.observables;
     return observables[key] || (observables[key] = []);
 }
 

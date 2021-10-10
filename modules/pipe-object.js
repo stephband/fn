@@ -11,7 +11,6 @@ import compileFunction from './compile.js';
 import { addDate }     from './date.js';
 import { addTime }     from './time.js';
 
-const DEBUG = true;
 
 /*
 function toAddType(n) {
@@ -131,7 +130,7 @@ function methodify(prototype, name, fn) {
     // Enable Pipe(8).name()
     prototype[name] = overload(function thisState() {
         // Sanity check arguments
-        if (DEBUG && arguments.length < (fn.length - 1)) {
+        if (window.DEBUG && arguments.length < (fn.length - 1)) {
             throw new Error('.' + name + '() requires at least ' + (fn.length - 1) + ' params');
         }
 

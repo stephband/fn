@@ -119,7 +119,7 @@ assign(Stream.prototype, {
     .start()
     **/
     start: function() {
-        console.log('START not done');
+        //console.log('START not done');
     },
 
     /** 
