@@ -110,11 +110,29 @@ Deno
         '.ttf':   'file',
         '.otf':   'file',
         '.png':   'file'
-    }
+    },
+    
+    // Generate data about build
+    metafile: true
 }))
 
 // Explicitly stop esbuild
-.then((d) => {
+//.then((result) => es.analyzeMetafile(result.metafile))
+.then((result) => {
+    console.log('Imported modules:\n\n  ' +
+        Object.values(result.metafile.inputs).flatMap((input) =>
+            input.imports.map((imported) =>
+                imported.path
+            )
+        )
+        .reduce((paths, path) => {
+            !paths.includes(path) && paths.push(path);
+            return paths;
+        }, [])
+        .sort()
+        .join('\n  ')
+    );
+
     es.stop();
 })
 

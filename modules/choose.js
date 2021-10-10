@@ -16,11 +16,9 @@ fn('fish', a, b);   // Calls fn1(a, b)
 ```
 */
 
-import rest from './rest.js';
-
 export default function choose(map) {
-    return function choose(key) {
+    return function choose(key, ...params) {
         var fn = map[key] || map.default;
-        return fn && fn.apply(this, rest(1, arguments)) ;
+        return fn && fn.apply(this, params) ;
     };
 }
