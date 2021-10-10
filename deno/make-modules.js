@@ -73,10 +73,10 @@ Deno
     // Specify which environments to support
     // https://esbuild.github.io/content-types/
     target:    [
-        'chrome58',
-        'firefox57',
-        'safari11',
-        'edge16'
+        'edge81',
+        'firefox73',
+        'chrome80',
+        'safari14'
     ],
 
     // Yeah, I suppose we oughtta have sourcemaps so we can debug the bugs

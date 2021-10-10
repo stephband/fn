@@ -1,5 +1,5 @@
 
-import curry from '../curry.js';
+import curry from './curry.js';
 
 /**
 prepad(chars, n, string)

@@ -2,7 +2,7 @@
 wrap(min, max, n)
 **/
 
-import curry from '../curry.js';
+import curry from './curry.js';
 import { mod } from './mod.js';
 
 export function wrap(min, max, n) {

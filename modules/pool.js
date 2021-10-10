@@ -1,5 +1,4 @@
 
-import Fn from './fn.js';
 import noop from './noop.js';
 
 function call(fn) {
@@ -49,8 +48,5 @@ Pool.release = function() {
 };
 
 Pool.snapshot = function() {
-	return Fn
-	.from(loggers)
-	.map(call)
-	.toJSON();
+	return Array.from(loggers).map(call).toJSON();
 };

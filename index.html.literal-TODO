@@ -94,12 +94,14 @@
                 <h4 class="doctext-03">Maths</h4>
                 <template build-fn="docs:
                 modules/maths/core.js,
-                modules/maths/clamp.js,
-                modules/maths/mod.js,
-                modules/maths/ratios.js,
-                modules/maths/cubic-bezier.js,
-                modules/maths/to-cartesian.js,
-                modules/maths/to-polar.js
+                modules/clamp.js,
+                modules/mod.js,
+                modules/gcd.js,
+                modules/lcm.js,
+                modules/factorise.js,
+                modules/cubic-bezier.js,
+                modules/to-cartesian.js,
+                modules/to-polar.js
                 filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
             </div>
         </div>
@@ -175,7 +177,6 @@ const stream = Stream.of(1,2,3,4);</code></pre>
 
         <div class="x-1 3x list-grid grid">
             <template build-fn="docs:modules/stream.js filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
-            <template build-fn="docs:modules/fn.js filter-property each" build-src="/fn/templates.html#{[type]}-template"></template>
         </div>
 
         <div class="x-1 3x @1-x-4 list-grid grid">

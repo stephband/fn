@@ -1,7 +1,6 @@
 
-import { Fn, Stream } from '../fn.js';
+import { Stream } from '../stream/stream.js';
 
-var assign = Object.assign;
 var debug  = true;
 
 function actions(actions) {

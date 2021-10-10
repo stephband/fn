@@ -51,25 +51,27 @@ export { default as toFixed }     from './modules/to-fixed.js';
 export { default as toString }    from './modules/to-string.js';
 export { default as toType }      from './modules/to-type.js';
 export { default as weakCache }   from './modules/weak-cache.js';
-export { default as Fn }          from './modules/fn.js';
-export { default as mutations }   from './modules/mutations.js';
 export { default as Stream }      from './stream/stream.js';
 export { default as Timer }       from './modules/timer.js';
 export { default as Pool }        from './modules/pool.js';
-export { Observer, Target, notify } from './modules/observer/observer.js';
-export { observe }                from './modules/observer/observe.js';
+
+/* Observers */
+
+export { Observer, getTarget, notify } from './observer/observer.js';
+export { default as observe }          from './observer/observe.js';
 
 /* Strings */
 
-export { default as toCamelCase } from './modules/to-camel-case.js';
-export { default as toPlainText } from './modules/to-plain-text.js';
+export { default as toCamelCase }  from './modules/to-camel-case.js';
+export { default as toPlainText }  from './modules/to-plain-text.js';
 export { default as toStringType } from './modules/to-string-type.js';
+export { default as append }       from './modules/append.js';
+export { default as prepend }      from './modules/prepend.js';
+export { default as prepad }       from './modules/prepad.js';
+export { default as postpad }      from './modules/postpad.js';
+export { default as slugify }      from './modules/slugify.js';
 
-export { default as append }      from './modules/strings/append.js';
-export { default as prepend }     from './modules/strings/prepend.js';
-export { default as prepad }      from './modules/strings/prepad.js';
-export { default as postpad }     from './modules/strings/postpad.js';
-export { default as slugify }     from './modules/slugify.js';
+/* Time */
 
 export { default as requestTick } from './modules/request-tick.js';
 import { requestTime as _requestTime } from './modules/request-time.js';
@@ -86,9 +88,9 @@ export const define  = curry(Object.defineProperties, true, 2);
 
 /* Lists */
 
-export { default as rest } from './modules/rest.js';
-export { default as take } from './modules/take.js';
-import { default as remove } from './modules/remove.js';
+export { default as rest }   from './modules/rest.js';
+export { default as take }   from './modules/take.js';
+export { default as remove } from './modules/remove.js';
 
 import * as lists   from './modules/lists/core.js';
 import _ap          from './modules/lists/ap.js';
@@ -138,20 +140,17 @@ export {
     toDeg
 } from './modules/maths/core.js';
 
-export {
-    curriedGcd as gcd,
-    curriedLcm as lcm,
-    factorise
-} from './modules/maths/ratios.js';
-
-export { default as wrap } from './modules/maths/wrap.js';
-export { default as todB } from './modules/maths/to-db.js';
-export { default as toLevel } from './modules/maths/to-gain.js';
+export { default as factorise } from './modules/factorise.js';
+export { default as gcd }  from './modules/gcd.js';
+export { default as lcm }  from './modules/lcm.js';
+export { default as wrap } from './modules/wrap.js';
+export { default as todB } from './modules/to-db.js';
+export { default as toLevel } from './modules/to-gain.js';
 export { default as clamp } from './modules/clamp.js';
-export { default as mod } from './modules/maths/mod.js';
-export { default as toPolar } from './modules/maths/to-polar.js';
-export { default as toCartesian } from './modules/maths/to-cartesian.js';
-export { default as cubicBezier } from './modules/maths/cubic-bezier.js';
+export { default as mod } from './modules/mod.js';
+export { default as toPolar } from './modules/to-polar.js';
+export { default as toCartesian } from './modules/to-cartesian.js';
+export { default as cubicBezier } from './modules/cubic-bezier.js';
 
 import * as normalisers from './modules/normalisers.js';
 import * as denormalisers from './modules/denormalisers.js';
@@ -175,4 +174,4 @@ export * from './modules/time.js';
 
 /* Test */
 
-export { default as test } from './modules/test/test.js';
+export { default as test } from './modules/test.js';

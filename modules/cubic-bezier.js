@@ -7,7 +7,7 @@ cubicBezier(point1, point2, duration, x)
 Where `point1` and `point2` are `[x, y]` vectors describing control points.
 **/
 
-import curry from '../curry.js';
+import curry from './curry.js';
 
 function sampleCubicBezier(a, b, c, t) {
     // `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.

@@ -1,5 +1,5 @@
 
-import { mod }   from './maths/mod.js';
+import { mod }   from './mod.js';
 import curry     from './curry.js';
 import choose    from './choose.js';
 import exec      from './exec.js';

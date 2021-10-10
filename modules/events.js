@@ -4,7 +4,7 @@ var $events = Symbol('events');
 
 export default function Events() {
 	this[$events] = {};
-};
+}
 
 assign(Events.prototype, {
 	on: function(type, fn) {
@@ -27,7 +27,7 @@ assign(Events.prototype, {
 		}
 
 		var listeners = events[type];
-		if (!listeners) { return; }
+		if (!listeners) { return this; }
 
 		// Remove all handlers for type
 		if (!fn) {

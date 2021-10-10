@@ -1,6 +1,8 @@
 
 import Stream from './stream.js';
 
+const A = Array.prototype;
+
 function hasLength(buffer) {
     return buffer.length > 0;
 }
@@ -10,12 +12,25 @@ function toObject(object, buffer, i) {
     return object;
 }
 
+function makeArray(object) {
+    return [];
+}
+
 export function Zip(streams) {
-    const buffers = streams.map(() => []);
+    const buffers = A.map.call(streams, makeArray);
     return new Stream((controller) =>
-        streams.forEach((stream, i) => {
-            const buffer = buffer[i];
-            stream.each((value) => {
+        A.forEach.call(streams, (stream, i) => {
+            const buffer = buffers[i];
+            stream.each
+            // Support streams
+            && stream.each((value) => {
+                buffer.push(value);
+                if (buffers.every(hasLength)) {
+                    controller.push(buffers.reduce(toObject, {}));
+                }
+            })
+            // Support array-likes
+            || A.forEach.call(stream, (value) => {
                 buffer.push(value);
                 if (buffers.every(hasLength)) {
                     controller.push(buffers.reduce(toObject, {}));
@@ -26,5 +41,5 @@ export function Zip(streams) {
 }
 
 export default function zip() {
-    return Zip(Array.from(arguments));
+    return Zip(arguments);
 }
