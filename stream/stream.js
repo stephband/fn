@@ -42,6 +42,11 @@ function done(stopables) {
 }
 
 export default function Stream(start) {
+    // Support construction without `new`
+    if (!Stream.prototype.isPrototypeOf(this)) {
+        return new Stream(start);
+    }
+
     if (!start) {
         return new Pushable();
     }
@@ -137,7 +142,7 @@ assign(Stream, {
     Stream.from(values)
     **/
     from: function(values) {
-        return new Stream((push) => push.apply(null, values));
+        return new Stream((controller) => controller.push.apply(controller, values));
     },
 
     /**

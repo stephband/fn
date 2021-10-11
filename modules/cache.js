@@ -10,11 +10,11 @@ export default function cache(fn) {
 
     return function cache(object) {
         if (window.DEBUG && object === undefined) {
-            console.warn('Fn: cache() called with undefined.');
+            console.warn('cache() called with undefined.');
         }
 
         if (window.DEBUG && arguments.length > 1) {
-            console.warn('Fn: cache() called with ' + arguments.length + ' arguments. Accepts exactly 1.');
+            console.warn('cache() called with ' + arguments.length + ' arguments. Accepts exactly 1.');
         }
 
         if (map.has(object)) {

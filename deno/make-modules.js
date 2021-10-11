@@ -4,9 +4,11 @@
 // or
 // deno run --allow-read --allow-env --allow-net --allow-write --allow-run ./build-modules.js outdir infile1 infile2 ...
 
+import postpad from '../modules/postpad.js';
+
 // Find latest version here:
 // https://deno.land/x/esbuild
-import * as es from 'https://deno.land/x/esbuild@v0.12.28/mod.js'
+import * as es from 'https://deno.land/x/esbuild@v0.12.28/mod.js';
 
 // Arguments
 const args    = Deno.args;
@@ -116,23 +118,87 @@ Deno
     metafile: true
 }))
 
-// Explicitly stop esbuild
+// In docs but doesnt exist
 //.then((result) => es.analyzeMetafile(result.metafile))
-.then((result) => {
-    console.log('Imported modules:\n\n  ' +
-        Object.values(result.metafile.inputs).flatMap((input) =>
-            input.imports.map((imported) =>
-                imported.path
-            )
-        )
-        .reduce((paths, path) => {
-            !paths.includes(path) && paths.push(path);
-            return paths;
-        }, [])
-        .sort()
+
+.then((result) => {    
+    const paths = Object
+    .values(result.metafile.inputs)
+    .flatMap((input) =>
+        input.imports.map((imported) => imported.path)
+    )
+    .reduce((paths, path) => {
+        if (path.endsWith('.js')) {
+            if (path.startsWith('../')) {
+                !paths['../js'].includes(path) && paths['../js'].push(path);
+            }
+            else {
+                !paths['./js'].includes(path) && paths['./js'].push(path);
+            }
+        }
+        else {
+            if (path.startsWith('../')) {
+                !paths['../css'].includes(path) && paths['../css'].push(path);
+            }
+            else {
+                !paths['./css'].includes(path) && paths['./css'].push(path);
+            }
+        }
+
+        return paths;
+    }, { './js': [], '../js': [], './css': [], '../css': [] });
+
+    paths['../js'].sort();
+    paths['./js'].sort();
+    paths['../css'].sort();
+    paths['./css'].sort();
+
+    const colWidth = 4 + Math.max(
+        paths['./js']
+        .reduce((l, path) => path.length > l ? path.length : l, 0),
+        paths['./css']
+        .reduce((l, path) => path.length > l ? path.length : l, 0)
+    );
+
+    const jslength = Math.max(paths['../js'].length, paths['./js'].length);
+    const csslength = Math.max(paths['../css'].length, paths['./css'].length);
+    
+    while (paths['../js'].length < jslength) {
+        paths['../js'].push('');
+    }
+    
+    while (paths['./js'].length < jslength) {
+        paths['./js'].push('');
+    }
+    
+    while (paths['../css'].length < csslength) {
+        paths['../css'].push('');
+    }
+    
+    while (paths['./css'].length < csslength) {
+        paths['./css'].push('');
+    }
+
+    console.log('\n  ' + postpad(' ', colWidth, 'Project modules') + postpad(' ', colWidth, 'Local modules') + '\n');
+
+    console.log(green, '  ' +
+        paths['./js']
+        .map(postpad(' ', colWidth))
+        .map((path, i) => path + paths['../js'][i])
         .join('\n  ')
     );
 
+    console.log('\n  ' + postpad(' ', colWidth, 'Project CSS') + postpad(' ', colWidth, 'Local CSS') + '\n');
+
+    console.log(green, '  ' +
+        paths['./css']
+        .map(postpad(' ', colWidth))
+        .map((path, i) => path + paths['../css'][i])
+        .join('\n  ') +
+        '\n'
+    );
+
+    // Explicitly stop esbuild
     es.stop();
 })
 
