@@ -26,7 +26,9 @@ const producerProperties = {
     },
 
     stop: function() {
-        throw new Error('TODO: Implement stream mouth stop()');
+        //debugger;
+        //throw new Error('TODO: Implement stream mouth stop()');
+        console.log('stop() Not implemented');
     }
 };
 
@@ -278,8 +280,8 @@ function Each(fn) {
     this.push = fn;
 }
 
-Each.prototype = create(Stream.prototype);
-
-Each.prototype.pipe = function() {
-    throw new Error('Stream cannot .pipe() from consumed stream');
-};
+Each.prototype = create(Stream.prototype, {
+    // Can't consume a consumed stream
+    each: { value: null },
+    pipe: { value: null }
+});
