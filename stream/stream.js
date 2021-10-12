@@ -15,7 +15,6 @@ const properties = {
     consumer:  { writable: true }
 };
 
-
 function stopOne(stopable) {
     return stopable.stop ?
         stopable.stop() : 
