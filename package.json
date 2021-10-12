@@ -29,5 +29,6 @@
         "js",
         "javascript"
     ],
-    "homepage": "http://stephen.band/fn/"
+    "homepage": "http://stephen.band/fn/",
+    "type": "module"
 }
