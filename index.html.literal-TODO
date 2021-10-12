@@ -4,7 +4,7 @@
     <template build-src="/fn/templates.html#head-template"></template>
 
     <script build-remove>
-    window.DEBUG = true;
+    false = true;
     </script>
 
     <link rel="stylesheet" href="build/documentation.css" />

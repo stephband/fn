@@ -9,11 +9,11 @@ export default function cache(fn) {
     var map = new Map();
 
     return function cache(object) {
-        if (window.DEBUG && object === undefined) {
+        if (false && object === undefined) {
             console.warn('cache() called with undefined.');
         }
 
-        if (window.DEBUG && arguments.length > 1) {
+        if (false && arguments.length > 1) {
             console.warn('cache() called with ' + arguments.length + ' arguments. Accepts exactly 1.');
         }
 

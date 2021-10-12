@@ -1,6 +1,6 @@
 import noop from './noop.js';
 
-const DEBUG = window.DEBUG === true;
+const DEBUG = false === true;
 
 const defs = {
     'any': noop,

@@ -130,7 +130,7 @@ function methodify(prototype, name, fn) {
     // Enable Pipe(8).name()
     prototype[name] = overload(function thisState() {
         // Sanity check arguments
-        if (window.DEBUG && arguments.length < (fn.length - 1)) {
+        if (false && arguments.length < (fn.length - 1)) {
             throw new Error('.' + name + '() requires at least ' + (fn.length - 1) + ' params');
         }
 

@@ -2,7 +2,7 @@
 import Stream from '../stream/stream.js';
 import { remove, getTarget, $observer } from './observer.js';
 
-//const DEBUG = window.DEBUG === true;
+//const DEBUG = false === true;
 
 const assign = Object.assign;
 const values = Object.values;

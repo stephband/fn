@@ -2,7 +2,7 @@
 import { getTarget } from './observer.js';
 import Observable from './observable.js';
 
-//const DEBUG = window.DEBUG === true;
+//const DEBUG = false === true;
 const assign = Object.assign;
 
 /** 

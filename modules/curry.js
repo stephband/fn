@@ -50,7 +50,7 @@ function curry(fn, muteable, arity) {
 //    };
 //}
 
-if (window.DEBUG) {
+if (false) {
     const _curry = curry;
 
     // Feature test

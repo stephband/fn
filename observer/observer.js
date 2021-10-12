@@ -1,5 +1,5 @@
 
-//const DEBUG = window.DEBUG === true;
+//const DEBUG = false === true;
 
 const assign = Object.assign;
 const define = Object.defineProperties;

@@ -60,7 +60,7 @@ function Observe(path, index, target, output) {
         this.fn(this.target[this.key]);
     }
 
-    if (window.DEBUG) { ++analytics.observes; }
+    if (false) { ++analytics.observes; }
 }
 
 assign(Observe.prototype, {
@@ -105,7 +105,7 @@ assign(Observe.prototype, {
         const observer = Observer(this.target);
 
         if (!observer) {
-            if (window.DEBUG) {
+            if (false) {
                 console.log('CANNOT LISTEN TO UNOBSERVABLE', this.target);
             }
 
@@ -135,7 +135,7 @@ assign(Observe.prototype, {
         this.unlisten();
         this.child && this.child.stop();
         this.child = undefined;
-        if (window.DEBUG) { --analytics.observes; }
+        if (false) { --analytics.observes; }
     }
 });
 
