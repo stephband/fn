@@ -17,7 +17,7 @@ const properties = {
 };
 
 const producerProperties = {
-    push: function() {
+    push: function input() {
         const length = arguments.length;
         let n = -1;
         while (++n < length) {
@@ -26,7 +26,7 @@ const producerProperties = {
     },
 
     stop: function() {
-        //console.log('stream.stop()');
+        throw new Error('TODO: Implement stream mouth stop()');
     }
 };
 
@@ -47,14 +47,13 @@ export default function Stream(start) {
         return new Stream(start);
     }
 
-    if (!start) {
-        return new Pushable();
-    }
-
     const stream = this;
 
     this.start = function() {
-        start(assign(create(stream), producerProperties));
+        // Assign result of setup to stream - setup should return undefined or
+        // an object with a .push() method ... TODO: decide on this API for real
+        const mouth = assign(create(stream), producerProperties);
+        assign(stream, start(mouth));
         return this;
     };
 }
@@ -155,24 +154,6 @@ assign(Stream, {
 
 
 /*
-Pushable()
-*/
-
-function Pushable() {}
-
-Pushable.prototype = create(Stream.prototype);
-
-Pushable.prototype.push = function(value) {
-    if (!this.consumer) { return this; }
-    let n = -1;
-    while (++n < arguments.length) {
-        this.consumer.push(arguments[n]);
-    }
-    return this;
-};
-
-
-/*
 Map()
 */
 
@@ -185,7 +166,7 @@ function Map(fn) {
 
 Map.prototype = create(Stream.prototype);
 
-Map.prototype.push = function push(value) {
+Map.prototype.push = function map(value) {
     if (value !== undefined) {
         this.consumer.push(this.fn(value));
     }
@@ -204,7 +185,7 @@ function Filter(fn) {
 
 Filter.prototype = create(Stream.prototype);
 
-Filter.prototype.push = function push(value) {
+Filter.prototype.push = function filter(value) {
     if (value !== undefined && this.fn(value)) {
         this.consumer.push(value);
     }
@@ -230,7 +211,7 @@ function Take(n) {
 
 Take.prototype = create(Stream.prototype);
 
-Take.prototype.push = function push(value) {
+Take.prototype.push = function take(value) {
     this.consumer.push(value);
 
     if (!(--this.n)) {
@@ -256,7 +237,7 @@ function Reduce(fn, accumulator) {
 
 Reduce.prototype = create(Stream.prototype);
 
-Reduce.prototype.push = function(value) {
+Reduce.prototype.push = function reduce(value) {
     if (value !== undefined) {
         this.value = this.fn(this.value, value);
     }
@@ -279,7 +260,7 @@ function Scan(fn, accumulator) {
 
 Scan.prototype = create(Stream.prototype);
 
-Scan.prototype.push = function(value) {
+Scan.prototype.push = function scan(value) {
     if (value !== undefined) {
         this.value = this.fn(this.value, value);
         this.consumer.push(this.value);
