@@ -16,13 +16,6 @@ const properties = {
     consumer:  { writable: true }
 };
 
-const producerProperties = {
-    push: ,
-
-    stop: 
-};
-
-
 
 function stopOne(stopable) {
     return stopable.stop ?
@@ -313,7 +306,8 @@ function Each(source, fn) {
     this.push = fn;
 }
 
-Each.prototype = create(Stream.prototype);
-
-// Throw error when trying to consume a consumed stream
-Each.prototype.pipe = undefined;
+Each.prototype = create(Stream.prototype, {
+    // Can't consume a consumed stream
+    each: { value: null },
+    pipe: { value: null }
+});
