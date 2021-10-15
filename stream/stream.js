@@ -12,34 +12,55 @@ Stream()
 **/
 
 const properties = {
-    consumer:  { writable: true },
-    stopables: { writable: true }
+    source:    { writable: true },
+    consumer:  { writable: true }
 };
 
 const producerProperties = {
-    push: function input() {
-        const length = arguments.length;
-        let n = -1;
-        while (++n < length) {
-            this.consumer.push(arguments[n]);
-        }
-    },
+    push: ,
 
-    stop: function() {
-        throw new Error('TODO: Implement stream mouth stop()');
-    }
+    stop: 
 };
 
-function stop(stopable) {
+
+
+function stopOne(stopable) {
     return stopable.stop ?
         stopable.stop() : 
         stopable() ;
 }
 
-function done(stopables) {
-    stopables.forEach(stop);
+function stopAll(stopables) {
+    stopables.forEach(stopOne);
     stopables.length = 0;
 }
+
+function push() {
+    const length = arguments.length;
+    let n = -1;
+    while (++n < length) {
+        this.consumer.push(arguments[n]);
+    }
+    return this;
+}
+
+function stop() {
+    this.stopables && stopAll(this.stopables);
+    //this.consumer = undefined;
+    return this;
+    //throw new Error('TODO: Implement stream mouth stop()');
+}
+
+function done(fn) {
+    const stopables = this.stopables || (this.stopables = []);
+    stopables.push(fn);
+    return this;
+}
+
+const sourceProps = {
+    push: { value: push },
+    stop: { value: stop }
+};
 
 export default function Stream(start) {
     // Support construction without `new`
@@ -50,27 +71,45 @@ export default function Stream(start) {
     const stream = this;
 
     this.start = function() {
-        // Assign result of setup to stream - setup should return undefined or
-        // an object with a .push() method ... TODO: decide on this API for real
-        const mouth = assign(create(stream), producerProperties);
-        assign(stream, start(mouth));
+        // Assign push(), stop() if they are returned
+        assign(this, start(create(this, sourceProps)));
         return this;
     };
+
+    this.stop   = stop;
+    this.done   = done;
+    this.source = this;
 }
+
+assign(Stream, {
+    /**
+    Stream.from(values)
+    **/
+    from: function(values) {
+        return new Stream((controller) => controller.push.apply(controller, values));
+    },
+
+    /**
+    Stream.of(value1, value2, ...)
+    **/
+    of: function() {
+        return this.from(arguments);
+    }
+});
 
 assign(Stream.prototype, {
     /** 
     .map()
     **/
     map: function(fn) {
-        return this.pipe(new Map(fn));
+        return this.pipe(new Map(this.source, fn));
     },
 
     /** 
     .filter()
     **/
     filter: function(fn) {
-        return this.pipe(new Filter(fn));
+        return this.pipe(new Filter(this.source, fn));
     },
 
     /** 
@@ -78,21 +117,21 @@ assign(Stream.prototype, {
     Consumes the stream, returns a promise of the accumulated value.
     **/
     reduce: function(fn, accumulator) {
-        return this.pipe(new Reduce(fn, accumulator)).start();
+        return this.pipe(new Reduce(this.source, fn, accumulator)).start();
     },
 
     /** 
     .scan()
     **/
     scan: function(fn, accumulator) {
-        return this.pipe(new Scan(fn, accumulator));
+        return this.pipe(new Scan(this.source, fn, accumulator));
     },
 
     /** 
     .each()
     **/
     each: function(fn) {
-        return this.pipe(new Each(fn)).start();
+        return this.pipe(new Each(this.source, fn)).start();
     },
 
     /** 
@@ -113,9 +152,8 @@ assign(Stream.prototype, {
     /** 
     .done()
     **/
-    done: function(stopable) {
-        this.stopables = this.stopables || [];
-        this.stopables.push(stopable);
+    done: function(fn) {
+        this.source.done(fn);
         return this;
     },
 
@@ -123,32 +161,16 @@ assign(Stream.prototype, {
     .start()
     **/
     start: function() {
-        //console.log('START not done');
+        this.source.start();
+        return this;
     },
 
     /** 
     .stop()
     **/
     stop: function() {
-        this.consumer = nothing;
-        this.stopables && done(this.stopables);
+        this.source.stop();
         return this;
-    }
-});
-
-assign(Stream, {
-    /**
-    Stream.from(values)
-    **/
-    from: function(values) {
-        return new Stream((controller) => controller.push.apply(controller, values));
-    },
-
-    /**
-    Stream.of(value1, value2, ...)
-    **/
-    of: function() {
-        return this.from(arguments);
     }
 });
 
@@ -159,7 +181,8 @@ Map()
 
 const mapProperties = assign({ fn: { value: id }}, properties);
 
-function Map(fn) {
+function Map(source, fn) {
+    mapProperties.source.value = source;
     mapProperties.fn.value = fn;
     define(this, mapProperties);
 }
@@ -178,7 +201,8 @@ Map.prototype.push = function map(value) {
 Filter()
 */
 
-function Filter(fn) {
+function Filter(source, fn) {
+    mapProperties.source.value = source;
     mapProperties.fn.value = fn;
     define(this, mapProperties);
 }
@@ -200,11 +224,12 @@ Take()
 
 const takeProperties = assign({ n: { value: 0 }}, properties);
 
-function Take(n) {
+function Take(source, n) {
     if (typeof n !== 'number' || n < 1) {
         throw new Error('stream.take(n) accepts non-zero positive integers as n (' + n + ')');
     }
 
+    takeProperties.source.value = source;
     takeProperties.n.value = n;
     define(this, takeProperties);
 }
@@ -227,9 +252,12 @@ Take.prototype.push = function take(value) {
 Reduce()
 */
 
-const reduceProperties = assign({ value: { writable: true } }, mapProperties);
+const reduceProperties = assign({
+    value: { writable: true }
+}, mapProperties);
 
-function Reduce(fn, accumulator) {
+function Reduce(source, fn, accumulator) {
+    reduceProperties.source.value = source;
     reduceProperties.fn.value = fn;
     reduceProperties.value.value = accumulator;
     define(this, reduceProperties);
@@ -252,7 +280,8 @@ Reduce.prototype.push = function reduce(value) {
 Scan()
 */
 
-function Scan(fn, accumulator) {
+function Scan(source, fn, accumulator) {
+    reduceProperties.source.value = source;
     reduceProperties.fn.value = fn;
     reduceProperties.value.value = accumulator;
     define(this, reduceProperties);
@@ -274,12 +303,17 @@ Scan.prototype.push = function scan(value) {
 Each()
 */
 
-function Each(fn) {
+const eachProperties = {
+    source: { writable: true }
+};
+
+function Each(source, fn) {
+    eachProperties.source.value = source;
+    define(this, eachProperties);
     this.push = fn;
 }
 
 Each.prototype = create(Stream.prototype);
 
-Each.prototype.pipe = function() {
-    throw new Error('Stream cannot .pipe() from consumed stream');
-};
+// Throw error when trying to consume a consumed stream
+Each.prototype.pipe = undefined;
