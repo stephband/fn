@@ -57,5 +57,8 @@ assign(Gets.prototype, {
 });
 
 export default function reads(observer) {
-    return new Stream((controller) => controller.done(new Gets(getTarget(observer), '', controller)));
+    return new Stream((controller) => {
+        controller.done(new Gets(getTarget(observer), '', controller))
+        return;
+    });
 }
