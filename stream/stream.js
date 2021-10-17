@@ -1,6 +1,5 @@
 
 import id      from '../modules/id.js';
-import nothing from '../modules/nothing.js';
 
 const assign = Object.assign;
 const create = Object.create;
