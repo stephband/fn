@@ -10,11 +10,16 @@ export function Merge(streams) {
     return new Stream((controller) => {
         let i = -1, stream;
         while (stream = streams[++i]) {
-            stream.each
-            // Merge streams
-            && stream.each((value) => controller.push(value))
-            // Merge arrays or array-likes
-            || controller.push.apply(controller, stream) ;
+            if (stream.each) {
+                // Merge streams
+                stream.each((value) => controller.push(value));
+                // And stop them when this one stops?
+                controller.done(stream);
+            }
+            else {
+                // Merge arrays or array-likes
+                controller.push.apply(controller, stream);
+            }
         }
     });
 }

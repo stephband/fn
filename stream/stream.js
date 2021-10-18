@@ -15,6 +15,7 @@ const properties = {
     consumer:  { writable: true }
 };
 
+
 function stopOne(stopable) {
     return stopable.stop ?
         stopable.stop() : 
@@ -43,12 +44,9 @@ function stop() {
 }
 
 function done(fn) {
-    if (this === fn) {
-        throw new Error('eh?')
-    }
     const stopables = this.stopables || (this.stopables = []);
     stopables.push(fn);
-    return this;
+    return;
 }
 
 const sourceProps = {
@@ -56,23 +54,53 @@ const sourceProps = {
     stop: { value: stop }
 };
 
+
+
+/*
+function Source(stream, start) {
+    this.stream  = stream;
+    this.startFn = start;
+}
+
+assign(Source.prototype, {
+    push: function push() {
+        const length = arguments.length;
+        let n = -1;
+        while (++n < length) {
+            this.stream.consumer.push(arguments[n]);
+        }
+        return this;
+    },
+
+    start: function() {
+        const start = this.startFn;
+        //const source = create(this, sourceProps);
+        // Assign push(), stop() if they are returned
+        assign(this.stream, start(this));
+        return this;
+    },
+
+    stop: stop,
+    done: done
+});
+*/
 export default function Stream(start) {
     // Support construction without `new`
     if (!Stream.prototype.isPrototypeOf(this)) {
         return new Stream(start);
     }
 
-    const stream = this;
-
     this.start = function() {
+        const source = create(this, sourceProps);
         // Assign push(), stop() if they are returned
-        assign(this, start(create(this, sourceProps)));
+        assign(this, start(source));
         return this;
     };
 
     this.stop   = stop;
     this.done   = done;
     this.source = this;
+    //this.source = new Source(this, start);
 }
 
 assign(Stream, {
@@ -96,14 +124,14 @@ assign(Stream.prototype, {
     .map()
     **/
     map: function(fn) {
-        return this.pipe(new Map(this.source, fn));
+        return this.consumer = new Map(this.source, fn);
     },
 
     /** 
     .filter()
     **/
     filter: function(fn) {
-        return this.pipe(new Filter(this.source, fn));
+        return this.consumer = new Filter(this.source, fn);
     },
 
     /** 
@@ -111,36 +139,38 @@ assign(Stream.prototype, {
     Consumes the stream, returns a promise of the accumulated value.
     **/
     reduce: function(fn, accumulator) {
-        return this.pipe(new Reduce(this.source, fn, accumulator)).start();
+        return this.pipe(new Reduce(this.source, fn, accumulator));
     },
 
     /** 
     .scan()
     **/
     scan: function(fn, accumulator) {
-        return this.pipe(new Scan(this.source, fn, accumulator));
+        return this.consumer = new Scan(this.source, fn, accumulator);
     },
-
+    
+    /** 
+    .take()
+    **/
+    take: function(n) {
+        return this.consumer = new Take(this.source, n);
+    },
+    
     /** 
     .each()
     **/
     each: function(fn) {
-        return this.pipe(new Each(this.source, fn)).start();
+        return this.pipe(new Each(this.source, fn));
     },
-
+    
     /** 
     .pipe()
     **/
     pipe: function(consumer) {
-        // TODO: find a less smelly mechanism than this
-        consumer.start = this.start;
-        consumer.done && consumer.done(this);
-        return this.consumer = consumer;
-    },
-    
-    
-    take: function(n) {
-        this.pipe(new Take(n));
+        //consumer.done && consumer.done(this);
+        this.consumer = consumer;
+        this.start();
+        return this.consumer;
     },
 
     /** 
