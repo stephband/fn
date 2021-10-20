@@ -5,12 +5,15 @@ against input values in a map, such that for each input value
 `fn` is only ever called once.
 */
 
+let warned;
+
 export default function cache(fn) {
     var map = new Map();
 
     return function cache(object) {
-        if (window.DEBUG && object === undefined) {
-            console.warn('cache() called with undefined.');
+        if (window.DEBUG && !warned && object === undefined) {
+            warned = true;
+            console.warn('cache() called with undefined. Not illegal, but worthy of a warning.');
         }
 
         if (window.DEBUG && arguments.length > 1) {
