@@ -1,6 +1,5 @@
 
 import id      from '../modules/id.js';
-import nothing from '../modules/nothing.js';
 
 const assign = Object.assign;
 const create = Object.create;
@@ -55,6 +54,36 @@ const sourceProps = {
     stop: { value: stop }
 };
 
+
+
+/*
+function Source(stream, start) {
+    this.stream  = stream;
+    this.startFn = start;
+}
+
+assign(Source.prototype, {
+    push: function push() {
+        const length = arguments.length;
+        let n = -1;
+        while (++n < length) {
+            this.stream.consumer.push(arguments[n]);
+        }
+        return this;
+    },
+
+    start: function() {
+        const start = this.startFn;
+        //const source = create(this, sourceProps);
+        // Assign push(), stop() if they are returned
+        assign(this.stream, start(this));
+        return this;
+    },
+
+    stop: stop,
+    done: done
+});
+*/
 export default function Stream(start) {
     // Support construction without `new`
     if (!Stream.prototype.isPrototypeOf(this)) {
@@ -71,8 +100,9 @@ export default function Stream(start) {
     this.stop   = stop;
     this.done   = done;
     this.source = this;
+    //this.source = new Source(this, start);
 }
-window.S = Stream;
+
 assign(Stream, {
     /**
     Stream.from(values)

@@ -18,26 +18,33 @@ function makeArray(object) {
 
 export function Zip(streams) {
     const buffers = A.map.call(streams, makeArray);
-    return new Stream((controller) =>
+
+    return new Stream((controller) => {
         A.forEach.call(streams, (stream, i) => {
             const buffer = buffers[i];
-            stream.each
-            // Support streams
-            && stream.each((value) => {
-                buffer.push(value);
-                if (buffers.every(hasLength)) {
-                    controller.push(buffers.reduce(toObject, {}));
-                }
-            })
+
+            if (stream.each) {
+                // Support streams
+                controller.done(
+                    stream.each((value) => {
+                        buffer.push(value);
+                        if (buffers.every(hasLength)) {
+                            controller.push(buffers.reduce(toObject, {}));
+                        }
+                    })
+                );
+            }
             // Support array-likes
-            || A.forEach.call(stream, (value) => {
-                buffer.push(value);
-                if (buffers.every(hasLength)) {
-                    controller.push(buffers.reduce(toObject, {}));
-                }
-            })
-        })
-    );
+            else {
+                A.forEach.call(stream, (value) => {
+                    buffer.push(value);
+                    if (buffers.every(hasLength)) {
+                        controller.push(buffers.reduce(toObject, {}));
+                    }
+                });
+            }
+        });
+    });
 }
 
 export default function zip() {
