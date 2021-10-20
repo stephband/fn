@@ -11,18 +11,18 @@
 </head>
 
 <body class="grid @1-6x-grid @3-9x-grid">
-    <header class="x-1 3x @1-6x @2-9x @3-x-2 @3-11x" id="header">
+    <header class="x1 3x @1-6x @2-9x @3-x2 @3-11x" id="header">
         <template build-fn="fetch:package.json" build-src="/fn/templates.html#header-template"></template>
     </header>
 
-    <section class="x-1 3x @1-6x @2-9x @3-x-2 grid" data-targetable id="functions">
-        <header class="x-1 3x @1-4x">
+    <section class="x1 3x @1-6x @2-9x @3-x2 grid" data-targetable id="functions">
+        <header class="x1 3x @1-4x">
             <h2 class="doctext-02">Functions</h2>
             <p class="doctext-08">Import functions from the Fn module:</p>
             <pre><code class="language-js">import { get, matches } from '/fn/module.js';</code></pre>
         </header>
 
-        <div class="x-1 3x">
+        <div class="x1 3x">
             <h4 class="doctext-03">Functions</h4>
             <template build-fn="docs:
             modules/cache.js,
@@ -36,15 +36,15 @@
             filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
         </div>
 
-        <div class="x-1 3x @2-4x">
+        <div class="x1 3x @2-4x">
             <p class="doctext-08">
             The functions below are curried (where they take more than one
             parameter). They may be partially applied.
             </p>
         </div>
 
-        <div class="x-1 3x column-grid grid">
-            <div class="x-1">
+        <div class="x1 3x column-grid grid">
+            <div class="x1">
                 <h4 class="doctext-03">Objects</h4>
                 <template build-fn="docs:
                 modules/argument.js,
@@ -73,8 +73,8 @@
             </div>
         </div>
 
-        <div class="x-1 3x @1-x-4 column-grid grid">
-            <div class="x-1">
+        <div class="x1 3x @1-x4 column-grid grid">
+            <div class="x1">
                 <h4 class="doctext-03">Strings</h4>
                 <template build-fn="docs:
                 modules/strings/append.js,
@@ -90,7 +90,7 @@
                 filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
             </div>
 
-            <div class="x-1">
+            <div class="x1">
                 <h4 class="doctext-03">Maths</h4>
                 <template build-fn="docs:
                 modules/maths/core.js,
@@ -106,8 +106,8 @@
             </div>
         </div>
 
-        <div class="x-1 3x @2-x-7 column-grid grid">
-            <div class="x-1">
+        <div class="x1 3x @2-x7 column-grid grid">
+            <div class="x1">
                 <h4 class="doctext-03">Arrays</h4>
                 <template build-fn="docs:
                 modules/lists/core.js,
@@ -121,7 +121,7 @@
                 filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
             </div>
 
-            <div class="x-1">
+            <div class="x1">
                 <h4 class="doctext-03">Time</h4>
                 <template build-fn="docs:
                 modules/date.js,
@@ -131,8 +131,8 @@
         </div>
     </section>
 
-    <section class="x-1 3x @1-6x @2-9x @3-x-2 columns-grid grid" data-targetable id="observer">
-        <header class="x-1 3x @1-4x">
+    <section class="x1 3x @1-6x @2-9x @3-x2 columns-grid grid" data-targetable id="observer">
+        <header class="x1 3x @1-4x">
             <h2 class="doctext-02" style="font-size: 1.875rem;">Observer</h2>
             <p class="doctext-08">An observer is an ES6 Proxy of an object that intercepts and
             reports mutations. Import and create an observer:</p>
@@ -153,7 +153,7 @@ const data = Observer({ value: true });</code></pre>
             <pre><code class="language-js">data.value = false;   // Logs `false`</code></pre>
         </header>
 
-        <div class="x-1 3x list-grid grid">
+        <div class="x1 3x list-grid grid">
             <template build-fn="docs:
             modules/observer/observer.js,
             modules/observer/observe.js
@@ -161,29 +161,29 @@ const data = Observer({ value: true });</code></pre>
         </div>
     </section>
 
-    <!--div class="x-1 3x @2-x-2 @3-6x @4-5x @5-3x">
+    <!--div class="x1 3x @2-x2 @3-6x @4-5x @5-3x">
         <p class="doctext-08">Text things</p>
     </div-->
 
-    <!--div class="x-1 3x @2-x-2 @3-6x @4-5x @5-3x" build-fn="docs:'./modules/stream.js'"></div-->
+    <!--div class="x1 3x @2-x2 @3-6x @4-5x @5-3x" build-fn="docs:'./modules/stream.js'"></div-->
 
-    <section class="x-1 3x @1-6x @2-9x @3-x-2 columns-grid grid" data-targetable id="stream">
-        <header class="x-1 3x @1-4x">
+    <section class="x1 3x @1-6x @2-9x @3-x2 columns-grid grid" data-targetable id="stream">
+        <header class="x1 3x @1-4x">
             <h2 class="doctext-02" style="font-size: 1.875rem;">Stream</h2>
             <p class="doctext-08">Import and create a stream:</p>
             <pre><code class="language-js">import { Stream } from '/fn/module.js';
 const stream = Stream.of(1,2,3,4);</code></pre>
         </header>
 
-        <div class="x-1 3x list-grid grid">
+        <div class="x1 3x list-grid grid">
             <template build-fn="docs:modules/stream.js filter-function each" build-src="/fn/templates.html#{[type]}-template"></template>
         </div>
 
-        <div class="x-1 3x @1-x-4 list-grid grid">
+        <div class="x1 3x @1-x4 list-grid grid">
             <template build-fn="docs:modules/stream.js filter-method take:16 each" build-src="/fn/templates.html#{[type]}-template"></template>
         </div>
 
-        <div class="x-1 3x @2-x-7 list-grid grid">
+        <div class="x1 3x @2-x7 list-grid grid">
             <template build-fn="docs:modules/stream.js filter-method rest:16 each" build-src="/fn/templates.html#{[type]}-template"></template>
         </div>
     </section>
