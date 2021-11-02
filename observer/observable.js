@@ -145,15 +145,11 @@ Observable(path, target, currentValue)
 **/
 
 export default function Observable(path, target, current) {
-    return new Stream((stream) => {
-        const observe = new Observe(path, 0, target, (value) => {
+    return new Stream((source) =>
+        source.done(new Observe(path, 0, target, (value) => {
             if (value === current) { return; }
             current = value;
-            stream.push(value);
-        });
-        
-        return {
-            stop: () => observe.stop()
-        };
-    });
+            source.push(value);
+        }))
+    );
 }

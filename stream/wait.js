@@ -1,14 +1,16 @@
 
 import Stream from './stream.js';
 
-const push = (stream, value) => stream.push(value);
+function push(source, value) {
+    source.push(value);
+}
 
 export default function Wait(time) {
     let timer;
-    return new Stream((stream) => ({
+    return new Stream((source) => ({
         push: function(value) {
             clearTimeout(timer);
-            timer = setTimeout(push, time * 1000, stream, value);
+            timer = setTimeout(push, time * 1000, source, value);
         }
     }));
 }

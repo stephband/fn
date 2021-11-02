@@ -48,7 +48,12 @@ assign(Source.prototype, {
     start: function() {
         const stream = this.stream;
         const start  = this.fn;
-        stream.source = start(this) || this;
+        /*
+        // Enable passing a source constructor to Stream(constructor)
+        const isConstructor = start.hasOwnProperty("prototype");
+        assign(stream, new start(this));
+        */
+        assign(stream, start(this));
     },
 
     stop: function stop() {
