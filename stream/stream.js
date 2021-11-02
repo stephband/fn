@@ -27,83 +27,64 @@ function stopAll(stopables) {
     stopables.length = 0;
 }
 
-function push() {
-    const length = arguments.length;
-    let n = -1;
-    while (++n < length) {
-        this.consumer.push(arguments[n]);
-    }
-    return this;
-}
 
-function stop() {
-    this.stopables && stopAll(this.stopables);
-    //this.consumer = undefined;
-    return this;
-    //throw new Error('TODO: Implement stream mouth stop()');
-}
+/* Source */
 
-function done(fn) {
-    const stopables = this.stopables || (this.stopables = []);
-    stopables.push(fn);
-    return;
-}
-
-const sourceProps = {
-    push: { value: push },
-    stop: { value: stop }
-};
-
-
-
-/*
 function Source(stream, start) {
-    this.stream  = stream;
-    this.startFn = start;
+    this.stream = stream;
+    this.fn     = start;
 }
 
 assign(Source.prototype, {
-    push: function push() {
+    push: function() {
+        const stream = this.stream;
         const length = arguments.length;
         let n = -1;
         while (++n < length) {
-            this.stream.consumer.push(arguments[n]);
+            stream.consumer.push(arguments[n]);
         }
-        return this;
     },
 
     start: function() {
-        const start = this.startFn;
-        //const source = create(this, sourceProps);
-        // Assign push(), stop() if they are returned
-        assign(this.stream, start(this));
-        return this;
+        const stream = this.stream;
+        const start  = this.fn;
+        stream.source = start(this) || this;
     },
 
-    stop: stop,
-    done: done
+    stop: function stop() {
+        this.stopables && stopAll(this.stopables);
+        --Stream.count;
+    },
+
+    done: function done(fn) {
+        const stopables = this.stopables || (this.stopables = []);
+        stopables.push(fn);
+    }
 });
-*/
+
+
+/* Stream */
+
 export default function Stream(start) {
     // Support construction without `new`
     if (!Stream.prototype.isPrototypeOf(this)) {
         return new Stream(start);
     }
 
-    this.start = function() {
-        const source = create(this, sourceProps);
-        // Assign push(), stop() if they are returned
-        assign(this, start(source));
-        return this;
-    };
+    ++Stream.count;
 
-    this.stop   = stop;
-    this.done   = done;
-    this.source = this;
-    //this.source = new Source(this, start);
+    this.source = new Source(this, start);
 }
 
 assign(Stream, {
+    /** 
+    .count
+    Keeps a count of unstopped streams. Unstopped streams are not necessarily 
+    active, they may have been garbage collected. Or this may indicate something
+    is not stopping correctly in your code.
+    **/
+    count: 0,
+
     /**
     Stream.from(values)
     **/
@@ -342,3 +323,10 @@ Each.prototype = create(Stream.prototype, {
     each: { value: null },
     pipe: { value: null }
 });
+
+
+// Debug
+
+if (window.DEBUG) {
+    window.Stream = Stream;
+}
