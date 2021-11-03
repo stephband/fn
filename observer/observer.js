@@ -256,11 +256,15 @@ assign(ObjectTrap.prototype, {
             return true;
         }
 
+        value = getTarget(value);
+        const length = target.length;
+
         // If we are setting the same value, we're not really setting at all
         if (target[name] === value) {
             return true;
         }
 
+        // Unbind get listeners on the old value?
         var n = -1;
         while(this.gets[++n]) {
             this.gets[n].unlisten(name);
@@ -270,8 +274,13 @@ assign(ObjectTrap.prototype, {
         // in case target is doing something funky with property descriptors
         // that return a different value from the value that was set. Rare,
         // but it can happen.
-        target[name] = getTarget(value);
+        target[name] = value;
         value = target[name];
+
+        // Check if length has changed and notify if it has
+        if (name !== 'length' && target.length !== length) {
+            fire(this.observables.length, target.length);
+        }
 
         fire(this.observables[name], value);
         fire(this.sets, value);
@@ -330,4 +339,3 @@ export function Observer(object) {
             undefined
         ));
 }
-
