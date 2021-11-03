@@ -1,97 +1,7 @@
 
-import Trap, { fire } from './trap.js';
+const assign = Object.assign;
 
-//const DEBUG = window.DEBUG === true;
-
-const define = Object.defineProperties;
-const isExtensible = Object.isExtensible;
-
-export const $observer = Symbol('observer');
-
-export const analytics = {
-    observables: 0,
-    observes: 0
-};
-
-export function remove(array, value) {
-    const i = array.indexOf(value);
-    if (i > -1) { array.splice(i, 1); }
-    return array;
-}
-
-export function getTarget(object) {
-    return object && object[$observer] && object[$observer].target || object ;
-}
-
-export function getObservables(key, target) {
-    const handlers    = target[$observer];
-    const observables = handlers.observables;
-    return observables[key] || (observables[key] = []);
-}
-
-export function getMutationObservables(target) {
-    return target[$observer].sets || (target[$observer].sets = []);
-}
-
-
-/*
-notify(object, path)
-Force the `object`'s Observer to register a mutation at `path`.
-*/
-
-export function notify(path, object) {
-    const observer = object[$observer];
-    if (!observer) { return; }
-    const target = observer.target;
-    return fire(getObservables(path, target), target[path]);
-}
-
-
-// Observer proxy
-
-function isObservable(object) {
-    // Many built-in objects and DOM objects bork when calling their
-    // methods via a proxy. They should be considered not observable.
-    // I wish there were a way of whitelisting rather than
-    // blacklisting, but it would seem not.
-
-    return object
-        // Reject primitives and other frozen objects
-        // This is really slow...
-        //&& !isFrozen(object)
-        // I haven't compared this, but it's necessary for audio nodes
-        // at least, but then only because we're extending with symbols...
-        // hmmm, that may need to change...
-        && isExtensible(object)
-        // This is less safe but faster.
-        //&& typeof object === 'object'
-
-        // Reject DOM nodes
-        && !Node.prototype.isPrototypeOf(object)
-        // Reject WebAudio context
-        && (typeof BaseAudioContext === 'undefined' || !BaseAudioContext.prototype.isPrototypeOf(object))
-        // Reject dates
-        && !(object instanceof Date)
-        // Reject regex
-        && !(object instanceof RegExp)
-        // Reject maps
-        && !(object instanceof Map)
-        && !(object instanceof WeakMap)
-        // Reject sets
-        && !(object instanceof Set)
-        && !(window.WeakSet && object instanceof WeakSet)
-        // Reject TypedArrays and DataViews
-        && !ArrayBuffer.isView(object) ;
-}
-
-
-/** 
-Trap()
-**/
-
-const properties = { [$observer]: {} };
-
-function fire(fns, name, value) {
+export function fire(fns, name, value) {
     if (!fns || !fns.length) { return 0; }
     fns = fns.slice(0);
     var n = -1;
@@ -104,14 +14,10 @@ function fire(fns, name, value) {
     return n;
 }
 
-function Trap(target) {
+export default function Trap() {
     this.observables = {};
     this.gets = [];
     this.sets = undefined;
-    this.observer = new Proxy(target, this);
-
-    properties[$observer].value = this;
-    define(target, properties);
 }
 
 assign(Trap.prototype, {
@@ -220,18 +126,3 @@ assign(Trap.prototype, {
         return true;
     }
 });
-
-
-/**
-Observer(object)
-Create an observer proxy around `object`. Mutations made to this proxy are 
-observable via `observe(path, object` and `mutations(paths, object)`.
-**/
-
-export function Observer(object) {
-    return !object ? undefined :
-        (object[$observer] && object[$observer].observer || (isObservable(object) ?
-            (new Trap(object)).oberver :
-            undefined
-        ));
-}
