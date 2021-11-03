@@ -32,7 +32,7 @@ export function getMutationObservables(target) {
 
 
 /*
-notify(object, path)
+notify(path, object)
 Force the `object`'s Observer to register a mutation at `path`.
 */
 
@@ -103,10 +103,12 @@ function fire(fns, name, value) {
 
 function Trap(target) {
     this.observables = {};
-    this.gets = [];
-    this.sets = undefined;
+    this.gets     = [];
+    this.sets     = undefined;
+    this.target   = target;
     this.observer = new Proxy(target, this);
 
+    // Define trap as target.$observer
     properties[$observer].value = this;
     define(target, properties);
 }
@@ -227,8 +229,7 @@ observable via `observe(path, object` and `mutations(paths, object)`.
 
 export function Observer(object) {
     return !object ? undefined :
-        (object[$observer] && object[$observer].observer || (isObservable(object) ?
-            (new Trap(object)).oberver :
-            undefined
-        ));
+        object[$observer] ? object[$observer].observer :
+        isObservable(object) ? (new Trap(object)).observer :
+        undefined ;
 }
