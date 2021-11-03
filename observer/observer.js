@@ -1,9 +1,6 @@
 
-import Trap, { fire } from './trap.js';
-
-//const DEBUG = window.DEBUG === true;
-
-const define = Object.defineProperties;
+const assign       = Object.assign;
+const define       = Object.defineProperties;
 const isExtensible = Object.isExtensible;
 
 export const $observer = Symbol('observer');
