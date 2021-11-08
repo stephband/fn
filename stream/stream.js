@@ -232,7 +232,7 @@ Filter.prototype.push = function filter(value) {
 Take()
 */
 
-const takeProperties = assign({ n: { value: 0 }}, properties);
+const takeProperties = assign({ n: { value: 0, writable: true }}, properties);
 
 function Take(source, n) {
     if (typeof n !== 'number' || n < 1) {
