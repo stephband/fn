@@ -13,6 +13,8 @@ export function remove(array, value) {
         array.splice(i, 1);
     }
 
+    // Todo: should return array so can be used as reducer. Hook up remove() in 
+    // Literal > renderer.js when you do
     return value;
 }
 
