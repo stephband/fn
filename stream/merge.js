@@ -16,6 +16,10 @@ export function Merge(streams) {
                 // And stop them when this one stops?
                 controller.done(stream);
             }
+            else if (stream.then) {
+                stream.then((value) => controller.push(value));
+                // What should we do with errors?
+            }
             else {
                 // Merge arrays or array-likes
                 controller.push.apply(controller, stream);
