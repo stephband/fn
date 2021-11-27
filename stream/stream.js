@@ -1,5 +1,6 @@
 
 import id      from '../modules/id.js';
+import noop    from '../modules/noop.js';
 
 const assign = Object.assign;
 const create = Object.create;
@@ -58,6 +59,7 @@ assign(Source.prototype, {
 
     stop: function stop() {
         this.stopables && stopAll(this.stopables);
+        this.push = noop;
         --Stream.count;
     },
 
