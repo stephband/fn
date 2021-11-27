@@ -9,10 +9,22 @@ export function Combine(streams) {
         let i = -1, stream;
         while (stream = streams[++i]) {
             const n = i;
-            stream.each((value) => {
-                values[n] = value;
-                controller.push(assign({}, values));
-            });
+            if (stream.each) {
+                stream.each((value) => {
+                    values[n] = value;
+                    controller.push(assign({}, values));
+                });
+            }
+            else if (stream.then) {
+                stream.then((value) => {
+                    values[n] = value;
+                    controller.push(assign({}, values));
+                });
+                // Todo: what do we do with errors?
+            }
+            else {
+                console.log('Todo: combine() raw values ?');
+            }
         }
     });
 }

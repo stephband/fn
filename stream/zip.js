@@ -34,6 +34,14 @@ export function Zip(streams) {
                     })
                 );
             }
+            else if (stream.then) {
+                stream.then((value) => {
+                    buffer.push(value);
+                    if (buffers.every(hasLength)) {
+                        controller.push(buffers.reduce(toObject, {}));
+                    }
+                })
+            }
             // Support array-likes
             else {
                 A.forEach.call(stream, (value) => {
