@@ -13,7 +13,7 @@ import * as es from 'https://deno.land/x/esbuild@v0.12.28/mod.js';
 // Arguments
 const args    = Deno.args;
 
-// First argument is name of output file (if it has a file extension), otherwise 
+// First argument is name of output file (if it has a file extension), otherwise
 // name of output directory
 const outfile = /\.\w+$/.test(args[0]) ? args[0] : undefined ;
 const outdir  = /\.\w+$/.test(args[0]) ? undefined : args[0] ;
@@ -90,11 +90,11 @@ Deno
     logLevel:  'info',
 
     plugins: [{
-        // Mark .png, .svg and so on as external files to avoid them being 
-        // bundled. Ideally, we want to rewrite their paths here. TODO! 
+        // Mark .png, .svg and so on as external files to avoid them being
+        // bundled. Ideally, we want to rewrite their paths here. TODO!
         name: 'external',
         setup: (build) => build.onResolve({
-            filter: /\.(?:png|svg|woff|woff2|eot|ttf|otf)$/
+            filter: /\.(?:png|svg|woff|woff2|eot|ttf|otf)(?:#|$)/
         }, (args) => {
             console.warn('URL not rewritten:', args.path);
             return { path: args.path, external: true };
@@ -102,8 +102,8 @@ Deno
     }],
 
     loader: {
-        // These have been marked as external in the plugin above, so this does 
-        // nothing. I leave it here for indication how to bundle url(image) 
+        // These have been marked as external in the plugin above, so this does
+        // nothing. I leave it here for indication how to bundle url(image)
         // stuff with a 'file' loader should you need to.
         '.eot':   'file',
         '.woff':  'file',
@@ -113,7 +113,7 @@ Deno
         '.otf':   'file',
         '.png':   'file'
     },
-    
+
     // Generate data about build
     metafile: true
 }))
@@ -121,7 +121,7 @@ Deno
 // In docs but doesnt exist
 //.then((result) => es.analyzeMetafile(result.metafile))
 
-.then((result) => {    
+.then((result) => {
     const paths = Object
     .values(result.metafile.inputs)
     .flatMap((input) =>
@@ -162,19 +162,19 @@ Deno
 
     const jslength = Math.max(paths['../js'].length, paths['./js'].length);
     const csslength = Math.max(paths['../css'].length, paths['./css'].length);
-    
+
     while (paths['../js'].length < jslength) {
         paths['../js'].push('');
     }
-    
+
     while (paths['./js'].length < jslength) {
         paths['./js'].push('');
     }
-    
+
     while (paths['../css'].length < csslength) {
         paths['../css'].push('');
     }
-    
+
     while (paths['./css'].length < csslength) {
         paths['./css'].push('');
     }
