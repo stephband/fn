@@ -49,7 +49,7 @@ Deno
 .then((pkg) => es.build({
     // A string to prepend to modules and chunks
     banner: {
-        js: '// ' + pkg.title + ' ' + pkg.version + ' (Built ' + getDateTime() + ')\n\n' + '',
+        js:  '// ' + pkg.title + ' ' + pkg.version + ' (Built ' + getDateTime() + ')\n\n' + '',
         css: '// ' + pkg.title + ' ' + pkg.version + ' (Built ' + getDateTime() + ')\n\n' + ''
     },
 
