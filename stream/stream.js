@@ -19,7 +19,7 @@ const properties = {
 
 function stopOne(stopable) {
     return stopable.stop ?
-        stopable.stop() : 
+        stopable.stop() :
         stopable() ;
 }
 
@@ -84,9 +84,9 @@ export default function Stream(start) {
 }
 
 assign(Stream, {
-    /** 
+    /**
     .count
-    Keeps a count of unstopped streams. Unstopped streams are not necessarily 
+    Keeps a count of unstopped streams. Unstopped streams are not necessarily
     active, they may have been garbage collected. Or this may indicate something
     is not stopping correctly in your code.
     **/
@@ -108,21 +108,21 @@ assign(Stream, {
 });
 
 assign(Stream.prototype, {
-    /** 
+    /**
     .map()
     **/
     map: function(fn) {
         return this.consumer = new Map(this.source, fn);
     },
 
-    /** 
+    /**
     .filter()
     **/
     filter: function(fn) {
         return this.consumer = new Filter(this.source, fn);
     },
 
-    /** 
+    /**
     .reduce()
     Consumes the stream, returns a promise of the accumulated value.
     **/
@@ -130,28 +130,28 @@ assign(Stream.prototype, {
         return this.pipe(new Reduce(this.source, fn, accumulator));
     },
 
-    /** 
+    /**
     .scan()
     **/
     scan: function(fn, accumulator) {
         return this.consumer = new Scan(this.source, fn, accumulator);
     },
-    
-    /** 
+
+    /**
     .take()
     **/
     take: function(n) {
         return this.consumer = new Take(this.source, n);
     },
-    
-    /** 
+
+    /**
     .each()
     **/
     each: function(fn) {
         return this.pipe(new Each(this.source, fn));
     },
-    
-    /** 
+
+    /**
     .pipe()
     **/
     pipe: function(consumer) {
@@ -161,7 +161,7 @@ assign(Stream.prototype, {
         return this.consumer;
     },
 
-    /** 
+    /**
     .done()
     **/
     done: function(fn) {
@@ -169,7 +169,7 @@ assign(Stream.prototype, {
         return this;
     },
 
-    /** 
+    /**
     .start()
     **/
     start: function() {
@@ -177,7 +177,7 @@ assign(Stream.prototype, {
         return this;
     },
 
-    /** 
+    /**
     .stop()
     **/
     stop: function() {
@@ -205,6 +205,7 @@ Map.prototype.push = function map(value) {
     if (value !== undefined) {
         this.consumer.push(this.fn(value));
     }
+
     return this;
 };
 

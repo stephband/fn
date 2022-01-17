@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8">
+    <meta name="author" content="stephband">
+    <meta name="description" content="Documentation for Fn. A library of functions, observers and streams, published as ES6 modules.">
+    <meta name="viewport" content="width=device-width">
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@stephband">
+    <meta property="og:url" content="http://stephen.band/fn/">
+    <meta property="og:title" content="Fn">
+    <meta property="og:description" content="A library of functions, observers and streams, published as ES6 modules.">
+    <meta property="og:image" content="">
+
+    <title>Fn</title>
+
+    <script title="load">
+    document.documentElement.className += ' js content-loading loading';
+    window.addEventListener('DOMContentLoaded', () => document.documentElement.classList.remove('content-loading'));
+    // Wait for other load handlers to run first - Bolt does a few things on
+    // load (eg. data-targetable scrolls) and we want them to run before the loading
+    // class is removed
+    window.addEventListener('load', () => window.requestAnimationFrame(() => document.documentElement.classList.remove('loading')));
+    window.DEBUG = true;
+    </script>
+
+    <link rel="stylesheet" href="../../bolt/module.css" />
+    <link rel="stylesheet" href="../../literal/module.css" />
+    <link rel="icon" type="image/png" href="images/logo-32x32.png" sizes="32x32" />
+
+    <style>
+    body {
+        padding: 1rem;
+    }
+
+    .momentary-button,
+    .momentary-button:focus,
+    .momentary-button:hover {
+        border: 1px solid currentcolor;
+        background: white;
+        transition-timing-function: ease-out;
+        transition-duration: 0.18s, 0.18s, 0.18s, 0.18s;
+    }
+
+    .momentary-button.on,
+    .momentary-button.on:focus,
+    .momentary-button.on:hover {
+        color: white;
+        background: black;
+        transition-timing-function: linear;
+        transition-duration: 0.024s, 0.024s, 0.024s, 0.024s;
+    }
+
+    .network-block > .grid {
+        --x-gap: 24px;
+    }
+
+    .network-block > .grid > li {
+        position: relative;
+        z-index: 2;
+    }
+
+    .network-block > .layer {
+        position: absolute;
+        z-index: 1;
+    }
+
+    .read-output {
+        font-size: 0.75rem;
+        display: block;
+        padding: 0.25rem;
+        white-space: nowrap;
+        background-color: white;
+        border: 1px solid currentcolor !important;
+        border-radius: 0.1875rem;
+        width: 100%;
+    }
+
+    .input,
+    .output {
+        width: 0.4375rem;
+        height: 0.4375rem;
+        margin-left: -0.25rem;
+        border-radius: 50%;
+        background-color: #aa7722;
+    }
+
+    .output {
+        margin-left: auto;
+        margin-right: -0.25rem;
+    }
+
+    li > pre {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    li > .input,
+    li > .output {
+        position: absolute;
+        top: 9px;
+        margin-top: 0;
+        z-index: 4;
+    }
+
+    li > .input {
+        left: 0;
+    }
+
+    li > .output {
+        right: 0;
+    }
+
+    .process-block {
+        border: 1px solid #aa7722;
+        border-radius: 0.25rem;
+        background-color: #f2efea;
+    }
+
+    .setting {
+        position: relative;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    .setting > [type] {
+        margin-top: 0;
+    }
+
+    .setting > .input {
+        position: absolute;
+        top: 19px;
+        left: 0;
+        margin-top: 0;
+        z-index: 4;
+        opacity: 0;
+        transition: opacity 0.3s linear;
+    }
+
+    li:hover > .setting > .input,
+    .setting > .input.connected {
+        opacity: 1;
+    }
+
+    .setting + .setting {
+        margin-top: 0;
+    }
+    </style>
+
+    <template id="input-node-template">
+        <div class="output" id="network-node-${ data.id }-output"></div>
+    </template>
+
+    <template id="ui-node-template">
+        <div class="output" id="network-node-${ data.id }-output"></div>
+
+        <button type="button" class="momentary-button button" name="state" value="${ data.data.value }">
+            ${
+                events('mousedown', element).each((e) => {
+                    this.data.stream.push([e.timeStamp / 1000, parseFloat(element.value), 0]);
+                    element.classList.add('on');
+                }),
+
+                events('mouseup',   element).each((e) => {
+                    this.data.stream.push([e.timeStamp / 1000, 0, 0]);
+                    element.classList.remove('on');
+                }),
+
+                'Momentary'
+            }
+        </button>
+
+        <button type="button" class="momentary-button button" name="state" value="${ data.data.value }">
+            ${
+                this.state = false,
+                events('mousedown', element).each((e) => {
+                    this.data.stream.push([e.timeStamp / 1000, this.state ? 0 : parseFloat(element.value), 0]);
+                    this.state = !this.state;
+                    element.classList[this.state ? 'add' : 'remove']('on');
+                }),
+                'Toggle'
+            }
+        </button>
+
+        <label>Value</label>
+        <input type="range" name="state" value="${ data.data.value }" min="${ data.data.min || 0 }" max="${ data.data.max || 1 }" step="${ data.data.step || 'any' }" data-events="${
+            events('input', element).each((e) => this.data.stream.push([e.timeStamp / 1000, parseFloat(element.value), 0])),
+            ''
+        }" />
+    </template>
+
+    <template id="filter-node-template">
+        ${ print(this, data.data) }
+        <div class="input" id="network-node-${ data.id }-input" title="Input"></div>
+        <div class="output" id="network-node-${ data.id }-output"></div>
+    </template>
+
+    <template id="add-map-template">
+        <pre>${ data.data.value.type }: ${ data.data.value.data.value.toPrecision(3) }</pre>
+        <div class="setting">
+            <div class="input" id="network-node-${ data.id }-value.data.value" title="Value ${ data.data.value.type }"></div>
+            <input type="range" value="${ data.data.value.data.value }" name="min" min="-12" max="12" />
+        </div>
+    </template>
+
+    <template id="multiply-map-template">
+        <pre>${ data.data.value.type }: ${ data.data.value.data.value.toPrecision(3) }</pre>
+        <div class="setting">
+            <div class="input" id="network-node-${ data.id }-value.data.value" title="Value ${ data.data.value.type }"></div>
+            <input type="range" value="${ data.data.value.data.value }" name="min" min="0.0625" max="16" />
+        </div>
+    </template>
+
+    <template id="clamp-map-template">
+        <pre>${ data.data.value.type }: ${ data.data.value.data.min.toPrecision(3) } - ${ data.data.value.data.max.toPrecision(3) }</pre>
+        <div class="setting">
+            <div class="input" id="network-node-${ data.id }-value.data.min" title="Value ${ data.data.value.type } min"></div>
+            <input type="range" value="${ data.data.value.data.min }" name="min" min="0" max="2" step="any" />
+        </div>
+        <div class="setting">
+            <div class="input" id="network-node-${ data.id }-value.data.max" title="Value ${ data.data.value.type } max"></div>
+            <input type="range" value="${ data.data.value.data.max }" name="max" min="0" max="2" step="any" />
+        </div>
+    </template>
+
+    <template id="map-node-template">
+        ${ events('input', element).each((e) => data.data.value.data[e.target.name] = parseFloat(e.target.value)), print(this, data.data) }
+        <div class="input" id="network-node-${ data.id }-input" title="Input"></div>
+        <div class="output" id="network-node-${ data.id }-output"></div>
+        <select value="${ data.data.value.type }">
+            <option value="add">Add</option>
+            <option value="clamp">Clamp</option>
+            <option value="multiply">Multiply</option>
+        </select>
+        ${ include('#' + data.data.value.type + '-map-template', data) }
+    </template>
+
+    <template id="distribute-node-template">
+        <div class="input" id="network-node-${ data.id }-input" title="Input"></div>
+        <div class="output" id="network-node-${ data.id }-output"></div>
+    </template>
+
+    <template id="set-node-template">
+        ${ print(this, data.data) }
+    </template>
+
+    <template id="route-node-template">
+        <div class="input" id="network-node-${ data.id }-input" title="Input"></div>
+
+        <div class="setting">
+            <label>Target</label>
+            <input type="text" value="${ data.data.id }" name="id" />
+        </div>
+
+        <div class="setting">
+            <label>Property</label>
+            <input type="text" value="${ data.data.name }" name="name" />
+        </div>
+    </template>
+
+    <template id="log-node-template">
+        ${ print(this, data) }
+    </template>
+
+    <template id="print-node-template">
+        <output class="read-output">${ this.data.stream.map((event) => event[0].toFixed(3) + ', ' + event[1].toPrecision(4) + ', ' + event[2]) }</output>
+        <div class="input" id="network-node-${ data.id }-input" title="Input"></div>
+    </template>
+
+    <template id="node-template">
+        <li class="y-start process-block block">
+            <pre style="font-size: 0.875rem;">${ data.type }</pre>
+            ${ include('#' + data.type + '-node-template', data) }
+        </li>
+    </template>
+
+    <template id="network-template">
+        <section class="network-block block">
+            <ul class="3x-grid grid list">
+                ${
+                    data.nodes
+                    .filter((node) => node.type !== 'set')
+                    .map(include('#node-template'))
+                }
+            </ul>
+            <canvas class="layer">
+                ${
+                    this.ctx = element.getContext('2d'),
+                    events('resize', window).each(() => {
+                        element.width = element.clientWidth * 2;
+                        element.height = element.clientHeight * 2;
+                        const e = element.getBoundingClientRect();
+
+                        data.routes.forEach((n, i) => {
+                            if (i % 2 === 0) { return; }
+
+                            const src = document.getElementById('network-node-' + data.routes[i - 1] + '-output');
+                            const s = src.getBoundingClientRect();
+
+                            const node = data.nodes.find((node) => node.id === n);
+
+                            const trg = node.type === 'set' ?
+                                document.getElementById('network-node-' + node.data.target + '-' + node.data.name) :
+                                document.getElementById('network-node-' + n + '-input') ;
+
+                            trg.classList.add('connected');
+
+                            const t = trg.getBoundingClientRect();
+
+                            this.ctx.lineWidth   = '2';
+                            this.ctx.lineCap     = 'round';
+                            this.ctx.strokeStyle = '#aa7722';
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(2 * (s.x + 0.5 * s.width - e.x), 2 * (s.y + 0.5 * s.height - e.y));
+                            this.ctx.lineTo(2 * (t.x + 0.5 * t.width - e.x), node.type === 'set' ? 2 * (t.y + 0.5 * t.height - e.y) : 2 * (t.y + 0.5 * t.height - e.y));
+                            this.ctx.stroke();
+                            this.ctx.closePath();
+                        });
+                    })
+                }
+            </canvas>
+        </section>
+    </template>
+</head>
+
+<body class="">
+    <header class="" id="header">
+        <h1 class="doctext-01">Network</h1>
+    </header>
+
+    <include-literal src="#network-template" id="ui"></include-literal>
+
+    <!-- Document interactivity -->
+    <script type="module">
+        import Network from './control-network.js';
+        import '../../literal/module.js';
+
+        const network = new Network([
+            { id: 0, type: 'ui', data: { value: 1, min: 0, max: 3, step: 'any' } },
+
+            { id: 1, type: 'filter', data: {
+                type:  { type: 'in', data: ['linear'] },
+                value: { type: 'minmax', data: { min: 0.5, max: 2 } }
+            }},
+
+            { id: 2, type: 'map', data: {
+                value: { type: 'clamp', data: { min: 1, max: 2 } }
+            }},
+
+            { id: 3, type: 'distribute' },
+
+            { id: 4, type: 'map', data: {
+                value: { type: 'add', data: { value: 5 } }
+            }},
+
+            { id: 5, type: 'set', data: {
+                target: 2,
+                name: 'value.data.min'
+            }},
+
+            { id: 6, type: 'route', data: {
+                id: 100,
+                name: 'something'
+            }},
+
+            { id: 7, type: 'print', data: 'output' }
+        ], [
+            0, 1,
+            1, 2,
+            2, 3,
+            3, 4,
+            3, 5,
+            3, 7,
+            4, 6,
+        ]);
+
+        console.log(document.getElementById('ui').data);
+        document.getElementById('ui').data = network;
+
+        console.log(network);
+        window.network = network;
+    </script>
+
+</body></html>
