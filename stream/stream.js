@@ -57,7 +57,6 @@ assign(Source.prototype, {
     },
 
     stop: function stop() {
-console.log('stream.stop()', this.stopables);
         this.stopables && stopAll(this.stopables);
         --Stream.count;
     },
@@ -81,7 +80,7 @@ export default function Stream(start) {
 
     this.source = new Source(this, start);
 }
-console.log('WOOOOOOOO');
+
 assign(Stream, {
     /**
     .count
@@ -180,7 +179,6 @@ assign(Stream.prototype, {
     .stop()
     **/
     stop: function() {
-console.log('S.stop()', this.source);
         this.source.stop();
         return this;
     }
