@@ -18,7 +18,7 @@ const properties = {
 
 function stopOne(stopable) {
     return stopable.stop ?
-        stopable.stop() : 
+        stopable.stop() :
         stopable() ;
 }
 
@@ -53,10 +53,11 @@ assign(Source.prototype, {
         const isConstructor = start.hasOwnProperty("prototype");
         assign(stream, new start(this));
         */
-        assign(stream, start(this));
+        start(this);
     },
 
     stop: function stop() {
+console.log('stream.stop()', this.stopables);
         this.stopables && stopAll(this.stopables);
         --Stream.count;
     },
@@ -80,11 +81,11 @@ export default function Stream(start) {
 
     this.source = new Source(this, start);
 }
-
+console.log('WOOOOOOOO');
 assign(Stream, {
-    /** 
+    /**
     .count
-    Keeps a count of unstopped streams. Unstopped streams are not necessarily 
+    Keeps a count of unstopped streams. Unstopped streams are not necessarily
     active, they may have been garbage collected. Or this may indicate something
     is not stopping correctly in your code.
     **/
@@ -106,21 +107,21 @@ assign(Stream, {
 });
 
 assign(Stream.prototype, {
-    /** 
+    /**
     .map()
     **/
     map: function(fn) {
         return this.consumer = new Map(this.source, fn);
     },
 
-    /** 
+    /**
     .filter()
     **/
     filter: function(fn) {
         return this.consumer = new Filter(this.source, fn);
     },
 
-    /** 
+    /**
     .reduce()
     Consumes the stream, returns a promise of the accumulated value.
     **/
@@ -128,28 +129,28 @@ assign(Stream.prototype, {
         return this.pipe(new Reduce(this.source, fn, accumulator));
     },
 
-    /** 
+    /**
     .scan()
     **/
     scan: function(fn, accumulator) {
         return this.consumer = new Scan(this.source, fn, accumulator);
     },
-    
-    /** 
+
+    /**
     .take()
     **/
     take: function(n) {
         return this.consumer = new Take(this.source, n);
     },
-    
-    /** 
+
+    /**
     .each()
     **/
     each: function(fn) {
         return this.pipe(new Each(this.source, fn));
     },
-    
-    /** 
+
+    /**
     .pipe()
     **/
     pipe: function(consumer) {
@@ -159,7 +160,7 @@ assign(Stream.prototype, {
         return this.consumer;
     },
 
-    /** 
+    /**
     .done()
     **/
     done: function(fn) {
@@ -167,7 +168,7 @@ assign(Stream.prototype, {
         return this;
     },
 
-    /** 
+    /**
     .start()
     **/
     start: function() {
@@ -175,10 +176,11 @@ assign(Stream.prototype, {
         return this;
     },
 
-    /** 
+    /**
     .stop()
     **/
     stop: function() {
+console.log('S.stop()', this.source);
         this.source.stop();
         return this;
     }
