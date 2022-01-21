@@ -29,8 +29,16 @@
     <link rel="icon" type="image/png" href="images/logo-32x32.png" sizes="32x32" />
 
     <style>
+    :root {
+        background-color: #e2e8ea;
+    }
+
     body {
         padding: 1rem;
+    }
+
+    .process-grid {
+        grid-auto-columns: 150px;
     }
 
     .momentary-button,
@@ -80,6 +88,12 @@
     .output {
         width: 0.4375rem;
         height: 0.4375rem;
+        min-width: 0;
+        min-height: 0;
+        max-width: 0.4375rem;
+        max-height: 0.4375rem;
+        padding: 0;
+        border-width: 0;
         margin-left: -0.25rem;
         border-radius: 50%;
         background-color: #aa7722;
@@ -88,6 +102,72 @@
     .output {
         margin-left: auto;
         margin-right: -0.25rem;
+    }
+
+    .output:not(.connected)::before,
+    .output:not(.connected)::after {
+        content: '';
+        position: absolute;
+        /*opacity: 0;*/
+        visibility: hidden;
+        background-color: #aa7722;
+        transition:
+            visibility 0.3s linear 0.4s,
+            transform 0.3s ease-in 0.4s,
+            background-color 0.3s ease-in 0.4s;
+    }
+
+    .output:not(.connected)::after  {
+        content: '+';
+    }
+
+    .output::before {
+        left: 0.3125rem;
+        top: 0.15625rem;
+        width: 1.875rem;
+        height: 0.125rem;
+        transform: translate(0, 0) scale(0.2333333, 0.2333333);
+        transform-origin: 0 0.0625rem;
+        background-color: #aa7722;
+    }
+
+    .output::after {
+        font-size: 1.25rem;
+        text-align: center;
+        line-height: 1.625rem;
+        left: 1.375rem;
+        top: -0.71875rem;
+        width: 1.875rem;
+        height: 1.875rem;
+        transform: translate(-1.375rem, 0) scale(0.2333333, 0.2333333);
+        transform-origin: 0 0.9375rem;
+        color: #aa7722;
+        border-radius: 50%;
+        border: 2px solid #aa7722;
+    }
+
+    .process-block {
+        border: 1px solid #aa7722;
+        border-radius: 0.25rem;
+        background-color: #f2efea;
+    }
+
+    .process-block:hover > .output::before,
+    .process-block:focus > .output::before,
+    .process-block:hover > .output::after,
+    .process-block:focus > .output::after {
+        /*opacity: 1;*/
+        visibility: visible;
+        transform: translate(0, 0) scale(1, 1);
+        transition:
+            visibility 0.12s linear 0s,
+            transform 0.12s ease-out 0s,
+            background-color 0.12s ease-out 0s;
+    }
+
+    .process-block:hover > .output::after,
+    .process-block:focus > .output::after {
+        background-color: #f2efea;
     }
 
     li > pre {
@@ -109,12 +189,6 @@
 
     li > .output {
         right: 0;
-    }
-
-    .process-block {
-        border: 1px solid #aa7722;
-        border-radius: 0.25rem;
-        background-color: #f2efea;
     }
 
     .setting {
@@ -148,11 +222,11 @@
     </style>
 
     <template id="input-node-template">
-        <div class="output" id="network-node-${ data.id }-output"></div>
+        <button type="button" class="output" name="route" value="${ data.id }" id="network-node-${ data.id }-output"></button>
     </template>
 
     <template id="ui-node-template">
-        <div class="output" id="network-node-${ data.id }-output"></div>
+        <button type="button" class="output" name="route" value="${ data.id }" id="network-node-${ data.id }-output"></button>
 
         <button type="button" class="momentary-button button" name="state" value="${ data.data.value }">
             ${
@@ -161,7 +235,7 @@
                     element.classList.add('on');
                 }),
 
-                events('mouseup',   element).each((e) => {
+                events('mouseup', element).each((e) => {
                     this.data.stream.push([e.timeStamp / 1000, 0, 0]);
                     element.classList.remove('on');
                 }),
@@ -182,6 +256,19 @@
             }
         </button>
 
+        <button type="button" class="momentary-button button" name="state" value="${ data.data.value }">
+            ${
+                events('mousedown', element).each((e) => {
+                    this.data.stream.push([e.timeStamp / 1000, parseFloat(element.value), 0]);
+                    element.classList.add('on');
+                    requestAnimationFrame(() =>
+                        requestAnimationFrame(() =>
+                            element.classList.remove('on')));
+                }),
+                'Hit'
+            }
+        </button>
+
         <label>Value</label>
         <input type="range" name="state" value="${ data.data.value }" min="${ data.data.min || 0 }" max="${ data.data.max || 1 }" step="${ data.data.step || 'any' }" data-events="${
             events('input', element).each((e) => this.data.stream.push([e.timeStamp / 1000, parseFloat(element.value), 0])),
@@ -192,7 +279,7 @@
     <template id="filter-node-template">
         ${ print(this, data.data) }
         <div class="input" id="network-node-${ data.id }-input" title="Input"></div>
-        <div class="output" id="network-node-${ data.id }-output"></div>
+        <button type="button" class="output" name="route" value="${ data.id }" id="network-node-${ data.id }-output"></button>
     </template>
 
     <template id="add-map-template">
@@ -226,7 +313,7 @@
     <template id="map-node-template">
         ${ events('input', element).each((e) => data.data.value.data[e.target.name] = parseFloat(e.target.value)), print(this, data.data) }
         <div class="input" id="network-node-${ data.id }-input" title="Input"></div>
-        <div class="output" id="network-node-${ data.id }-output"></div>
+        <button type="button" class="output" name="route" value="${ data.id }" id="network-node-${ data.id }-output"></button>
         <select value="${ data.data.value.type }">
             <option value="add">Add</option>
             <option value="clamp">Clamp</option>
@@ -237,7 +324,7 @@
 
     <template id="distribute-node-template">
         <div class="input" id="network-node-${ data.id }-input" title="Input"></div>
-        <div class="output" id="network-node-${ data.id }-output"></div>
+        <button type="button" class="output" name="route" value="${ data.id }" id="network-node-${ data.id }-output"></button>
     </template>
 
     <template id="set-node-template">
@@ -268,25 +355,55 @@
     </template>
 
     <template id="node-template">
-        <li class="y-start process-block block">
-            <pre style="font-size: 0.875rem;">${ data.type }</pre>
-            ${ include('#' + data.type + '-node-template', data) }
+        <li class="y-start process-block block ${ 'y' + data.row }">
+            <pre style="font-size: 0.875rem;">${ data.node.type }</pre>
+            ${ include('#' + data.node.type + '-node-template', data.node) }
         </li>
     </template>
 
     <template id="network-template">
         <section class="network-block block">
-            <ul class="3x-grid grid list">
+            <ul class="process-grid grid list">
                 ${
+                    events({ type: 'click', select: '[name="route"]' }, element)
+                    .each((e) => {
+                        const id   = parseInt(e.target.value, 10);
+                        const node = this.data.nodes.find((node) => node.id === id);
+                        //console.log('Route', id, node);
+                        // Todo: Select an input or create a new node.
+                        // Inputs glow to show acquiescence. Create pane appears
+                        // in next grid slot with choice of node type to create.
+                        this.data.create('map', { value: { type: 'add', data: { value: 1 }}}, node);
+                        notify('nodes', this.data);
+                    }),
+
+                    this.i = 0,
+                    this.terminals = data.nodes.filter((node) => node.type === 'distribute' || node.type === 'route' || node.type === 'print'),
+                    // Decide which rows nodes should appear on
+                    this.rows = this.terminals.reduce((rows, node) => {
+                        const row = ++this.i;
+                        rows[node.id] = row;
+
+                        let sourceId = node.id;
+                        while (
+                            (sourceId = this.data.findSource(sourceId)) !== undefined
+                            && !this.terminals.find((node) => node.id === sourceId)
+                        ) {
+                            rows[sourceId] = row;
+                        }
+                        return rows;
+                    }, {}),
+
                     data.nodes
                     .filter((node) => node.type !== 'set')
-                    .map(include('#node-template'))
+                    .map((node) => include('#node-template', { node, row: this.rows[node.id] }))
                 }
             </ul>
             <canvas class="layer">
                 ${
                     this.ctx = element.getContext('2d'),
-                    events('resize', window).each(() => {
+
+                    merge(new Promise((resolve) => requestAnimationFrame(resolve)), events('resize', window)).each(() => {
                         element.width = element.clientWidth * 2;
                         element.height = element.clientHeight * 2;
                         const e = element.getBoundingClientRect();
@@ -303,6 +420,7 @@
                                 document.getElementById('network-node-' + node.data.target + '-' + node.data.name) :
                                 document.getElementById('network-node-' + n + '-input') ;
 
+                            src.classList.add('connected');
                             trg.classList.add('connected');
 
                             const t = trg.getBoundingClientRect();
@@ -324,9 +442,9 @@
 </head>
 
 <body class="">
-    <header class="" id="header">
+    <!--header class="" id="header">
         <h1 class="doctext-01">Network</h1>
-    </header>
+    </header-->
 
     <include-literal src="#network-template" id="ui"></include-literal>
 
@@ -338,16 +456,16 @@
         const network = new Network([
             { id: 0, type: 'ui', data: { value: 1, min: 0, max: 3, step: 'any' } },
 
-            { id: 1, type: 'filter', data: {
-                type:  { type: 'in', data: ['linear'] },
-                value: { type: 'minmax', data: { min: 0.5, max: 2 } }
-            }},
-
             { id: 2, type: 'map', data: {
                 value: { type: 'clamp', data: { min: 1, max: 2 } }
             }},
 
             { id: 3, type: 'distribute' },
+
+            { id: 1, type: 'filter', data: {
+                type:  { type: 'in', data: ['linear'] },
+                value: { type: 'minmax', data: { min: 0.5, max: 2 } }
+            }},
 
             { id: 4, type: 'map', data: {
                 value: { type: 'add', data: { value: 5 } }
@@ -355,7 +473,7 @@
 
             { id: 5, type: 'set', data: {
                 target: 2,
-                name: 'value.data.min'
+                name: 'value.data.max'
             }},
 
             { id: 6, type: 'route', data: {
@@ -365,16 +483,15 @@
 
             { id: 7, type: 'print', data: 'output' }
         ], [
-            0, 1,
-            1, 2,
+            0, 2,
             2, 3,
+            3, 1,
+            1, 5,
             3, 4,
-            3, 5,
             3, 7,
             4, 6,
         ]);
 
-        console.log(document.getElementById('ui').data);
         document.getElementById('ui').data = network;
 
         console.log(network);

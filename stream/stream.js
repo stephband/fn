@@ -12,8 +12,8 @@ Stream()
 **/
 
 const properties = {
-    source:    { writable: true },
-    consumer:  { writable: true }
+    source: { writable: true },
+    target: { writable: true }
 };
 
 
@@ -26,6 +26,10 @@ function stopOne(stopable) {
 function stopAll(stopables) {
     stopables.forEach(stopOne);
     stopables.length = 0;
+}
+
+function startError() {
+    throw new Error('Attempted stream.start() but stream already started');
 }
 
 
@@ -42,24 +46,35 @@ assign(Source.prototype, {
         const length = arguments.length;
         let n = -1;
         while (++n < length) {
-            stream.consumer.push(arguments[n]);
+            stream.target.push(arguments[n]);
         }
     },
 
     start: function() {
+        // Method may be used once only
+        if (window.DEBUG) { this.start = startError; }
+
         const stream = this.stream;
         const start  = this.fn;
+
         /*
         // Enable passing a source constructor to Stream(constructor)
         const isConstructor = start.hasOwnProperty("prototype");
         assign(stream, new start(this));
         */
-        assign(stream, start(this));
+        assign(stream, start({
+            push:
+            stream: this.stream
+        }));
+
+        // Update count of running streams
+        ++Stream.count;
     },
 
     stop: function stop() {
         this.stopables && stopAll(this.stopables);
         this.push = noop;
+        // Update count of running streams
         --Stream.count;
     },
 
@@ -78,17 +93,19 @@ export default function Stream(start) {
         return new Stream(start);
     }
 
-    ++Stream.count;
-
-    this.source = new Source(this, start);
+    this.source = typeof start === 'object' ?
+        // Accept a stream as source. It will be started, stopped and done
+        // when this stream is started, stopped and done.
+        start :
+        // New source calls start(source) when started
+        new Source(this, start) :
 }
 
 assign(Stream, {
     /**
     .count
-    Keeps a count of unstopped streams. Unstopped streams are not necessarily
-    active, they may have been garbage collected. Or this may indicate something
-    is not stopping correctly in your code.
+    Keeps a count of unstopped streams. This may help you identify when
+    something is not stopping correctly in your code.
     **/
     count: 0,
 
@@ -112,14 +129,14 @@ assign(Stream.prototype, {
     .map()
     **/
     map: function(fn) {
-        return this.consumer = new Map(this.source, fn);
+        return this.target = new Map(this.source, fn);
     },
 
     /**
     .filter()
     **/
     filter: function(fn) {
-        return this.consumer = new Filter(this.source, fn);
+        return this.target = new Filter(this.source, fn);
     },
 
     /**
@@ -134,14 +151,14 @@ assign(Stream.prototype, {
     .scan()
     **/
     scan: function(fn, accumulator) {
-        return this.consumer = new Scan(this.source, fn, accumulator);
+        return this.target = new Scan(this.source, fn, accumulator);
     },
 
     /**
     .take()
     **/
     take: function(n) {
-        return this.consumer = new Take(this.source, n);
+        return this.target = new Take(this.source, n);
     },
 
     /**
@@ -154,11 +171,11 @@ assign(Stream.prototype, {
     /**
     .pipe()
     **/
-    pipe: function(consumer) {
-        //consumer.done && consumer.done(this);
-        this.consumer = consumer;
+    pipe: function(target) {
+        //target.done && target.done(this);
+        this.target = target;
         this.start();
-        return this.consumer;
+        return target;
     },
 
     /**
@@ -173,7 +190,7 @@ assign(Stream.prototype, {
     .start()
     **/
     start: function() {
-        this.source.start();
+        this.source.start.apply(this.source, arguments);
         return this;
     },
 
@@ -181,7 +198,7 @@ assign(Stream.prototype, {
     .stop()
     **/
     stop: function() {
-        this.source.stop();
+        this.source.stop.apply(this.source, arguments);
         return this;
     }
 });
@@ -203,7 +220,7 @@ Map.prototype = create(Stream.prototype);
 
 Map.prototype.push = function map(value) {
     if (value !== undefined) {
-        this.consumer.push(this.fn(value));
+        this.target.push(this.fn(value));
     }
 
     return this;
@@ -224,7 +241,7 @@ Filter.prototype = create(Stream.prototype);
 
 Filter.prototype.push = function filter(value) {
     if (value !== undefined && this.fn(value)) {
-        this.consumer.push(value);
+        this.target.push(value);
     }
 
     return this;
@@ -250,7 +267,7 @@ function Take(source, n) {
 Take.prototype = create(Stream.prototype);
 
 Take.prototype.push = function take(value) {
-    this.consumer.push(value);
+    this.target.push(value);
 
     if (!(--this.n)) {
         // Stream is dead TODO stop only downstream objects
@@ -305,7 +322,7 @@ Scan.prototype = create(Stream.prototype);
 Scan.prototype.push = function scan(value) {
     if (value !== undefined) {
         this.value = this.fn(this.value, value);
-        this.consumer.push(this.value);
+        this.target.push(this.value);
     }
 
     return this;

@@ -84,7 +84,7 @@ const types = {
         }),
 
     route: (source, data) =>
-        source.each((value) => console.log('route', data.id, data.name, value)),
+        (source && source.each((value) => console.log('route', data.id, data.name, value))),
 
     set: (source, data, nodes) => {
         // data.target is id of node
