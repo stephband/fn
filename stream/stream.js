@@ -28,6 +28,10 @@ function stopAll(stopables) {
     stopables.length = 0;
 }
 
+function pushError() {
+    throw new Error('Attempted stream.push() to a stopped stream');
+}
+
 function startError() {
     throw new Error('Attempted stream.start() but stream already started');
 }
@@ -37,43 +41,26 @@ function startError() {
 
 function Source(stream, start) {
     this.stream = stream;
-    this.fn     = start;
+    this.setup  = start;
 }
 
 assign(Source.prototype, {
-    push: function() {
-        const stream = this.stream;
-        const length = arguments.length;
-        let n = -1;
-        while (++n < length) {
-            stream.target.push(arguments[n]);
-        }
-    },
-
     start: function() {
         // Method may be used once only
         if (window.DEBUG) { this.start = startError; }
 
-        const stream = this.stream;
         const start  = this.fn;
-
-        /*
-        // Enable passing a source constructor to Stream(constructor)
-        const isConstructor = start.hasOwnProperty("prototype");
-        assign(stream, new start(this));
-        */
-        assign(stream, start({
-            push:
-            stream: this.stream
-        }));
+        this.setup(this.stream, arguments);
 
         // Update count of running streams
         ++Stream.count;
     },
 
     stop: function stop() {
+        // Cannot push() after stop()
+        if (window.DEBUG) { this.push = pushError; }
+
         this.stopables && stopAll(this.stopables);
-        this.push = noop;
         // Update count of running streams
         --Stream.count;
     },
@@ -93,12 +80,13 @@ export default function Stream(start) {
         return new Stream(start);
     }
 
-    this.source = typeof start === 'object' ?
-        // Accept a stream as source. It will be started, stopped and done
-        // when this stream is started, stopped and done.
-        start :
-        // New source calls start(source) when started
+    this.source = typeof start === 'function' ?
+        // New source calls start(source) when the stream is started
         new Source(this, start) :
+        // Also Accept a producer stream as source. It will be started, stopped
+        // and done when this stream is started, stopped and done.
+        start ;
+
 }
 
 assign(Stream, {
@@ -113,7 +101,10 @@ assign(Stream, {
     Stream.from(values)
     **/
     from: function(values) {
-        return new Stream((controller) => controller.push.apply(controller, values));
+        return new Stream(values.length ?
+            (controller) => controller.push.apply(controller, values) :
+            noop
+        );
     },
 
     /**
@@ -125,6 +116,26 @@ assign(Stream, {
 });
 
 assign(Stream.prototype, {
+    /**
+    .push()
+    **/
+    push: function() {
+        const target = this.target;
+
+        // If there is no target the stream has not been started yet
+        if (window.DEBUG && !target) {
+            throw new Error('Cannot .push() to unstarted stream');
+        }
+
+        const length = arguments.length;
+        let n = -1;
+        while (++n < length) {
+            arguments[n] !== undefined && target.push(arguments[n]);
+        }
+
+        return this;
+    },
+
     /**
     .map()
     **/
@@ -179,14 +190,6 @@ assign(Stream.prototype, {
     },
 
     /**
-    .done()
-    **/
-    done: function(fn) {
-        this.source.done(fn);
-        return this;
-    },
-
-    /**
     .start()
     **/
     start: function() {
@@ -199,6 +202,14 @@ assign(Stream.prototype, {
     **/
     stop: function() {
         this.source.stop.apply(this.source, arguments);
+        return this;
+    },
+
+    /**
+    .done()
+    **/
+    done: function(fn) {
+        this.source.done(fn);
         return this;
     }
 });
@@ -219,8 +230,10 @@ function Map(source, fn) {
 Map.prototype = create(Stream.prototype);
 
 Map.prototype.push = function map(value) {
-    if (value !== undefined) {
-        this.target.push(this.fn(value));
+    value = this.fn(value);
+
+    if (v !== undefined) {
+        this.target.push(value);
     }
 
     return this;
@@ -240,7 +253,7 @@ function Filter(source, fn) {
 Filter.prototype = create(Stream.prototype);
 
 Filter.prototype.push = function filter(value) {
-    if (value !== undefined && this.fn(value)) {
+    if (this.fn(value)) {
         this.target.push(value);
     }
 
@@ -270,7 +283,6 @@ Take.prototype.push = function take(value) {
     this.target.push(value);
 
     if (!(--this.n)) {
-        // Stream is dead TODO stop only downstream objects
         this.stop();
     }
 
@@ -320,9 +332,11 @@ function Scan(source, fn, accumulator) {
 Scan.prototype = create(Stream.prototype);
 
 Scan.prototype.push = function scan(value) {
+    value = this.fn(this.value, value);
+
     if (value !== undefined) {
-        this.value = this.fn(this.value, value);
-        this.target.push(this.value);
+        this.value = value;
+        this.target.push(value);
     }
 
     return this;

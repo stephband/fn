@@ -24,7 +24,7 @@ const prototype = assign(Distributor.prototype, {
     }
 });
 
-['map', 'filter', 'each', 'pipe'].forEach((name) => {
+['map', 'filter', 'reduce', 'scan', 'take', 'each', 'pipe'].forEach((name) => {
     prototype[name] = function() {
         const stream = new Stream((source) => {
             // Add to streams
