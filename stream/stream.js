@@ -8,7 +8,8 @@ const define = Object.defineProperties;
 
 
 /**
-Stream()
+Stream(fn)
+Creates a mappable stream of values.
 **/
 
 const properties = {
@@ -91,14 +92,8 @@ export default function Stream(start) {
 
 assign(Stream, {
     /**
-    .count
-    Keeps a count of unstopped streams. This may help you identify when
-    something is not stopping correctly in your code.
-    **/
-    count: 0,
-
-    /**
     Stream.from(values)
+    Creates a stream from the array (or array-like) collection `values`.
     **/
     from: function(values) {
         return new Stream(values.length ?
@@ -109,15 +104,25 @@ assign(Stream, {
 
     /**
     Stream.of(value1, value2, ...)
+    Creates a stream using parameters as values.
     **/
     of: function() {
         return this.from(arguments);
-    }
+    },
+
+    /**
+    Stream.count
+    Keeps a count of unstopped streams. This may help you identify when
+    something is not stopping correctly in your code.
+    **/
+    count: 0
 });
 
 assign(Stream.prototype, {
     /**
-    .push()
+    .push(value)
+    Pushes `value` into the stream. If the stream has not been started or is
+    already stopped this will cause an error.
     **/
     push: function() {
         const target = this.target;
@@ -137,53 +142,67 @@ assign(Stream.prototype, {
     },
 
     /**
-    .map()
+    .map(fn)
+    Maps each value in the stream to `fn(value)`. Resulting values that are not
+    `undefined` are pushed downstream.
     **/
     map: function(fn) {
         return this.target = new Map(this.source, fn);
     },
 
     /**
-    .filter()
+    .filter(fn)
+    Filters out values from the stream where `fn(value)` is falsy.
     **/
     filter: function(fn) {
         return this.target = new Filter(this.source, fn);
     },
 
     /**
-    .reduce()
+    .reduce(fn, initial)
     Consumes the stream, returns a promise of the accumulated value.
+    Todo: except it doesn't though. Do something about this. Decide what it
+    should return, and if it is to be a promise, make it resolve as
+    stream.done() to avoid Promise overhead and asynciness?
     **/
-    reduce: function(fn, accumulator) {
-        return this.pipe(new Reduce(this.source, fn, accumulator));
+    reduce: function(fn, initial) {
+        return this.pipe(new Reduce(this.source, fn, initial));
     },
 
     /**
-    .scan()
+    .scan(fn, initial)
+    Calls `fn(current, value)` for each `value` in the stream. Where `fn`
+    returns a value it is pushed downstream, and `current` assumes that value
+    on the next iteration. Where `fn` returns `undefined` nothing is pushed and
+    `current` remains unchanged.
     **/
     scan: function(fn, accumulator) {
         return this.target = new Scan(this.source, fn, accumulator);
     },
 
     /**
-    .take()
+    .take(n)
+    Returns a stream of the first `n` values of the stream.
     **/
     take: function(n) {
         return this.target = new Take(this.source, n);
     },
 
     /**
-    .each()
+    .each(fn)
+    Starts the stream and calls `fn(value)` for each value in it.
+    Returns the stream.
     **/
     each: function(fn) {
         return this.pipe(new Each(this.source, fn));
     },
 
     /**
-    .pipe()
+    .pipe(stream)
+    Starts the stream and pushes its values to `stream`.
+    Returns `stream`.
     **/
     pipe: function(target) {
-        //target.done && target.done(this);
         this.target = target;
         this.start();
         return target;
@@ -191,6 +210,9 @@ assign(Stream.prototype, {
 
     /**
     .start()
+    Starts the stream. Normally this is called internally by a consumer method.
+    Caution: where `start()` is called and values are pushed to the stream
+    without a consumer attached, the stream will error.
     **/
     start: function() {
         this.source.start.apply(this.source, arguments);
@@ -199,6 +221,7 @@ assign(Stream.prototype, {
 
     /**
     .stop()
+    Stops the stream.
     **/
     stop: function() {
         this.source.stop.apply(this.source, arguments);
@@ -206,7 +229,8 @@ assign(Stream.prototype, {
     },
 
     /**
-    .done()
+    .done(fn)
+    Cues `fn` to be called when the stream is stopped.
     **/
     done: function(fn) {
         this.source.done(fn);
@@ -232,7 +256,7 @@ Map.prototype = create(Stream.prototype);
 Map.prototype.push = function map(value) {
     value = this.fn(value);
 
-    if (v !== undefined) {
+    if (value !== undefined) {
         this.target.push(value);
     }
 
@@ -292,6 +316,7 @@ Take.prototype.push = function take(value) {
 
 /*
 Reduce()
+Todo: see notes next to .reduce() method
 */
 
 const reduceProperties = assign({
@@ -308,10 +333,13 @@ function Reduce(source, fn, accumulator) {
 Reduce.prototype = create(Stream.prototype);
 
 Reduce.prototype.push = function reduce(value) {
+    value = this.fn(this.value, value);
+
     if (value !== undefined) {
-        this.value = this.fn(this.value, value);
+        this.value = value;
     }
 
+    // Todo: why are we doing this? This crazy!
     return new Promise((resolve, reject) => {
         this.done(() => resolve(this.value));
     });
