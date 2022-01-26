@@ -40,18 +40,21 @@ function startError() {
 
 /* Source */
 
-function Source(stream, start) {
-    this.stream = stream;
-    this.setup  = start;
+export function Source(start) {
+    this.setup = start;
 }
 
 assign(Source.prototype, {
+    pipe: function(stream) {
+        this.target = stream;
+    },
+
     start: function() {
         // Method may be used once only
         if (window.DEBUG) { this.start = startError; }
 
         const start  = this.fn;
-        this.setup(this.stream, arguments);
+        this.setup(this.target, arguments);
 
         // Update count of running streams
         ++Stream.count;
@@ -83,11 +86,12 @@ export default function Stream(start) {
 
     this.source = typeof start === 'function' ?
         // New source calls start(source) when the stream is started
-        new Source(this, start) :
-        // Also Accept a producer stream as source. It will be started, stopped
+        new Source(start) :
+        // Also accept a producer stream as source. It will be started, stopped
         // and done when this stream is started, stopped and done.
         start ;
 
+    this.source.pipe(this);
 }
 
 assign(Stream, {
