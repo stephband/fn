@@ -1,6 +1,7 @@
 
-import id      from '../modules/id.js';
-import noop    from '../modules/noop.js';
+import id         from '../modules/id.js';
+import isIterable from '../modules/is-iterable.js';
+import noop       from '../modules/noop.js';
 
 const assign = Object.assign;
 const create = Object.create;
@@ -163,6 +164,13 @@ assign(Stream.prototype, {
     },
 
     /**
+    .flatMap(fn)
+    **/
+    flatMap: function(fn) {
+        return this.target = new FlatMap(this.source, fn);
+    },
+
+    /**
     .reduce(fn, initial)
     Consumes the stream, returns a promise of the accumulated value.
     Todo: except it doesn't though. Do something about this. Decide what it
@@ -283,6 +291,40 @@ Filter.prototype = create(Stream.prototype);
 Filter.prototype.push = function filter(value) {
     if (this.fn(value)) {
         this.target.push(value);
+    }
+
+    return this;
+};
+
+
+/*
+FlatMap()
+*/
+
+function FlatMap(source, fn) {
+    mapProperties.source.value = source;
+    mapProperties.fn.value = fn;
+    define(this, mapProperties);
+}
+
+FlatMap.prototype = create(Stream.prototype);
+
+FlatMap.prototype.push = function flatMap(value) {
+    const values = this.fn(value);
+
+    if (values !== undefined) {
+        if (isIterable(values)) {
+            for (const value of values) {
+                if (value !== undefined) {
+                    this.target.push(value);
+                }
+            }
+        }
+        else {
+            // Todo: support flattening of streams. Should streams by made
+            // iterable? CAN streams be made iterable? They'd have to be async.
+            throw new Error('Cannot .flatMap() non-iterable values');
+        }
     }
 
     return this;
