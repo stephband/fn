@@ -1,33 +1,14 @@
 
-/** 
+/*
 merge(source1, source2, ...)
 Merges multiple sources into a hot stream.
-**/
+*/
 
-import Stream from './stream.js';
-
-export function Merge(streams) {
-    return new Stream((controller) => {
-        let i = -1, stream;
-        while (stream = streams[++i]) {
-            if (stream.each) {
-                // Merge streams
-                stream.each((value) => controller.push(value));
-                // And stop them when this one stops?
-                controller.done(stream);
-            }
-            else if (stream.then) {
-                stream.then((value) => controller.push(value));
-                // What should we do with errors?
-            }
-            else {
-                // Merge arrays or array-likes
-                controller.push.apply(controller, stream);
-            }
-        }
-    });
-}
+import Merge from './stream.js';
 
 export default function merge() {
+    console.warn('merge() deprecated in favour of Stream.merge()');
     return Merge(arguments);
 }
+
+console.warn('merge() deprecated in favour of Stream.merge()');

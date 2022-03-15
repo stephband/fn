@@ -47,7 +47,7 @@ const types = {
     input: (stream, data, nodes, inputs) =>
         new Stream((source) => inputs.push(source)),
 
-    ui: (stream, data, nodes, inputs) =>
+    button: (stream, data, nodes, inputs) =>
         new Stream((source) => ({ push: (v) => source.push(v) })),
 
     distribute: (source, data) =>

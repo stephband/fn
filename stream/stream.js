@@ -94,6 +94,7 @@ export default function Stream(start) {
     this.source.pipe(this);
 }
 
+
 assign(Stream, {
     /**
     Stream.from(values)
@@ -112,6 +113,25 @@ assign(Stream, {
     **/
     of: function() {
         return this.from(arguments);
+    },
+
+    /**
+    Stream.combine(stream1, stream2, ...)
+    Creates a stream by combining the latest values of all input streams into
+    an objects containing those values. A new object is emitted when a new value
+    is pushed to any input stream.
+    **/
+    combine: function combine() {
+        return Combine(arguments);
+    },
+
+    /**
+    Stream.merge(stream1, stream2, ...)
+    Creates a stream by merging values from any number of input streams into a
+    single output stream.
+    **/
+    merge: function() {
+        return Merge(arguments);
     },
 
     /**
@@ -394,6 +414,64 @@ Each.prototype = create(Stream.prototype, {
     each: { value: null },
     pipe: { value: null }
 });
+
+
+/*
+Combine()
+*/
+
+function Combine(streams) {
+    return new Stream((controller) => {
+        const values = {};
+        let i = -1, stream;
+        while (stream = streams[++i]) {
+            const n = i;
+            if (stream.each) {
+                stream.each((value) => {
+                    values[n] = value;
+                    controller.push(assign({}, values));
+                });
+            }
+            else if (stream.then) {
+                stream.then((value) => {
+                    values[n] = value;
+                    controller.push(assign({}, values));
+                });
+                // Todo: what do we do with errors?
+            }
+            else {
+                console.log('Todo: combine() raw values ?');
+            }
+        }
+    });
+}
+
+
+/*
+Merge()
+*/
+
+export function Merge(streams) {
+    return new Stream((controller) => {
+        let i = -1, stream;
+        while (stream = streams[++i]) {
+            if (stream.each) {
+                // Merge streams
+                stream.each((value) => controller.push(value));
+                // And stop them when this one stops?
+                controller.done(stream);
+            }
+            else if (stream.then) {
+                stream.then((value) => controller.push(value));
+                // What should we do with errors?
+            }
+            else {
+                // Merge arrays or array-likes
+                controller.push.apply(controller, stream);
+            }
+        }
+    });
+}
 
 
 // Debug

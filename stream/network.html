@@ -63,7 +63,7 @@
         --x-gap: 24px;
     }
 
-    .network-block > .grid > li {
+    .network-block > .grid > .process-block {
         position: relative;
         z-index: 2;
     }
@@ -170,25 +170,31 @@
         background-color: #f2efea;
     }
 
-    li > pre {
+    .process-block > pre {
         padding-left: 0.5rem;
         padding-right: 0.5rem;
     }
 
-    li > .input,
-    li > .output {
+    .process-block > .input,
+    .process-block > .output {
         position: absolute;
         top: 9px;
         margin-top: 0;
         z-index: 4;
     }
 
-    li > .input {
+    .process-block > .input {
         left: 0;
     }
 
-    li > .output {
+    .process-block > .output {
         right: 0;
+    }
+
+    .button-process-block > [name="button"] {
+        display: block;
+        width: calc(100% + 2px);
+        margin: -1px;
     }
 
     .setting {
@@ -208,10 +214,10 @@
         margin-top: 0;
         z-index: 4;
         opacity: 0;
-        transition: opacity 0.3s linear;
+        transition: opacity 0.125s linear;
     }
 
-    li:hover > .setting > .input,
+    .process-block:hover > .setting > .input,
     .setting > .input.connected {
         opacity: 1;
     }
@@ -225,58 +231,96 @@
         <button type="button" class="output" name="route" value="${ data.id }" id="network-node-${ data.id }-output"></button>
     </template>
 
-    <template id="ui-node-template">
+    <template id="button-node-template">
         <button type="button" class="output" name="route" value="${ data.id }" id="network-node-${ data.id }-output"></button>
 
-        <button type="button" class="momentary-button button" name="state" value="${ data.data.value }">
-            ${
-                events('mousedown', element).each((e) => {
-                    this.data.stream.push([e.timeStamp / 1000, parseFloat(element.value), 0]);
-                    element.classList.add('on');
-                }),
+        <button type="button" class="momentary-button button" name="button" value="${ data.data.value }">${ data.data.type } :: ${ data.data.value }</button>
 
-                events('mouseup', element).each((e) => {
-                    this.data.stream.push([e.timeStamp / 1000, 0, 0]);
-                    element.classList.remove('on');
-                }),
-
-                'Momentary'
-            }
-        </button>
-
-        <button type="button" class="momentary-button button" name="state" value="${ data.data.value }">
-            ${
-                this.state = false,
-                events('mousedown', element).each((e) => {
-                    this.data.stream.push([e.timeStamp / 1000, this.state ? 0 : parseFloat(element.value), 0]);
-                    this.state = !this.state;
-                    element.classList[this.state ? 'add' : 'remove']('on');
-                }),
-                'Toggle'
-            }
-        </button>
-
-        <button type="button" class="momentary-button button" name="state" value="${ data.data.value }">
-            ${
-                events('mousedown', element).each((e) => {
-                    this.data.stream.push([e.timeStamp / 1000, parseFloat(element.value), 0]);
-                    element.classList.add('on');
-                    requestAnimationFrame(() =>
+        <label>Type</label>
+        <input type="radio" class="masked" name="button-type" value="hit" id="button-type-hit" checked="${ this.data.data.type === 'hit' }" />
+        <label class="radio-button button" for="button-type-hit">Touch</label>
+        <input type="radio" class="masked" name="button-type" value="momentary" id="button-type-momentary" checked="${ this.data.data.type === 'momentary' }" />
+        <label class="radio-button button" for="button-type-momentary">Momentary</label>
+        <input type="radio" class="masked" name="button-type" value="toggle" id="button-type-toggle" checked="${ this.data.data.type === 'toggle' }" />
+        <label class="radio-button button" for="button-type-toggle">Toggle</label>
+        ${
+            this.streams = [],
+            events({ type: 'change', select: '[type="radio"]' }, element)
+            .map((e) => e.target.value)
+            .each(overload(id, {
+                'hit': () => {
+                    const button = element.querySelector('[name="button"]');
+                    this.streams && this.streams.forEach((s) => s.stop());
+                    this.streams.length = 0;
+                    this.streams.push(events('mousedown', button).each((e) => {
+                        this.data.stream.push([e.timeStamp / 1000, parseFloat(button.value), 0]);
+                        button.classList.add('on');
                         requestAnimationFrame(() =>
-                            element.classList.remove('on')));
-                }),
-                'Hit'
-            }
-        </button>
+                            requestAnimationFrame(() =>
+                                button.classList.remove('on')));
+                    }));
+                    data.data.type = 'hit';
+                },
+
+                'momentary': () => {
+                    const button = element.querySelector('[name="button"]');
+                    this.streams && this.streams.forEach((s) => s.stop());
+                    this.streams.length = 0;
+                    this.streams.push(
+                        events('mousedown', button).each((e) => {
+                            this.data.stream.push([e.timeStamp / 1000, parseFloat(button.value), 0]);
+                            button.classList.add('on');
+                        }),
+
+                        events('mouseup', button).each((e) => {
+                            this.data.stream.push([e.timeStamp / 1000, 0, 0]);
+                            button.classList.remove('on');
+                        })
+                    );
+                    data.data.type = 'momentary';
+                },
+
+                'toggle': () => {
+                    const button = element.querySelector('[name="button"]');
+                    this.streams && this.streams.forEach((s) => s.stop());
+                    this.streams.length = 0;
+                    this.state = false;
+                    this.streams.push(
+                        events('mousedown', button).each((e) => {
+                            this.data.stream.push([e.timeStamp / 1000, this.state ? 0 : parseFloat(button.value), 0]);
+                            this.state = !this.state;
+                            button.classList[this.state ? 'add' : 'remove']('on');
+                        })
+                    );
+                    data.data.type = 'toggle';
+                },
+
+                'track': () => {
+                    const button = element.querySelector('[name="button"]');
+                    this.streams && this.streams.forEach((s) => s.stop());
+                    this.streams.length = 0;
+                    this.state = false;
+                    /*this.streams.push(
+                        gesture(button).each((e) => {
+                            this.data.stream.push([e.timeStamp / 1000, this.state ? 0 : parseFloat(button.value), 0]);
+                            this.state = !this.state;
+                            button.classList[this.state ? 'add' : 'remove']('on');
+                        })
+                    );*/
+                    data.data.type = 'track';
+                }
+            })), ''
+         }
 
         <label>Value</label>
-        <input type="range" name="state" value="${ data.data.value }" min="${ data.data.min || 0 }" max="${ data.data.max || 1 }" step="${ data.data.step || 'any' }" data-events="${
-            events('input', element).each((e) => this.data.stream.push([e.timeStamp / 1000, parseFloat(element.value), 0])),
+        <input type="number" name="state" value="${ data.data.value }" min="${ data.data.min || 0 }" max="${ data.data.max || 1 }" step="${ data.data.step || 'any' }" data-events="${
+            events('input', element).each((e) => data.data.value = parseFloat(e.target.value)),
             ''
         }" />
     </template>
 
     <template id="filter-node-template">
+        <pre style="font-size: 0.875rem;">${ data.type }</pre>
         ${ print(this, data.data) }
         <div class="input" id="network-node-${ data.id }-input" title="Input"></div>
         <button type="button" class="output" name="route" value="${ data.id }" id="network-node-${ data.id }-output"></button>
@@ -311,6 +355,7 @@
     </template>
 
     <template id="map-node-template">
+        <pre style="font-size: 0.875rem;">${ data.type }</pre>
         ${ events('input', element).each((e) => data.data.value.data[e.target.name] = parseFloat(e.target.value)), print(this, data.data) }
         <div class="input" id="network-node-${ data.id }-input" title="Input"></div>
         <button type="button" class="output" name="route" value="${ data.id }" id="network-node-${ data.id }-output"></button>
@@ -323,6 +368,7 @@
     </template>
 
     <template id="distribute-node-template">
+        <pre style="font-size: 0.875rem;">${ data.type }</pre>
         <div class="input" id="network-node-${ data.id }-input" title="Input"></div>
         <button type="button" class="output" name="route" value="${ data.id }" id="network-node-${ data.id }-output"></button>
     </template>
@@ -355,15 +401,14 @@
     </template>
 
     <template id="node-template">
-        <li class="y-start process-block block ${ 'y' + data.row }">
-            <pre style="font-size: 0.875rem;">${ data.node.type }</pre>
+        <form class="y-start ${ data.node.type + '-process-block' } process-block block ${ 'y' + data.row }">
             ${ include('#' + data.node.type + '-node-template', data.node) }
-        </li>
+        </form>
     </template>
 
     <template id="network-template">
         <section class="network-block block">
-            <ul class="process-grid grid list">
+            <div class="process-grid grid">
                 ${
                     events({ type: 'click', select: '[name="route"]' }, element)
                     .each((e) => {
@@ -398,7 +443,7 @@
                     .filter((node) => node.type !== 'set')
                     .map((node) => include('#node-template', { node, row: this.rows[node.id] }))
                 }
-            </ul>
+            </div>
             <canvas class="layer">
                 ${
                     this.ctx = element.getContext('2d'),
@@ -423,14 +468,37 @@
                             src.classList.add('connected');
                             trg.classList.add('connected');
 
-                            const t = trg.getBoundingClientRect();
+                            // bezier rounded control point ratio
+                            // Remember we're working at double res
+                            const pr = 0.552284749831;
+                            const r  = 15;
+                            const t  = trg.getBoundingClientRect();
+                            const sx = 2 * (s.x + s.width - e.x);
+                            const sy = 2 * (s.y + 0.5 * s.height - e.y);
+                            const tx = 2 * (t.x - e.x);
+                            const ty = node.type === 'set' ? 2 * (t.y + 0.5 * t.height - e.y) : 2 * (t.y + 0.5 * t.height - e.y);
 
                             this.ctx.lineWidth   = '2';
                             this.ctx.lineCap     = 'round';
                             this.ctx.strokeStyle = '#aa7722';
                             this.ctx.beginPath();
-                            this.ctx.moveTo(2 * (s.x + 0.5 * s.width - e.x), 2 * (s.y + 0.5 * s.height - e.y));
-                            this.ctx.lineTo(2 * (t.x + 0.5 * t.width - e.x), node.type === 'set' ? 2 * (t.y + 0.5 * t.height - e.y) : 2 * (t.y + 0.5 * t.height - e.y));
+                            this.ctx.moveTo(sx, sy);
+
+                            if (ty > sy + r * 2) {
+                                this.ctx.bezierCurveTo(sx + 0.4 * r + 0.6 * r * pr, sy, sx + r, sy + r * (1 - pr), sx + r, sy + r);
+                                this.ctx.bezierCurveTo(sx + r, sy + 6 * r, tx - r, ty - 6 * r, tx - r, ty - r);
+                                this.ctx.bezierCurveTo(tx - r, ty - r + r * pr, tx - 0.4 * r - 0.6 * r * pr, ty, tx, ty);
+                            }
+                            else if (ty < sy - r * 2) {
+                                this.ctx.bezierCurveTo(sx + 0.4 * r + 0.6 * r * pr, sy, sx + r, sy - r * (1 - pr), sx + r, sy - r);
+                                this.ctx.bezierCurveTo(sx + r, sy - 6 * r, tx - r, ty + 6 * r, tx - r, ty + r);
+                                this.ctx.bezierCurveTo(tx - r, ty + r - r * pr, tx - 0.4 * r - 0.6 * r * pr, ty, tx, ty);
+                            }
+                            else {
+                                this.ctx.bezierCurveTo(sx + r, sy, tx - r, ty, tx, ty);
+                            }
+
+                            //this.ctx.lineTo(2 * (t.x + 0.5 * t.width - e.x), node.type === 'set' ? 2 * (t.y + 0.5 * t.height - e.y) : 2 * (t.y + 0.5 * t.height - e.y));
                             this.ctx.stroke();
                             this.ctx.closePath();
                         });
@@ -454,7 +522,7 @@
         import '../../literal/module.js';
 
         const network = new Network([
-            { id: 0, type: 'ui', data: { value: 1, min: 0, max: 3, step: 'any' } },
+            { id: 0, type: 'button', data: { value: 1, min: 0, max: 3, step: 0.1, type: 'hit' } },
 
             { id: 2, type: 'map', data: {
                 value: { type: 'clamp', data: { min: 1, max: 2 } }
