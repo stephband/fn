@@ -8,7 +8,9 @@ import postpad from '../modules/postpad.js';
 
 // Find latest version here:
 // https://deno.land/x/esbuild
-import * as es from 'https://deno.land/x/esbuild@v0.12.28/mod.js';
+//import * as es from 'https://deno.land/x/esbuild@v0.12.28/mod.js';
+import * as es from 'https://deno.land/x/esbuild@v0.14.22/mod.js';
+
 
 // Arguments
 const args    = Deno.args;
