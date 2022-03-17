@@ -462,7 +462,7 @@ Each.prototype = create(Stream.prototype, {
 Combine()
 */
 
-function Combine(streams) {
+export function Combine(streams) {
     return new Stream((controller) => {
         const values = {};
         let i = -1, stream;
