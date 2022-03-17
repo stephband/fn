@@ -1,7 +1,7 @@
 
 import { getTarget } from './observer.js';
 import Observable    from './observable.js';
-import { Combine }   from '../stream/combine.js';
+import { Combine }   from '../stream/stream.js';
 
 
 /**
@@ -15,7 +15,7 @@ Returns an Observable of a dot-notation `path` in `target`, with the methods:
 ```
 
 May also be called with an `initial` value. Where the value at `path` of `target`
-is not strictly equal to `initial`, the consumer will be called (synchronously) 
+is not strictly equal to `initial`, the consumer will be called (synchronously)
 when attached.
 
 ```
@@ -39,7 +39,7 @@ Returns an Observable of a dot-notation `path` in `target`, with the methods:
 ```
 
 May also be called with an `initial` value. Where the value at `path` of `target`
-is not strictly equal to `initial`, the consumer will be called (synchronously) 
+is not strictly equal to `initial`, the consumer will be called (synchronously)
 when attached.
 
 ```
