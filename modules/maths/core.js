@@ -8,17 +8,6 @@ export function exp(n, x) { return Math.pow(n, x); }
 export function log(n, x) { return Math.log(x) / Math.log(n); }
 export function root(n, x) { return Math.pow(x, 1/n); }
 
-/**
-gaussian()
-
-Generate a random number with a gaussian distribution centred
-at 0 with limits -1 to 1.
-**/
-
-export function gaussian() {
-    return Math.random() + Math.random() - 1;
-}
-
 export const curriedSum   = curry(sum);
 export const curriedMultiply = curry(multiply);
 export const curriedMin   = curry(Math.min, false, 2);
