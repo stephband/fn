@@ -47,12 +47,18 @@ Deno
 .readTextFile(workingdir + 'package.json')
 .then(JSON.parse)
 
+// If there is no package.json leave build untitled
+.catch(() => ({
+    title: '',
+    version: ''
+}))
+
 // Build modules
 .then((pkg) => es.build({
     // A string to prepend to modules and chunks
     banner: {
-        js:  '// ' + pkg.title + ' ' + pkg.version + ' (Built ' + getDateTime() + ')\n\n' + '',
-        css: '// ' + pkg.title + ' ' + pkg.version + ' (Built ' + getDateTime() + ')\n\n' + ''
+        js:  '// ' + (pkg.title ? pkg.title + ' ' : '') + (pkg.version ? pkg.version : '') + '\nBuilt ' + getDateTime() + '\n' + '',
+        css: '// ' + (pkg.title ? pkg.title + ' ' : '') + (pkg.version ? pkg.version : '') + '\nBuilt ' + getDateTime() + '\n' + ''
     },
 
     // Disable ASCII character escaping
