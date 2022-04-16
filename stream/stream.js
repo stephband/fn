@@ -117,13 +117,13 @@ assign(Stream, {
     },
 
     /**
-    Stream.combine(stream1, stream2, ...)
+    Stream.combine(streams)
     Creates a stream by combining the latest values of all input streams into
     an objects containing those values. A new object is emitted when a new value
     is pushed to any input stream.
     **/
-    combine: function combine() {
-        return Combine(arguments);
+    combine: function combine(streams) {
+        return Combine(streams);
     },
 
     /**
@@ -462,23 +462,31 @@ Each.prototype = create(Stream.prototype, {
 Combine()
 */
 
+const keys = Object.keys;
+
 export function Combine(streams) {
     return new Stream((controller) => {
         const values = {};
-        let i = -1, stream;
-        while (stream = streams[++i]) {
-            const n = i;
+        const names  = keys(streams);
+
+        let active = false;
+        function push(name, value) {
+            values[name] = value;
+            if (active || (active = keys(values).length === names.length)) {
+                controller.push(assign({}, values));
+            }
+        }
+
+        for (const name in streams) {
+            const stream = streams[name];
+
             if (stream.each) {
-                stream.each((value) => {
-                    values[n] = value;
-                    controller.push(assign({}, values));
-                });
+                stream.each((value) => push(name, value));
+                // Stop stream when controller stops
+                controller.done(stream);
             }
             else if (stream.then) {
-                stream.then((value) => {
-                    values[n] = value;
-                    controller.push(assign({}, values));
-                });
+                stream.then((value) => push(name, value));
                 // Todo: what do we do with errors?
             }
             else {
