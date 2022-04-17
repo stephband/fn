@@ -54,8 +54,8 @@ assign(Source.prototype, {
         // Method may be used once only
         if (window.DEBUG) { this.start = startError; }
 
-        const start  = this.fn;
-        this.setup(this.target, arguments);
+        const setup = this.setup;
+        setup(this.target, arguments);
 
         // Update count of running streams
         ++Stream.count;

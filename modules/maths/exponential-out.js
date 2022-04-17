@@ -12,6 +12,6 @@ import curry from '../curry.js';
 
 export function exponentialOut(e, x) {
     return 1 - Math.pow(1 - x, e);
-};
+}
 
 export default curry(exponentialOut);

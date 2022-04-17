@@ -43,6 +43,12 @@ function getDateTime() {
     .replace('T', ' ');
 }
 
+function getHeader(pkg, indent) {
+    return (pkg.title ? pkg.title + ' ' : '') + (pkg.version ? pkg.version : '')
+    + (pkg.author ? '\n' + indent + 'By ' + (pkg.author.name ? pkg.author.name : pkg.author) : '')
+    + '\n' + indent + 'Built ' + getDateTime();
+}
+
 Deno
 .readTextFile(workingdir + 'package.json')
 .then(JSON.parse)
@@ -57,8 +63,10 @@ Deno
 .then((pkg) => es.build({
     // A string to prepend to modules and chunks
     banner: {
-        js:  '// ' + (pkg.title ? pkg.title + ' ' : '') + (pkg.version ? pkg.version : '') + '\nBuilt ' + getDateTime() + '\n' + '',
-        css: '// ' + (pkg.title ? pkg.title + ' ' : '') + (pkg.version ? pkg.version : '') + '\nBuilt ' + getDateTime() + '\n' + ''
+        js:   '/* ' + getHeader(pkg, '   ') + ' */\n',
+        css:  '/* ' + getHeader(pkg, '   ') + ' */\n',
+        html: '<!-- ' + getHeader(pkg, '     ') + ' -->\n',
+        svg:  '<!-- ' + getHeader(pkg, '     ') + ' -->\n'
     },
 
     // Disable ASCII character escaping
