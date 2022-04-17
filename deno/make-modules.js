@@ -64,9 +64,7 @@ Deno
     // A string to prepend to modules and chunks
     banner: {
         js:   '/* ' + getHeader(pkg, '   ') + ' */\n',
-        css:  '/* ' + getHeader(pkg, '   ') + ' */\n',
-        html: '<!-- ' + getHeader(pkg, '     ') + ' -->\n',
-        svg:  '<!-- ' + getHeader(pkg, '     ') + ' -->\n'
+        css:  '/* ' + getHeader(pkg, '   ') + ' */\n'
     },
 
     // Disable ASCII character escaping
