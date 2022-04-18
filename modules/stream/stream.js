@@ -1,51 +1,30 @@
 
-import id         from '../modules/id.js';
-import isIterable from '../modules/is-iterable.js';
-import noop       from '../modules/noop.js';
+import id         from '../id.js';
+import isIterable from '../is-iterable.js';
+import noop       from '../noop.js';
+
+import Stopable   from './stopable.js';
 
 const assign = Object.assign;
 const create = Object.create;
 const define = Object.defineProperties;
 
 
-/**
-Stream(fn)
-Creates a mappable stream of values.
-**/
+/* Source */
 
-const properties = {
-    source: { writable: true },
-    target: { writable: true }
-};
-
-
-function stopOne(stopable) {
-    return stopable.stop ?
-        stopable.stop() :
-        stopable() ;
-}
-
-function stopAll(stopables) {
-    stopables.forEach(stopOne);
-    stopables.length = 0;
+function startError() {
+    throw new Error('Attempted stream.start() but stream already started');
 }
 
 function pushError() {
     throw new Error('Attempted stream.push() to a stopped stream');
 }
 
-function startError() {
-    throw new Error('Attempted stream.start() but stream already started');
-}
-
-
-/* Source */
-
 export function Source(start) {
     this.setup = start;
 }
 
-assign(Source.prototype, {
+assign(Source.prototype, Stopable.prototype, {
     pipe: function(stream) {
         this.target = stream;
     },
@@ -53,31 +32,25 @@ assign(Source.prototype, {
     start: function() {
         // Method may be used once only
         if (window.DEBUG) { this.start = startError; }
-
         const setup = this.setup;
         setup(this.target, arguments);
-
-        // Update count of running streams
-        ++Stream.count;
-    },
-
-    stop: function stop() {
-        // Cannot push() after stop()
-        if (window.DEBUG) { this.push = pushError; }
-
-        this.stopables && stopAll(this.stopables);
-        // Update count of running streams
-        --Stream.count;
-    },
-
-    done: function done(fn) {
-        const stopables = this.stopables || (this.stopables = []);
-        stopables.push(fn);
     }
 });
 
+if (window.DEBUG) {
+    // Override Source.stop() with error handling for push() after stop()
+    Source.prototype.stop = function() {
+        // Cannot push() after stop()
+        this.push = pushError;
+        Stopable.prototype.stop.apply(this, arguments);
+    };
+}
 
-/* Stream */
+
+/**
+Stream(fn)
+Creates a mappable stream of values.
+**/
 
 export default function Stream(start) {
     // Support construction without `new`
@@ -114,33 +87,7 @@ assign(Stream, {
     **/
     of: function() {
         return this.from(arguments);
-    },
-
-    /**
-    Stream.combine(streams)
-    Creates a stream by combining the latest values of all input streams into
-    an objects containing those values. A new object is emitted when a new value
-    is pushed to any input stream.
-    **/
-    combine: function combine(streams) {
-        return Combine(streams);
-    },
-
-    /**
-    Stream.merge(stream1, stream2, ...)
-    Creates a stream by merging values from any number of input streams into a
-    single output stream.
-    **/
-    merge: function() {
-        return Merge(arguments);
-    },
-
-    /**
-    Stream.count
-    Keeps a count of unstopped streams. This may help you identify when
-    something is not stopping correctly in your code.
-    **/
-    count: 0
+    }
 });
 
 assign(Stream.prototype, {
@@ -164,69 +111,6 @@ assign(Stream.prototype, {
         }
 
         return this;
-    },
-
-    /**
-    .map(fn)
-    Maps each value in the stream to `fn(value)`. Resulting values that are not
-    `undefined` are pushed downstream.
-    **/
-    map: function(fn) {
-        return this.target = new Map(this.source, fn);
-    },
-
-    /**
-    .filter(fn)
-    Filters out values from the stream where `fn(value)` is falsy.
-    **/
-    filter: function(fn) {
-        return this.target = new Filter(this.source, fn);
-    },
-
-    /**
-    .flatMap(fn)
-    **/
-    flatMap: function(fn) {
-        return this.target = new FlatMap(this.source, fn);
-    },
-
-    /**
-    .reduce(fn, initial)
-    Consumes the stream, returns a promise of the accumulated value.
-    Todo: except it doesn't though. Do something about this. Decide what it
-    should return, and if it is to be a promise, make it resolve as
-    stream.done() to avoid Promise overhead and asynciness?
-    **/
-    reduce: function(fn, initial) {
-        return this.pipe(new Reduce(this.source, fn, initial));
-    },
-
-    /**
-    .scan(fn, initial)
-    Calls `fn(current, value)` for each `value` in the stream. Where `fn`
-    returns a value it is pushed downstream, and `current` assumes that value
-    on the next iteration. Where `fn` returns `undefined` nothing is pushed and
-    `current` remains unchanged.
-    **/
-    scan: function(fn, accumulator) {
-        return this.target = new Scan(this.source, fn, accumulator);
-    },
-
-    /**
-    .take(n)
-    Returns a stream of the first `n` values of the stream.
-    **/
-    take: function(n) {
-        return this.target = new Take(this.source, n);
-    },
-
-    /**
-    .each(fn)
-    Starts the stream and calls `fn(value)` for each value in it.
-    Returns the stream.
-    **/
-    each: function(fn) {
-        return this.pipe(new Each(this.source, fn));
     },
 
     /**
@@ -271,16 +155,28 @@ assign(Stream.prototype, {
 });
 
 
+
+/*
+Transforms
+*/
+
+const properties = {
+    source: { writable: true },
+    target: { writable: true }
+};
+
 /*
 Map()
 */
 
 const mapProperties = assign({ fn: { value: id }}, properties);
 
-function Map(source, fn) {
+export function Map(source, producer, fn) {
     mapProperties.source.value = source;
     mapProperties.fn.value = fn;
     define(this, mapProperties);
+    // producer.pipe(this) ??
+    producer.target = this;
 }
 
 Map.prototype = create(Stream.prototype);
@@ -300,10 +196,12 @@ Map.prototype.push = function map(value) {
 Filter()
 */
 
-function Filter(source, fn) {
+export function Filter(source, producer, fn) {
     mapProperties.source.value = source;
     mapProperties.fn.value = fn;
     define(this, mapProperties);
+    // producer.pipe(this) ??
+    producer.target = this;
 }
 
 Filter.prototype = create(Stream.prototype);
@@ -321,10 +219,12 @@ Filter.prototype.push = function filter(value) {
 FlatMap()
 */
 
-function FlatMap(source, fn) {
+export function FlatMap(source, producer, fn) {
     mapProperties.source.value = source;
     mapProperties.fn.value = fn;
     define(this, mapProperties);
+    // producer.pipe(this) ??
+    producer.target = this;
 }
 
 FlatMap.prototype = create(Stream.prototype);
@@ -357,7 +257,7 @@ Take()
 
 const takeProperties = assign({ n: { value: 0, writable: true }}, properties);
 
-function Take(source, n) {
+export function Take(source, producer, n) {
     if (typeof n !== 'number' || n < 1) {
         throw new Error('stream.take(n) accepts non-zero positive integers as n (' + n + ')');
     }
@@ -365,6 +265,8 @@ function Take(source, n) {
     takeProperties.source.value = source;
     takeProperties.n.value = n;
     define(this, takeProperties);
+    // producer.pipe(this) ??
+    producer.target = this;
 }
 
 Take.prototype = create(Stream.prototype);
@@ -389,11 +291,14 @@ const reduceProperties = assign({
     value: { writable: true }
 }, mapProperties);
 
-function Reduce(source, fn, accumulator) {
+export function Reduce(source, producer, fn, accumulator) {
     reduceProperties.source.value = source;
     reduceProperties.fn.value = fn;
     reduceProperties.value.value = accumulator;
     define(this, reduceProperties);
+    // producer.pipe(this) ??
+    producer.target = this;
+    source.start();
 }
 
 Reduce.prototype = create(Stream.prototype);
@@ -405,10 +310,7 @@ Reduce.prototype.push = function reduce(value) {
         this.value = value;
     }
 
-    // Todo: why are we doing this? This crazy!
-    return new Promise((resolve, reject) => {
-        this.done(() => resolve(this.value));
-    });
+    return this;
 };
 
 
@@ -416,11 +318,13 @@ Reduce.prototype.push = function reduce(value) {
 Scan()
 */
 
-function Scan(source, fn, accumulator) {
+export function Scan(source, producer, fn, accumulator) {
     reduceProperties.source.value = source;
     reduceProperties.fn.value = fn;
     reduceProperties.value.value = accumulator;
     define(this, reduceProperties);
+    // producer.pipe(this) ??
+    producer.target = this;
 }
 
 Scan.prototype = create(Stream.prototype);
@@ -445,10 +349,13 @@ const eachProperties = {
     source: { writable: true }
 };
 
-function Each(source, fn) {
+export function Each(source, producer, fn) {
     eachProperties.source.value = source;
     define(this, eachProperties);
     this.push = fn;
+    // producer.pipe(this) ??
+    producer.target = this;
+    source.start();
 }
 
 Each.prototype = create(Stream.prototype, {
@@ -456,76 +363,3 @@ Each.prototype = create(Stream.prototype, {
     each: { value: null },
     pipe: { value: null }
 });
-
-
-/*
-Combine()
-*/
-
-const keys = Object.keys;
-
-export function Combine(streams) {
-    return new Stream((controller) => {
-        const values = {};
-        const names  = keys(streams);
-
-        let active = false;
-        function push(name, value) {
-            values[name] = value;
-            if (active || (active = keys(values).length === names.length)) {
-                controller.push(assign({}, values));
-            }
-        }
-
-        for (const name in streams) {
-            const stream = streams[name];
-
-            if (stream.each) {
-                stream.each((value) => push(name, value));
-                // Stop stream when controller stops
-                controller.done(stream);
-            }
-            else if (stream.then) {
-                stream.then((value) => push(name, value));
-                // Todo: what do we do with errors?
-            }
-            else {
-                console.log('Todo: combine() raw values ?');
-            }
-        }
-    });
-}
-
-
-/*
-Merge()
-*/
-
-export function Merge(streams) {
-    return new Stream((controller) => {
-        let i = -1, stream;
-        while (stream = streams[++i]) {
-            if (stream.each) {
-                // Merge streams
-                stream.each((value) => controller.push(value));
-                // And stop them when this one stops?
-                controller.done(stream);
-            }
-            else if (stream.then) {
-                stream.then((value) => controller.push(value));
-                // What should we do with errors?
-            }
-            else {
-                // Merge arrays or array-likes
-                controller.push.apply(controller, stream);
-            }
-        }
-    });
-}
-
-
-// Debug
-
-if (window.DEBUG) {
-    window.Stream = Stream;
-}

@@ -44,7 +44,8 @@ function getDateTime() {
 }
 
 function getHeader(pkg, indent) {
-    return (pkg.title ? pkg.title + ' ' : '') + (pkg.version ? pkg.version : '')
+    return (pkg.title ? pkg.title + ' ' : '')
+    + (pkg.version ? '\n' + indent + pkg.version : '')
     + (pkg.author ? '\n' + indent + 'By ' + (pkg.author.name ? pkg.author.name : pkg.author) : '')
     + '\n' + indent + 'Built ' + getDateTime();
 }

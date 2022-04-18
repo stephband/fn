@@ -1,5 +1,5 @@
 
-import Stream from '../stream/stream.js';
+import Stream from './stream.js';
 import { remove, getTarget, $observer } from './observer.js';
 
 //const DEBUG = window.DEBUG === true;
@@ -7,7 +7,7 @@ import { remove, getTarget, $observer } from './observer.js';
 const assign = Object.assign;
 const values = Object.values;
 
-/** 
+/**
 reads(object)
 Calls `fn` for every property of `object` read via a get operation. Returns an
 object with the method `.stop()`.

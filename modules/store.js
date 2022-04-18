@@ -1,5 +1,5 @@
 
-import { Stream } from '../stream/stream.js';
+import { Stream } from './stream.js';
 
 var debug  = true;
 

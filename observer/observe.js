@@ -1,7 +1,7 @@
 
 import { getTarget } from './observer.js';
 import Observable    from './observable.js';
-import { Combine }   from '../stream/stream.js';
+import { Combine }   from './stream.js';
 
 
 /**

@@ -1,4 +1,4 @@
-/** 
+/**
 Observe()
 An object whose fn is called by the proxy traps set and delete when a value
 changes. This object is internal-only.
@@ -12,7 +12,7 @@ changes. This object is internal-only.
 
 **/
 
-import Stream from '../stream/stream.js';
+import Stream from './stream.js';
 import { Observer, analytics, remove, getObservables, getMutationObservables } from './observer.js';
 
 const assign = Object.assign;
@@ -37,26 +37,26 @@ function Observe(path, index, target, output) {
     this.path   = path;
     this.index  = rkey.lastIndex;
     this.output = output;
-    
+
     // Are we at the end of the path?
     if (this.index >= this.path.length) {
         this.fn = this.output;
     }
 
     if (!r[2]) {
-        // Check that if there is no key we are being instructed to observe all 
+        // Check that if there is no key we are being instructed to observe all
         // mutations with a '.' at the end of path (TODO)
         if (r[1] !== '.') {
             throw new Error('Path must end with "." (', r[1], path, ') Todo: observe all mutations');
         }
 
-        this.key = '.';    
+        this.key = '.';
         this.listen();
         this.fn(this.target);
     }
     else {
         this.key    = r[2];
-        this.listen();    
+        this.listen();
         this.fn(this.target[this.key]);
     }
 
@@ -67,7 +67,7 @@ assign(Observe.prototype, {
     fn: function(value) {
         const type = typeof value;
 
-        // We already know that we are not at path end here, as this.fn is 
+        // We already know that we are not at path end here, as this.fn is
         // replaced with a consumer at path end (in the constructor).
 
         // If the value is immutable we have no business observing it

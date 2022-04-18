@@ -51,7 +51,7 @@ export { default as toFixed }     from './modules/to-fixed.js';
 export { default as toString }    from './modules/to-string.js';
 export { default as toType }      from './modules/to-type.js';
 export { default as weakCache }   from './modules/weak-cache.js';
-export { default as Stream }      from './stream/stream.js';
+export { default as Stream }      from './modules/stream.js';
 export { default as Timer }       from './modules/timer.js';
 export { default as Pool }        from './modules/pool.js';
 
