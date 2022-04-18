@@ -1,7 +1,7 @@
 
+import Stream        from '../modules/stream.js';
 import { getTarget } from './observer.js';
 import Observable    from './observable.js';
-import { Combine }   from './stream.js';
 
 
 /**
@@ -55,6 +55,6 @@ export function observe(paths, object) {
     const observables = paths.map((path, i) => new Observable(path, target, arguments[i + 2]));
 
     return observables.length > 1 ?
-        new Combine(observables) :
+        Stream.combine(observables) :
         observables[0] ;
 }

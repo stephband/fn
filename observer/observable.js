@@ -12,7 +12,7 @@ changes. This object is internal-only.
 
 **/
 
-import Stream from './stream.js';
+import Stream from '../modules/stream.js';
 import { Observer, analytics, remove, getObservables, getMutationObservables } from './observer.js';
 
 const assign = Object.assign;
