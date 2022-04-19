@@ -1,20 +1,20 @@
 
 import Stream, { Map, Filter, FlatMap, Reduce, Scan, Take, Each } from './stream/stream.js';
-import Distributor from './stream/distributor.js';
-import Combine     from './stream/combine.js';
-import Merge       from './stream/merge.js';
+import Broadcast from './stream/broadcast.js';
+import Combine   from './stream/combine.js';
+import Merge     from './stream/merge.js';
+import Zip       from './stream/zip.js';
 
 const assign = Object.assign;
 
 assign(Stream, {
     /**
-    Stream.combine(streams)
-    Creates a stream by combining the latest values of all input streams into
-    an objects containing those values. A new object is emitted when a new value
-    is pushed to any input stream.
+    Stream.broadcast(options)
+    Returns a pushable broadcast stream. Methods called on this stream each
+    create a new stream.
     **/
-    distribute: function distribute(memorise) {
-        return Stream.of().distribute(memorise);
+    broadcast: function broadcast(options) {
+        return Stream.of().broadcast(options);
     },
 
     /**
@@ -35,6 +35,15 @@ assign(Stream, {
     merge: function() {
         return Merge(arguments);
     },
+
+    /**
+    Stream.zip(stream1, stream2, ...)
+    Creates a stream by merging values from any number of input streams into a
+    single output stream.
+    **/
+    zip: function() {
+        return Zip(arguments);
+    }
 });
 
 assign(Stream.prototype, {
@@ -99,10 +108,22 @@ assign(Stream.prototype, {
     },
 
     /**
-    .distribute(memorise)
+    .broadcast(options)
+    Returns a broadcast, or multicast, stream. Methods called on this stream
+    each create a new stream. The first time a consumer is attached to one of
+    these streams the broadcast stream is started, and the last consumer to be
+    stopped stops the broadcast stream.
+
+    A broadcast stream may have memory, where newly created consumers
+    immediately receive the latest value of the broadcaster when attached
+    (assuming that value is not `undefined`):
+
+    ```js
+    const broadcaster = stream.broadcast({ memory: true });
+    ```
     **/
-    distribute: function(options) {
-        return new Distributor(this, options && options.memory);
+    broadcast: function(options) {
+        return new Broadcast(this, options && options.memory);
     }
 });
 

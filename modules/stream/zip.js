@@ -16,45 +16,37 @@ function makeArray(object) {
     return [];
 }
 
-export function Zip(streams) {
+function fillBuffer(controller, buffers, buffer, value) {
+    buffer.push(value);
+    if (buffers.every(hasLength)) {
+        controller.push(buffers.reduce(toObject, {}));
+    }
+}
+
+export default function Zip(streams) {
     const buffers = A.map.call(streams, makeArray);
 
     return new Stream((controller) => {
         A.forEach.call(streams, (stream, i) => {
             const buffer = buffers[i];
 
+            // Support streams
             if (stream.each) {
-                // Support streams
+                // Stop stream when controller stops - we wrap stream.each like
+                // this because stream may be a broadcaster and we don't want to
+                // stop that.
                 controller.done(
-                    stream.each((value) => {
-                        buffer.push(value);
-                        if (buffers.every(hasLength)) {
-                            controller.push(buffers.reduce(toObject, {}));
-                        }
-                    })
+                    stream.each((value) => fillBuffer(controller, buffers, buffer, value))
                 );
             }
+            // Support promises
             else if (stream.then) {
-                stream.then((value) => {
-                    buffer.push(value);
-                    if (buffers.every(hasLength)) {
-                        controller.push(buffers.reduce(toObject, {}));
-                    }
-                })
+                stream.then((value) => fillBuffer(controller, buffers, buffer, value));
             }
             // Support array-likes
             else {
-                A.forEach.call(stream, (value) => {
-                    buffer.push(value);
-                    if (buffers.every(hasLength)) {
-                        controller.push(buffers.reduce(toObject, {}));
-                    }
-                });
+                A.forEach.call(stream, (value) => fillBuffer(controller, buffers, buffer, value));
             }
         });
     });
-}
-
-export default function zip() {
-    return Zip(arguments);
 }

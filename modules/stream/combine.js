@@ -21,9 +21,12 @@ export default function Combine(streams) {
             const stream = streams[name];
 
             if (stream.each) {
-                stream.each((value) => push(name, value));
-                // Stop stream when controller stops
-                controller.done(stream);
+                // Stop stream when controller stops - we wrap stream.each like
+                // this because stream may be a broadcaster and we don't want to
+                // stop that.
+                controller.done(
+                    stream.each((value) => push(name, value))
+                );
             }
             else if (stream.then) {
                 stream.then((value) => push(name, value));
