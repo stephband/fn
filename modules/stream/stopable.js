@@ -22,10 +22,12 @@ export default function Stopable() {}
 assign(Stopable.prototype, {
     stop: function stop() {
         this.stopables && stopAll(this.stopables);
+        return this;
     },
 
     done: function done(fn) {
         const stopables = this.stopables || (this.stopables = []);
         stopables.push(fn);
+        return this;
     }
 });

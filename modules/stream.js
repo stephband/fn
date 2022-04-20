@@ -1,20 +1,23 @@
 
-import Stream, { Map, Filter, FlatMap, Reduce, Scan, Take, Each } from './stream/stream.js';
-import Broadcast from './stream/broadcast.js';
-import Combine   from './stream/combine.js';
-import Merge     from './stream/merge.js';
-import Zip       from './stream/zip.js';
+import nothing         from './nothing.js';
+
+import Stream          from './stream/stream.js';
+import Broadcast       from './stream/broadcast.js';
+import BufferProducer  from './stream/buffer-producer.js';
+import CombineProducer from './stream/combine-producer.js';
+import MergeProducer   from './stream/merge-producer.js';
+import ZipProducer     from './stream/zip-producer.js';
 
 const assign = Object.assign;
 
-assign(Stream, {
+export default assign(Stream, {
     /**
     Stream.broadcast(options)
     Returns a pushable broadcast stream. Methods called on this stream each
     create a new stream.
     **/
     broadcast: function broadcast(options) {
-        return Stream.of().broadcast(options);
+        return new Broadcast(new BufferProducer(nothing), options);
     },
 
     /**
@@ -24,7 +27,7 @@ assign(Stream, {
     is pushed to any input stream.
     **/
     combine: function combine(streams) {
-        return Combine(streams);
+        return new Stream(new CombineProducer(streams));
     },
 
     /**
@@ -33,7 +36,7 @@ assign(Stream, {
     single output stream.
     **/
     merge: function() {
-        return Merge(arguments);
+        return new Stream(new MergeProducer(arguments));
     },
 
     /**
@@ -42,77 +45,17 @@ assign(Stream, {
     single output stream.
     **/
     zip: function() {
-        return Zip(arguments);
+        return new Stream(new ZipProducer(arguments));
     }
 });
 
 assign(Stream.prototype, {
     /**
-    .map(fn)
-    Maps each value in the stream to `fn(value)`. Resulting values that are not
-    `undefined` are pushed downstream.
-    **/
-    map: function(fn) {
-        return new Map(this.source, this, fn);
-    },
-
-    /**
-    .filter(fn)
-    Filters out values from the stream where `fn(value)` is falsy.
-    **/
-    filter: function(fn) {
-        return new Filter(this.source, this, fn);
-    },
-
-    /**
-    .flatMap(fn)
-    **/
-    flatMap: function(fn) {
-        return new FlatMap(this.source, this, fn);
-    },
-
-    /**
-    .reduce(fn, initial)
-    Consumes the stream. TODO: Not sure what to return old boy.
-    **/
-    reduce: function(fn, initial) {
-        return new Reduce(this.source, this, fn, initial);
-    },
-
-    /**
-    .scan(fn, initial)
-    Calls `fn(current, value)` for each `value` in the stream. Where `fn`
-    returns a value it is pushed downstream, and `current` assumes that value
-    on the next iteration. Where `fn` returns `undefined` nothing is pushed and
-    `current` remains unchanged.
-    **/
-    scan: function(fn, accumulator) {
-        return new Scan(this.source, this, fn, accumulator);
-    },
-
-    /**
-    .take(n)
-    Returns a stream of the first `n` values of the stream.
-    **/
-    take: function(n) {
-        return new Take(this.source, this, n);
-    },
-
-    /**
-    .each(fn)
-    Starts the stream and calls `fn(value)` for each value in it.
-    Returns the stream.
-    **/
-    each: function(fn) {
-        return new Each(this.source, this, fn);
-    },
-
-    /**
     .broadcast(options)
-    Returns a broadcast, or multicast, stream. Methods called on this stream
-    each create a new stream. The first time a consumer is attached to one of
-    these streams the broadcast stream is started, and the last consumer to be
-    stopped stops the broadcast stream.
+    Returns a broadcast stream. Methods called on this stream each create new
+    child streams. The first time a consumer is attached to one of these streams
+    the broadcast stream is piped, and the last consumer to be stopped stops the
+    broadcast stream.
 
     A broadcast stream may have memory, where newly created consumers
     immediately receive the latest value of the broadcaster when attached
@@ -123,11 +66,9 @@ assign(Stream.prototype, {
     ```
     **/
     broadcast: function(options) {
-        return new Broadcast(this, options && options.memory);
+        return new Broadcast(this, options);
     }
 });
-
-export default Stream;
 
 
 // Debug
