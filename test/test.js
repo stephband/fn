@@ -1,6 +1,9 @@
 
-import { id, overload, noop as done, equals as _equals } from '../module.js';
-
+import id                from '../modules/id.js';
+import overload          from '../modules/overload.js';
+import noop              from '../modules/noop.js';
+import equals as _equals from '../modules/equals.js';
+const done = noop;
 (function(window) {
 	"use strict";
 

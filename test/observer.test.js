@@ -1,28 +1,71 @@
 
-import test from "../modules/test/test.js";
-import { Observer } from "../modules/observer/observer.js";
-import { observe }  from "../modules/observer/observe.js";
+import test         from "../modules/test.js";
+import { Observer } from "../observer/observer.js";
+import observe      from "../observer/observe.js";
 
 test('Observer()', function(test, log) {
-	test("observe('', fn, object)", function(equals, done) {
-		var expected = [
-			{}
-		];
+	test("observe('a', object)", function(equals, done) {
+		var expected = [0,1,2];
 
 		var data = {};
 		var o    = Observer(data);
 
-		observe('', function(value, change) {
+		observe('a', o, o).each((value) => {
 			equals(expected.shift(), value);
-		}, o);
+		});
 
 		o.a = 0;
-		o.b = 1;
+		o.a = 1;
+		o.a = 2;
 		o.a = undefined;
 
 		equals(expected.length, 0);
 		done();
-	}, 2);
+	}, 4);
+
+	test("observe('a.b', object)", function(equals, done) {
+		var expected = [0,1,2,3];
+
+		var data = {};
+		var o    = Observer(data);
+
+		observe('a.b', o, o)
+		.each((value) => {
+console.log('V', value);
+			equals(expected.shift(), value);
+		});
+
+		o.a = { b: 0 };
+		o.a.b = 1;
+		const oa = { b: 2 };
+		o.a = oa;
+		oa.b = 3;
+		o.a = undefined;
+
+		equals(0, expected.length);
+		done();
+	}, 4);
+/*
+	test("observe('a.b.', object)", function(equals, done) {
+		var expected = [0,1,2];
+
+		var data = {};
+		var o    = Observer(data);
+
+		observe('a.', o, o)
+		.each(function(value) {
+console.log('V', value);
+			equals(expected.shift(), value);
+		});
+
+		o.a = { b: 0 };
+		o.a.b = 1;
+		o.a = { b: 2 };
+		o.a = undefined;
+
+		equals(expected.length, 0);
+		done();
+	}, 4);
 
 	test("observe('.', fn, object)", function(equals, done) {
 		var expected = [
@@ -35,9 +78,11 @@ test('Observer()', function(test, log) {
 		var data = {};
 		var o    = Observer(data);
 
-		observe('.', function(value, change) {
+		observe('.', o)
+		.each(function(value) {
+console.log('V', value);
 			equals(expected.shift(), value);
-		}, o);
+		});
 
 		o.a = 0;
 		o.b = 1;
@@ -47,7 +92,7 @@ test('Observer()', function(test, log) {
 		done();
 	}, 5);
 
-	test("observe('a', fn, object)", function(equals, done) {
+	/*test("observe('a', fn, object)", function(equals, done) {
 		var expected = [0, undefined];
 		var data = {};
 		var o    = Observer(data);
@@ -395,5 +440,5 @@ test('Observer()', function(test, log) {
 
 		equals(expected.length, 0);
 		done();
-	}, 8);
+	}, 8);*/
 });

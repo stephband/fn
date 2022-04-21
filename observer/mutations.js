@@ -1,15 +1,15 @@
 
 import { getTarget } from './observer.js';
-import Observable from './observable.js';
+import observe       from './observe.js';
 
 //const DEBUG = window.DEBUG === true;
 const assign = Object.assign;
 
-/** 
+/**
 mutations(paths, target)
 
 Returns a stream of mutations, where an emitted mutation is a grouped and
-asynchronous, in order that we know in synchronous code that the whole target 
+asynchronous, in order that we know in synchronous code that the whole target
 has been mutated each time the consumer fn is called.
 
 ```
@@ -41,7 +41,7 @@ function start(paths, target, consumer) {
         paths.length = 0;
     }
 
-    const observables = paths.map((path) => new Observable(path, target));
+    const observables = paths.map((path) => observe(path, target));
     paths.length = 0;
     observables.forEach((observable) => observable.each(
         (value) => push(paths, observable.path, promise, trigger)
