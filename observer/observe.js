@@ -15,7 +15,7 @@ changes. This object is internal-only.
 import Producer from '../modules/stream/producer.js';
 import Stream   from '../modules/stream.js';
 
-import { Observer, analytics, remove, getTarget, getObservables, getMutationObservables } from './observer.js';
+import { $observer, Observer, analytics, getTarget } from './observer.js';
 
 const assign = Object.assign;
 
@@ -28,48 +28,50 @@ function Observe(path, index, target, output) {
 
     // Parse path
     rkey.lastIndex = index;
-    const r = rkey.exec(path);
+    const p = rkey.exec(path);
 
     // Check that path is valid
-    if (!r) {
-        throw new Error('Cant parse path ' + this.path + ' at index ' + this.index);
+    if (!p) {
+        throw new Error('Cant parse path "' + this.path + '" at "' + this.path.slice(index) + '"');
     }
 
-    this.target = target;
-    this.path   = path;
-    this.index  = rkey.lastIndex;
-    this.output = output;
+    this.target     = target;
+    this.firstIndex = index;
+    this.lastIndex  = rkey.lastIndex;
+    this.path       = path;
+    this.parsed     = path.slice(this.firstIndex, this.lastIndex);
+    this.output     = output;
 
     // Are we at the end of the path?
-    if (this.index >= this.path.length) {
-        this.fn = this.output;
+    if (this.lastIndex >= this.path.length) {
+        this.push = this.output;
     }
 
-    if (!r[2]) {
+    if (!p[2]) {
         // Check that if there is no key we are being instructed to observe all
-        // mutations with a '.' at the end of path (TODO)
-        if (r[1] !== '.') {
-            throw new Error('Path must end with "." (', r[1], path, ') Todo: observe all mutations');
+        // mutations via a '.' at the end of path (TODO)
+        if (p[1] !== '.') {
+            throw new Error('Path must end with "." (', p[1], path, ')');
         }
 
         this.key = '.';
         this.listen();
-        this.fn(this.target);
+        this.push(this.target);
     }
     else {
-        this.key    = r[2];
+        this.key = p[2];
         this.listen();
-        this.fn(this.target[this.key]);
+        this.push(this.target[this.key]);
     }
 
     if (window.DEBUG) { ++analytics.observes; }
 }
 
 assign(Observe.prototype, {
-    fn: function(value) {
+    push: function(value) {
         const type = typeof value;
 
-        // We already know that we are not at path end here, as this.fn is
+        // We already know that we are not at path end here, as this.push is
         // replaced with a consumer at path end (in the constructor).
 
         // If the value is immutable we have no business observing it
@@ -86,21 +88,16 @@ assign(Observe.prototype, {
         }
 
         if (this.child) {
-            this.child.unlisten();
-            this.child.target = value;
-            this.child.listen();
-            //this.child.fn(value);
+            this.child.relisten(value);
         }
         else {
-            this.child = new Observe(this.path, this.index, value, this.output);
+            this.child = new Observe(this.path, this.lastIndex, value, this.output);
         }
 
         // If this.child.key is '.' we have a problem
         if (this.child.key === '.') {
             throw new Error('Arrrrgh');
         }
-
-        this.child.fn(value[this.child.key]);
     },
 
     listen: function() {
@@ -114,23 +111,18 @@ assign(Observe.prototype, {
             return;
         }
 
-        const observables = this.key === '.' ?
-            getMutationObservables(this.target) :
-            getObservables(this.key, this.target) ;
-
-        if (observables.includes(this)) {
-            throw new Error('observe.listen this is already bound');
-        }
-
-        observables.push(this);
+        this.target[$observer].listen(this.key, this);
     },
 
     unlisten: function() {
-        const observables = this.key === '.' ?
-            getMutationObservables(this.target) :
-            getObservables(this.key, this.target) ;
+        this.target[$observer].unlisten(this.key, this);
+    },
 
-        remove(observables, this);
+    relisten: function(target) {
+        this.unlisten();
+        this.target = target;
+        this.listen();
+        this.push(this.target[this.key]);
     },
 
     stop: function() {
@@ -146,15 +138,19 @@ assign(Observe.prototype, {
 Observable(path, target, currentValue)
 **/
 
-function ObserveProducer(path, target, value) {
+function PathProducer(path, target, value) {
     this.path   = path;
     this.target = target;
-    this.value  = value;
+    this.value  = value === undefined ? null : value ;
+    // Where we are not observing mutations we want to deduplicate output values
+    // Todo: we do still want to deduplicate undefined, however
+    this.dedup  = path[path.length - 1] !== '.';
 }
 
-assign(ObserveProducer.prototype, Producer.prototype, {
+assign(PathProducer.prototype, Producer.prototype, {
     push: function(value) {
-        if (value === this.value) { return; }
+        value = value === undefined ? null : value ;
+        if (this.dedup && value === this.value) { return; }
         this.value = value;
         this[0].push(value);
     },
@@ -171,5 +167,7 @@ assign(ObserveProducer.prototype, Producer.prototype, {
 });
 
 export default function observe(path, object, initial) {
-    return new Stream(new ObserveProducer(path, getTarget(object), getTarget(initial)));
+    const target = getTarget(object);
+    const value  = getTarget(initial);
+    return new Stream(new PathProducer(path, target, value));
 }

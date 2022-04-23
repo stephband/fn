@@ -4,13 +4,12 @@ import { Observer } from "../observer/observer.js";
 import observe      from "../observer/observe.js";
 
 test('Observer()', function(test, log) {
-	test("observe('a', object)", function(equals, done) {
-		var expected = [0,1,2];
-
+	test("observe('.', object)", function(equals, done) {
+		var expected = [{}, {a:0},{a:1},{a:2},{}];
 		var data = {};
 		var o    = Observer(data);
 
-		observe('a', o, o).each((value) => {
+		observe('.', o).each((value) => {
 			equals(expected.shift(), value);
 		});
 
@@ -19,32 +18,52 @@ test('Observer()', function(test, log) {
 		o.a = 2;
 		o.a = undefined;
 
-		equals(expected.length, 0);
+		equals(0, expected.length);
 		done();
-	}, 4);
+	}, 6);
 
-	test("observe('a.b', object)", function(equals, done) {
-		var expected = [0,1,2,3];
+	test("observe('a', object)", function(equals, done) {
+		var expected = [0,1,2,null];
 
 		var data = {};
 		var o    = Observer(data);
 
-		observe('a.b', o, o)
+		observe('a', o).each((value) => {
+			equals(expected.shift(), value);
+		});
+
+		o.a = 0;
+		o.a = 1;
+		o.a = 2;
+		o.a = undefined;
+
+		equals(0, expected.length);
+		done();
+	}, 5);
+
+
+	test("observe('a.b', object)", function(equals, done) {
+		var expected = [0,1,2,3,null];
+
+		var data = {};
+		var o    = Observer(data);
+
+		observe('a.b', o)
 		.each((value) => {
-console.log('V', value);
 			equals(expected.shift(), value);
 		});
 
 		o.a = { b: 0 };
 		o.a.b = 1;
-		const oa = { b: 2 };
+		const oa = Observer({ b: 2 });
 		o.a = oa;
 		oa.b = 3;
 		o.a = undefined;
 
 		equals(0, expected.length);
 		done();
-	}, 4);
+	}, 6);
+
 /*
 	test("observe('a.b.', object)", function(equals, done) {
 		var expected = [0,1,2];

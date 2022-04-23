@@ -10,7 +10,7 @@ export const analytics = {
     observes: 0
 };
 
-export function remove(array, value) {
+function remove(array, value) {
     const i = array.indexOf(value);
     if (i > -1) { array.splice(i, 1); }
     return array;
@@ -20,14 +20,10 @@ export function getTarget(object) {
     return object && object[$observer] && object[$observer].target || object ;
 }
 
-export function getObservables(key, target) {
+function getObservables(key, target) {
     const handlers    = target[$observer];
     const observables = handlers.observables;
     return observables[key] || (observables[key] = []);
-}
-
-export function getMutationObservables(target) {
-    return target[$observer].sets || (target[$observer].sets = []);
 }
 
 
@@ -82,20 +78,20 @@ function isObservable(object) {
 }
 
 
-/** 
+/**
 Trap()
 **/
 
 const properties = { [$observer]: {} };
 
-function fire(fns, name, value) {
-    if (!fns || !fns.length) { return 0; }
-    fns = fns.slice(0);
+function fire(observables, value) {
+    if (!observables || !observables.length) { return 0; }
+    observables = observables.slice(0);
     var n = -1;
 
-    while (fns[++n]) {
+    while (observables[++n]) {
         // Observables are objects with a fn property
-        fns[n].fn(name, value);
+        observables[n].push(value);
     }
 
     return n;
@@ -114,7 +110,25 @@ function Trap(target) {
 }
 
 assign(Trap.prototype, {
-    // Inside handlers, observer is the observer proxy or an object that 
+    listen: function(name, observable) {
+        const observables = name === '.' ?
+            (this.sets || (this.sets = [])) :
+            (this.observables[name] || (this.observables[name] = [])) ;
+
+        observables.push(observable);
+    },
+
+    unlisten: function(name, observable) {
+        const observables = name === '.' ?
+            this.sets :
+            this.observables[name] ;
+
+        if (observables) {
+            remove(observables, observable);
+        }
+    },
+
+    // Inside handlers, observer is the observer proxy or an object that
     // inherits from it
     get: function get(target, name, proxy) {
         const value = target[name];
@@ -139,8 +153,8 @@ assign(Trap.prototype, {
         }
 
         // Get the observer of its value
-        const observer = Observer(value); 
-        
+        const observer = Observer(value);
+
         if (!observer) {
             return value;
         }
@@ -154,7 +168,7 @@ assign(Trap.prototype, {
 
         return observer;
     },
-    
+
     set: function set(target, name, value, proxy) {
         if (typeof name === 'symbol' || name === '__proto__') {
             target[name] = value;
@@ -178,8 +192,8 @@ assign(Trap.prototype, {
             this.gets[n].unlisten(name);
         }
 
-        // Set value on target. Then get the target's value just in case target 
-        // is doing something funky with property descriptors that return a 
+        // Set value on target. Then get the target's value just in case target
+        // is doing something funky with property descriptors that return a
         // different value from the value that was set. Rare, but it can happen.
         target[name] = value;
         value = target[name];
@@ -190,12 +204,12 @@ assign(Trap.prototype, {
         }
 
         fire(this.observables[name], value);
-        fire(this.sets, value);
+        fire(this.sets, target);
 
         // Return true to indicate success to Proxy
         return true;
     },
-    
+
     deleteProperty: function(target, name) {
         if (typeof name === 'symbol' || name === '__proto__') {
             // Delete without notifying
@@ -210,11 +224,8 @@ assign(Trap.prototype, {
 
         delete target[name];
 
-        const observables = this.observables[name]; 
-        if (observables) {
-            fire(observables, target[name]);
-        }
-        
+        fire(this.observables[name], target[name]);
+
         // Indicate success to the Proxy
         return true;
     }
@@ -223,7 +234,7 @@ assign(Trap.prototype, {
 
 /**
 Observer(object)
-Create an observer proxy around `object`. Mutations made to this proxy are 
+Create an observer proxy around `object`. Mutations made to this proxy are
 observable via `observe(path, object` and `mutations(paths, object)`.
 **/
 
