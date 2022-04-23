@@ -58,7 +58,7 @@ assign(Trap.prototype, {
     },
 
     listen: function(name, observable) {
-        const observables = name === '.' ?
+        const observables = name === null ?
             (this.sets || (this.sets = [])) :
             (this.observables[name] || (this.observables[name] = [])) ;
 
@@ -66,7 +66,7 @@ assign(Trap.prototype, {
     },
 
     unlisten: function(name, observable) {
-        const observables = name === '.' ?
+        const observables = name === null ?
             this.sets :
             this.observables[name] ;
 
@@ -143,15 +143,13 @@ assign(Trap.prototype, {
         // is doing something funky with property descriptors that return a
         // different value from the value that was set. Rare, but it can happen.
         target[name] = value;
-        value = target[name];
 
         // Check if length has changed and notify if it has
         if (name !== 'length' && target.length !== length) {
             fire(this.observables.length, target.length);
         }
 
-        fire(this.observables[name], value);
-        fire(this.sets, target);
+        this.notify(name);
 
         // Return true to indicate success to Proxy
         return true;
@@ -170,9 +168,7 @@ assign(Trap.prototype, {
         }
 
         delete target[name];
-
-        fire(this.observables[name], target[name]);
-        fire(this.sets, target);
+        this.notify(name);
 
         // Indicate success to the Proxy
         return true;

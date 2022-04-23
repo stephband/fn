@@ -80,15 +80,17 @@ assign(PathObserver.prototype, {
         const trap = getTrap(this.target);
 
         if (trap) {
-            trap.listen(this.key, this);
+            trap.listen(this.key === '.' ? null : this.key, this);
         }
         else {
-            console.log('observe() cannot get trap of ', this.target);
+            if (window.DEBUG) {
+                console.log('observe() cannot get trap of ', this.target);
+            }
         }
     },
 
     unlisten: function() {
-        getTrap(this.target).unlisten(this.key, this);
+        getTrap(this.target).unlisten(this.key === '.' ? null : this.key, this);
     },
 
     relisten: function(target) {
