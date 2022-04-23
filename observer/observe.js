@@ -1,29 +1,20 @@
-/**
-Observe()
-An object whose fn is called by the proxy traps set and delete when a value
-changes. This object is internal-only.
-
-```
-.path   - full observable path
-.index  - index of path consumed
-.target - observer target object
-.key    - last parsed key from path
-```
-
-**/
 
 import Producer from '../modules/stream/producer.js';
 import Stream   from '../modules/stream.js';
 
-import { $observer, Observer, analytics, getTarget } from './observer.js';
+import { isMuteable, getTarget, getTrap } from './observer.js';
 
 const assign = Object.assign;
+const rkey   = /(^\.?|\.)\s*([\w-]*)\s*/g;
 
-const rkey = /(^\.?|\.)\s*([\w-]*)\s*/g;
 
-function Observe(path, index, target, output) {
-    if (!path.length) {
-        throw new Error('Path is empty!');
+function push(value) {
+    this.producer.push(value);
+}
+
+function PathObserver(path, index, target, producer) {
+    if (window.DEBUG && !path.length) {
+        throw new SyntaxError('observe() path is empty');
     }
 
     // Parse path
@@ -31,91 +22,73 @@ function Observe(path, index, target, output) {
     const p = rkey.exec(path);
 
     // Check that path is valid
-    if (!p) {
-        throw new Error('Cant parse path "' + this.path + '" at "' + this.path.slice(index) + '"');
+    if (window.DEBUG && !p) {
+        throw new SyntaxError('observe() path "' + path + '" cannot be parsed at "' + path.slice(index) + '"');
     }
 
-    this.target     = target;
-    this.firstIndex = index;
-    this.lastIndex  = rkey.lastIndex;
-    this.path       = path;
-    this.parsed     = path.slice(this.firstIndex, this.lastIndex);
-    this.output     = output;
-
-    // Are we at the end of the path?
-    if (this.lastIndex >= this.path.length) {
-        this.push = this.output;
+    // Check that if there is no key we are being instructed to observe all
+    // mutations via a '.' at the end of path - should not happen
+    if (window.DEBUG && !p[2] && p[1] !== '.') {
+        throw new SyntaxError('observe() path "' + path + '" must end with "."');
     }
 
-    if (!p[2]) {
-        // Check that if there is no key we are being instructed to observe all
-        // mutations via a '.' at the end of path (TODO)
-        if (p[1] !== '.') {
-            throw new Error('Path must end with "." (', p[1], path, ')');
-        }
+    this.path     = path;
+    this.target   = target;
+    this.producer = producer;
+    this.key      = p[2] || p[1];
+    this.index    = rkey.lastIndex;
+    this.isMuteableObserver = this.path.slice(this.index) === '.';
 
-        this.key = '.';
-        this.listen();
-        this.push(this.target);
-    }
-    else {
-        this.key = p[2];
-        this.listen();
-        this.push(this.target[this.key]);
+    // Are we at the end of the path? .push() can go straight to the producer.
+    if (this.index >= this.path.length) {
+        this.push = push;
     }
 
-    if (window.DEBUG) { ++analytics.observes; }
+    // Bind observer to proxy
+    this.listen();
+    this.push(this.key === '.' ? this.target : this.target[this.key]);
 }
 
-assign(Observe.prototype, {
+assign(PathObserver.prototype, {
     push: function(value) {
-        const type = typeof value;
-
         // We already know that we are not at path end here, as this.push is
         // replaced with a consumer at path end (in the constructor).
 
-        // If the value is immutable we have no business observing it
-        if (!value || (type !== 'object' && type !== 'function')) {
+        // If the value is not muteable according to observer, we have no
+        // business observing it
+        if (!isMuteable(value)) {
             if (this.child) {
                 this.child.stop();
                 this.child = undefined;
             }
 
             // We are not at path end, and have just received an object that
-            // cannot have deep properties, so value must be undefined
-            this.output(undefined);
-            return;
+            // cannot have observable deep properties. If we are observing a
+            // muteable at path end ('.'), push it, otherwise undefined.
+            // Todo: make it so PathObserver can jump into immutable objects?
+            this.producer.push(this.isMuteableObserver ? value : undefined);
         }
-
-        if (this.child) {
+        else if (this.child) {
             this.child.relisten(value);
         }
         else {
-            this.child = new Observe(this.path, this.lastIndex, value, this.output);
-        }
-
-        // If this.child.key is '.' we have a problem
-        if (this.child.key === '.') {
-            throw new Error('Arrrrgh');
+            this.child = new PathObserver(this.path, this.index, value, this.producer);
         }
     },
 
     listen: function() {
-        const observer = Observer(this.target);
+        const trap = getTrap(this.target);
 
-        if (!observer) {
-            if (window.DEBUG) {
-                console.log('CANNOT LISTEN TO UNOBSERVABLE', this.target);
-            }
-
-            return;
+        if (trap) {
+            trap.listen(this.key, this);
         }
-
-        this.target[$observer].listen(this.key, this);
+        else {
+            console.log('observe() cannot get trap of ', this.target);
+        }
     },
 
     unlisten: function() {
-        this.target[$observer].unlisten(this.key, this);
+        getTrap(this.target).unlisten(this.key, this);
     },
 
     relisten: function(target) {
@@ -129,42 +102,64 @@ assign(Observe.prototype, {
         this.unlisten();
         this.child && this.child.stop();
         this.child = undefined;
-        if (window.DEBUG) { --analytics.observes; }
     }
 });
 
 
 /**
-Observable(path, target, currentValue)
+PathProducer(path, target, currentValue)
 **/
+
+function pushAllowUndefined(stream, value) {
+    // Stream.push rejects undefined, but for this stream we want to allow
+    // undefined. We could do this with Stream(..., options). We could. Let's
+    // override .push() for the moment.
+    stream[0].push(value);
+}
 
 function PathProducer(path, target, value) {
     this.path   = path;
     this.target = target;
-    this.value  = value === undefined ? null : value ;
-    // Where we are not observing mutations we want to deduplicate output values
-    // Todo: we do still want to deduplicate undefined, however
-    this.dedup  = path[path.length - 1] !== '.';
+    this.value  = value;
 }
 
 assign(PathProducer.prototype, Producer.prototype, {
     push: function(value) {
-        value = value === undefined ? null : value ;
-        if (this.dedup && value === this.value) { return; }
+        // Deduplicate values
+        if (this.value === value) {
+            // If this is a mutation observer (path ends with '.') inspect
+            // values: we want to allow muteable objects to pass through
+            if (!this.isMutationProducer) { return; }
+            if (!isMuteable(value)) { return; }
+        }
+
         this.value = value;
-        this[0].push(value);
+        pushAllowUndefined(this[0], value);
     },
 
     pipe: function(stream) {
         this[0] = stream;
-        this.observe = new Observe(this.path, 0, this.target, (value) => this.push(value));
+        this.pathObserver = new PathObserver(this.path, 0, this.target, this);
+
+        // This flag is set here so that `initial` value *is* deduplicated
+        // but subsequent mutations are *not*.
+        this.isMutationProducer = this.path[this.path.length - 1] === '.';
     },
 
     stop: function() {
-        this.observe.stop();
+        this.pathObserver.stop();
         Producer.prototype.stop.apply(this, arguments);
     }
 });
+
+
+/**
+observe(path, object [, initial])
+Returns a stream of values of `path` in `object`. A new value is emitted every
+time any of the objects in `path` mutates to result in a new value at the end of
+`path`. An initial value is emitted (synchronously) when the value at `path`
+is not equal to `initial`.
+**/
 
 export default function observe(path, object, initial) {
     const target = getTarget(object);

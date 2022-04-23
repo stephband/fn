@@ -3,7 +3,7 @@ const assign       = Object.assign;
 const define       = Object.defineProperties;
 const isExtensible = Object.isExtensible;
 
-export const $observer = Symbol('observer');
+const $trap = Symbol('observe');
 
 export const analytics = {
     observables: 0,
@@ -16,73 +16,12 @@ function remove(array, value) {
     return array;
 }
 
-export function getTarget(object) {
-    return object && object[$observer] && object[$observer].target || object ;
-}
-
-function getObservables(key, target) {
-    const handlers    = target[$observer];
-    const observables = handlers.observables;
-    return observables[key] || (observables[key] = []);
-}
-
-
-/*
-notify(path, object)
-Force the `object`'s Observer to register a mutation at `path`.
-*/
-
-export function notify(path, object) {
-    const observer = object[$observer];
-    if (!observer) { return; }
-    const target = observer.target;
-    return fire(getObservables(path, target), target[path]);
-}
-
-
-// Observer proxy
-
-function isObservable(object) {
-    // Many built-in objects and DOM objects bork when calling their
-    // methods via a proxy. They should be considered not observable.
-    // I wish there were a way of whitelisting rather than
-    // blacklisting, but it would seem not.
-
-    return object
-        // Reject primitives and other frozen objects
-        // This is really slow...
-        //&& !isFrozen(object)
-        // I haven't compared this, but it's necessary for audio nodes
-        // at least, but then only because we're extending with symbols...
-        // hmmm, that may need to change...
-        && isExtensible(object)
-        // This is less safe but faster.
-        //&& typeof object === 'object'
-
-        // Reject DOM nodes
-        && !Node.prototype.isPrototypeOf(object)
-        // Reject WebAudio context
-        && (typeof BaseAudioContext === 'undefined' || !BaseAudioContext.prototype.isPrototypeOf(object))
-        // Reject dates
-        && !(object instanceof Date)
-        // Reject regex
-        && !(object instanceof RegExp)
-        // Reject maps
-        && !(object instanceof Map)
-        && !(object instanceof WeakMap)
-        // Reject sets
-        && !(object instanceof Set)
-        && !(window.WeakSet && object instanceof WeakSet)
-        // Reject TypedArrays and DataViews
-        && !ArrayBuffer.isView(object) ;
-}
-
 
 /**
 Trap()
 **/
 
-const properties = { [$observer]: {} };
+const properties = { [$trap]: {} };
 
 function fire(observables, value) {
     if (!observables || !observables.length) { return 0; }
@@ -104,12 +43,20 @@ function Trap(target) {
     this.target   = target;
     this.observer = new Proxy(target, this);
 
-    // Define trap as target.$observer
-    properties[$observer].value = this;
+    // Define trap as target[$trap]
+    properties[$trap].value = this;
     define(target, properties);
 }
 
 assign(Trap.prototype, {
+
+    /* Helpers */
+
+    notify: function(name) {
+        fire(this.observables[name], this.target[name]);
+        fire(this.sets, this.target);
+    },
+
     listen: function(name, observable) {
         const observables = name === '.' ?
             (this.sets || (this.sets = [])) :
@@ -128,14 +75,14 @@ assign(Trap.prototype, {
         }
     },
 
-    // Inside handlers, observer is the observer proxy or an object that
-    // inherits from it
+    /* Traps */
+
     get: function get(target, name, proxy) {
         const value = target[name];
 
         // Don't observe changes to symbol properties, and
         // don't allow Safari to log __proto__ as a Proxy. (That's dangerous!
-        // It pollutes Object.prototpye with [$observer] which breaks everything.)
+        // It pollutes Object.prototpye with [$trap] which breaks everything.)
         // Also, we're not interested in observing the prototype chain so
         // stick to hasOwnProperty.
         if (typeof name === 'symbol' || name === '__proto__') {
@@ -225,11 +172,52 @@ assign(Trap.prototype, {
         delete target[name];
 
         fire(this.observables[name], target[name]);
+        fire(this.sets, target);
 
         // Indicate success to the Proxy
         return true;
     }
 });
+
+
+/**
+isMuteable(object)
+**/
+
+export function isMuteable(object) {
+    // Many built-in objects and DOM objects bork when calling their
+    // methods via a proxy. They should be considered not observable.
+    // I wish there were a way of whitelisting rather than
+    // blacklisting, but it would seem not.
+
+    return object
+        // Reject primitives and other frozen objects
+        // This is really slow...
+        //&& !isFrozen(object)
+        // I haven't compared this, but it's necessary for audio nodes
+        // at least, but then only because we're extending with symbols...
+        // hmmm, that may need to change...
+        && isExtensible(object)
+        // This is less safe but faster.
+        //&& (typeof object === 'object' || typeof object === 'function')
+
+        // Reject DOM nodes
+        && !Node.prototype.isPrototypeOf(object)
+        // Reject WebAudio context
+        && (typeof BaseAudioContext === 'undefined' || !BaseAudioContext.prototype.isPrototypeOf(object))
+        // Reject dates
+        && !(object instanceof Date)
+        // Reject regex
+        && !(object instanceof RegExp)
+        // Reject maps
+        && !(object instanceof Map)
+        && !(object instanceof WeakMap)
+        // Reject sets
+        && !(object instanceof Set)
+        && !(window.WeakSet && object instanceof WeakSet)
+        // Reject TypedArrays and DataViews
+        && !ArrayBuffer.isView(object) ;
+}
 
 
 /**
@@ -240,7 +228,38 @@ observable via `observe(path, object` and `mutations(paths, object)`.
 
 export function Observer(object) {
     return !object ? undefined :
-        object[$observer] ? object[$observer].observer :
-        isObservable(object) ? (new Trap(object)).observer :
+        object[$trap] ? object[$trap].observer :
+        isMuteable(object) ? (new Trap(object)).observer :
         undefined ;
+}
+
+
+/**
+getTarget(object)
+**/
+
+export function getTarget(object) {
+    return object && object[$trap] && object[$trap].target || object ;
+}
+
+
+/**
+getTrap(object)
+**/
+
+export function getTrap(object) {
+    return Observer(object) && object[$trap];
+}
+
+
+/*
+notify(path, object)
+Force the `object`'s Observer to register a mutation at `path`.
+*/
+
+export function notify(name, object) {
+    const trap = object[$trap];
+    if (trap) {
+        trap.notify(name);
+    }
 }

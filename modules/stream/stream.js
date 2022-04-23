@@ -39,10 +39,19 @@ export default function Stream(producer) {
 }
 
 assign(Stream, {
+    /**
+    Stream.of(value1, value2, ...)
+    Creates a buffer stream from parameters.
+    **/
     of: function() {
         return new Stream(new BufferProducer(arguments));
     },
 
+    /**
+    Stream.from(source)
+    Creates a stream from a `source`, which may be an array (or array-like),
+    a promise, or a producer.
+    **/
     from: function(source) {
             // Source is a stream or producer
         return source.pipe ? new Stream(source) :
@@ -54,21 +63,26 @@ assign(Stream, {
 });
 
 assign(Stream.prototype, Stopable.prototype, {
+    /**
+    .push(value)
+    Pushes `value` into the stream. If the stream has not been started or is
+    already stopped this will cause an error.
+    **/
     push: function(value) {
-        if (this[0]) {
-            push(this, value);
+        if (window.DEBUG && !this[0]) {
+            throw new Error('Stream: attempt to .push() to a stopped stream (has a producer not been stopped correctly?)');
         }
-        else {
-            // What is the best way to handle a stopped stream that is still being pushed to?
-            // Should this be inside the push fucntion?
-            // What happens when a stream is stopped from a broadcaster
-            console.log('TODO: review, no output 0!');
-        }
+
+        push(this, value);
     },
 
+    /**
+    .pipe(stream)
+    Starts a stream and pushes its values into `stream`. Returns `stream`.
+    **/
     pipe: function(output) {
         if (this[0]) {
-            throw new Error('Attempt to multicast a unicast stream. Create a multicast stream with stream.broadcast().');
+            throw new Error('Stream: Attempt to .pipe() a unicast stream multiple times. Create a multicast stream with stream.broadcast().');
         }
 
         this[0] = output;
@@ -76,36 +90,81 @@ assign(Stream.prototype, Stopable.prototype, {
         return output;
     },
 
+    /**
+    .map(fn)
+    Maps each value in the stream to `fn(value)`. Resulting values that are not
+    `undefined` are pushed downstream.
+    **/
     map: function(fn) {
         return new Map(this, fn);
     },
 
+    /**
+    .filter(fn)
+    Filters out values from the stream where `fn(value)` is falsy.
+    **/
     filter: function(fn) {
         return new Filter(this, fn);
     },
 
+    /**
+    .flatMap(fn)
+    **/
+    flatMap: function(fn) {
+        return new FlatMap(this, fn);
+    },
+
+    /**
+    .take(n)
+    Returns a stream of the first `n` values of the stream.
+    **/
     take: function(n) {
         return new Take(this, n);
     },
 
+    /**
+    .each(fn)
+    Starts the stream and calls `fn(value)` for each value in it.
+    Returns the stream.
+    **/
     each: function(fn) {
         return new Each(this, fn);
     },
 
+    /**
+    .reduce(fn, initial)
+    Consumes the stream. TODO: Not sure what to return old boy.
+    **/
     reduce: function(fn, initial) {
         return new Reduce(this, fn, initial);
     },
 
+    /**
+    .scan(fn, initial)
+    Calls `fn(current, value)` for each `value` in the stream. Where `fn`
+    returns a value it is pushed downstream, and `current` assumes that value
+    on the next iteration. Where `fn` returns `undefined` nothing is pushed and
+    `current` remains unchanged.
+    **/
     scan: function(fn, initial) {
         return new Scan(this, fn, initial);
     },
 
+    /**
+    .stop()
+    Stops the stream.
+    **/
     stop: function() {
         // We send to unpipe() to support broadcast streams, a unicast stream
         // at input only requires this.input.stop()
         unpipe(this.input, this);
         return this;
     }
+
+    /**
+    .done(fn)
+    Cues `fn` to be called when the stream is stopped.
+    **/
 });
 
 
@@ -155,15 +214,13 @@ FlatMap.prototype = assign(create(Stream.prototype), {
         if (values !== undefined) {
             if (isIterable(values)) {
                 for (const value of values) {
-                    if (value !== undefined) {
-                        push(this, value);
-                    }
+                    push(this, value);
                 }
             }
             else {
                 // Todo: support flattening of streams. Should streams by made
                 // iterable? CAN streams be made iterable? They'd have to be async?
-                throw new Error('Cannot .flatMap() non-iterable values');
+                throw new Error('Stream: Cannot .flatMap() non-iterable values');
             }
         }
     }
@@ -174,7 +231,7 @@ FlatMap.prototype = assign(create(Stream.prototype), {
 
 function Take(input, n) {
     if (window.DEBUG && (typeof n !== 'number' || n < 1)) {
-        throw new Error('stream.take(n) accepts non-zero positive integers as n (' + n + ')');
+        throw new Error('Stream: .take() only accepts non-zero positive integers (' + n + ')');
     }
 
     this.input = input;
@@ -183,7 +240,7 @@ function Take(input, n) {
 
 Take.prototype = assign(create(Stream.prototype), {
     push: function take(value) {
-        push(this, value);
+        this[0].push(value);
         if (!(--this.count)) {
             this.stop();
         }
@@ -203,7 +260,7 @@ function Reduce(input, fn, accumulator) {
 
 Reduce.prototype = assign(create(Stream.prototype), {
     push: function(value) {
-        const fn   = this.fn;
+        const fn = this.fn;
         this.value = fn(this.value, value);
     }
 });
@@ -219,9 +276,9 @@ function Scan(input, fn, accumulator) {
 
 Scan.prototype = assign(create(Stream.prototype), {
     push: function(value) {
-        const fn          = this.fn;
-        const accumulator = fn(this.value, value);
-        push(this, accumulator);
+        const fn = this.fn;
+        this.value = fn(this.value, value);
+        this[0].push(this.value);
     }
 });
 
