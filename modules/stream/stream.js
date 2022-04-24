@@ -135,8 +135,8 @@ assign(Stream.prototype, Stopable.prototype, {
     .reduce(fn, initial)
     Consumes the stream. TODO: Not sure what to return old boy.
     **/
-    reduce: function(fn, initial) {
-        return new Reduce(this, fn, initial);
+    reduce: function(fn, accumulator) {
+        return new Reduce(this, fn, accumulator);
     },
 
     /**
@@ -256,6 +256,11 @@ function Reduce(input, fn, accumulator) {
     this.input = input;
     this.fn    = fn;
     this.value = accumulator;
+
+    // Start pulling values
+    input.pipe(this);
+
+    return accumulator;
 }
 
 Reduce.prototype = assign(create(Stream.prototype), {
@@ -294,6 +299,7 @@ function Each(input, fn) {
 }
 
 Each.prototype = assign(create(Stream.prototype), {
-    each: null,
-    pipe: null
+    each:   null,
+    reduce: null,
+    pipe:   null
 });
