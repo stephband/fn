@@ -42,8 +42,7 @@ function unpipe(stream, output) {
 export default function Stream(producer) {
     this.input = producer;
 
-    if (this.input.push) {
-        console.log('Wiring up .push() to push to ' + this.input.constructor.name);
+    if (this.input.pushable) {
         this.push = pushToProducer;
     }
 }
@@ -270,7 +269,7 @@ function Reduce(input, fn, accumulator) {
     // Start pulling values
     input.pipe(this);
 
-    return accumulator;
+    //return accumulator;
 }
 
 Reduce.prototype = assign(create(Stream.prototype), {

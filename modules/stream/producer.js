@@ -26,6 +26,6 @@ assign(Producer.prototype, {
     },
 
     stop: function() {
-        stop(this[0]);
+        stop(this);
     }
 });

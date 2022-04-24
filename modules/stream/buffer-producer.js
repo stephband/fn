@@ -13,23 +13,25 @@ export default function BufferProducer(buffer) {
 }
 
 assign(BufferProducer.prototype, Producer.prototype, {
-    push: function(value) {
-        const stream = this[0];
+    // Opt in to having the Stream push to this producer
+    pushable: true,
 
-        if (stream) {
-            stream[0].push(value);
-        }
-        else {
-            this.buffer.push(value);
-        }
+    push: function(value) {
+        // Meh. A bit naff, this. Because buffer may be the output stream, which
+        // has had its .push() method replaced to delegate to here
+        this.buffer.constructor.prototype.push.call(this.buffer, value);
     },
 
     pipe: function(stream) {
         this[0] = stream;
 
         // Empty buffer
-        while(this.buffer.length) {
+        while(this[0] && this.buffer.length) {
             stream[0].push(A.shift.apply(this.buffer));
+        }
+
+        if (this[0]) {
+            this.buffer = this[0];
         }
     }
 });
