@@ -17,7 +17,7 @@ the optional properties:
     memory: true,
 
     // Start the stream immediately and keep it alive after all pipes are stopped
-    live:   true
+    hot:    true
 }
 ```
 */
@@ -31,7 +31,7 @@ export default function Broadcast(producer, options) {
     // Open the stream immediately and keep it live even without outputs by
     // sending output 0 to nothing. It can now only be stopped by explicitly
     // calling .stop() on it, and not by stopping child streams.
-    if (options && options.live) {
+    if (options && options.hot) {
         this.pipe(nothing);
     }
 }

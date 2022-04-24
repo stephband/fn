@@ -13,10 +13,23 @@ export default function BufferProducer(buffer) {
 }
 
 assign(BufferProducer.prototype, Producer.prototype, {
+    push: function(value) {
+        const stream = this[0];
+
+        if (stream) {
+            stream[0].push(value);
+        }
+        else {
+            this.buffer.push(value);
+        }
+    },
+
     pipe: function(stream) {
         this[0] = stream;
+
+        // Empty buffer
         while(this.buffer.length) {
-            stream.push(A.shift.apply(this.buffer));
+            stream[0].push(A.shift.apply(this.buffer));
         }
     }
 });

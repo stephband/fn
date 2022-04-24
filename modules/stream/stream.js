@@ -5,6 +5,7 @@ import { stop }        from './producer.js';
 import BufferProducer  from './buffer-producer.js';
 import PromiseProducer from './promise-producer.js';
 
+const A      = Array.prototype;
 const assign = Object.assign;
 const create = Object.create;
 
@@ -15,6 +16,10 @@ function push(stream, value) {
     if (value !== undefined) {
         stream[0].push(value);
     }
+}
+
+function pushToProducer(value) {
+    this.input.push(value);
 }
 
 function unpipe(stream, output) {
@@ -36,6 +41,11 @@ function unpipe(stream, output) {
 
 export default function Stream(producer) {
     this.input = producer;
+
+    if (this.input.push) {
+        console.log('Wiring up .push() to push to ' + this.input.constructor.name);
+        this.push = pushToProducer;
+    }
 }
 
 assign(Stream, {
@@ -44,7 +54,7 @@ assign(Stream, {
     Creates a buffer stream from parameters.
     **/
     of: function() {
-        return new Stream(new BufferProducer(arguments));
+        return new Stream(new BufferProducer(A.slice.apply(arguments)));
     },
 
     /**
