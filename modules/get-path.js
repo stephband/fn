@@ -34,7 +34,7 @@ function getRegexPath(regex, path, object) {
 
 export function getPath(path, object) {
     rpath.lastIndex = 0;
-    return getRegexPath(rpath, path, object) ;
+    return getRegexPath(rpath, '' + path, object) ;
 }
 
 export default curry(getPath, true);
