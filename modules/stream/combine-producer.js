@@ -20,27 +20,27 @@ function push(producer, name, value) {
     }
 }
 
-export default function CombineProducer(sources) {
-    this.sources = sources;
+export default function CombineProducer(inputs) {
+    this.inputs = inputs;
 }
 
 assign(CombineProducer.prototype, Producer.prototype, {
     pipe: function(stream) {
-        const sources = this.sources;
+        const inputs = this.inputs;
 
         this.values = {};
-        this.names  = keys(sources);
+        this.names  = keys(inputs);
         this.active = false;
         this[0]     = stream;
 
-        for (const name in sources) {
-            const source = sources[name];
+        for (const name in inputs) {
+            const input = inputs[name];
 
-            if (source.each) {
-                stream.done(source.each((value) => push(this, name, value)));
+            if (input.pipe) {
+                stream.done(input.each((value) => push(this, name, value)));
             }
-            else if (source.then) {
-                source.then((value) => push(this, name, value));
+            else if (input.then) {
+                input.then((value) => push(this, name, value));
                 //.finally((value) => stop(this[0]));
             }
             else {

@@ -7,8 +7,8 @@ const create = Object.create;
 
 
 /*
-Broadcast(producer, options)
-A Broadcast stream may be piped to multiple outputs. The options object has
+BroadcastStream(producer, options)
+A BroadcastStream may be piped to multiple outputs. The options object has
 the optional properties:
 
 ```js
@@ -22,8 +22,8 @@ the optional properties:
 ```
 */
 
-export default function Broadcast(producer, options) {
-    Stream.apply(this, arguments);
+export default function BroadcastStream(producer, options) {
+    this.input = producer;
 
     // Mark this stream as a memory stream
     this.memory = !!(options && options.memory);
@@ -36,7 +36,7 @@ export default function Broadcast(producer, options) {
     }
 }
 
-Broadcast.prototype = assign(create(Stream.prototype), {
+BroadcastStream.prototype = assign(create(Stream.prototype), {
     push: function(value) {
         if (value !== undefined) {
             // If this is a memory stream keep value

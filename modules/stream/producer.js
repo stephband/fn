@@ -23,9 +23,11 @@ export default function Producer() {}
 assign(Producer.prototype, {
     pipe: function(stream) {
         this[0] = stream;
+        return stream;
     },
 
     stop: function() {
         stop(this[0]);
+        return this;
     }
 });

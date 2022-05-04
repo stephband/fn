@@ -2,22 +2,53 @@
 import nothing         from './nothing.js';
 
 import Stream          from './stream/stream.js';
-import Broadcast       from './stream/broadcast.js';
-import BufferProducer  from './stream/buffer-producer.js';
+import BufferStream    from './stream/buffer-stream.js';
+import BroadcastStream from './stream/broadcast-stream.js';
+import PromiseProducer from './stream/promise-producer.js';
 import CombineProducer from './stream/combine-producer.js';
 import MergeProducer   from './stream/merge-producer.js';
 import ZipProducer     from './stream/zip-producer.js';
 
+const A      = Array.prototype;
 const assign = Object.assign;
+
+
+function throwTypeError(source) {
+    throw new TypeError('Stream: invalid source object cannot be read into stream');
+}
 
 export default assign(Stream, {
     /**
+    Stream.of(value1, value2, ...)
+    Creates a pushable BufferStream from the given parameters.
+    **/
+    of: function() {
+        return new BufferStream(A.slice.apply(arguments));
+    },
+
+    /**
+    Stream.from(source)
+    Creates a stream from a `source`, which may be a producer (an object with a
+    `.pipe()` method), an array (or array-like), or a promise.
+    **/
+    from: function(source) {
+            // Source is a stream or producer
+        return source.pipe ? new Stream(source) :
+            // Source is a promise
+            source.then ? new Stream(new PromiseProducer(source)) :
+            // Source is an array-like
+            typeof source.length === 'number' ? new BufferStream(source) :
+            // Source cannot be made into a stream
+            throwTypeError(source) ;
+    },
+
+    /**
     Stream.broadcast(options)
-    Returns a pushable broadcast stream. Methods called on this stream each
+    Returns a broadcast stream. Methods called on this stream each
     create a new stream.
     **/
     broadcast: function broadcast(options) {
-        return new Broadcast(new BufferProducer(nothing), options);
+        return new BroadcastStream(nothing, options);
     },
 
     /**
@@ -66,7 +97,7 @@ assign(Stream.prototype, {
     ```
     **/
     broadcast: function(options) {
-        return new Broadcast(this, options);
+        return new BroadcastStream(this, options);
     }
 });
 

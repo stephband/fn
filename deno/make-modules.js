@@ -12,8 +12,18 @@ import postpad from '../modules/postpad.js';
 import * as es from 'https://deno.land/x/esbuild@v0.14.22/mod.js';
 
 
-// Arguments
-const args    = Deno.args;
+// Arguments - slice args to get a muteable array
+const args  = Deno.args.slice();
+
+// Extract flags
+const flags = {
+    sourcemaps: false
+};
+
+while (/^--/.test(args[0])) {
+    const flag = args.shift().slice(2);
+    flags[flag] = true;
+}
 
 // First argument is name of output file (if it has a file extension), otherwise
 // name of output directory
@@ -93,11 +103,11 @@ Deno
         'edge81',
         'firefox73',
         'chrome80',
-        'safari14'
+        'safari13'
     ],
 
     // Yeah, I suppose we oughtta have sourcemaps so we can debug the bugs
-    sourcemap: true,
+    sourcemap: flags.sourcemaps,
 
     minify:    true,
     bundle:    true,

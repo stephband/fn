@@ -17,7 +17,7 @@ function getRegexPathThing(regex, path, object) {
     var tokens = regex.exec(path);
 
     if (!tokens) {
-        throw new Error('getPath(path, object): invalid path "' + path + '" at index ' + regex.lastIndex);
+        throw new Error('getPath(path, object): invalid path "' + path + '" at "' + path.slice(regex.lastIndex) + '"');
     }
 
     return getRegexPath(regex, path, object[tokens[1]]);
@@ -34,7 +34,8 @@ function getRegexPath(regex, path, object) {
 
 export function getPath(path, object) {
     rpath.lastIndex = 0;
-    return getRegexPath(rpath, path, object) ;
+    // Accept numbers or strings as path
+    return getRegexPath(rpath, '' + path, object) ;
 }
 
 export default curry(getPath, true);

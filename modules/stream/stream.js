@@ -2,10 +2,7 @@
 import isIterable      from '../is-iterable.js';
 import Stopable        from './stopable.js';
 import { stop }        from './producer.js';
-import BufferProducer  from './buffer-producer.js';
-import PromiseProducer from './promise-producer.js';
 
-const A      = Array.prototype;
 const assign = Object.assign;
 const create = Object.create;
 
@@ -16,10 +13,6 @@ function push(stream, value) {
     if (value !== undefined) {
         stream[0].push(value);
     }
-}
-
-function pushToProducer(value) {
-    this.input.push(value);
 }
 
 function unpipe(stream, output) {
@@ -41,36 +34,7 @@ function unpipe(stream, output) {
 
 export default function Stream(producer) {
     this.input = producer;
-
-    if (this.input.push) {
-        console.log('Wiring up .push() to push to ' + this.input.constructor.name);
-        this.push = pushToProducer;
-    }
 }
-
-assign(Stream, {
-    /**
-    Stream.of(value1, value2, ...)
-    Creates a buffer stream from parameters.
-    **/
-    of: function() {
-        return new Stream(new BufferProducer(A.slice.apply(arguments)));
-    },
-
-    /**
-    Stream.from(source)
-    Creates a stream from a `source`, which may be an array (or array-like),
-    a promise, or a producer.
-    **/
-    from: function(source) {
-            // Source is a stream or producer
-        return source.pipe ? new Stream(source) :
-            // Source is a promise
-            source.then ? new Stream(new PromiseProducer(source)) :
-            // Source is an array-like
-            new Stream(new BufferProducer(source));
-    }
-});
 
 assign(Stream.prototype, Stopable.prototype, {
     /**

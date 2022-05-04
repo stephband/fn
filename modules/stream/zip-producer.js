@@ -40,7 +40,6 @@ assign(ZipProducer.prototype, Producer.prototype, {
         const buffers = this.buffers;
 
         this[0] = stream;
-
         A.forEach.call(inputs, (input, i) => {
             const buffer = buffers[i];
 
@@ -62,5 +61,16 @@ assign(ZipProducer.prototype, Producer.prototype, {
                 A.forEach.call(input, (value) => fillBuffer(stream, buffers, buffer, value));
             }
         });
+    },
+
+    stop: function() {
+        const inputs = this.inputs;
+
+        let n = -1, input;
+        while (input = inputs[++n]) {
+            input.stop();
+        }
+
+        return Producer.prototype.stop.apply(this, arguments);
     }
 });

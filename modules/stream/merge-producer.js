@@ -21,7 +21,7 @@ assign(MergeProducer.prototype, Producer.prototype, {
         let input;
         while (input = inputs[++i]) {
             // Input is a stream
-            if (input.each) {
+            if (input.pipe) {
                 input.pipe(stream);
             }
 
@@ -40,5 +40,16 @@ assign(MergeProducer.prototype, Producer.prototype, {
                 }
             }
         }
+    },
+
+    stop: function() {
+        const inputs = this.inputs;
+
+        let n = -1, input;
+        while (input = inputs[++n]) {
+            if (input.stop) { input.stop(); }
+        }
+
+        return Producer.prototype.stop.apply(this, arguments);
     }
 });
