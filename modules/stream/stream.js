@@ -234,7 +234,7 @@ function Reduce(input, fn, accumulator) {
     // Start pulling values
     input.pipe(this);
 
-    return accumulator;
+    //return accumulator;
 }
 
 Reduce.prototype = assign(create(Stream.prototype), {
