@@ -82,6 +82,15 @@ assign(Stream.prototype, Stopable.prototype, {
     },
 
     /**
+    .chunk(n)
+    Maps each value in the stream to `fn(value)`. Resulting values that are not
+    `undefined` are pushed downstream.
+    **/
+    chunk: function(n) {
+        return new Chunk(this, n);
+    },
+
+    /**
     .flatMap(fn)
     **/
     flatMap: function(fn) {
@@ -201,6 +210,37 @@ FlatMap.prototype = assign(create(Stream.prototype), {
 });
 
 
+/* Chunk */
+
+function Chunk(input, n) {
+    this.input = input;
+    this.chunk = [];
+
+    if (typeof n === 'number') {
+        this.n = n;
+    }
+    else if (typeof n === 'function') {
+        this.fn = n;
+    }
+}
+
+Chunk.prototype = assign(create(Stream.prototype), {
+    fn: function(chunk) {
+        return chunk.length === this.n;
+    },
+
+    push: function map(value) {
+        const chunk = this.chunk;
+        chunk.push(value);
+
+        if (this.fn(chunk)) {
+            push(this, chunk);
+            this.chunk = [];
+        }
+    }
+});
+
+
 /* Take */
 
 function Take(input, n) {
@@ -222,9 +262,7 @@ Take.prototype = assign(create(Stream.prototype), {
 });
 
 
-/*
-Reduce
-*/
+/* Reduce */
 
 function Reduce(input, fn, accumulator) {
     this.input = input;
