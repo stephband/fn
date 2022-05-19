@@ -268,17 +268,17 @@ function Reduce(input, fn, accumulator) {
     this.input = input;
     this.fn    = fn;
     this.value = accumulator;
+    this.i     = 0;
 
     // Start pulling values
     input.pipe(this);
-
-    //return accumulator;
+    return accumulator;
 }
 
 Reduce.prototype = assign(create(Stream.prototype), {
     push: function(value) {
         const fn = this.fn;
-        this.value = fn(this.value, value);
+        this.value = fn(this.value, value, this.i++, this);
     }
 });
 

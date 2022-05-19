@@ -22,6 +22,7 @@ function push(producer, name, value) {
 
 export default function CombineProducer(inputs) {
     this.inputs = inputs;
+    this.active = false;
 }
 
 assign(CombineProducer.prototype, Producer.prototype, {
@@ -30,7 +31,6 @@ assign(CombineProducer.prototype, Producer.prototype, {
 
         this.values = {};
         this.names  = keys(inputs);
-        this.active = false;
         this[0]     = stream;
 
         for (const name in inputs) {

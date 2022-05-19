@@ -1,5 +1,6 @@
 
 import nothing         from './nothing.js';
+import self            from './self.js';
 
 import Stream          from './stream/stream.js';
 import BufferStream    from './stream/buffer-stream.js';
@@ -81,6 +82,12 @@ export default assign(Stream, {
 });
 
 assign(Stream.prototype, {
+    log: (window.DEBUG && window.console) ?
+        function log(...parameters) {
+            return this.map((value) => (console.log(...parameters, value), value))
+        } :
+        self ,
+
     /**
     .broadcast(options)
     Returns a broadcast stream. Methods called on this stream each create new

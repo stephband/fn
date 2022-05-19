@@ -14,7 +14,7 @@ with an array buffer of values.
 
 BufferStream is effectively a Producer - it has no input to pipe from - so
 inherit .stop() from Producer.prototype. Although, I do wonder if .stop()
-shouldn't empty buffer.
+shouldn't empty the buffer.
 */
 
 export default function BufferStream(values) {
