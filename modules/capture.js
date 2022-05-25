@@ -7,7 +7,7 @@ function error(regex, reducers, string) {
         string = string.input;
     }
 
-    throw new Error('Cannot parse string "' + string + '"');
+    throw new Error('Cannot parse string "' + (string.length > 128 ? string.length.slice(0, 128) + '…' : string) + '"');
 }
 
 function reduce(reducers, acc, tokens) {

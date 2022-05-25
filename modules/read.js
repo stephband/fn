@@ -7,7 +7,7 @@ function error(regex, reducers, string) {
         string = string.input;
     }
 
-    throw new Error('Cannot parse string "' + string + '"');
+    throw new Error('Cannot parse string "' + (string.length > 128 ? string.length.slice(0, 128) + '…' : string) + '"');
 }
 
 /**
@@ -39,14 +39,14 @@ function evaluate(reducers, acc, tokens) {
 }
 
 function read(regexp, reducers, acc, string) {
-    const output = exec(regex, (tokens) => evaluate(reducers, acc, tokens), string);
+    const output = exec(regexp, (tokens) => evaluate(reducers, acc, tokens), string);
 
     // If tokens is undefined exec has failed apply regex to string
     return output === undefined ?
         // If there is a catch function, call it, otherwise error out
         reducers.catch ?
             reducers.catch(acc, string) :
-            error(regex, reducers, string) :
+            error(regexp, reducers, string) :
 
         // Return the accumulator
         output ;
