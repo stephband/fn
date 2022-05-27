@@ -28,25 +28,25 @@ const value = parseValue({
 // number and the unit
 const runit = /^\s*([+-]?\d*\.?\d+)([^\s\d]*)\s*$/;
 
-export function parseValue(units, string) {
-    // Allow number to pass through
-    if (typeof string === 'number') {
-        return string;
-    }
-
-    var entry = runit.exec(string);
-
-    if (!entry || !units[entry[2] || '']) {
-        if (!units.catch) {
-            throw new Error('Cannot parse value "' + string + '" (accepted units ' + Object.keys(units).join(', ') + ')');
+export default function parseValue(units) {
+    return function parseValue(string) {
+        // Allow number to pass through
+        if (typeof string === 'number') {
+            return string;
         }
 
-        return entry ?
-            units.catch(parseFloat(entry[1]), entry[2]) :
-            units.catch(parseFloat(string)) ;
-    }
+        var entry = runit.exec(string);
 
-    return units[entry[2] || ''](parseFloat(entry[1]));
+        if (!entry || !units[entry[2] || '']) {
+            if (!units.catch) {
+                throw new Error('Cannot parse value "' + string + '" (accepted units ' + Object.keys(units).join(', ') + ')');
+            }
+
+            return entry ?
+                units.catch(parseFloat(entry[1]), entry[2]) :
+                units.catch(parseFloat(string)) ;
+        }
+
+        return units[entry[2] || ''](parseFloat(entry[1]));
+    };
 }
-
-export default curry(parseValue);

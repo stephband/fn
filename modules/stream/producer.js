@@ -27,7 +27,11 @@ assign(Producer.prototype, {
     },
 
     stop: function() {
-        stop(this[0]);
+        // Producer may not yet have been .pipe()ed
+        if (this[0]) {
+            stop(this[0]);
+        }
+
         return this;
     }
 });
