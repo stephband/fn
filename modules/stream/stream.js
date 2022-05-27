@@ -75,9 +75,17 @@ assign(Stream.prototype, Stopable.prototype, {
 
     /**
     .filter(fn)
-    Filters out values from the stream where `fn(value)` is falsy.
+    Filters out values where `fn(value)` is falsy.
+    **/
+
+    /**
+    .filter(stream)
+    Filters out values where the latest value of `stream` is falsy.
     **/
     filter: function(fn) {
+        /*return typeof fn === 'function' ?
+            new Filter(this, fn) :
+            new StreamFilter(this, fn) ;*/
         return new Filter(this, fn);
     },
 
@@ -181,6 +189,28 @@ Filter.prototype = assign(create(Stream.prototype), {
     }
 });
 
+
+/* StreamFilter */
+
+/*
+function setCondition(stream, value) {
+    stream.condition = value;
+    return stream;
+}
+
+function StreamFilter(input, stream) {
+    this.input     = input;
+    this.condition = false;
+    this.done(stream);
+    stream.reduce(setCondition, this);
+}
+
+StreamFilter.prototype = assign(create(Stream.prototype), {
+    push: function filter(value) {
+        this.condition && push(this, value);
+    }
+});
+*/
 
 /* FlatMap */
 
