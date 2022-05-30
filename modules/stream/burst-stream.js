@@ -1,6 +1,7 @@
 
-import noop   from '../noop.js';
-import Stream from './stream.js';
+import noop     from '../noop.js';
+import { stop } from './producer.js';
+import Stream   from './stream.js';
 
 const assign  = Object.assign;
 const promise = Promise.resolve();
@@ -53,7 +54,7 @@ export default function BurstStream(producer, duration) {
     );
 }
 
-assign(BurstStream.prototype, Stream.prototype, {
+assign(BurstStream.prototype, Stream.prototype, /*Producer.prototype,*/ {
     push: function(value) {
         if (this.timer) {
             this.unschedule();
@@ -72,6 +73,7 @@ assign(BurstStream.prototype, Stream.prototype, {
             this.fire();
         }
 
-        Stream.prototype.stop.apply(this, arguments);
+        stop(this);
+        return this;
     }
 });

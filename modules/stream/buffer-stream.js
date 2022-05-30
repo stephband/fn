@@ -1,5 +1,5 @@
 
-import Producer from './producer.js';
+import { stop } from './producer.js';
 import Stream   from './stream.js';
 
 const A      = Array.prototype;
@@ -21,7 +21,7 @@ export default function BufferStream(values) {
     this.buffer = values || [];
 }
 
-BufferStream.prototype = assign(create(Stream.prototype), Producer.prototype, {
+BufferStream.prototype = assign(create(Stream.prototype), {
     push: function(value) {
         if (value !== undefined) {
             this.buffer.push(value);
@@ -40,5 +40,10 @@ BufferStream.prototype = assign(create(Stream.prototype), Producer.prototype, {
         // the stream
         this.buffer = this[0];
         return output;
+    },
+
+    stop: function() {
+        stop(this);
+        return this;
     }
 });
