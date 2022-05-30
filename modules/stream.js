@@ -4,6 +4,7 @@ import self            from './self.js';
 
 import Stream          from './stream/stream.js';
 import BufferStream    from './stream/buffer-stream.js';
+import BurstStream     from './stream/burst-stream.js';
 import BroadcastStream from './stream/broadcast-stream.js';
 import PromiseProducer from './stream/promise-producer.js';
 import CombineProducer from './stream/combine-producer.js';
@@ -41,6 +42,22 @@ export default assign(Stream, {
             typeof source.length === 'number' ? new BufferStream(source) :
             // Source cannot be made into a stream
             throwTypeError(source) ;
+    },
+
+    /**
+    Stream.burst(duration)
+    Returns a stream of streams containing values that each arrived within
+    `duration` of the previous value. A gap longer than `duration` stops the
+    current burst stream and the next value is emitted in a new burst stream.
+
+    `duration` may be:
+
+    - a number, in seconds
+    - the string `'frame'`, representing an animation frame
+    - the string `'tick'`, representing a processing tick
+    **/
+    burst: function burst(duration) {
+        return new BurstStream(nothing, duration);
     },
 
     /**
@@ -87,6 +104,22 @@ assign(Stream.prototype, {
             return this.map((value) => (console.log(...parameters, value), value))
         } :
         self ,
+
+    /**
+    .burst(duration)
+    Returns a stream of streams containing values that each arrived within
+    `duration` of the previous value. A gap longer than `duration` stops the
+    current burst stream and the next value is emitted in a new burst stream.
+
+    `duration` may be:
+
+    - a number, in seconds
+    - the string `'frame'`, representing an animation frame
+    - the string `'tick'`, representing a processing tick
+    **/
+    burst: function(duration) {
+        return new BurstStream(this, duration);
+    },
 
     /**
     .broadcast(options)

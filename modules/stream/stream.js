@@ -90,12 +90,12 @@ assign(Stream.prototype, Stopable.prototype, {
     },
 
     /**
-    .chunk(n)
+    .split(n)
     Maps each value in the stream to `fn(value)`. Resulting values that are not
     `undefined` are pushed downstream.
     **/
-    chunk: function(n) {
-        return new Chunk(this, n);
+    split: function(n) {
+        return new Split(this, n);
     },
 
     /**
@@ -240,32 +240,36 @@ FlatMap.prototype = assign(create(Stream.prototype), {
 });
 
 
-/* Chunk */
+/* Split */
 
-function Chunk(input, n) {
+function Split(input, fn) {
     this.input = input;
     this.chunk = [];
 
     if (typeof n === 'number') {
-        this.n = n;
+        this.n = fn;
     }
-    else if (typeof n === 'function') {
-        this.fn = n;
+    else {
+        this.fn = fn;
     }
 }
 
-Chunk.prototype = assign(create(Stream.prototype), {
-    fn: function(chunk) {
-        return chunk.length === this.n;
+Split.prototype = assign(create(Stream.prototype), {
+    fn: function() {
+        return this.chunk.length === this.n;
     },
 
     push: function map(value) {
         const chunk = this.chunk;
-        chunk.push(value);
 
-        if (this.fn(chunk)) {
+        if (this.fn(value)) {
+            // Emit complete chunk and create a new chunk
             push(this, chunk);
             this.chunk = [];
+        }
+        else {
+            // Push to existing chunk
+            chunk.push(value);
         }
     }
 });

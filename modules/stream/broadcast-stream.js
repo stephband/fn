@@ -23,7 +23,7 @@ the optional properties:
 */
 
 export default function BroadcastStream(producer, options) {
-    this.input = producer;
+    Stream.apply(this, arguments);
 
     // Mark this stream as a memory stream
     this.memory = !!(options && options.memory);
