@@ -35,7 +35,7 @@ const timeTimer = {
     }
 };
 
-export default function BurstStream(producer, duration) {
+export default function BatchStream(producer, duration) {
     Stream.apply(this, arguments);
 
     this.duration = duration;
@@ -53,7 +53,7 @@ export default function BurstStream(producer, duration) {
     );
 }
 
-assign(BurstStream.prototype, Stream.prototype, {
+assign(BatchStream.prototype, Stream.prototype, {
     push: function(value) {
         if (this.timer) {
             this.unschedule();

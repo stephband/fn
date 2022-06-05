@@ -1,30 +1,31 @@
 
-import Producer from './producer.js';
+import Stream from './stream.js';
 
 const assign = Object.assign;
+const create = Object.create;
 
 /*
-Producer
-[note: producer must not have property '1', as that is used to detect multicast
-branch when stopping the chain inside unpipe()].
+IntervalStream(duration)
 */
 
-export function IntervalProducer() {
-
+export function IntervalStream(duration) {
+    this.duration = duration;
 }
 
-assign(IntervalProducer.prototype, Producer.prototype, {
+IntervalStream.prototype = assign(create(IntervalStream.prototype), {
+    push: null,
+
     pipe: function(stream) {
         this.stream = stream;
 
         // Start producing values
         let n = 0;
-        this.timer = setInterval(() => stream.push(++n), 3000);
+        this.timer = setInterval(() => stream.push(++n), this.duration * 1000);
         stream.push(n);
     },
 
     stop: function() {
         clearInterval(this.timer);
-        Producer.prototype.stop.apply(this);
+        return Stream.prototype.stop.apply(this);
     }
 });

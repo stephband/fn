@@ -1,10 +1,10 @@
 
-import Producer from '../modules/stream/producer.js';
 import Stream   from '../modules/stream.js';
 
 import { isMuteable, getTarget, getTrap } from './observer.js';
 
 const assign = Object.assign;
+const create = Object.create;
 const rkey   = /(^\.?|\.)\s*([\w-]*)\s*/g;
 
 
@@ -109,23 +109,16 @@ assign(PathObserver.prototype, {
 
 
 /**
-PathProducer(path, target, currentValue)
+MutationStream(path, target, currentValue)
 **/
 
-function pushAllowUndefined(stream, value) {
-    // Stream.push rejects undefined, but for this stream we want to allow
-    // undefined. We could do this with Stream(..., options). We could. Let's
-    // override .push() for the moment.
-    stream[0].push(value);
-}
-
-function PathProducer(path, target, value) {
+function MutationStream(path, target, value) {
     this.path   = path;
     this.target = target;
     this.value  = value;
 }
 
-assign(PathProducer.prototype, Producer.prototype, {
+MutationStream.prototype = assign(create(Stream.prototype), {
     push: function(value) {
         // Deduplicate values
         if (this.value === value) {
@@ -136,21 +129,26 @@ assign(PathProducer.prototype, Producer.prototype, {
         }
 
         this.value = value;
-        pushAllowUndefined(this[0], value);
+
+        // How to allow undefined?
+        this[0].push(value);
     },
 
-    pipe: function(stream) {
-        this[0] = stream;
+    pipe: function(output) {
+        // As Stream.prototype.pipe()
+        this[0] = output;
+        output.done(this);
         this.pathObserver = new PathObserver(this.path, 0, this.target, this);
 
         // This flag is set here so that `initial` value *is* deduplicated
         // but subsequent mutations are *not*.
         this.isMutationProducer = this.path[this.path.length - 1] === '.';
+        return output;
     },
 
     stop: function() {
         this.pathObserver.stop();
-        Producer.prototype.stop.apply(this, arguments);
+        return Stream.prototype.stop.apply(this, arguments);
     }
 });
 
@@ -166,5 +164,5 @@ is not equal to `initial`.
 export default function observe(path, object, initial) {
     const target = getTarget(object);
     const value  = getTarget(initial);
-    return new Stream(new PathProducer(path, target, value));
+    return new Stream(new MutationStream(path, target, value));
 }

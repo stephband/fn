@@ -1,7 +1,7 @@
 
-import isIterable      from '../is-iterable.js';
-import Stopable        from './stopable.js';
-import { stop }        from './producer.js';
+//import noop       from '../noop.js';
+import isIterable from '../is-iterable.js';
+import Stopable   from './stopable.js';
 
 const assign = Object.assign;
 const create = Object.create;
@@ -9,26 +9,31 @@ const create = Object.create;
 
 /* Stream */
 
-function push(stream, value) {
-    if (value !== undefined) {
-        stream[0].push(value);
-    }
+export function push(stream, value) {
+    stream && stream.push(value);
 }
 
-function unpipe(stream, output) {
-    // Support broadcast streams: streams with more than 1 output. Remove output
-    // from outputs then send stop signal to output and all its descendants.
-    if (stream[1]) {
-        let n = -1;
-        while (stream[++n] && stream[n] !== output);
-        while (stream[n++]) { stream[n - 1] = stream[n]; }
-        stop(output);
-    }
+/*function pushStop(value) {
+    console.warn('Attempt to push to stopped stream', value);
+}*/
 
-    // Otherwise keep going back up the chain looking for a point to launch
-    // stop signal.
-    else {
-        stream.stop();
+export function stop(stream) {
+    // TODO: the whole logic around stopping makes me a little queasy. This does
+    // not guarantee a sensible order, and in a pipeline stream stop is called
+    // more than once per stream (we protect against recursion inside Stopable).
+    // I feel there must be a better way. It's not evident to me though.
+
+    // Call done functions
+    Stopable.prototype.stop.apply(stream);
+
+    // Todo: this as a safety measure, do we really need it?
+    //stream.push = window.DEBUG ? pushStop : noop ;
+
+    let n = -1;
+    let output;
+    while (output = stream[++n]) {
+        stream[n] = undefined;
+        output.stop();
     }
 }
 
@@ -47,7 +52,7 @@ assign(Stream.prototype, Stopable.prototype, {
             throw new Error('Stream: attempt to .push() to a stopped stream (has a producer not been stopped correctly?)');
         }
 
-        push(this, value);
+        push(this[0], value);
     },
 
     /**
@@ -60,7 +65,11 @@ assign(Stream.prototype, Stopable.prototype, {
         }
 
         this[0] = output;
+        output.done(this);
+
+        // Start pulling values
         this.input.pipe(this);
+
         return output;
     },
 
@@ -115,19 +124,20 @@ assign(Stream.prototype, Stopable.prototype, {
 
     /**
     .each(fn)
-    Starts the stream and calls `fn(value)` for each value in it.
+    Consume the stream, calling `fn(value)` for each value in it.
     Returns the stream.
     **/
     each: function(fn) {
-        return new Each(this, fn);
+        return this.pipe(new Each(fn));
     },
 
     /**
     .reduce(fn, initial)
-    Consumes the stream. TODO: Not sure what to return old boy.
+    Consume the stream, calling `fn(accumulator, value)` for each value in it.
+    Returns the accumulator.
     **/
     reduce: function(fn, accumulator) {
-        return new Reduce(this, fn, accumulator);
+        return this.pipe(new Reduce(fn, accumulator)).value;
     },
 
     /**
@@ -148,7 +158,9 @@ assign(Stream.prototype, Stopable.prototype, {
     stop: function() {
         // We send to unpipe() to support broadcast streams, a unicast stream
         // at input only requires this.input.stop()
-        unpipe(this.input, this);
+        //unpipe(this.input, this);
+
+        stop(this);
         return this;
     }
 
@@ -169,7 +181,12 @@ function Map(input, fn) {
 Map.prototype = assign(create(Stream.prototype), {
     push: function map(value) {
         const fn = this.fn;
-        push(this, fn(value));
+        const result = fn(value);
+
+        // Reject undefined results
+        if (result !== undefined) {
+            push(this[0], result);
+        }
     }
 });
 
@@ -185,7 +202,7 @@ Filter.prototype = assign(create(Stream.prototype), {
     push: function filter(value) {
         const fn = this.fn;
         const is = fn(value);
-        is && push(this, value);
+        is && push(this[0], value);
     }
 });
 
@@ -227,7 +244,7 @@ FlatMap.prototype = assign(create(Stream.prototype), {
         if (values !== undefined) {
             if (isIterable(values)) {
                 for (const value of values) {
-                    push(this, value);
+                    push(this[0], value);
                 }
             }
             else {
@@ -264,7 +281,7 @@ Split.prototype = assign(create(Stream.prototype), {
 
         if (this.fn(value)) {
             // Emit complete chunk and create a new chunk
-            push(this, chunk);
+            push(this[0], chunk);
             this.chunk = [];
         }
         else {
@@ -298,15 +315,10 @@ Take.prototype = assign(create(Stream.prototype), {
 
 /* Reduce */
 
-function Reduce(input, fn, accumulator) {
-    this.input = input;
+function Reduce(fn, accumulator) {
     this.fn    = fn;
     this.value = accumulator;
     this.i     = 0;
-
-    // Start pulling values
-    input.pipe(this);
-    return accumulator;
 }
 
 Reduce.prototype = assign(create(Stream.prototype), {
@@ -336,12 +348,8 @@ Scan.prototype = assign(create(Stream.prototype), {
 
 /* Each */
 
-function Each(input, fn) {
-    this.input = input;
-    this.push  = fn;
-
-    // Start pulling values
-    input.pipe(this);
+function Each(fn) {
+    this.push = fn;
 }
 
 Each.prototype = assign(create(Stream.prototype), {

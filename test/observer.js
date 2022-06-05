@@ -5,9 +5,9 @@ import observe      from "../observer/observe.js";
 
 tests('Observer()', function(test, log) {
 	test("observe('.', object)", function(equals, done) {
-		var expected = [{}, {a:0},{a:1},{a:2},{}];
-		var data = {};
-		var o    = Observer(data);
+		var expected = [{}, {a:0},{a:1},{a:2}, {}];
+		var data     = {};
+		var o        = Observer(data);
 
 		const observable = observe('.', o)
 		.each((value) => equals(expected.shift(), value));
@@ -24,11 +24,10 @@ tests('Observer()', function(test, log) {
 		done();
 	}, 6);
 
-
 	test("observe('a', object)", function(equals, done) {
 		var expected = [0,1,2,undefined];
-		var data = {};
-		var o    = Observer(data);
+		var data     = {};
+		var o        = Observer(data);
 
 		const observable = observe('a', o)
 		.each((value) => equals(expected.shift(), value));
@@ -44,7 +43,6 @@ tests('Observer()', function(test, log) {
 		equals(0, expected.length);
 		done();
 	}, 5);
-
 
 	test("observe('a.', object)", function(equals, done) {
 		var expected = [{b:0},{b:1},2,3,null];
@@ -66,7 +64,6 @@ tests('Observer()', function(test, log) {
 		equals(0, expected.length);
 		done();
 	}, 6);
-
 
 	test("observe('a.b', object)", function(equals, done) {
 		var expected = [0,1,2,3,undefined];
@@ -90,7 +87,6 @@ tests('Observer()', function(test, log) {
 		done();
 	}, 6);
 
-
 	test("observe('.', object, object) - with initial value", function(equals, done) {
 		var expected = [{a:0},{a:1},{a:2},{}];
 		var data = {};
@@ -111,7 +107,6 @@ tests('Observer()', function(test, log) {
 		done();
 	}, 5);
 
-
 	test("observe('a', object, 0) - with initial value", function(equals, done) {
 		var expected = [1,2,undefined];
 		var data = { a: 0 };
@@ -131,7 +126,6 @@ tests('Observer()', function(test, log) {
 		equals(0, expected.length);
 		done();
 	}, 4);
-
 
 	test("observe('a.b', object, 0) - with initial value", function(equals, done) {
 		var expected = [1,2,3,undefined];

@@ -3,13 +3,13 @@ import nothing         from './nothing.js';
 import self            from './self.js';
 
 import Stream          from './stream/stream.js';
-import BufferStream    from './stream/buffer-stream.js';
-import BurstStream     from './stream/burst-stream.js';
 import BroadcastStream from './stream/broadcast-stream.js';
-import PromiseProducer from './stream/promise-producer.js';
-import CombineProducer from './stream/combine-producer.js';
-import MergeProducer   from './stream/merge-producer.js';
-import ZipProducer     from './stream/zip-producer.js';
+import BufferStream    from './stream/buffer-stream.js';
+import BatchStream     from './stream/batch-stream.js';
+import CombineStream   from './stream/combine-stream.js';
+import MergeStream     from './stream/merge-stream.js';
+import PromiseStream   from './stream/promise-stream.js';
+//import ZipProducer     from './stream/zip-producer.js';
 
 const A      = Array.prototype;
 const assign = Object.assign;
@@ -37,7 +37,7 @@ export default assign(Stream, {
             // Source is a stream or producer
         return source.pipe ? new Stream(source) :
             // Source is a promise
-            source.then ? new Stream(new PromiseProducer(source)) :
+            source.then ? new PromiseStream(source) :
             // Source is an array-like
             typeof source.length === 'number' ? new BufferStream(source) :
             // Source cannot be made into a stream
@@ -45,7 +45,7 @@ export default assign(Stream, {
     },
 
     /**
-    Stream.burst(duration)
+    Stream.batch(duration)
     Returns a stream of streams containing values that each arrived within
     `duration` of the previous value. A gap longer than `duration` stops the
     current burst stream and the next value is emitted in a new burst stream.
@@ -56,18 +56,15 @@ export default assign(Stream, {
     - the string `'frame'`, representing an animation frame
     - the string `'tick'`, representing a processing tick
     **/
-    burst: function burst(duration) {
-        return new BurstStream(nothing, duration);
-    },
+    batch: (duration) => new BatchStream(nothing, duration),
+    burst: (duration) => (console.warn('Stream.burst() is now Stream.batch()'), new BatchStream(nothing, duration)),
 
     /**
     Stream.broadcast(options)
     Returns a broadcast stream. Methods called on this stream each
     create a new stream.
     **/
-    broadcast: function broadcast(options) {
-        return new BroadcastStream(nothing, options);
-    },
+    broadcast: (options) => new BroadcastStream(nothing, options),
 
     /**
     Stream.combine(streams)
@@ -75,17 +72,16 @@ export default assign(Stream, {
     an objects containing those values. A new object is emitted when a new value
     is pushed to any input stream.
     **/
-    combine: function combine(streams) {
-        return new Stream(new CombineProducer(streams));
-    },
+    combine: (streams) => new CombineStream(streams),
 
     /**
     Stream.merge(stream1, stream2, ...)
     Creates a stream by merging values from any number of input streams into a
-    single output stream.
+    single output stream. Values are emitted in the time order they are received
+    from inputs.
     **/
     merge: function() {
-        return new Stream(new MergeProducer(arguments));
+        return new MergeStream(arguments);
     },
 
     /**
@@ -93,9 +89,9 @@ export default assign(Stream, {
     Creates a stream by merging values from any number of input streams into a
     single output stream.
     **/
-    zip: function() {
+    /*zip: function() {
         return new Stream(new ZipProducer(arguments));
-    }
+    }*/
 });
 
 assign(Stream.prototype, {
@@ -106,7 +102,7 @@ assign(Stream.prototype, {
         self ,
 
     /**
-    .burst(duration)
+    .batch(duration)
     Returns a stream of streams containing values that each arrived within
     `duration` of the previous value. A gap longer than `duration` stops the
     current burst stream and the next value is emitted in a new burst stream.
@@ -117,8 +113,12 @@ assign(Stream.prototype, {
     - the string `'frame'`, representing an animation frame
     - the string `'tick'`, representing a processing tick
     **/
+    batch: function(duration) {
+        return new BatchStream(this, duration);
+    },
     burst: function(duration) {
-        return new BurstStream(this, duration);
+        console.warn('stream.burst() is now stream.batch()');
+        return new BatchStream(this, duration);
     },
 
     /**
