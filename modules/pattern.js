@@ -1,10 +1,10 @@
 
-/** 
+/**
 pattern(toString, routes)
 
-Accepts a function and an object of functions keyed by regexp patterns, and 
-returns a function that takes a string and tests the regexes against it until 
-a match is found. The function for that match is called with the remainder of 
+Accepts a function and an object of functions keyed by regexp patterns, and
+returns a function that takes a string and tests the regexes against it until
+a match is found. The function for that match is called with the remainder of
 the path string plus the contents of any captured groups.
 
 ```js

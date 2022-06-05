@@ -8,7 +8,7 @@ object of functions keyed by the unit postfix. It may also have a `catch`
 function.
 
 ```js=
-const value = parseValue({
+const parseUnitValue = parseValue({
     px: function(n) {
         return n;
     },
@@ -20,7 +20,7 @@ const value = parseValue({
 
         throw new Error('Cannot parse px value');
     }
-}, '36px');
+});
 ```
 **/
 
