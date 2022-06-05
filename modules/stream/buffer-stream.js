@@ -1,5 +1,4 @@
 
-import Stopable         from './stopable.js';
 import Stream, { stop } from './stream.js';
 
 const A      = Array.prototype;
@@ -30,7 +29,7 @@ export default function BufferStream(values) {
     this.output = this.buffer;
 }
 
-BufferStream.prototype = assign(create(Stream.prototype), Stopable.prototype, {
+BufferStream.prototype = assign(create(Stream.prototype), {
     push: function(value) {
         if (value !== undefined) {
             this.output.push(value);

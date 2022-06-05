@@ -3,6 +3,7 @@ import noop   from '../noop.js';
 import Stream from './stream.js';
 
 const assign  = Object.assign;
+const create  = Object.create;
 const promise = Promise.resolve();
 
 const tickTimer = {
@@ -53,7 +54,7 @@ export default function BatchStream(producer, duration) {
     );
 }
 
-assign(BatchStream.prototype, Stream.prototype, {
+BatchStream.prototype = assign(create(Stream.prototype), {
     push: function(value) {
         if (this.timer) {
             this.unschedule();
@@ -72,6 +73,6 @@ assign(BatchStream.prototype, Stream.prototype, {
             this.fire();
         }
 
-        Stream.prototype.stop.apply(this, arguments);
+        return Stream.prototype.stop.apply(this, arguments);
     }
 });
