@@ -9,4 +9,5 @@ literal:
 
 modules:
 	rm -r ./build
-	deno run --allow-read --allow-env --allow-net --allow-write --allow-run ./deno/make-modules.js ./build ./module.js ./documentation.css
+	deno run --allow-read --allow-env --allow-net --allow-write --allow-run ./deno/make-modules.js ./build ./modules/stream.js ./documentation.css
+
