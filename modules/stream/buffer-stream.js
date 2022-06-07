@@ -1,5 +1,5 @@
 
-import Stream, { stop } from './stream.js';
+import Stream, { stop, push } from './stream.js';
 
 const A      = Array.prototype;
 const assign = Object.assign;
@@ -25,14 +25,12 @@ export default function BufferStream(values) {
         values.filter ? values.filter(notUndefined) :
         values :
         [] ;
-
-    this.output = this.buffer;
 }
 
 BufferStream.prototype = assign(create(Stream.prototype), {
     push: function(value) {
         if (value !== undefined) {
-            this.output.push(value);
+            push(this.buffer, value);
         }
     },
 
@@ -41,19 +39,21 @@ BufferStream.prototype = assign(create(Stream.prototype), {
         output.done(this);
         this[0] = output;
 
-        // Empty buffer
+        // Empty buffer into stream
         while(this.buffer.length) {
-            output.push(A.shift.apply(this.buffer));
+            // Stream may be stopped during this loop so push to `this[0]`
+            // rather than to `output`
+            push(this[0], A.shift.apply(this.buffer));
         }
 
-        // Swap buffer for output, subsequent values are pushed straight into
-        // the stream
-        this.output = output;
+        // Swap buffer for output, values are now pushed straight into output
+        this.buffer = output;
         return output;
     },
 
     stop: function() {
-        this.output = this.buffer;
-        return Stream.prototype.stop.apply(this, arguments);
+        this.buffer = undefined;
+        stop(this);
+        return this;
     }
 });

@@ -2,7 +2,7 @@
 import nothing         from './nothing.js';
 import self            from './self.js';
 
-import Stream          from './stream/stream.js';
+import Stream, { pipe, push, stop } from './stream/stream.js';
 import BroadcastStream from './stream/broadcast-stream.js';
 import BufferStream    from './stream/buffer-stream.js';
 import BatchStream     from './stream/batch-stream.js';
@@ -16,10 +16,10 @@ const assign = Object.assign;
 
 
 function throwTypeError(source) {
-    throw new TypeError('Stream: invalid source object cannot be read into stream');
+    throw new TypeError('Stream cannot be created from ' + typeof object);
 }
 
-export default assign(Stream, {
+assign(Stream, {
     /**
     Stream.of(value1, value2, ...)
     Creates a pushable BufferStream from the given parameters.
@@ -30,8 +30,8 @@ export default assign(Stream, {
 
     /**
     Stream.from(source)
-    Creates a stream from a `source`, which may be a producer (an object with a
-    `.pipe()` method), an array (or array-like), or a promise.
+    Creates a stream from a `source`, which may be a producer (an object with
+    `.pipe()` and `.stop()` methods), an array (or array-like), or a promise.
     **/
     from: function(source) {
             // Source is a stream or producer
@@ -140,6 +140,8 @@ assign(Stream.prototype, {
         return new BroadcastStream(this, options);
     }
 });
+
+export { Stream as default, pipe, push, stop };
 
 
 // Debug

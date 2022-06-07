@@ -1,5 +1,5 @@
 
-//import noop       from '../noop.js';
+import { remove } from '../remove.js';
 import isIterable from '../is-iterable.js';
 import Stopable   from './stopable.js';
 
@@ -7,15 +7,22 @@ const assign = Object.assign;
 const create = Object.create;
 
 
-/* Stream */
+/* Connections */
+
+export function pipe(input, output) {
+    input[0] = output;
+    output.done(input);
+}
+
+export function unpipe(input, n) {
+    const stopables = input[n].stopables;
+    stopables && remove(stopables, input);
+    input[n] = undefined;
+}
 
 export function push(stream, value) {
     stream && stream.push(value);
 }
-
-/*function pushStop(value) {
-    console.warn('Attempt to push to stopped stream', value);
-}*/
 
 export function stop(stream) {
     // TODO: the whole logic around stopping makes me a little queasy. This does
@@ -26,9 +33,6 @@ export function stop(stream) {
     // Call done functions
     Stopable.prototype.stop.apply(stream);
 
-    // Todo: this as a safety measure, do we really need it?
-    //stream.push = window.DEBUG ? pushStop : noop ;
-
     let n = -1;
     let output;
     while (output = stream[++n]) {
@@ -36,6 +40,9 @@ export function stop(stream) {
         output.stop();
     }
 }
+
+
+/* Stream */
 
 export default function Stream(producer) {
     this.input = producer;
@@ -314,11 +321,12 @@ Take.prototype = assign(create(Stream.prototype), {
 
 
 /* Reduce */
-
+var k = 0;
 function Reduce(fn, accumulator) {
     this.fn    = fn;
     this.value = accumulator;
     this.i     = 0;
+    this.n = ++k;
 }
 
 Reduce.prototype = assign(create(Stream.prototype), {

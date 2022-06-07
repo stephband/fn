@@ -3,6 +3,7 @@ const assign       = Object.assign;
 const define       = Object.defineProperties;
 const isExtensible = Object.isExtensible;
 
+const O     = Object.prototype;
 const $trap = Symbol('observe');
 
 export const analytics = {
@@ -94,9 +95,15 @@ assign(Trap.prototype, {
         const mutable    = descriptor ?
             descriptor.writable || descriptor.set :
             value === undefined ;
+            //true ;
 
         if (mutable) {
             fire(this.gets, name);
+        }
+
+        // We are not interested in getting proxies of the prototype chain
+        if (!O.hasOwnProperty.call(target, name)) {
+            return value;
         }
 
         // Get the observer of its value

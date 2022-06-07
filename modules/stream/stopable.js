@@ -25,7 +25,6 @@ assign(Stopable.prototype, {
         this.stopables = undefined;
 
         if (stopables) {
-            //console.log('STOP', this.id, stopables.length, stopables.map((o) => o.id).join(', '));
             stopables.forEach(stop);
         }
 
