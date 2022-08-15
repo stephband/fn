@@ -254,10 +254,15 @@ FlatMap.prototype = assign(create(Stream.prototype), {
                     push(this[0], value);
                 }
             }
-            else {
-                // Todo: support flattening of streams. Should streams by made
-                // iterable? CAN streams be made iterable? They'd have to be async?
-                throw new Error('Stream: Cannot .flatMap() non-iterable values');
+            else if (values.pipe) {
+                // Todo: support flattening of streams. This method is crude -
+                // it does not preserve order, for one thing. Should streams by
+                // made iterable? CAN streams be made iterable? They'd have to
+                // be async...
+                this.done(values.each((value) => push(this[0], value)));
+                // This causes problems if you try
+                // stream.scan(...).flatMap(...)
+                //values.pipe(this[0]);
             }
         }
     }
@@ -321,12 +326,11 @@ Take.prototype = assign(create(Stream.prototype), {
 
 
 /* Reduce */
-var k = 0;
+
 function Reduce(fn, accumulator) {
     this.fn    = fn;
     this.value = accumulator;
     this.i     = 0;
-    this.n = ++k;
 }
 
 Reduce.prototype = assign(create(Stream.prototype), {
