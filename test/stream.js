@@ -321,4 +321,21 @@ tests('Stream()', function(test, log) {
 
         setTimeout(done, 800);
     }, 12);
+
+    test("Stream.writeable(fn)", function(equals, done) {
+        var expected = [0,1,2,3,4];
+        var stream = Stream.writeable((stream) =>
+            stream.each((value) => equals(expected.shift(), value))
+        );
+
+        stream.push(0);
+        stream.push(1);
+        stream.push(2);
+        stream.push(3);
+        stream.push(4);
+
+        equals(0, expected.length);
+
+        done();
+    }, 6);
 });

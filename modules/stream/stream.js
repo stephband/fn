@@ -1,4 +1,5 @@
 
+import nothing    from '../nothing.js';
 import { remove } from '../remove.js';
 import isIterable from '../is-iterable.js';
 import Stopable   from './stopable.js';

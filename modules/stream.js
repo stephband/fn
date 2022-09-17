@@ -92,6 +92,18 @@ assign(Stream, {
     /*zip: function() {
         return new Stream(new ZipProducer(arguments));
     }*/
+
+    /**
+    Stream.writeable(fn)
+    Creates a stream and passes it immediately to `fn`. the function is expected
+    to set up the stream as a consumer. The head of the stream is returned.
+    **/
+
+    writeable: function(fn) {
+        const stream = new Stream(nothing);
+        fn(stream);
+        return stream;
+    }
 });
 
 assign(Stream.prototype, {
