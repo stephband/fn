@@ -104,6 +104,7 @@ assign(PathObserver.prototype, {
         this.unlisten();
         this.child && this.child.stop();
         this.child = undefined;
+        this.status = 'stopped';
     }
 });
 

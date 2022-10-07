@@ -30,8 +30,12 @@ function fire(observables, value) {
     var n = -1;
 
     while (observables[++n]) {
-        // Observables are objects with a fn property
-        observables[n].push(value);
+        // Where an observer causes others to stop we can end up with stopped
+        // observables in the copy of the observables array. Our get and set
+        // observers must be flagged. Pushing to them could cause an error.
+        if (observables[n].status !== 'stopped') {
+            observables[n].push(value);
+        }
     }
 
     return n;

@@ -1,5 +1,4 @@
 
-import nothing    from '../nothing.js';
 import { remove } from '../remove.js';
 import isIterable from '../is-iterable.js';
 import Stopable   from './stopable.js';
@@ -29,7 +28,8 @@ export function stop(stream) {
     // TODO: the whole logic around stopping makes me a little queasy. This does
     // not guarantee a sensible order, and in a pipeline stream stop is called
     // more than once per stream (we protect against recursion inside Stopable).
-    // I feel there must be a better way. It's not evident to me though.
+    // I feel there must be a better way. It's not immediately evident to me
+    // though.
 
     // Call done functions
     Stopable.prototype.stop.apply(stream);
@@ -167,7 +167,6 @@ assign(Stream.prototype, Stopable.prototype, {
         // We send to unpipe() to support broadcast streams, a unicast stream
         // at input only requires this.input.stop()
         //unpipe(this.input, this);
-
         stop(this);
         return this;
     }
