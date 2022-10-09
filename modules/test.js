@@ -1,185 +1,85 @@
 
-import cache from './cache.js';
-import overload from './overload.js';
-import { equals as _equals } from './equals.js';
+import { equals } from './equals.js';
 
-var A        = Array.prototype;
-var rcomment = /\s*\/\*([\s\S]*)\*\/\s*/;
+const tests = [];
+let running = false;
 
-var domify = overload(toType, {
-	'string': createArticle,
+function assert(expected, value, name, message) {
+	if (!equals(value, expected)) {
+		var string = '✘ ' + name + ' failed\n  '
+			+ 'Expected: ' + (typeof expected === 'object' ? JSON.stringify(expected) : expected) + ', '
+			+ 'received: ' + (typeof value    === 'object' ? JSON.stringify(value)    : value)
+			+ ( message ? '\n  ' + message : '') ;
 
-	'function': function(template, name, size) {
-		return createArticle(multiline(template), name, size);
-	},
-
-	'default': function(template) {
-		// WHAT WHY?
-		//var nodes = typeof template.length === 'number' ? template : [template] ;
-		//append(nodes);
-		//return nodes;
+		console.log('%c' + string, 'color: #ee8833; font-weight: 300;');
+		return false;
 	}
-});
 
-var browser = /firefox/i.test(navigator.userAgent) ? 'FF' :
-	document.documentMode ? 'IE' :
-	'standard' ;
+	return true;
+}
 
-const createSection = cache(function createSection() {
-	const section = document.createElement('section');
-	section.setAttribute('class', 'test-section');
-	document.body.appendChild(section);
-	return section;
-});
+function expectDone(expected, value, name) {
+	var string = '✘ ' + name + ' failed\n  '
+		+ 'Assertion after test stopped with done()' ;
 
-function createArticle(html, name, size) {
-	const section = createSection();
+	console.log('%c' + string, 'color: #ee8833; font-weight: 300;');
+}
 
-	const article = document.createElement('article');
-	article.setAttribute('class', 'span-' + (size || 2) + '-test-article test-article');
+function run(name, expected, fn, next) {
+	const n    = expected.length;
+	let m      = 0;
+	let pass   = true;
 
-	const title = document.createElement('h2');
-	title.setAttribute('class', 'test-title');
-	title.innerHTML = name;
+	let expect = (value, message) => {
+		if (!expected.length) {
+			var string = '✘ ' + name + ' failed\n  '
+				+ 'Expected ' + n + ' assertions, '
+				+ 'received ' + (n + (++m)) + ': '
+				value ;
 
-	const div = document.createElement('div');
-	div.setAttribute('class', 'test-fixture');
-
-	div.innerHTML = html;
-	article.appendChild(title);
-	article.appendChild(div);
-	section.appendChild(article);
-
-	return {
-		section: section,
-		article: article,
-		title:   title,
-		fixture: div
+			console.log('%c' + string, 'color: #ee8833; font-weight: 300;');
+			pass = false;
+		}
+		else {
+			pass = pass && assert(expected.shift(), value, name, message);
+		}
 	};
-}
 
-function multiline(fn) {
-	if (typeof fn !== 'function') { throw new TypeError('multiline: expects a function.'); }
-	var match = rcomment.exec(fn.toString());
-	if (!match) { throw new TypeError('multiline: comment missing.'); }
-	return match[1];
-}
+	fn(expect, function done() {
+		if (pass && expected.length) {
+			var string = '✘ ' + name + ' failed\n  '
+				+ 'Expected ' + n + ' assertions, '
+				+ 'received ' + (n - expected.length) ;
 
-function toType(object) {
-	return typeof object;
-}
-
-function parse(string) {
-	return (new window.DOMParser()).parseFromString(string, 'text/html');
-}
-
-function equals(expected, value, message) {
-	if (!_equals(value, expected)) {
-		var string = (
-			'Expected ' + (JSON.stringify(expected) || typeof value) + ', ' +
-			'received ' + (JSON.stringify(value) || typeof value) + '.' +
-			( message ? ' ' + message : '')
-		);
-
-		if (browser === 'IE') {
-			console.log(string);
-			console.trace();
-		}
-		else {
-			console.trace(
-				'%cTest%c %s', 'color: #6f9940; font-weight: 600;', 'color: #ee8833; font-weight: 300;',
-				'failed',
-				'expected:', (JSON.stringify(expected) || expected),
-				'received:', (JSON.stringify(value) || value),
-				message || ''
-			);
-		}
-	}
-}
-
-export default function group(name, fn, template, size) {
-	if (browser === 'IE') {
-		console.log(name);
-	}
-	else {
-		console.log('%cTest%c %s', 'color: #6f9940; font-weight: 600;', 'color: #6f9940; font-weight: 300;', name);
-	}
-
-	var nodes = template && domify(template, name, size);
-	var tests = [];
-
-	function next() {
-		var args = tests.shift();
-
-		if (!args) {
-			// Last test has run
-			if (nodes) {
-				nodes.article.className += ' test-passed';
-			}
-
-			return;
+			console.log('%c' + string, 'color: #ee8833; font-weight: 300;');
+			pass = false;
 		}
 
-		test(args[0], args[1], args[2], next);
-	}
-
-	fn(function test(name, fn, n) {
-		tests.push(arguments);
-	}, console.log.bind(console, '%cTest%c %s', 'color: #6f9940; font-weight: 600;', 'color: #b4d094; font-weight: 300;'), nodes && nodes.fixture);
-
-	next();
-}
-
-function stopped() {
-	if (browser === 'IE') {
-		console.log('Test failed: assertion recieved after test stopped with done().');
-		console.trace();
-	}
-	else {
-		console.trace('%c' +
-			'Test failed: assertion recieved after test stopped with done().'
-		);
-	}
-}
-
-function test(name, fn, n, next) {
-	//console.log('%c' + name, 'color: #6f6f6f; font-weight: 300;');
-
-	var i = 0;
-	var eq = equals;
-
-	function assert(expected, value, message) {
-		++i;
-		return eq.apply(null, arguments);
-	}
-
-	fn(assert, function done() {
-		eq = stopped;
-
-		if (n !== undefined && i !== n) {
-			var string = 'Test failed: ' +
-			'expected ' + n + ' assertions, ' +
-			'received ' + i;
-
-			if (browser === 'IE') {
-				console.log('✘ ' + name);
-				console.log(string)
-				console.trace();
-			}
-			else {
-				console.log('%c✘ ' + name, 'color: #ee8833; font-weight: 300;');
-				console.trace('%c' + string, 'color: #ee8833; font-weight: 700;');
-			}
-		}
-		else {
-			if (browser === 'IE') {
-				console.log('✔',  + name);
-			}
-			else {
-				console.log('%c✔%c %s', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', name);
-			}
+		if (pass) {
+			console.log('%c✔%c %s', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', name);
 		}
 
+		expect = expectDone;
 		next();
 	});
+}
+
+function next() {
+	var args = tests.shift();
+
+	if (!args) {
+		running = false;
+		return;
+	}
+
+	running = true;
+	run(args.name, args.expected, args.fn, next);
+}
+
+export default function test(name, expected, fn) {
+	tests.push({ name, expected, fn });
+
+	if (!running) {
+		next();
+	}
 }
