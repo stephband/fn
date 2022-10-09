@@ -2,7 +2,7 @@
 import nothing         from './nothing.js';
 import self            from './self.js';
 
-import Stream, { pipe, push, stop } from './stream/stream.js';
+import Stream, { isStream, pipe, push, stop } from './stream/stream.js';
 import BroadcastStream from './stream/broadcast-stream.js';
 import BufferStream    from './stream/buffer-stream.js';
 import BatchStream     from './stream/batch-stream.js';
@@ -20,6 +20,8 @@ function throwTypeError(source) {
 }
 
 assign(Stream, {
+    isStream: isStream,
+
     /**
     Stream.of(value1, value2, ...)
     Creates a pushable BufferStream from the given parameters.

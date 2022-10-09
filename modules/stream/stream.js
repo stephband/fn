@@ -42,6 +42,10 @@ export function stop(stream) {
     }
 }
 
+export function isStream(object) {
+    return Stream.prototype.isPrototypeOf(object);
+}
+
 
 /* Stream */
 
