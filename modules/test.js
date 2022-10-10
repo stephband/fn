@@ -35,7 +35,7 @@ function run(name, expected, fn, next) {
 			var string = '✘ ' + name + ' failed\n  '
 				+ 'Expected ' + n + ' assertions, '
 				+ 'received ' + (n + (++m)) + ': '
-				value ;
+				+ value ;
 
 			console.log('%c' + string, 'color: #ee8833; font-weight: 300;');
 			pass = false;
