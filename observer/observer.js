@@ -233,10 +233,19 @@ Create an observer proxy around `object`. Mutations made to this proxy are
 observable via `observe(path, object` and `mutations(paths, object)`.
 **/
 
-export function Observer(object) {
+/**
+Observer(object, force)
+Forces creation of an observer even where Observer would normally consider
+the object 'immutable'. Observer considers DOM nodes immutable, for example, but
+not because they are really immutable, more in order to prevent you calling node
+methods on a node's observer proxy, which is a source of hard-to-trace errors.
+Use `force = true` if you know what you are doing.
+**/
+
+export function Observer(object, force) {
     return !object ? undefined :
         object[$trap] ? object[$trap].observer :
-        isMuteable(object) ? (new Trap(object)).observer :
+        (force || isMuteable(object)) ? (new Trap(object)).observer :
         undefined ;
 }
 
