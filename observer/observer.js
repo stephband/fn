@@ -133,11 +133,13 @@ assign(Trap.prototype, {
             return true;
         }
 
-        // Make sure we are dealing with an unproxied value
-        value = getTarget(value);
+        // Make sure we are dealing with an unproxied value... I dont think
+        // we actually want to do this... I can see situations where
+        const targetValue = getTarget(value);
 
-        // If we are setting the same value, we're not really setting at all
-        if (target[name] === value) {
+        // If we are setting the same value, we're not really setting at all.
+        // In this case regard a proxy as equivalent.
+        if (target[name] === value || target[name] === targetValue) {
             return true;
         }
 
@@ -150,10 +152,10 @@ assign(Trap.prototype, {
             this.gets[n].unlisten(name);
         }
 
-        // Set value on target. Then get the target's value just in case target
+        // Set value on target. Don't use value again, in case target
         // is doing something funky with property descriptors that return a
         // different value from the value that was set. Rare, but it can happen.
-        target[name] = value;
+        target[name] = targetValue;
 
         // Check if length has changed and notify if it has
         if (name !== 'length' && target.length !== length) {

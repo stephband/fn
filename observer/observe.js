@@ -12,7 +12,7 @@ function push(value) {
     this.producer.push(value);
 }
 
-function PathObserver(path, index, target, producer) {
+function PathObserver(path, index, object, producer) {
     if (window.DEBUG && !path.length) {
         throw new SyntaxError('observe() path is empty');
     }
@@ -33,7 +33,7 @@ function PathObserver(path, index, target, producer) {
     }
 
     this.path     = path;
-    this.target   = target;
+    this.object   = object;
     this.producer = producer;
     this.key      = p[2] || p[1];
     this.index    = rkey.lastIndex;
@@ -46,7 +46,10 @@ function PathObserver(path, index, target, producer) {
 
     // Bind observer to proxy
     this.listen();
-    this.push(this.key === '.' ? this.target : this.target[this.key]);
+
+    // Push an initial value, minding that even though this.object is an object
+    // the value at [this.key] may well be a proxy
+    this.push(this.key === '.' ? this.object : getTarget(this.object)[this.key]);
 }
 
 assign(PathObserver.prototype, {
@@ -77,27 +80,27 @@ assign(PathObserver.prototype, {
     },
 
     listen: function() {
-        const trap = getTrap(this.target);
+        const trap = getTrap(this.object);
 
         if (trap) {
             trap.listen(this.key === '.' ? null : this.key, this);
         }
         else {
             if (window.DEBUG) {
-                console.log('observe() cannot get trap of ', this.target);
+                console.log('observe() cannot get trap of ', this.object);
             }
         }
     },
 
     unlisten: function() {
-        getTrap(this.target).unlisten(this.key === '.' ? null : this.key, this);
+        getTrap(this.object).unlisten(this.key === '.' ? null : this.key, this);
     },
 
-    relisten: function(target) {
+    relisten: function(object) {
         this.unlisten();
-        this.target = target;
+        this.object = object;
         this.listen();
-        this.push(this.target[this.key]);
+        this.push(getTarget(this.object)[this.key]);
     },
 
     stop: function() {
@@ -110,12 +113,12 @@ assign(PathObserver.prototype, {
 
 
 /**
-MutationStream(path, target, currentValue)
+MutationStream(path, object, currentValue)
 **/
 
-function MutationStream(path, target, value) {
+function MutationStream(path, object, value) {
     this.path   = path;
-    this.target = target;
+    this.object = object;
     this.value  = value;
 }
 
@@ -139,7 +142,7 @@ MutationStream.prototype = assign(create(Stream.prototype), {
         // As Stream.prototype.pipe()
         this[0] = output;
         output.done(this);
-        this.pathObserver = new PathObserver(this.path, 0, this.target, this);
+        this.pathObserver = new PathObserver(this.path, 0, this.object, this);
 
         // This flag is set here so that `initial` value *is* deduplicated
         // but subsequent mutations are *not*.
@@ -163,7 +166,5 @@ is not equal to `initial`.
 **/
 
 export default function observe(path, object, initial) {
-    const target = getTarget(object);
-    const value  = getTarget(initial);
-    return new Stream(new MutationStream(path, target, value));
+    return new Stream(new MutationStream(path, object, initial));
 }

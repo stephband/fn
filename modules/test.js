@@ -11,7 +11,7 @@ function assert(expected, value, name, message) {
 			+ 'received: ' + (typeof value    === 'object' ? JSON.stringify(value)    : value)
 			+ ( message ? '\n  ' + message : '') ;
 
-		console.log('%c' + string, 'color: #ee8833; font-weight: 300;');
+		console.trace('%c' + string, 'color: #ee8833; font-weight: 300;');
 		return false;
 	}
 
@@ -37,7 +37,7 @@ function run(name, expected, fn, next) {
 				+ 'received ' + (n + (++m)) + ': '
 				+ value ;
 
-			console.log('%c' + string, 'color: #ee8833; font-weight: 300;');
+			console.trace('%c' + string, 'color: #ee8833; font-weight: 300;');
 			pass = false;
 		}
 		else {
@@ -51,7 +51,7 @@ function run(name, expected, fn, next) {
 				+ 'Expected ' + n + ' assertions, '
 				+ 'received ' + (n - expected.length) ;
 
-			console.log('%c' + string, 'color: #ee8833; font-weight: 300;');
+			console.trace('%c' + string, 'color: #ee8833; font-weight: 300;');
 			pass = false;
 		}
 
