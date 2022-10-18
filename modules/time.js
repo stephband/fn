@@ -122,10 +122,11 @@ function toMaxDecimals(precision, n) {
 	return n.toFixed(precision).replace(/\.?0+$/, '');
 }
 
-
+/*
 export const nowTime = function() {
 	return window.performance.now();
 };
+*/
 
 /**
 formatTime(format, time)
