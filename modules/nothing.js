@@ -1,4 +1,8 @@
 
+/**
+nothing
+A frozen array-like and stream-like object that contains no value.
+**/
 
 import arg  from './arg.js';
 import id   from './id.js';

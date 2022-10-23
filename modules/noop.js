@@ -1,6 +1,6 @@
 /**
 noop()
-Returns undefined.
-*/
+Does nothing, returns undefined.
+**/
 
 export default function noop() {}

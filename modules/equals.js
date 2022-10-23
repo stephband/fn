@@ -1,9 +1,9 @@
 
 /**
 equals(a, b)
-Perform a deep equality comparison of `a` and `b`. Returns `true` if
-they are equal.
-*/
+Compares `a` and `b` for deep equality and returns `true` where they are equal,
+otherwise false.
+**/
 
 import curry from './curry.js';
 

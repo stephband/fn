@@ -1,13 +1,14 @@
 /**
 matches(selector, object)
-Where `selector` is an object containing properties to be compared against
-properties of `object`. If they are all strictly equal, returns `true`,
-otherwise `false`.
+
+For filtering and pattern matching. Returns true where all the properties
+of `selector` object are strictly equal to the same properties of `object`.
+Note that `object` may have more properties than `selector`.
 
 ```
-const vegeFoods = menu.filter(matches({ vegetarian: true }));
+const vegetarian = menu.filter(matches({ vegetable: true }));
 ```
-*/
+**/
 
 import curry from './curry.js';
 

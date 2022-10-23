@@ -1,10 +1,12 @@
+
 /**
 by(fn, a, b)
-Compares `fn(a)` against `fn(b)` and returns `-1`, `0` or `1`. Useful for sorting
-objects by property:
+
+For sorting arrays. Compares `fn(a)` against `fn(b)` and returns `-1`, `0` or
+`1`. Partially applicable. To sort an array of objects by their ids:
 
 ```
-[{id: '2'}, {id: '1'}].sort(by(get('id')));  // [{id: '1'}, {id: '2'}]
+array.sort(by(get('id')))
 ```
 **/
 
