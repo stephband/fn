@@ -1,8 +1,5 @@
 import capture from './capture.js';
-import exec    from './exec.js';
 import id      from './id.js';
-import noop    from './noop.js';
-import nothing from './nothing.js';
 
 
 /**
