@@ -1,7 +1,8 @@
 
-import { remove }             from '../modules/remove.js';
-import Stream, { stop }       from '../modules/stream/stream.js';
-import { getTrap, getTarget } from './observer.js';
+import nothing          from '../modules/nothing.js';
+import { remove }       from '../modules/remove.js';
+import Stream, { stop } from '../modules/stream/stream.js';
+import { Observer, getTrap, getTarget } from './observer.js';
 
 //const DEBUG = window.DEBUG === true;
 
@@ -73,6 +74,10 @@ assign(GetProducer.prototype, {
     }
 });
 
-export default function gets(observer) {
-    return new Stream(new GetProducer(observer, ''));
+export default function gets(object) {
+    const observer = Observer(object);
+
+    return observer ?
+        new Stream(new GetProducer(observer, '')) :
+        nothing ;
 }

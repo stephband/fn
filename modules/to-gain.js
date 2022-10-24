@@ -1,9 +1,8 @@
 /**
 toLevel(dB)
-
-Converts a dB value relative to unity (dBFS) to unit value.
+Converts a dB ratio to a unit gain.
 **/
 
 export default function toGain(n) {
-    return Math.pow(2, n / 6);
+    return Math.pow(10, n / 20);
 }
