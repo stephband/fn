@@ -13,7 +13,7 @@ export default function cache(fn) {
     return function cache(object) {
         if (window.DEBUG && !warned && object === undefined) {
             warned = true;
-            console.warn('cache() called with undefined. Not illegal, but worthy of a warning.');
+            console.warn('cache() called with undefined.');
         }
 
         if (window.DEBUG && arguments.length > 1) {
