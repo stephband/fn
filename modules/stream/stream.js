@@ -127,11 +127,16 @@ assign(Stream.prototype, Stopable.prototype, {
     },
 
     /**
-    .take(n)
-    Returns a stream of the first `n` values of the stream.
+    .slice(n, m)
+    Returns a stream of the nth to mth values of stream.
     **/
+    slice: function(n, m) {
+        return new Slice(this, n, m);
+    },
+
     take: function(n) {
-        return new Take(this, n);
+console.warn('.take(a) superseded by .slice(0, a)')
+        return new Slice(this, 0, n);
     },
 
     /**
@@ -308,21 +313,29 @@ Split.prototype = assign(create(Stream.prototype), {
 });
 
 
-/* Take */
+/* Slice */
 
-function Take(input, n) {
-    if (window.DEBUG && (typeof n !== 'number' || n < 1)) {
-        throw new Error('Stream: .take() only accepts non-zero positive integers (' + n + ')');
+function Slice(input, n, m = Infinity) {
+    if (window.DEBUG && (typeof n !== 'number' || n < 0)) {
+        throw new Error('Stream: .slice() requires a positive integer (' + n + ')');
     }
 
-    this.input = input;
-    this.count = n;
+    if (window.DEBUG && (typeof m !== 'number' || m < 1)) {
+        throw new Error('Stream: .slice() requires a non-zero positive integer (n, ' + n + ')');
+    }
+
+    this.input    = input;
+    this.index    = -n;
+    this.indexEnd = n + m;
 }
 
-Take.prototype = assign(create(Stream.prototype), {
+Slice.prototype = assign(create(Stream.prototype), {
     push: function take(value) {
-        this[0].push(value);
-        if (!(--this.count)) {
+        if (++this.index > 0) {
+            this[0].push(value);
+        }
+
+        if (this.index === this.indexEnd) {
             this.stop();
         }
     }
