@@ -2,6 +2,7 @@
 import { equals } from './equals.js';
 
 const tests = [];
+const stops = [];
 let running = false;
 
 function assert(expected, value, name, message) {
@@ -69,6 +70,7 @@ function next() {
 
 	if (!args) {
 		running = false;
+		stops.forEach((fn) => fn());
 		return;
 	}
 
@@ -79,7 +81,15 @@ function next() {
 export default function test(name, expected, fn) {
 	tests.push({ name, expected, fn });
 
+	if (!running) { next(); }
+}
+
+export function done(fn) {
+	// Dodgy dodgy logic
 	if (!running) {
-		next();
+		fn();
+	}
+	else {
+		stops.push(fn);
 	}
 }
