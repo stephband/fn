@@ -156,11 +156,3 @@ assign(Stream.prototype, {
 });
 
 export { Stream as default, pipe, push, stop };
-
-
-// Debug
-
-if (window.DEBUG) {
-    window.Stream = Stream;
-}
-
