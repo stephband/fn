@@ -73,7 +73,7 @@ assign(Stream.prototype, Stopable.prototype, {
     **/
     pipe: function(output) {
         if (this[0]) {
-            throw new Error('Stream: Attempt to .pipe() a unicast stream multiple times. Create a multicast stream with stream.broadcast().');
+            throw new Error('Stream: Attempt to .pipe() a unicast stream multiple times. Create a multicast stream with .broadcast().');
         }
 
         this[0] = output;

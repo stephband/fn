@@ -7,6 +7,7 @@ import BroadcastStream from './stream/broadcast-stream.js';
 import BufferStream    from './stream/buffer-stream.js';
 import BatchStream     from './stream/batch-stream.js';
 import CombineStream   from './stream/combine-stream.js';
+import FunctionStream  from './stream/function-stream.js';
 import MergeStream     from './stream/merge-stream.js';
 import PromiseStream   from './stream/promise-stream.js';
 //import ZipProducer     from './stream/zip-producer.js';
@@ -40,8 +41,12 @@ assign(Stream, {
         return source.pipe ? new Stream(source) :
             // Source is a promise
             source.then ? new PromiseStream(source) :
-            // Source is an array-like
-            typeof source.length === 'number' ? new BufferStream(source) :
+            // Source has length
+            typeof source.length === 'number' ?
+                // Source is a function
+                typeof source === 'function' ? new FunctionStream(source) :
+                // Source is an array-like
+                new BufferStream(source) :
             // Source cannot be made into a stream
             throwTypeError(source) ;
     },
