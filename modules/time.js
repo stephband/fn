@@ -14,7 +14,7 @@ import toType    from './to-type.js';
 const precision = 9;
 
 // Find template tokens for replacement
-var rtoken = /([YMWdhms]{2,3}|[hsmdwMY]|ms|±)/g;
+var rtoken = /(`[^`]*`)|(ms|[YMwdhms]{1,3}|±)/g;
 
 export function millisecondsToSeconds(n) { return n / 1000; }
 export function minutesToSeconds(n) { return n * 60; }
@@ -92,9 +92,11 @@ function createTime(match) {
 }
 
 function formatTimeString(string, time) {
-	return string.replace(rtoken, function($0) {
-		return timeFormatters[$0] ? timeFormatters[$0](time) : $0 ;
-	}) ;
+	return string.replace(rtoken, ($0, $1, $2) =>
+		$1 ?
+			$1.slice(1, -1) :
+			timeFormatters[$0] ? timeFormatters[$0](time) : $0
+	) ;
 }
 
 function _formatTimeISO(time) {
@@ -122,11 +124,6 @@ function toMaxDecimals(precision, n) {
 	return n.toFixed(precision).replace(/\.?0+$/, '');
 }
 
-/*
-export const nowTime = function() {
-	return window.performance.now();
-};
-*/
 
 /**
 formatTime(format, time)
@@ -153,6 +150,13 @@ Formats `time`, an 'hh:mm:ss' time string or a number in seconds, to match
 ```
 const time = formatTime('±hh:mm:ss', 3600);   // 01:00:00
 ```
+
+To include words in the format that contain letters used by the formatter,
+quote them using backticks.
+
+```
+const hours = formatTime('h `hours`', 3600);   // 1 hours
+```
 **/
 
 var timeFormatters = {
@@ -175,12 +179,12 @@ var timeFormatters = {
 		return Math.floor(secondsToMonths(time % 31557600));
 	},
 
-	W: function W(time) {
+	w: function W(time) {
 		time = time < 0 ? -time : time;
 		return Math.floor(secondsToWeeks(time));
 	},
 
-	WW: function WW(time) {
+	ww: function WW(time) {
 		time = time < 0 ? -time : time;
 		return Math.floor(secondsToDays(time % 2629800));
 	},
@@ -244,10 +248,10 @@ var timeFormatters = {
 	}
 };
 
-export const formatTime = curry(function(string, time) {
-	return string === 'ISO' ?
+export const formatTime = curry(function(format, time) {
+	return format === 'ISO' ?
 		_formatTimeISO(parseTime(time)) :
-		formatTimeString(string, parseTime(time)) ;
+		formatTimeString(format, parseTime(time)) ;
 });
 
 /**

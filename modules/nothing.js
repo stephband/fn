@@ -9,14 +9,13 @@ import id   from './id.js';
 import noop from './noop.js';
 import self from './self.js';
 
-const assign = Object.assign;
 const create = Object.create;
 const freeze = Object.freeze;
 
 function returnTrue() { return true; }
 function negative()   { return -1; }
 
-export default freeze(assign(create({
+export default freeze(create({
     // Array methods
     shift:     noop,
     push:      noop,
@@ -43,6 +42,6 @@ export default freeze(assign(create({
 
     // Primitive coercion
     valueOf:   function() { return null; }
-}), {
-    length:    0,
+}, {
+    length: { value: 0 }
 }));
