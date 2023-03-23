@@ -63,39 +63,82 @@ assign(Stream, {
     - the string `'frame'`, representing an animation frame
     - the string `'tick'`, representing a processing tick
     **/
+
     batch: (duration) => new BatchStream(nothing, duration),
-    burst: (duration) => (console.warn('Stream.burst() is now Stream.batch()'), new BatchStream(nothing, duration)),
 
     /**
     Stream.broadcast(options)
     Returns a broadcast stream. Methods called on this stream each
     create a new stream.
     **/
+
     broadcast: (options) => new BroadcastStream(nothing, options),
 
     /**
-    Stream.combine(streams)
-    Creates a stream by combining the latest values of all input streams into
-    an objects containing those values. A new object is emitted when a new value
-    is pushed to any input stream.
+    Stream.combine(object, options)
+    Creates a stream of objects containing the latest values of all streams and
+    promises in `object`, as soon as they become active or resolved.
+
+    ```js
+    Stream.combine({ a: stream, b: promise }).each((object) => {
+        // object.a and object.b are values
+    });
+    ```
+
+    If `object` contains properties that are not streams or promises, those are
+    also set on streamed objects.
+
+    ```js
+    Stream.combine({ a: stream, b: promise, c: 5 }).each((object) => {
+        // object.c is 5
+    });
+    ```
+
+    Output objects are created using the constructor of the input `object`,
+    making it possible to use an array or other object as input and expect an
+    array or other object as output.
+
+    ```js
+    Stream.combine([promise, stream]).each((object) => {
+        // object is an Array
+    });
+    ```
+
+    The stream may be made mutable by passing in an options object with
+    `mutable` set to `true`. In this case no new objects are constructed,
+    instead the input `object` is mutated and pushed to the output stream.
+    Generally speaking this is a Good Idea when trying to avoid garbage
+    collection.
+
+    ```js
+    Stream.combine({ a: stream, b: promise }, { mutable: true }).each((object) => {
+        // object is the input object, properties a and b are now values
+    });
+    ```
     **/
-    combine: (streams) => new CombineStream(streams),
+
+    combine: (streams, options) => new CombineStream(streams, options),
 
     /**
     Stream.merge(stream1, stream2, ...)
     Creates a stream by merging values from any number of input streams into a
     single output stream. Values are emitted in the time order they are received
     from inputs.
-    **/
-    merge: function() {
-        return new MergeStream(arguments);
-    },
 
-    /**
+    ```js
+    Stream.merge(stream1, stream2).each((value) => {
+        // value is from stream1 or stream 2
+    });
+    ```
+    **/
+
+    merge: function() { return new MergeStream(arguments); },
+
+    /*
     Stream.zip(stream1, stream2, ...)
     Creates a stream by merging values from any number of input streams into a
     single output stream.
-    **/
+    */
     /*zip: function() {
         return new Stream(new ZipProducer(arguments));
     }*/
