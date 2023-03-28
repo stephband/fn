@@ -6,6 +6,7 @@ import Stream, { isStream, pipe, push, stop } from './stream/stream.js';
 import BroadcastStream from './stream/broadcast-stream.js';
 import BufferStream    from './stream/buffer-stream.js';
 import BatchStream     from './stream/batch-stream.js';
+import ClockStream     from './stream/clock-stream.js';
 import CombineStream   from './stream/combine-stream.js';
 import FunctionStream  from './stream/function-stream.js';
 import MergeStream     from './stream/merge-stream.js';
@@ -73,6 +74,17 @@ assign(Stream, {
     **/
 
     broadcast: (options) => new BroadcastStream(nothing, options),
+
+    /**
+    Stream.clock(duration)
+    If `duration` is a number, returns a stream of DOM timestamps at `duration`
+    seconds apart.
+
+    If `duration` is `"frame"`, returns a stream of DOM timestamps at the
+    animation frame rate.
+    **/
+
+    clock: (duration) => new ClockStream(duration),
 
     /**
     Stream.combine(object, options)
@@ -175,11 +187,8 @@ assign(Stream.prototype, {
     - the string `'frame'`, representing an animation frame
     - the string `'tick'`, representing a processing tick
     **/
+
     batch: function(duration) {
-        return new BatchStream(this, duration);
-    },
-    burst: function(duration) {
-        console.warn('stream.burst() is now stream.batch()');
         return new BatchStream(this, duration);
     },
 
@@ -198,6 +207,7 @@ assign(Stream.prototype, {
     const broadcaster = stream.broadcast({ memory: true });
     ```
     **/
+
     broadcast: function(options) {
         return new BroadcastStream(this, options);
     }
