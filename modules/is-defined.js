@@ -1,7 +1,7 @@
 /**
 isDefined(value)
-Check for value – where `value` is `undefined`, `NaN` or `null`, returns
-`false`, otherwise `true`.
+Check for defined `value`. where `value` is `undefined`, `NaN` or `null`,
+returns `false`, otherwise `true`.
 */
 
 
