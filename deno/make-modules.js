@@ -119,7 +119,7 @@ Deno
         // bundled. Ideally, we want to rewrite their paths here. TODO!
         name: 'external',
         setup: (build) => build.onResolve({
-            filter: /\.(?:png|svg|woff|woff2|eot|ttf|otf)(?:#|$)/
+            filter: /\.(?:png|jpg|svg|woff|woff2|eot|ttf|otf)(?:#|$)/
         }, (args) => {
             console.warn('URL not rewritten:', args.path);
             return { path: args.path, external: true };
@@ -136,7 +136,8 @@ Deno
         '.svg':   'file',
         '.ttf':   'file',
         '.otf':   'file',
-        '.png':   'file'
+        '.png':   'file',
+        '.jpg':   'file'
     },
 
     // Generate data about build
