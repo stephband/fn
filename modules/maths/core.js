@@ -16,17 +16,3 @@ export const curriedPow   = curry(pow);
 export const curriedExp   = curry(exp);
 export const curriedLog   = curry(log);
 export const curriedRoot  = curry(root);
-
-/**
-toRad(deg)
-**/
-
-const angleFactor = 180 / Math.PI;
-
-export function toRad(n) { return n / angleFactor; }
-
-/**
-toDeg(rad)
-**/
-
-export function toDeg(n)   { return n * angleFactor; }

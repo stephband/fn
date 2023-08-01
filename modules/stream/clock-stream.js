@@ -6,7 +6,14 @@ const create = Object.create;
 
 /*
 ClockStream(duration)
+
+If `duration` is a number, constructs a stream of DOM timestamps at `duration`
+seconds apart.
+
+If `duration` is `"frame"`, constructs a stream of DOM timestamps at the
+animation frame rate.
 */
+
 
 export default function ClockStream(duration) {
     this.duration = duration;
