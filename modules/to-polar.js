@@ -2,10 +2,7 @@
 toPolar(cartesian)
 **/
 
-export default function toPolar(cartesian) {
-    var x = cartesian[0];
-    var y = cartesian[1];
-
+export default function toPolar([x, y]) {
     return [
         // Distance
         x === 0 ?

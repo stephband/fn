@@ -6,7 +6,6 @@ import Stream, { isStream, pipe, push, stop } from './stream/stream.js';
 import BroadcastStream from './stream/broadcast-stream.js';
 import BufferStream    from './stream/buffer-stream.js';
 import BatchStream     from './stream/batch-stream.js';
-import ClockStream     from './stream/clock-stream.js';
 import CombineStream   from './stream/combine-stream.js';
 import FunctionStream  from './stream/function-stream.js';
 import MergeStream     from './stream/merge-stream.js';
@@ -34,7 +33,7 @@ assign(Stream, {
 
     /**
     Stream.from(source)
-    Creates a stream from a `source`, which may be a producer (an object with
+    Creates a stream from `source`, which may be a pipeable (an object with
     `.pipe()` and `.stop()` methods), an array (or array-like), or a promise.
     **/
     from: function(source) {
@@ -52,7 +51,7 @@ assign(Stream, {
             throwTypeError(source) ;
     },
 
-    /**
+    /*
     Stream.batch(duration)
     Returns a stream of streams containing values that each arrived within
     `duration` of the previous value. A gap longer than `duration` stops the
@@ -63,33 +62,22 @@ assign(Stream, {
     - a number, in seconds
     - the string `'frame'`, representing an animation frame
     - the string `'tick'`, representing a processing tick
-    **/
+    */
 
     batch: (duration) => new BatchStream(nothing, duration),
 
-    /**
+    /*
     Stream.broadcast(options)
     Returns a broadcast stream. Methods called on this stream each
     create a new stream.
-    **/
+    */
 
     broadcast: (options) => new BroadcastStream(nothing, options),
 
     /**
-    Stream.clock(duration)
-    If `duration` is a number, returns a stream of DOM timestamps at `duration`
-    seconds apart.
-
-    If `duration` is `"frame"`, returns a stream of DOM timestamps at the
-    animation frame rate.
-    **/
-
-    clock: (duration) => new ClockStream(duration),
-
-    /**
-    Stream.combine(object, options)
+    Stream.combine(inputs)
     Creates a stream of objects containing the latest values of all streams and
-    promises in `object`, as soon as they become active or resolved.
+    promises in `inputs` as they resolve:
 
     ```js
     Stream.combine({ a: stream, b: promise }).each((object) => {
@@ -97,12 +85,25 @@ assign(Stream, {
     });
     ```
 
-    If `object` contains properties that are not streams or promises, those are
-    also set on streamed objects.
+    If `inputs` contains properties that are not streams or promises, those are
+    also set on streamed objects:
 
     ```js
-    Stream.combine({ a: stream, b: promise, c: 5 }).each((object) => {
+    Stream.combine({ a: stream, c: 5 }).each((object) => {
         // object.c is 5
+    });
+    ```
+
+    By default immutable – the stream emits new objects – it can be made to
+    mutate and emit the `inputs` object by passing an options object with
+    `mutable` set to `true` as a second parameter. This can help minimise
+    garbage collection when dealing with large streams.
+
+    ```js
+    Stream
+    .combine({ a: stream, b: promise }, { mutable: true })
+    .each((object) => {
+        // object is the input object, properties a and b are now values
     });
     ```
 
@@ -115,21 +116,9 @@ assign(Stream, {
         // object is an Array
     });
     ```
-
-    The stream may be made mutable by passing in an options object with
-    `mutable` set to `true`. In this case no new objects are constructed,
-    instead the input `object` is mutated and pushed to the output stream.
-    Generally speaking this is a Good Idea when trying to avoid garbage
-    collection.
-
-    ```js
-    Stream.combine({ a: stream, b: promise }, { mutable: true }).each((object) => {
-        // object is the input object, properties a and b are now values
-    });
-    ```
     **/
 
-    combine: (streams, options) => new CombineStream(streams, options),
+    combine: (object, options) => new CombineStream(object, options),
 
     /**
     Stream.merge(stream1, stream2, ...)
@@ -155,11 +144,11 @@ assign(Stream, {
         return new Stream(new ZipProducer(arguments));
     }*/
 
-    /**
+    /*
     Stream.writeable(fn)
     Creates a stream and passes it immediately to `fn`. the function is expected
     to set up the stream as a consumer. The head of the stream is returned.
-    **/
+    */
 
     writeable: function(fn) {
         const stream = new Stream(nothing);
@@ -179,13 +168,13 @@ assign(Stream.prototype, {
     .batch(duration)
     Returns a stream of streams containing values that each arrived within
     `duration` of the previous value. A gap longer than `duration` stops the
-    current burst stream and the next value is emitted in a new burst stream.
+    current batch stream and the next value is emitted in a new batch stream.
 
     `duration` may be:
 
     - a number, in seconds
     - the string `'frame'`, representing an animation frame
-    - the string `'tick'`, representing a processing tick
+    //- the string `'tick'`, representing a processing tick
     **/
 
     batch: function(duration) {

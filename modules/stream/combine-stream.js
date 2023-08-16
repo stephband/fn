@@ -111,12 +111,10 @@ assign(Pipe.prototype, {
 CombineProducer
 */
 
-const defaultOptions = {};
-
-export default function CombineStream(inputs, options = defaultOptions) {
-    this.inputs   = inputs;
-    this.mutable = !!options.mutable;
-    this.active   = false;
+export default function CombineStream(inputs, options) {
+    this.inputs  = inputs;
+    this.mutable = options && (options === true || options.mutable);
+    this.active  = false;
 }
 
 CombineStream.prototype = assign(create(Stream.prototype), {
