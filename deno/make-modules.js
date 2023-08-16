@@ -9,7 +9,7 @@ import postpad from '../modules/postpad.js';
 // Find latest version here:
 // https://deno.land/x/esbuild
 //import * as es from 'https://deno.land/x/esbuild@v0.12.28/mod.js';
-import * as es from 'https://deno.land/x/esbuild@v0.14.22/mod.js';
+import * as es from 'https://deno.land/x/esbuild@v0.19.2/mod.js';
 
 
 // Arguments - slice args to get a muteable array
@@ -83,8 +83,8 @@ Deno
 
     // Set DEBUG to false to remove any conditions that depend on it
     define: {
-        'window.DEBUG': false,
-        'DEBUG':        false
+        'window.DEBUG': 'false',
+        'DEBUG':        'false'
     },
 
     // Modules become entry points
