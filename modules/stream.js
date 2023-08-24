@@ -158,6 +158,13 @@ assign(Stream, {
 });
 
 assign(Stream.prototype, {
+    /*
+    [Symbol.toPrimitive]: overload(id, {
+        number:  function() { return typeof this.value === 'number' ? this.value : NaN ; },
+        string:  function() { return this.value + ''; },
+        default: function() { return this.value; }
+    }),*/
+
     log: (window.DEBUG && window.console) ?
         function log(...parameters) {
             return this.map((value) => (console.log(...parameters, value), value))
