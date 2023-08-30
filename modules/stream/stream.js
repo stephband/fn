@@ -99,10 +99,10 @@ assign(Stream.prototype, Stopable.prototype, {
     Filters out values where `fn(value)` is falsy.
     **/
 
-    /**
+    /*
     .filter(stream)
     Filters out values where the latest value of `stream` is falsy.
-    **/
+    */
     filter: function(fn) {
         /*return typeof fn === 'function' ?
             new Filter(this, fn) :

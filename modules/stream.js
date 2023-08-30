@@ -17,7 +17,7 @@ const assign = Object.assign;
 
 
 function throwTypeError(source) {
-    throw new TypeError('Stream cannot be created from ' + typeof object);
+    throw new TypeError('Stream cannot be created .from() ' + typeof object);
 }
 
 assign(Stream, {
@@ -27,26 +27,32 @@ assign(Stream, {
     Stream.of(value1, value2, ...)
     Creates a pushable BufferStream from the given parameters.
     **/
+
     of: function() {
         return new BufferStream(A.slice.apply(arguments));
     },
 
     /**
     Stream.from(source)
-    Creates a stream from `source`, which may be a pipeable (an object with
-    `.pipe()` and `.stop()` methods), an array (or array-like), or a promise.
+    Creates a stream from `source`, which may be an **array** (or array-like),
+    a **promise**, a **function**, a **producer** (an object with `.pipe()` and
+    `.stop()` methods), or an **object** of streams, promises or values.
     **/
+
     from: function(source) {
+        return !source ? throwTypeError(source) :
             // Source is a stream or producer
-        return source.pipe ? new Stream(source) :
+            typeof source.pipe === 'function' ? new Stream(source) :
             // Source is a promise
-            source.then ? new PromiseStream(source) :
+            typeof source.then === 'function' ? new PromiseStream(source) :
             // Source has length
-            typeof source.length === 'number' ?
-                // Source is a function
-                typeof source === 'function' ? new FunctionStream(source) :
+            typeof source === 'object' ?
                 // Source is an array-like
-                new BufferStream(source) :
+                typeof source.length === 'number' ? new BufferStream(source) :
+                // Source is an object of streams, promises or values
+                new CombineStream(source) :
+            // Source is a function
+            typeof source === 'function' ? new FunctionStream(source) :
             // Source cannot be made into a stream
             throwTypeError(source) ;
     },
@@ -95,9 +101,11 @@ assign(Stream, {
     ```
 
     By default immutable – the stream emits new objects – it can be made to
-    mutate and emit the `inputs` object by passing an options object with
+    emit a mutated `inputs` object instead, by passing an options object with
     `mutable` set to `true` as a second parameter. This can help minimise
-    garbage collection when dealing with large streams.
+    garbage collection when dealing with large streams, but emitted objects
+    are only valid to be consumed synchronously, as the next emitted object is
+    actually the same object.
 
     ```js
     Stream
