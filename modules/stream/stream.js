@@ -1,4 +1,5 @@
 
+import noop       from '../noop.js';
 import { remove } from '../remove.js';
 import isIterable from '../is-iterable.js';
 import Stopable   from './stopable.js';
@@ -54,6 +55,33 @@ export default function Stream(producer) {
 }
 
 assign(Stream.prototype, Stopable.prototype, {
+    /* Experimental async iterator support for `for await (x of iterator)` loops */
+    [Symbol.asyncIterator]: async function*() {
+        // Buffer for synchronous values
+        const values = [];
+        let resolve = (value) => values.push(value);
+        let promise;
+
+        function setResolve(res, rej) {
+            resolve = res;
+        }
+
+        this
+        .each((value) => resolve(value))
+        .done(() => resolve = noop);
+
+        // Yield collected synchronous values
+        while (values.length) {
+            yield values.shift();
+        }
+
+        // Yield asynchronous values
+        while (resolve !== noop) {
+            promise = new Promise(setResolve);
+            yield await promise;
+        }
+    },
+
     /**
     .push(value)
     Pushes `value` into the stream. If the stream has not been started or is
