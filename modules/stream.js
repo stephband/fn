@@ -45,7 +45,7 @@ assign(Stream, {
             typeof source.pipe === 'function' ? new Stream(source) :
             // Source is a promise
             typeof source.then === 'function' ? new PromiseStream(source) :
-            // Source has length
+            // Source is an object
             typeof source === 'object' ?
                 // Source is an array-like
                 typeof source.length === 'number' ? new BufferStream(source) :

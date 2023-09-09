@@ -16,6 +16,9 @@ function assert(expected, value, name, message) {
 		console.trace('%c' + string, 'color: #ee8833; font-weight: 300;');
 		return false;
 	}
+	//else {
+	//	console.log('%c✔%c pass', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', value);
+	//}
 
 	return true;
 }
@@ -26,11 +29,14 @@ function expectDone(expected, value, name) {
 
 	--totals.pass;
 	++totals.fail;
+
+	// expect() called after done() message
 	console.log('%c' + string, 'color: #ee8833; font-weight: 300;');
 }
 
 function run(name, expected, fn, next) {
-	const n    = expected.length;
+	const n      = expected.length;
+	const passed = [];
 	let m      = 0;
 	let pass   = true;
 
@@ -45,29 +51,45 @@ function run(name, expected, fn, next) {
 			pass = false;
 		}
 		else {
-			pass = pass && assert(expected.shift(), value, name + ' (assertion ' + (n - expected.length) + ')', message);
+			const e = expected.shift();
+			const p = assert(e, value, name + ' (assertion ' + (n - expected.length) + ')', message);
+			if (p) { passed.push(value); }
+			pass = pass && p;
 		}
 	};
 
-	fn(expect, function done() {
-		if (pass && expected.length) {
-			var string = '✘ ' + name + '\n  '
-				+ 'expected ' + n + ' assertions, '
-				+ 'received ' + (n - expected.length) ;
+	Promise
+	.resolve()
+	.then(() => {
+		console.group('%c' + name, 'color: #aaaaaa; font-weight: 300;');
+		console.log('%c✔%c passed', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', passed);
+		fn(expect, function done() {
+			if (pass && expected.length) {
+				var string = '✘ ' + name + '\n  '
+					+ 'expected ' + n + ' assertions, '
+					+ 'received ' + (n - expected.length) ;
 
-			console.trace('%c' + string, 'color: #ee8833; font-weight: 300;');
-			pass = false;
-		}
+				console.trace('%c' + string, 'color: #ee8833; font-weight: 300;');
+				pass = false;
+			}
 
-		if (pass) {
-			++totals.pass;
-			console.log('%c✔%c %s', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', name);
-		}
-		else {
-			++totals.fail;
-		}
+			if (pass) {
+				++totals.pass;
+				// Final PASS message
+				console.log('%c✔%c %s', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', 'All tests passed'/*name*/);
+			}
+			else {
+				++totals.fail;
+			}
 
-		expect = expectDone;
+			expect = expectDone;
+			console.groupEnd();
+			next();
+		});
+	})
+	.catch((error) => {
+		console.groupEnd();
+		console.error(error);
 		next();
 	});
 }

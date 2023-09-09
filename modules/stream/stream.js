@@ -55,30 +55,27 @@ export default function Stream(producer) {
 }
 
 assign(Stream.prototype, Stopable.prototype, {
-    /* Experimental async iterator support for `for await (x of iterator)` loops */
+    /* Experimental async iterator support for `for await (x of stream)`
+       loops. */
     [Symbol.asyncIterator]: async function*() {
         // Buffer for synchronous values
         const values = [];
-        let resolve = (value) => values.push(value);
-        let promise;
+        let push = (value) => values.push(value);
 
         function setResolve(res, rej) {
-            resolve = res;
+            push = res;
         }
 
         this
-        .each((value) => resolve(value))
-        .done(() => resolve = noop);
+        .each((value) => push(value))
+        .done(() => push = noop);
 
-        // Yield collected synchronous values
-        while (values.length) {
-            yield values.shift();
-        }
-
-        // Yield asynchronous values
-        while (resolve !== noop) {
-            promise = new Promise(setResolve);
-            yield await promise;
+        while (push !== noop) {
+            yield values.length ?
+                // Yield collected synchronous value
+                values.shift() :
+                // Yield next asynchronous value
+                await new Promise(setResolve) ;
         }
     },
 
@@ -163,7 +160,7 @@ assign(Stream.prototype, Stopable.prototype, {
     },
 
     take: function(n) {
-console.warn('.take(a) superseded by .slice(0, a)')
+console.warn('.take(n) deprecated by .slice(0, n)')
         return new Slice(this, 0, n);
     },
 
@@ -204,7 +201,9 @@ console.warn('.take(a) superseded by .slice(0, a)')
         // We send to unpipe() to support broadcast streams, a unicast stream
         // at input only requires this.input.stop()
         //unpipe(this.input, this);
+        //console.log('SS');
         stop(this);
+        //this.input.stop.apply(this.input, arguments);
         return this;
     }
 

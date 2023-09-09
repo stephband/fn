@@ -18,11 +18,12 @@ export default function Stopable() {}
 
 assign(Stopable.prototype, {
     stop: function() {
+//console.log('STOP', this);
         // It is possible that a stopable causes .stop() to be called on this.
         // I mean, we're not in control of what they do, here. To mitigate
         // recursion like this, the first thing to do is remove this.stopables.
         const stopables = this.stopables;
-        this.stopables = undefined;
+        this.stopables = null;
 
         if (stopables) {
             stopables.forEach(stop);
@@ -32,6 +33,13 @@ assign(Stopable.prototype, {
     },
 
     done: function(stopable) {
+//console.log('DONE', this);
+        // Is stream already stopped? Fire stopable immediately.
+        if (this.stopables === null) {
+            stop(stopable);
+            return this;
+        }
+
         const stopables = this.stopables || (this.stopables = []);
         stopables.push(stopable);
         return this;

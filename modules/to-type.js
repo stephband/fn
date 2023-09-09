@@ -3,6 +3,4 @@ toType(object)
 Returns `typeof object`.
 */
 
-export default function toType(object) {
-    return typeof object;
-}
+export default (object) => typeof object;

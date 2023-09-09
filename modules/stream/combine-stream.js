@@ -128,22 +128,27 @@ CombineStream.prototype = assign(create(Stream.prototype), {
         this[0] = output;
         output.done(this);
 
-        // Listen to input streams
+        // Populate pipes
         let name;
         for (name in inputs) {
             const input = inputs[name];
 
+            if (typeof input === 'object' && (input.pipe || input.then)) {
+                pipes.push(new Pipe(this, inputs, pipes, name, input, this.mutable));
+            }
+        }
+
+        // Listen to inputs
+        for (var pipe of pipes) {
+            const input = pipe.input;
+
             if (input.pipe) {
                 // Input is a stream
-                const pipe = new Pipe(this, inputs, pipes, name, input, this.mutable);
-                pipes.push(pipe);
                 input.pipe(pipe);
             }
             else if (input.then) {
                 // Input is a promise. Do not chain .then() and .finally(),
                 // they must fire in the same tick
-                const pipe = new Pipe(this, inputs, pipes, name, input, this.mutable);
-                pipes.push(pipe);
                 input.then((value) => pipe.push(value));
                 input.finally(() => pipe.stop());
             }
