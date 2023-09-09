@@ -332,9 +332,7 @@
 
 
 
-        // ------
-
-
+    /**/
         run('Stream...each()',
         ['.pipe()', 'a', 'b', 1, 2],
         function(test, done) {
@@ -542,6 +540,79 @@
             .done(done);
         });
 
+        run('Stream.each() ... .start(time).stop(time)',
+        ['.pipe()', '.start()', '.stop()', 'done'],
+        function(test, done) {
+            // Make a simple frame stream
+            function start(stream) {
+                stream.frame = requestAnimationFrame((time) => {
+                    // Poll frames until time is beyond stream startTime
+                    if (time < stream.startTime) {
+                        start(stream);
+                        return;
+                    }
+
+                    play(stream, time);
+                });
+            }
+
+            function play(stream, time) {
+                // Push the frame
+                stream.push(++stream.count);
+                if (stream.stopTime <= time) {
+                    stop(stream);
+                    return;
+                }
+                stream.frame = requestAnimationFrame((time) => play(stream, time));
+            }
+
+            const now = performance.now();
+            const fd = 16.666666666667;
+
+            const stream1 = new Stream({
+                pipe: function(stream) {
+                    test('.pipe()');
+                    this.stream = stream;
+                    stream.count = 0;
+                    if (this.startTime !== undefined) {
+                        stream.startTime = this.startTime;
+                        stream.stopTime  = this.stopTime;
+                        start(stream);
+                    }
+                },
+
+                start: function(time) {
+                    test('.start()');
+                    if (this.stream) {
+                        this.stream.startTime = time;
+                        start(this.stream);
+                    }
+                    else {
+                        this.startTime = time;
+                    }
+                },
+
+                stop: function(time) {
+                    test('.stop()');
+                    if (this.stream) {
+                        this.stream.stopTime = time;
+                    }
+                    else {
+                        this.stopTime = time;
+                    }
+                }
+            })
+            .map((count) => count)
+            .each((count) => console.log('frame', count))
+            .done(() => test('done'));
+
+            setTimeout(() => {
+                stream1
+                .start(now + 200)
+                .stop(now + 200 + 3 * fd)
+                .done(done);
+            }, 200);
+        });
 
         run('SubStream.stop() unconsumed streams', [
             'a', 'b',
