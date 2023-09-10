@@ -1,7 +1,7 @@
 
-import test         from "../modules/test.js";
-import { Observer } from "../observer/observer.js";
-import observe      from "../observer/observe.js";
+import test         from "../test.js";
+import { Observer } from "../../observer/observer.js";
+import observe      from "../../observer/observe.js";
 
 test("observe('.', object)", [{}, {a:0},{a:1},{a:2}, {}], function(expect, done) {
 	var data     = {};

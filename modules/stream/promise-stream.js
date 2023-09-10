@@ -1,13 +1,13 @@
 
-import Stream, { push, stop } from './stream.js';
+import Stream, { pipe, stop } from './stream.js';
 
 const assign = Object.assign;
 const create = Object.create;
 
 
-/*
-PromiseStream()
-*/
+/**
+PromiseStream(promise)
+**/
 
 export default function PromiseStream(promise) {
     this.promise = promise;
@@ -19,12 +19,16 @@ PromiseStream.prototype = assign(create(Stream.prototype), {
     pipe: function(output) {
         const promise = this.promise;
 
-        this[0] = output;
-        output.done(this);
+        pipe(this, output);
 
-        // Do not chain .then() and .finally(), they must fire in the same tick
-        promise.then((value) => push(this, value));
+        // Do not chain .then() and .finally(), fire them in the same tick
+        promise.then((value) => {
+            if (this.status === 'done') { return; }
+            this[0].push(value);
+        });
+
         promise.finally(() => stop(this));
+
         return output;
     }
 });

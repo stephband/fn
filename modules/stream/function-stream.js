@@ -1,5 +1,5 @@
 
-import Stream, { stop, push } from './stream.js';
+import Stream, { pipe } from './stream.js';
 
 const assign = Object.assign;
 const create = Object.create;
@@ -18,8 +18,7 @@ export default function FunctionStream(fn) {
 FunctionStream.prototype = assign(create(Stream.prototype), {
     pipe: function(output) {
         // Connect stream to output
-        output.done(this);
-        this[0] = output;
+        pipe(this, output);
 
         // Call fn(push, stop)
         this.fn((value) => this.push(value), (value) => this.stop(value));

@@ -61,8 +61,8 @@ function run(name, expected, fn, next) {
 	Promise
 	.resolve()
 	.then(() => {
-		console.group('%c' + name, 'color: #aaaaaa; font-weight: 300;');
-		console.log('%c✔%c passed', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', passed);
+		console.group('%c' + name, 'color: #aaaaaa; font-weight: 300;', passed);
+		//console.log('%c✔%c Tested', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', passed);
 		fn(expect, function done() {
 			if (pass && expected.length) {
 				var string = '✘ ' + name + '\n  '
@@ -76,7 +76,7 @@ function run(name, expected, fn, next) {
 			if (pass) {
 				++totals.pass;
 				// Final PASS message
-				console.log('%c✔%c %s', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', 'All tests passed'/*name*/);
+				console.log('%c✔%c %s', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', 'Tests passed'/*name*/);
 			}
 			else {
 				++totals.fail;

@@ -1,4 +1,5 @@
 
+
 /**
 CombineStream(object, options)
 Creates a stream of objects containing the latest values of all streams and
@@ -40,16 +41,16 @@ new CombineStream({ a: stream, b: promise }, { mutable: true }).each((object) =>
 ```
 **/
 
-import noop                   from '../noop.js';
-import Stream, { push, stop } from './stream.js';
+import noop from '../noop.js';
+import Stream, { pipe, push, stop } from './stream.js';
+import PromiseStream from './promise-stream.js';
 
 const assign = Object.assign;
 const create = Object.create;
-const keys   = Object.keys;
 
 
 /*
-Pipe
+Pipe()
 */
 
 function isActive(object) {
@@ -60,55 +61,50 @@ function isStopped(object) {
     return !!object.stopped;
 }
 
-function Pipe(stream, values, pipes, name, input, mutable) {
+function Pipe(input, name, stream, values, pipes) {
+    this.input = input.then ?
+        // Turn promise into a stream
+        new PromiseStream(input) :
+        input ;
+
     this.stream  = stream;
     this.values  = values;
     this.pipes   = pipes;
     this.name    = name;
-    this.input   = input;
-    this.mutable = mutable;
     this.active  = false;
     this.stopped = false;
 }
 
 assign(Pipe.prototype, {
     push: function(value) {
-        const stream = this.stream;
-        const values = this.values;
-        const name   = this.name;
-
+        const { stream, values, name } = this;
         values[name] = value;
         this.active  = true;
-
         if (stream.active || (stream.active = this.pipes.every(isActive))) {
-            if (this.mutable) {
-                push(stream[0], values);
+            if (stream.mutable) {
+                stream[0].push(values);
             }
             else {
                 // Assign to new object in order to produce non-duplicates
                 const object = new this.values.constructor();
-                push(stream[0], assign(object, values));
+                stream[0].push(assign(object, values));
             }
         }
     },
 
+    // This is not part of the stop chain
     stop: function() {
         this.stopped = true;
-
         // Stop stream when all inputs are stopped
         if (this.pipes.every(isStopped)) {
             stop(this.stream);
         }
-    },
-
-    done: function(stopable) {
-        this.stream.done(stopable);
     }
 });
 
 
 /*
-CombineProducer
+CombineStream()
 */
 
 export default function CombineStream(inputs, options) {
@@ -122,38 +118,51 @@ CombineStream.prototype = assign(create(Stream.prototype), {
 
     pipe: function(output) {
         const inputs = this.inputs;
-        const pipes  = [];
+        const pipes  = this.pipes = [];
+        let pipeable;
 
-        // As in Stream.prototype.pipe()
-        this[0] = output;
-        output.done(this);
+        pipe(this, output);
 
         // Populate pipes
         let name;
         for (name in inputs) {
             const input = inputs[name];
-
             if (typeof input === 'object' && (input.pipe || input.then)) {
-                pipes.push(new Pipe(this, inputs, pipes, name, input, this.mutable));
+                pipes.push(new Pipe(input, name, this, inputs, pipes));
             }
         }
 
         // Listen to inputs
-        for (var pipe of pipes) {
-            const input = pipe.input;
-
-            if (input.pipe) {
-                // Input is a stream
-                input.pipe(pipe);
-            }
-            else if (input.then) {
-                // Input is a promise. Do not chain .then() and .finally(),
-                // they must fire in the same tick
-                input.then((value) => pipe.push(value));
-                input.finally(() => pipe.stop());
-            }
+        for (pipeable of pipes) {
+            pipeable.input
+            // Will call pipeable.stop()
+            .done(pipeable)
+            // Will call pipeable.push()
+            .pipe(pipeable);
         }
 
         return output;
+    },
+
+    stop: function() {
+        // Check status
+        if (this.status === 'done') { return this; }
+
+        // Stop all inputs
+        this.pipes.forEach((pipeable) => {
+            const input = pipeable.input;
+
+            // Does input have more than 1 output? Don't stop it, unpipe()
+            // this from it.
+            if (input[1]) {
+                unpipe(input, pipeable);
+            }
+            else {
+                // Don't pass arguments up the stop chain
+                input.stop();
+            }
+        });
+
+        return stop(this.stream);
     }
 });

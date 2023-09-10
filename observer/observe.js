@@ -1,5 +1,5 @@
 
-import Stream   from '../modules/stream.js';
+import Stream, { pipe, stop } from '../modules/stream.js';
 
 import { isMuteable, getTarget, getTrap } from './observer.js';
 
@@ -8,7 +8,7 @@ const create = Object.create;
 const rkey   = /(^\.?|\.)\s*([\w-]*)\s*/g;
 
 
-function push(value) {
+function pushToProducer(value) {
     this.producer.push(value);
 }
 
@@ -41,7 +41,7 @@ function PathObserver(path, index, object, producer) {
 
     // Are we at the end of the path? .push() can go straight to the producer.
     if (this.index >= this.path.length) {
-        this.push = push;
+        this.push = pushToProducer;
     }
 
     // Bind observer to proxy
@@ -113,16 +113,16 @@ assign(PathObserver.prototype, {
 
 
 /**
-MutationStream(path, object, currentValue)
+Mutations(path, object, currentValue)
 **/
 
-function MutationStream(path, object, value) {
+function Mutations(path, object, value) {
     this.path   = path;
     this.object = object;
     this.value  = value;
 }
 
-MutationStream.prototype = assign(create(Stream.prototype), {
+Mutations.prototype = assign(create(Stream.prototype), {
     push: function(value) {
         // Deduplicate values
         if (this.value === value) {
@@ -139,9 +139,9 @@ MutationStream.prototype = assign(create(Stream.prototype), {
     },
 
     pipe: function(output) {
-        // As Stream.prototype.pipe()
-        this[0] = output;
-        output.done(this);
+        // As Stream.prototype.pipe(), but without the chaining
+        pipe(this, output);
+
         this.pathObserver = new PathObserver(this.path, 0, this.object, this);
 
         // This flag is set here so that `initial` value *is* deduplicated
@@ -152,7 +152,7 @@ MutationStream.prototype = assign(create(Stream.prototype), {
 
     stop: function() {
         this.pathObserver.stop();
-        return Stream.prototype.stop.apply(this, arguments);
+        return stop(this);
     }
 });
 
@@ -166,5 +166,5 @@ is not equal to `initial`.
 **/
 
 export default function observe(path, object, initial) {
-    return new Stream(new MutationStream(path, object, initial));
+    return new Mutations(path, object, initial);
 }

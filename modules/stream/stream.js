@@ -1,95 +1,143 @@
 
-import noop       from '../noop.js';
-import { remove } from '../remove.js';
-import isIterable from '../is-iterable.js';
-import Stopable   from './stopable.js';
+import nothing  from '../nothing.js';
+import overload from '../overload.js';
+import toType   from '../to-type.js';
 
-const assign = Object.assign;
-const create = Object.create;
+const assign     = Object.assign;
+const create     = Object.create;
+//const $input     = Symbol('input');
+const $listeners = Symbol('done');
 
+const call = overload(toType, {
+    function: (fn) => fn(),
+    object:   (object) => object.stop()
+});
 
-/* Connections */
+/**
+pipe(stream)
+Connect stream to output. Sets up `stream[0]` and `output.input` (if output is
+`.stop()`able).
+**/
 
-export function pipe(input, output) {
-    input[0] = output;
-    output.done(input);
+export function pipe(stream, output) {
+    // For internal objects `output.input === stream` already, but for other
+    // streams it doesn't have a reference to input, so it doesn't participate
+    // in the flow of .stop() unless we give it one. Let's use existence of
+    // .stop() to determine need for output.input, to avoid us setting
+    // array.input, for example, in case the consumer is an array.
+    if (output.stop) {
+        output.input = stream;
+    }
+
+    // Add to outputs
+    stream[0] = output;
+    return output;
 }
 
-export function unpipe(input, n) {
-    const stopables = input[n].stopables;
-    stopables && remove(stopables, input);
-    input[n] = undefined;
-}
+/*
+push()
+Force push a value into a `stream[0]`. This pushes the value even if `stream`
+has no `.push()` method.
+*/
 
 export function push(stream, value) {
-    stream && stream.push(value);
+    console.trace('Why are you using this?');
 }
+
+/*
+unpipe(streams, output)
+Internal, part of the stop cycle. Disconnects output from stream.
+*/
+
+function unpipe(stream, output) {
+    let n = -1;
+    let o;
+
+    // Find stream[n] that matches `output`
+    while (stream[++n] && stream[n] !== output);
+
+    if (window.DEBUG && !stream[n]) {
+        throw new Error('Stream: Cannot unpipe(), `output`, not an output of `stream`');
+    }
+
+    // Stop responding to stop() and start() on output
+    output.input = undefined;
+
+    // Decrement output n of higher number outputs
+    while (stream[n++]) {
+        stream[n - 1] = stream[n];
+    }
+
+    return output;
+}
+
+/**
+stop()
+Stops a stream and all downstream streams. This calls the `done` listeners.
+**/
 
 export function stop(stream) {
-    // TODO: the whole logic around stopping makes me a little queasy. This does
-    // not guarantee a sensible order, and in a pipeline stream stop is called
-    // more than once per stream (we protect against recursion inside Stopable).
-    // I feel there must be a better way. It's not immediately evident to me
-    // though.
-
-    // Call done functions
-    Stopable.prototype.stop.apply(stream);
-
-    let n = -1;
-    let output;
-    while (output = stream[++n]) {
-        stream[n] = undefined;
-        output.stop();
+    // Check and set status
+    if (stream.status === 'done') {
+        if (window.DEBUG) { throw new Error('Stream: cannot stop() stream that is done'); }
+        return stream;
     }
+
+    stream.status = 'done';
+
+    // If stream has not yet been piped, we don't call done() functions
+    // for streams that have not been consumed. The problem with
+    // stream[0] on its own is that it's `false` for an Each stream
+    // or other consumer. The way to identify a consumer is that it
+    // does not have a .pipe().
+    if (stream.pipe && !stream[0]) { return stream; }
+
+    // Call done functions and listeners
+    const listeners = stream[$listeners];
+    stream[$listeners] = undefined;
+
+    if (listeners) {
+        listeners.forEach(call);
+    }
+
+    // Unpiping output 0 decrements other outputs, so this loops through
+    // all outputs, in case it's a broadcast stream
+    while (stream[0]) {
+        stop(unpipe(stream, stream[0]));
+    }
+
+    return stream;
 }
 
-export function isStream(object) {
-    return Stream.prototype.isPrototypeOf(object);
+
+/**
+Stream(pipeable)
+A `pipeable` is an object with `.pipe()` and `.stop()` methods, and optionally
+`.start()`.
+**/
+
+export default function Stream(pipeable) {
+    this.input = pipeable;
 }
 
-
-/* Stream */
-
-export default function Stream(producer) {
-    this.input = producer;
-}
-
-assign(Stream.prototype, Stopable.prototype, {
-    /* Experimental async iterator support for `for await (x of stream)`
-       loops. */
-    [Symbol.asyncIterator]: async function*() {
-        // Buffer for synchronous values
-        const values = [];
-        let push = (value) => values.push(value);
-
-        function setResolve(res, rej) {
-            push = res;
-        }
-
-        this
-        .each((value) => push(value))
-        .done(() => push = noop);
-
-        while (push !== noop) {
-            yield values.length ?
-                // Yield collected synchronous value
-                values.shift() :
-                // Yield next asynchronous value
-                await new Promise(setResolve) ;
-        }
-    },
-
+assign(Stream.prototype, {
     /**
     .push(value)
     Pushes `value` into the stream. If the stream has not been started or is
     already stopped this will cause an error.
     **/
     push: function(value) {
-        if (window.DEBUG && !this[0]) {
-            throw new Error('Stream: attempt to .push() to a stopped stream (has a producer not been stopped correctly?)');
-        }
+        // Do we need the guard??
+        return this[0] && this[0].push(value);
+    },
 
-        push(this[0], value);
+    /**
+    .each(fn)
+    Consume the stream, calling `fn(value)` for each value in it.
+    Returns the stream.
+    **/
+    each: function(fn) {
+        return this.pipe(new Each(this, fn));
     },
 
     /**
@@ -98,32 +146,40 @@ assign(Stream.prototype, Stopable.prototype, {
     **/
     pipe: function(output) {
         if (this[0]) {
-            throw new Error('Stream: Attempt to .pipe() a unicast stream multiple times. Create a multicast stream with .broadcast().');
+            throw new Error('Stream: cannot .pipe() a unicast stream more than once');
         }
 
-        this[0] = output;
-        output.done(this);
+        // Connect this to output (sets this[0] and output.input)
+        pipe(this, output);
 
-        // Start pulling values
+        // Tell input to .pipe(), so pipe goes back up the chain
         this.input.pipe(this);
-
         return output;
     },
 
     /**
-    .map(fn)
-    Maps each value in the stream to `fn(value)`. Resulting values that are not
-    `undefined` are pushed downstream.
+    .broadcast(options)
+    Returns a broadcast stream. Methods called on this stream each create new
+    child streams. The first time a consumer is attached to one of these streams
+    the broadcast stream is piped, and the last consumer to be stopped stops the
+    broadcast stream.
+
+    A broadcast stream may have memory, where newly created consumers
+    immediately receive the latest value of the broadcaster when attached
+    (assuming that value is not `undefined`):
+
+    ```js
+    const broadcaster = stream.broadcast({ memory: true });
+    ```
     **/
-    map: function(fn) {
-        return new Map(this, fn);
+    broadcast: function(options) {
+        return new Broadcast(this, options);
     },
 
     /**
     .filter(fn)
     Filters out values where `fn(value)` is falsy.
     **/
-
     /*
     .filter(stream)
     Filters out values where the latest value of `stream` is falsy.
@@ -136,15 +192,6 @@ assign(Stream.prototype, Stopable.prototype, {
     },
 
     /**
-    .split(n)
-    Maps each value in the stream to `fn(value)`. Resulting values that are not
-    `undefined` are pushed downstream.
-    **/
-    split: function(n) {
-        return new Split(this, n);
-    },
-
-    /**
     .flatMap(fn)
     **/
     flatMap: function(fn) {
@@ -152,25 +199,14 @@ assign(Stream.prototype, Stopable.prototype, {
     },
 
     /**
-    .slice(n, m)
-    Returns a stream of the nth to mth values of stream.
+    .map(fn)
+    Maps each value in the stream to `fn(value)`. Resulting values that are not
+    `undefined` are pushed downstream.
     **/
-    slice: function(n, m) {
-        return new Slice(this, n, m);
-    },
-
-    take: function(n) {
-console.warn('.take(n) deprecated by .slice(0, n)')
-        return new Slice(this, 0, n);
-    },
-
-    /**
-    .each(fn)
-    Consume the stream, calling `fn(value)` for each value in it.
-    Returns the stream.
-    **/
-    each: function(fn) {
-        return this.pipe(new Each(fn));
+    map: function(fn) {
+        //return pipe(this, new Map(this, fn));
+        //return this.pipe(new Map(this, fn));
+        return new Map(this, fn);
     },
 
     /**
@@ -194,47 +230,188 @@ console.warn('.take(n) deprecated by .slice(0, n)')
     },
 
     /**
+    .slice(n, m)
+    Returns a stream of the nth to mth values of stream.
+    **/
+    slice: function(n, m) {
+        return new Slice(this, n, m);
+    },
+
+    /**
+    .split(n)
+    **/
+    split: function(n) {
+        return new Split(this, n);
+    },
+
+    /**
+    .start()
+    Out of the box, `.start()` does nothing. Actually, it errors if a '.start()'
+    is not implemented at the head of the stream. The method is provided as a
+    way to build timed streams. It echoes its arguments to the stream head
+    `.start()`, so the head determines whether `.start()` is supported.
+    **/
+    start: function() {
+        if (this.status === 'done') { return this; }
+        this.input.start.apply(this.input, arguments);
+        return this;
+    },
+
+    /**
     .stop()
     Stops the stream.
     **/
     stop: function() {
-        // We send to unpipe() to support broadcast streams, a unicast stream
-        // at input only requires this.input.stop()
-        //unpipe(this.input, this);
-        //console.log('SS');
-        stop(this);
-        //this.input.stop.apply(this.input, arguments);
+        // Check status
+        if (this.status === 'done') { return this; }
+
+        // Does input have more than 1 output? ie, is it a multicast or
+        // broadcast stream? Don't stop it, unpipe() this from it, and
+        // stop `this`.
+        if (this.input[1]) {
+            unpipe(this.input, this);
+            return stop(this);
+        }
+
+        // Otherwise delegate stop() up the chain
+        this.input.stop.apply(this.input, arguments);
         return this;
-    }
+    },
 
     /**
     .done(fn)
     Cues `fn` to be called when the stream is stopped.
     **/
-});
+    done: function(listener) {
+        // Is stream already stopped? Call listener immediately.
+        if (this.status === 'done') {
+            call(listener);
+            return this;
+        }
 
+        const listeners = this[$listeners] || (this[$listeners] = []);
+        listeners.push(listener);
+        return this;
+    },
 
-/* Map */
+    /* Experimental async iterator support for `for await (x of stream)`
+       loops. */
+    [Symbol.asyncIterator]: async function*() {
+        // Buffer for synchronous values
+        const values = [];
+        let push = (value) => values.push(value);
 
-function Map(input, fn) {
-    this.input = input;
-    this.fn    = fn;
-}
+        function setResolve(res, rej) {
+            push = res;
+        }
 
-Map.prototype = assign(create(Stream.prototype), {
-    push: function map(value) {
-        const fn = this.fn;
-        const result = fn(value);
+        this
+        .each((value) => push(value))
+        .done(() => push = noop);
 
-        // Reject undefined results
-        if (result !== undefined) {
-            push(this[0], result);
+        while (push !== noop) {
+            yield values.length ?
+                // Yield collected synchronous value
+                values.shift() :
+                // Yield next asynchronous value
+                await new Promise(setResolve) ;
         }
     }
 });
 
 
-/* Filter */
+/*
+Broadcast(pipeable, options)
+A Broadcast stream may be piped to multiple outputs. The options object has
+the optional properties:
+
+```js
+{
+    // Remember and send the latest value to newly attached pipes
+    memory: true,
+
+    // Start the stream immediately, and keep it alive after output streams are
+    // removed, allowing you to attach new outputs. This stream can only be
+    // stopped by explicitly calling `.stop()` on it. TODO: is this still true
+    // in Stream v3?
+    hot: true
+}
+```
+*/
+
+export function Broadcast(pipeable, options) {
+    //Stream.apply(this, arguments);
+    this.input = pipeable;
+
+    // Mark this stream as a memory stream
+    this.memory = !!(options && options.memory);
+
+    // Open the stream immediately and keep it live even without outputs by
+    // sending output 0 to nothing. It can now only be stopped by explicitly
+    // calling .stop() on it, and not by stopping child streams.
+    if (options && options.hot) {
+        this.pipe(nothing);
+    }
+}
+
+Broadcast.prototype = assign(create(Stream.prototype), {
+    push: function(value) {
+        // Reject undefined
+        if (value === undefined) { return; }
+
+        // If this is a memory stream keep value
+        if (this.memory) {
+            this.value = value;
+        }
+
+        let n = -1;
+        while (this[++n]) {
+            this[n].push(value);
+        }
+    },
+
+    pipe: function(output) {
+        let n = -1;
+        while (this[++n]);
+
+        // If this is a memory stream and this is the first output, flush the
+        // pipe. But we don't have any outputs yet! I know, but the latest value
+        // is remembered and it gets pushed to output below.
+        if (this.memory && n === 0) {
+            this.input.pipe(this);
+        }
+
+        this[n] = output;
+
+        // If stream has value already, it is a memory stream
+        if (this.value !== undefined) {
+            output.push(this.value);
+        }
+
+        // If not a memory stream and this is the first output start the pipeline
+        if (!this.memory && n === 0) {
+            this.input.pipe(this);
+        }
+
+        return output;
+    }
+});
+
+
+/* Each() */
+
+function Each(input, fn) {
+    this.input = input;
+    this.push  = fn;
+}
+
+Each.prototype = assign(create(Stream.prototype), {
+    // Each is a consumer
+    pipe: null
+});
+
+
+/* Filter() */
 
 function Filter(input, fn) {
     this.input = input;
@@ -250,29 +427,7 @@ Filter.prototype = assign(create(Stream.prototype), {
 });
 
 
-/* StreamFilter */
-
-/*
-function setCondition(stream, value) {
-    stream.condition = value;
-    return stream;
-}
-
-function StreamFilter(input, stream) {
-    this.input     = input;
-    this.condition = false;
-    this.done(stream);
-    stream.reduce(setCondition, this);
-}
-
-StreamFilter.prototype = assign(create(Stream.prototype), {
-    push: function filter(value) {
-        this.condition && push(this, value);
-    }
-});
-*/
-
-/* FlatMap */
+/* FlatMap() */
 
 function FlatMap(input, fn) {
     this.input = input;
@@ -284,28 +439,109 @@ FlatMap.prototype = assign(create(Stream.prototype), {
         const fn     = this.fn;
         const values = fn(value);
 
-        if (values !== undefined) {
-            if (isIterable(values)) {
-                for (const value of values) {
-                    push(this[0], value);
-                }
+        if (values === undefined) { return; }
+
+        if (isIterable(values)) {
+            for (const value of values) {
+                this[0].push(value);
             }
-            else if (values.pipe) {
-                // Todo: support flattening of streams. This method is crude -
-                // it does not preserve order, for one thing. Should streams by
-                // made iterable? CAN streams be made iterable? They'd have to
-                // be async...
-                this.done(values.each((value) => push(this[0], value)));
-                // This causes problems if you try
-                // stream.scan(...).flatMap(...)
-                //values.pipe(this[0]);
-            }
+        }
+        else if (values.pipe) {
+            // Todo: support flattening of streams. This method is crude -
+            // it does not preserve order, for one thing. Should streams by
+            // made iterable? CAN streams be made iterable? They'd have to
+            // be async...
+            this.done(values.each((value) => this[0].push(value)));
+            // This causes problems if you try
+            // stream.scan(...).flatMap(...)
+            //values.pipe(this[0]);
         }
     }
 });
 
 
-/* Split */
+/* Map() */
+
+function Map(input, fn) {
+    this.input = input;
+    this.fn    = fn;
+}
+
+Map.prototype = assign(create(Stream.prototype), {
+    push: function map(value) {
+        const fn     = this.fn;
+        const result = fn(value);
+        // Reject undefined, return false... why?
+        return result === undefined || !this[0] ?
+            false :
+            this[0].push(result) ;
+    }
+});
+
+
+/* Reduce() */
+
+function Reduce(fn, accumulator) {
+    this.fn    = fn;
+    this.value = accumulator;
+    this.i     = 0;
+}
+
+Reduce.prototype = assign(create(Stream.prototype), {
+    push: function(value) {
+        const fn = this.fn;
+        this.value = fn(this.value, value, this.i++, this);
+    }
+});
+
+
+/* Scan() */
+
+function Scan(input, fn, accumulator) {
+    this.input = input;
+    this.fn    = fn;
+    this.value = accumulator;
+}
+
+Scan.prototype = assign(create(Stream.prototype), {
+    push: function(value) {
+        const fn = this.fn;
+        this.value = fn(this.value, value);
+        this[0].push(this.value);
+    }
+});
+
+
+/* Slice() */
+
+function Slice(input, n, m = Infinity) {
+    if (window.DEBUG && (typeof n !== 'number' || n < 0)) {
+        throw new Error('Stream: .slice() requires a positive integer (' + n + ')');
+    }
+
+    if (window.DEBUG && (typeof m !== 'number' || m < 1)) {
+        throw new Error('Stream: .slice() requires a non-zero positive integer (n, ' + n + ')');
+    }
+
+    this.input    = input;
+    this.index    = -n;
+    this.indexEnd = n + m;
+}
+
+Slice.prototype = assign(create(Stream.prototype), {
+    push: function take(value) {
+        if (++this.index > 0) {
+            this[0].push(value);
+        }
+
+        if (this.index === this.indexEnd) {
+            this.stop();
+        }
+    }
+});
+
+
+/* Split(input, fn) */
 
 function Split(input, fn) {
     this.input = input;
@@ -337,79 +573,4 @@ Split.prototype = assign(create(Stream.prototype), {
             chunk.push(value);
         }
     }
-});
-
-
-/* Slice */
-
-function Slice(input, n, m = Infinity) {
-    if (window.DEBUG && (typeof n !== 'number' || n < 0)) {
-        throw new Error('Stream: .slice() requires a positive integer (' + n + ')');
-    }
-
-    if (window.DEBUG && (typeof m !== 'number' || m < 1)) {
-        throw new Error('Stream: .slice() requires a non-zero positive integer (n, ' + n + ')');
-    }
-
-    this.input    = input;
-    this.index    = -n;
-    this.indexEnd = n + m;
-}
-
-Slice.prototype = assign(create(Stream.prototype), {
-    push: function take(value) {
-        if (++this.index > 0) {
-            this[0].push(value);
-        }
-
-        if (this.index === this.indexEnd) {
-            this.stop();
-        }
-    }
-});
-
-
-/* Reduce */
-
-function Reduce(fn, accumulator) {
-    this.fn    = fn;
-    this.value = accumulator;
-    this.i     = 0;
-}
-
-Reduce.prototype = assign(create(Stream.prototype), {
-    push: function(value) {
-        const fn = this.fn;
-        this.value = fn(this.value, value, this.i++, this);
-    }
-});
-
-
-/* Scan */
-
-function Scan(input, fn, accumulator) {
-    this.input = input;
-    this.fn    = fn;
-    this.value = accumulator;
-}
-
-Scan.prototype = assign(create(Stream.prototype), {
-    push: function(value) {
-        const fn = this.fn;
-        this.value = fn(this.value, value);
-        this[0].push(this.value);
-    }
-});
-
-
-/* Each */
-
-function Each(fn) {
-    this.push = fn;
-}
-
-Each.prototype = assign(create(Stream.prototype), {
-    each:   null,
-    reduce: null,
-    pipe:   null
 });
