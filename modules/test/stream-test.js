@@ -418,66 +418,6 @@ run('SubStream.stop() delayed start???', [1], function(test, done) {
     }, 500)
 });
 
-run('Stream.broadcast().stop() to one stream',
-[1,2,3,'done',undefined,4,'done','done',5,6],
-function(test, done) {
-    const stream1 = new Stream({
-        pipe: function(output) {
-            this.mynameforoutput = output;
-        },
-
-        stop: function(a, b) {
-            // A pipeable must stop the stream on output 0,
-            // if it is not itself a stream
-            stop(this.mynameforoutput);
-        }
-    });
-
-    const stream2 = stream1.broadcast();
-
-    stream2.done((v) => (test(4), test(stream1.status), test(stream2.status)));
-    stream1.done((v) => (test(3), test(stream1.status), test(stream2.status)));
-    stream2.each(test);
-    stream1.push(1);
-    stream1.push(2);
-    stream2.stop();
-    stream2.done((v) => test(5));
-    stream1.done((v) => test(6));
-
-    done();
-});
-
-run('Stream.broadcast().stop() to multiple streams',
-[1,1,2,2,2,3,'done',undefined,4,'done','done',5,6,7,8,9],
-function(test, done) {
-    const stream1 = new Stream({
-        pipe: function(output) {
-            this.mynameforoutput = output;
-        },
-
-        stop: function(a, b) {
-            // A pipeable must stop the stream on output 0,
-            // if it is not itself a stream
-            stop(this.mynameforoutput);
-        }
-    });
-
-    const stream2 = stream1.broadcast();
-
-    stream2.done((v) => (test(4), test(stream1.status), test(stream2.status)));
-    stream1.done((v) => (test(3), test(stream1.status), test(stream2.status)));
-    stream2.each(test).done((v) => test(5));
-    stream2.each(test).done((v) => test(6));
-    stream1.push(1);
-    stream2.each(test).done((v) => test(7));
-    stream1.push(2);
-    stream2.stop();
-    // These fire synchronously because streams are stopped
-    stream2.done((v) => test(8));
-    stream1.done((v) => test(9));
-
-    done();
-});
 
 run("Stream.of()", [0, 0, 0, null, false, 'done-1', 'done-2'], function(equals, done) {
     var stream   = Stream.of(0);
@@ -566,6 +506,68 @@ run("Stream.pipe()", [0, 1, 2, 3, 4, 'done-1', 'done-2', 'done-3', 'done-4'], fu
     stream1.push(4);
     stream2.stop();
     stream1.push(0);
+
+    done();
+});
+
+
+run('Stream.broadcast().stop() to one stream',
+[1,2,3,'done',undefined,4,'done','done',5,6],
+function(test, done) {
+    const stream1 = new Stream({
+        pipe: function(output) {
+            this.mynameforoutput = output;
+        },
+
+        stop: function(a, b) {
+            // A pipeable must stop the stream on output 0,
+            // if it is not itself a stream
+            stop(this.mynameforoutput);
+        }
+    });
+
+    const stream2 = stream1.broadcast();
+
+    stream2.done((v) => (test(4), test(stream1.status), test(stream2.status)));
+    stream1.done((v) => (test(3), test(stream1.status), test(stream2.status)));
+    stream2.each(test);
+    stream1.push(1);
+    stream1.push(2);
+    stream2.stop();
+    stream2.done((v) => test(5));
+    stream1.done((v) => test(6));
+
+    done();
+});
+
+run('Stream.broadcast().stop() to multiple streams',
+[1,1,2,2,2,3,'done',undefined,4,'done','done',5,6,7,8,9],
+function(test, done) {
+    const stream1 = new Stream({
+        pipe: function(output) {
+            this.mynameforoutput = output;
+        },
+
+        stop: function(a, b) {
+            // A pipeable must stop the stream on output 0,
+            // if it is not itself a stream
+            stop(this.mynameforoutput);
+        }
+    });
+
+    const stream2 = stream1.broadcast();
+
+    stream2.done((v) => (test(4), test(stream1.status), test(stream2.status)));
+    stream1.done((v) => (test(3), test(stream1.status), test(stream2.status)));
+    stream2.each(test).done((v) => test(5));
+    stream2.each(test).done((v) => test(6));
+    stream1.push(1);
+    stream2.each(test).done((v) => test(7));
+    stream1.push(2);
+    stream2.stop();
+    // These fire synchronously because streams are stopped
+    stream2.done((v) => test(8));
+    stream1.done((v) => test(9));
 
     done();
 });

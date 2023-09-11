@@ -36,12 +36,12 @@ assign(Stream, {
 
     from: function(source) {
         return !source ? throwTypeError(source) :
-            // Source is a stream or producer
-            typeof source.pipe === 'function' ? new Stream(source) :
-            // Source is a promise
-            typeof source.then === 'function' ? new PromiseStream(source) :
             // Source is an object
             typeof source === 'object' ?
+                // Source is a stream or producer
+                typeof source.pipe === 'function' ? new Stream(source) :
+                // Source is a promise
+                typeof source.then === 'function' ? new PromiseStream(source) :
                 // Source is an array or array-like
                 typeof source.length === 'number' ? new BufferStream(source) :
                 // Source is an object of streams, promises and values

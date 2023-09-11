@@ -1,7 +1,8 @@
 
-import nothing  from '../nothing.js';
-import overload from '../overload.js';
-import toType   from '../to-type.js';
+import isIterable from '../is-iterable.js';
+import nothing    from '../nothing.js';
+import overload   from '../overload.js';
+import toType     from '../to-type.js';
 
 const assign     = Object.assign;
 const create     = Object.create;
