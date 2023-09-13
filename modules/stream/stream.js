@@ -80,7 +80,10 @@ Stops a stream and all downstream streams. This calls the `done` listeners.
 export function stop(stream) {
     // Check and set status
     if (stream.status === 'done') {
-        if (window.DEBUG) { throw new Error('Stream: cannot stop() stream that is done'); }
+        if (window.DEBUG) {
+            console.log(stream);
+            throw new Error('Stream: cannot stop() stream that is done');
+        }
         return stream;
     }
 
@@ -102,9 +105,15 @@ export function stop(stream) {
     }
 
     // Unpiping output 0 decrements other outputs, so this loops through
-    // all outputs, in case it's a broadcast stream
+    // all outputs, in case it's a broadcast stream. Check it is stoppable,
+    // avoid trying to stop arrays
     while (stream[0]) {
-        stop(unpipe(stream, stream[0]));
+        if (Array.isArray(stream[0])) {
+            unpipe(stream, stream[0]);
+        }
+        else {
+            stop(unpipe(stream, stream[0]));
+        }
     }
 
     return stream;

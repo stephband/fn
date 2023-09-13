@@ -16,9 +16,9 @@ function assert(expected, value, name, message) {
 		console.trace('%c' + string, 'color: #ee8833; font-weight: 300;');
 		return false;
 	}
-	//else {
-	//	console.log('%c✔%c pass', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', value);
-	//}
+	else if (window.DEBUG) {
+		console.log('%c✔%c pass', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', value);
+	}
 
 	return true;
 }
@@ -61,8 +61,11 @@ function run(name, expected, fn, next) {
 	Promise
 	.resolve()
 	.then(() => {
-		console.group('%c' + name, 'color: #aaaaaa; font-weight: 300;', passed);
-		//console.log('%c✔%c Tested', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', passed);
+		if (window.DEBUG) {
+			console.group('%c' + name, 'color: #aaaaaa; font-weight: 300;', passed);
+			console.log('%c✔%c Tested', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', passed);
+		}
+
 		fn(expect, function done() {
 			if (pass && expected.length) {
 				var string = '✘ ' + name + '\n  '
@@ -83,12 +86,22 @@ function run(name, expected, fn, next) {
 			}
 
 			expect = expectDone;
-			console.groupEnd();
+
+			if (window.DEBUG) {
+				console.groupEnd();
+			}
+			else {
+				console.log('%c✔%c ' + name, 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', passed);
+			}
+
 			next();
 		});
 	})
 	.catch((error) => {
-		console.groupEnd();
+		if (window.DEBUG) {
+			console.groupEnd();
+		}
+
 		console.error(error);
 		next();
 	});
