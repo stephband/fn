@@ -9,7 +9,7 @@ const create  = Object.create;
 /** Throttle(stream, frames) **/
 
 export default function Throttle(input, frames) {
-    frames = Stream.isStream(input) ?
+    frames = Stream.isStream(frames) ?
         frames :
         new Frames(this, frames) ;
 
