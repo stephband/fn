@@ -42,7 +42,7 @@ has no `.push()` method.
 */
 
 export function push(stream, value) {
-    console.trace('Why are you using this?');
+    console.trace('Stream push() is deprecated!');
 }
 
 /*
@@ -432,7 +432,7 @@ Filter.prototype = assign(create(Stream.prototype), {
     push: function filter(value) {
         const fn = this.fn;
         const is = fn(value);
-        is && push(this[0], value);
+        is && this[0].push(value);
     }
 });
 
@@ -576,7 +576,7 @@ Split.prototype = assign(create(Stream.prototype), {
 
         if (this.fn(value)) {
             // Emit complete chunk and create a new chunk
-            push(this[0], chunk);
+            this[0].push(chunk);
             this.chunk = [];
         }
         else {

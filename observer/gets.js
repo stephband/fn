@@ -32,11 +32,6 @@ assign(GetProducer.prototype, {
     pipe: function(root) {
         this[0] = this.root = root;
         getTrap(this.target).gets.push(this);
-
-        // If this is the root producer listen for stream stop
-        if (this.path === '') {
-            this[0].done(this);
-        }
     },
 
     listen: function(key) {

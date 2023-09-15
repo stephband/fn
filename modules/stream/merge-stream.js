@@ -1,21 +1,21 @@
 
-import Stream, { push, stop } from './stream.js';
+import Stream, { pipe, stop } from './stream.js';
 
 const assign = Object.assign;
 const create = Object.create;
 
 
 /*
-Pipe
+Source()
 */
 
-function Pipe(stream) {
+function Source(stream) {
     this.stream = stream;
 }
 
-assign(Pipe.prototype, {
+assign(Source.prototype, {
     push: function(value) {
-        push(this.stream[0], value);
+        this.stream[0].push(value);
     },
 
     stop: function() {
@@ -26,6 +26,7 @@ assign(Pipe.prototype, {
     },
 
     done: function(stopable) {
+        console.log('HELLO');
         this.stream.done(stopable);
     }
 });
@@ -47,32 +48,31 @@ MergeStream.prototype = assign(create(Stream.prototype), {
         this.count = inputs.length;
 
         // As in Stream.prototype.pipe()
-        this[0] = output;
-        output.done(this);
+        pipe(this, output);
 
         // Listen to inputs
-        const pipe = new Pipe(this);
+        const source = new Source(this);
 
         let i = -1;
         let input;
         while (input = inputs[++i]) {
             if (input.pipe) {
                 // Input is a stream
-                input.pipe(pipe);
+                input.pipe(source);
             }
             else if (input.then) {
                 // Input is a promise. Do not chain .then() and .finally(),
                 // they must fire in the same tick
-                input.then((value) => pipe.push(value));
-                input.finally(() => pipe.stop());
+                input.then((value) => source.push(value));
+                input.finally(() => source.stop());
             }
             else {
                 // Input is an array-like
                 let n = -1;
                 while (++n < input.length) {
-                    pipe.push(input[n]);
+                    source.push(input[n]);
                 }
-                pipe.stop();
+                source.stop();
             }
         }
 

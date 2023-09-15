@@ -42,7 +42,7 @@ new CombineStream({ a: stream, b: promise }, { mutable: true }).each((object) =>
 **/
 
 import noop from '../noop.js';
-import Stream, { pipe, push, stop } from './stream.js';
+import Stream, { pipe, stop } from './stream.js';
 import PromiseStream from './promise-stream.js';
 
 const assign = Object.assign;

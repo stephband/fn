@@ -2,12 +2,14 @@
 import nothing         from './nothing.js';
 import self            from './self.js';
 
-import Stream, { Broadcast, pipe, push, stop } from './stream/stream.js';
+import Stream, { Broadcast, pipe, stop } from './stream/stream.js';
 import BufferStream    from './stream/buffer-stream.js';
 import CombineStream   from './stream/combine-stream.js';
 import FunctionStream  from './stream/function-stream.js';
-//import MergeStream     from './stream/merge-stream.js';
+import MergeStream     from './stream/merge-stream.js';
 import PromiseStream   from './stream/promise-stream.js';
+import Frames          from './stream/frames-stream.js';
+import Throttle        from './stream/throttle-stream.js';
 
 const A      = Array.prototype;
 const assign = Object.assign;
@@ -19,10 +21,17 @@ function throwTypeError(source) {
 
 assign(Stream, {
     /**
+    Stream.isStream(object)
+    Checks `object`'s prototype and returns `true` or `false`.
+    **/
+    isStream: function(object) {
+        return Stream.prototype.isPrototypeOf(object);
+    },
+
+    /**
     Stream.of(value1, value2, ...)
     Creates a pushable BufferStream from the given parameters.
     **/
-
     of: function() {
         return new BufferStream(A.slice.apply(arguments));
     },
@@ -33,7 +42,6 @@ assign(Stream, {
     a **promise**, a **function**, a **producer** (an object with `.pipe()` and
     `.stop()` methods), or an **object** of streams, promises or values.
     **/
-
     from: function(source) {
         return !source ? throwTypeError(source) :
             // Source is an object
@@ -57,7 +65,6 @@ assign(Stream, {
     Returns a broadcast stream. Methods called on this stream each
     create a new stream.
     */
-
     broadcast: (options) => new Broadcast(nothing, options),
 
     /**
@@ -105,8 +112,12 @@ assign(Stream, {
     });
     ```
     **/
-
     combine: (object, options) => new CombineStream(object, options),
+
+    /**
+    Stream.frames(time)
+    **/
+    frames: (duration) => new Frames(duration),
 
     /**
     Stream.merge(stream1, stream2, ...)
@@ -120,11 +131,30 @@ assign(Stream, {
     });
     ```
     **/
-
-    //merge: function() { return new MergeStream(arguments); }
+    merge: function() { return new MergeStream(arguments); }
 });
 
 assign(Stream.prototype, {
+    /**
+    .throttle(frames)
+
+    **/
+    throttle: function(frames) {
+        return new Throttle(this, frames);
+    },
+
+    /**
+    Stream.merge(stream1, stream2, ...)
+    Creates a stream by merging values from any number of input streams into a
+    single output stream. Values are emitted in the time order they are received
+    from inputs.
+
+    ```js
+    Stream.merge(stream1, stream2).each((value) => {
+        // value is from stream1 or stream 2
+    });
+    ```
+    **/
     log: (window.DEBUG && window.console) ?
         function log(...parameters) {
             return this.map((value) => (console.log(...parameters, value), value))
@@ -132,4 +162,4 @@ assign(Stream.prototype, {
         self
 });
 
-export { Stream as default, pipe, push, stop };
+export { Stream as default, pipe, stop };
