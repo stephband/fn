@@ -17,7 +17,7 @@ function assert(expected, value, name, message) {
 		return false;
 	}
 	else if (window.DEBUG) {
-		console.log('%c✔%c pass', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', value);
+		//console.log('%c✔%c pass', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', value);
 	}
 
 	return true;
