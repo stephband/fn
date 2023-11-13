@@ -8,7 +8,7 @@ import CombineStream   from './stream/combine-stream.js';
 import FunctionStream  from './stream/function-stream.js';
 import MergeStream     from './stream/merge-stream.js';
 import PromiseStream   from './stream/promise-stream.js';
-import Frames          from './stream/frames-stream.js';
+import FrameStream     from './stream/frames-stream.js';
 import Throttle        from './stream/throttle-stream.js';
 
 const A      = Array.prototype;
@@ -117,7 +117,7 @@ assign(Stream, {
     /**
     Stream.frames(time)
     **/
-    frames: (duration) => new Frames(duration),
+    frames: (duration) => new FrameStream(duration),
 
     /**
     Stream.merge(stream1, stream2, ...)
@@ -162,4 +162,11 @@ assign(Stream.prototype, {
         self
 });
 
-export { Stream as default, pipe, stop };
+const frames = Stream.frames;
+
+export {
+    Stream as default,
+    pipe,
+    stop,
+    frames
+};

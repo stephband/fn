@@ -213,7 +213,7 @@ var timeFormatters = {
 	m: function mm(time) {
 		time = time < 0 ? -time : time;
 		var minutes = Math.floor(secondsToMinutes(time));
-		return prefix(minutes) + minutes;
+		return minutes;
 	},
 
 	mm: function mm(time) {
