@@ -115,9 +115,15 @@ assign(Stream, {
     combine: (object, options) => new CombineStream(object, options),
 
     /**
-    Stream.frames(time)
+    Stream.clock(duration)
+
+    If `duration` is a number, constructs an interval stream of DOM timestamps
+    at `duration` seconds apart.
+
+    If `duration` is `"frame"`, constructs a stream of DOM timestamps from
+    `requestAnimationFrame`.
     **/
-    frames: (duration) => new FrameStream(duration),
+    clock: (duration) => new FrameStream(duration),
 
     /**
     Stream.merge(stream1, stream2, ...)
