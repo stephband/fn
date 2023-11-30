@@ -27,7 +27,9 @@ export default function Throttle(input, frames) {
 
 Throttle.prototype = assign(create(Stream.prototype), {
     push: function(value) {
-        if (value === undefined) { return; }
+        if (value === undefined) {
+            return;
+        }
 
         if (this.frames.status !== 'playing') {
             // Start the frames stream and send initial value
