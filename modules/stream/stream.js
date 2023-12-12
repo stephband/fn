@@ -451,11 +451,13 @@ FlatMap.prototype = assign(create(Stream.prototype), {
 
         if (values === undefined) { return; }
 
+        // Flatten array or array-like
         if (isIterable(values)) {
             for (const value of values) {
                 this[0].push(value);
             }
         }
+        // Flatten stream
         else if (values.pipe) {
             console.warn('FlatMapping pipeables is dodgy. Map to arrays for the moment please.');
             // Todo: support flattening of streams. This method is crude -
@@ -466,6 +468,10 @@ FlatMap.prototype = assign(create(Stream.prototype), {
             // This causes problems if you try
             // stream.scan(...).flatMap(...)
             //values.pipe(this[0]);
+        }
+        // Flatten promise
+        else if (values.then) {
+            values.then((value) => this[0].push(value));
         }
     }
 });
