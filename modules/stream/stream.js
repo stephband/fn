@@ -35,15 +35,6 @@ export function pipe(stream, output) {
     return output;
 }
 
-/*
-push()
-Force push a value into a `stream[0]`. This pushes the value even if `stream`
-has no `.push()` method.
-*/
-
-export function push(stream, value) {
-    console.trace('Stream push() is deprecated!');
-}
 
 /*
 unpipe(streams, output)
@@ -71,6 +62,7 @@ function unpipe(stream, output) {
 
     return output;
 }
+
 
 /**
 stop()

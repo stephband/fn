@@ -8,7 +8,7 @@ import CombineStream   from './stream/combine-stream.js';
 import FunctionStream  from './stream/function-stream.js';
 import MergeStream     from './stream/merge-stream.js';
 import PromiseStream   from './stream/promise-stream.js';
-import FrameStream     from './stream/frames-stream.js';
+import FrameStream     from './stream/clock-stream.js';
 import Throttle        from './stream/throttle-stream.js';
 
 const A      = Array.prototype;
