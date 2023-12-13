@@ -48,7 +48,10 @@ Throttle.prototype = assign(create(Stream.prototype), {
 
     stop: function(sendLastValue) {
         // Stop the frames stream
-        this.clock.stop();
+        if (this.clock) {
+            this.clock.stop();
+            this.clock = undefined;
+        }
 
         if (sendLastValue) {
             this[0].push(value);
