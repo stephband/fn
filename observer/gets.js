@@ -12,8 +12,8 @@ const record = {};
 
 /**
 gets(object)
-Calls `fn` for every property of `object` read via a get operation. Returns an
-object with the method `.stop()`.
+Returns a stream of get records for `object`. Record objects have the properties
+`path` and `value`, and are only valid synchronously.
 **/
 
 function invokeStop(object) {
@@ -71,7 +71,6 @@ assign(GetProducer.prototype, {
 
 export default function gets(object) {
     const observer = Observer(object);
-
     return observer ?
         new Stream(new GetProducer(observer, '')) :
         nothing ;
