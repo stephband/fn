@@ -6,7 +6,7 @@ values in a map, such that for each input value `fn` is only ever called once.
 
 let warned;
 
-export default function mapCache(fn) {
+export default function cacheByObject(fn) {
     var map = new Map();
 
     return function cache(object) {
