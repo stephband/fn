@@ -3,13 +3,13 @@
 toCartesian3D(polar3D)
 **/
 
-export default function toCartesian3D([radius, theta, phi]) {
-    return Float64Array.of(
+export default function toCartesian3D([d, theta, phi]) {
+    return Float32Array.of(
         // x
-        radius * Math.sin(phi) * Math.cos(theta),
+        d * Math.sin(phi) * Math.cos(theta),
         // y
-        radius * Math.sin(phi) * Math.sin(theta),
+        d * Math.sin(phi) * Math.sin(theta),
         // z
-        radius * Math.cos(phi)
+        d * Math.cos(phi)
     );
 }

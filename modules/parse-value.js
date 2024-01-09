@@ -14,10 +14,6 @@ const parseUnitValue = parseValue({
     },
 
     catch: function(string) {
-        if (typeof string === 'number') {
-            return string;
-        }
-
         throw new Error('Cannot parse px value');
     }
 });

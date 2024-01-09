@@ -24,7 +24,7 @@ export default function rotate3D([rx, ry, rz], [x, y, z]) {
     const matrix7 = yzM + xs;
     const matrix8 = rz * rz * oneMinusCosA + cosA;
 
-    return Float64Array.of(
+    return Float32Array.of(
         matrix0 * x + matrix1 * y + matrix2 * z,
         matrix3 * x + matrix4 * y + matrix5 * z,
         matrix6 * x + matrix7 * y + matrix8 * z

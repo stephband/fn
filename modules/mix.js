@@ -3,12 +3,11 @@
 Defines properties (and property descriptors) of mixin on object.
 **/
 
-const define = Object.defineProperty;
+export default function mix(a, b) {
+    const descriptors = Object.getOwnPropertyDescriptors(b);
 
-export default function mix(object, mixin) {
-    for (const key in mixin) {
-        define(object, getOwnPropertyDescriptor(mixin, key));
-    }
+    // Do not overwrite constructor property
+    delete descriptors.constructor;
 
-    return object;
+    return Object.defineProperties(a, descriptors);
 }
