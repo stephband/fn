@@ -118,8 +118,53 @@ A `pipeable` is an object with `.pipe()` and `.stop()` methods, and optionally
 `.start()`.
 **/
 
+/**
+Stream(fn)
+Passing a function to `Stream()` creates a readable stream. The function `fn`
+is called when a consumer is first attached to the stream. It is passed two
+arguments, `push()`, used to write to the stream, and `stop()`, used to stop
+the stream.
+**/
+
+const readable = {
+    pipe: function(output) {
+        // Connect stream to output
+        pipe(this, output);
+
+        // Call fn(push, stop)
+        this.fn(
+            (value) => Stream.prototype.push.call(this, value),
+            () => this.stop()
+        );
+
+        // Return output stream
+        return output;
+    },
+
+    push: null,
+
+    stop: function() {
+        return this.status === 'done' ?
+            this :
+            stop(this) ;
+    }
+};
+
 export default function Stream(pipeable) {
-    this.input = pipeable;
+    const type = typeof pipeable;
+    if (type === 'object') {
+        // Set pipeable as input
+        this.input = pipeable;
+    }
+    else if (type === 'function') {
+        // Store function
+        this.fn = pipeable;
+        // Configure stream as a readonly stream
+        assign(this, readable);
+    }
+    else if (window.DEBUG) {
+        throw new Error('new Stream() may be called with a pipeable object or a function');
+    }
 }
 
 assign(Stream.prototype, {

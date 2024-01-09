@@ -5,7 +5,6 @@ import self            from './self.js';
 import Stream, { Broadcast, pipe, stop } from './stream/stream.js';
 import BufferStream    from './stream/buffer-stream.js';
 import CombineStream   from './stream/combine-stream.js';
-import FunctionStream  from './stream/function-stream.js';
 import MergeStream     from './stream/merge-stream.js';
 import PromiseStream   from './stream/promise-stream.js';
 import FrameStream     from './stream/clock-stream.js';
@@ -55,7 +54,7 @@ assign(Stream, {
                 // Source is an object of streams, promises and values
                 new CombineStream(source) :
             // Source is a function
-            typeof source === 'function' ? new FunctionStream(source) :
+            typeof source === 'function' ? new Stream(source) :
             // Source cannot be made into a stream
             throwTypeError(source) ;
     },
