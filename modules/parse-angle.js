@@ -4,6 +4,12 @@ import parseValue from './parseValue.js';
 import toDeg      from './to-deg.js';
 import toRad      from './to-rad.js';
 
+/**
+parseAngle(string)
+
+
+**/
+
 export default parseValue({
     deg:  toRad,
     rad:  id,
