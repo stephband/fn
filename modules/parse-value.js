@@ -28,7 +28,11 @@ export default function parseValue(units) {
     return function parseValue(string) {
         // Allow number to pass through
         if (typeof string === 'number') {
-            return string;
+            return units[''] ?
+                // Treat number the same as a a string number without units
+                units[''](string) ;
+                // But if there is no entry for it allow it to pass through
+                string ;
         }
 
         var entry = runit.exec(string);

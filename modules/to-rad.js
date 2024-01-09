@@ -3,6 +3,4 @@
 toRad(deg)
 **/
 
-export default function toRad(n) {
-    return n * Math.PI / 180;
-}
+export const toRad = (n) => n * Math.PI / 180;
