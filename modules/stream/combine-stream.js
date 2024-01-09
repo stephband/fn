@@ -163,6 +163,7 @@ CombineStream.prototype = assign(create(Stream.prototype), {
             }
         });
 
-        return stop(this.stream);
+        // Stopping the last input stopped this stream already
+        return this;
     }
 });
