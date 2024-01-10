@@ -3,4 +3,4 @@
 toDeg(rad)
 **/
 
-export const toDeg = (n) => n * 180 / Math.PI;
+export default (n) => n * 180 / Math.PI;
