@@ -55,7 +55,7 @@ ClockStream.prototype = assign(create(Stream.prototype), {
             // Wait until startTime, or where startTime is undefined, next tick
             this.timer = setTimeout(() => {
                 const time = performance.now() / 1000;
-                const fn   = () => this[0].push(performance.now() / 1000);
+                const fn = () => this[0].push(performance.now() / 1000);
 
                 // Push time and start interval timer
                 this.status = 'playing';

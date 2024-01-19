@@ -136,16 +136,22 @@ assign(Stream, {
     });
     ```
     **/
-    merge: function() { return new MergeStream(arguments); }
+    merge: function() { return new MergeStream(arguments); },
+
+    /**
+    Stream.throttle(time)
+    **/
+    throttle: function(time) {
+        return new Throttle(null, time);
+    }
 });
 
 assign(Stream.prototype, {
     /**
-    .throttle(frames)
-
+    .throttle(time)
     **/
-    throttle: function(frames) {
-        return new Throttle(this, frames);
+    throttle: function(time) {
+        return new Throttle(this, time);
     },
 
     /**

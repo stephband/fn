@@ -1,6 +1,7 @@
 
 import isIterable from '../is-iterable.js';
 import nothing    from '../nothing.js';
+import noop       from '../noop.js';
 import overload   from '../overload.js';
 import toType     from '../to-type.js';
 
@@ -32,6 +33,7 @@ export function pipe(stream, output) {
 
     // Add to outputs
     stream[0] = output;
+
     return output;
 }
 
@@ -41,7 +43,7 @@ unpipe(streams, output)
 Internal, part of the stop cycle. Disconnects output from stream.
 */
 
-function unpipe(stream, output) {
+export function unpipe(stream, output) {
     let n = -1;
     let o;
 
@@ -152,6 +154,7 @@ const readable = {
 
 export default function Stream(pipeable) {
     const type = typeof pipeable;
+
     if (type === 'object') {
         // Set pipeable as input
         this.input = pipeable;
@@ -192,8 +195,12 @@ assign(Stream.prototype, {
     Starts a stream and pushes its values into `stream`. Returns `stream`.
     **/
     pipe: function(output) {
-        if (this[0]) {
+        if (window.DEBUG && this[0]) {
             throw new Error('Stream: cannot .pipe() a unicast stream more than once');
+        }
+
+        if (window.DEBUG && !output.push) {
+            throw new Error('Stream: attempt to .pipe() to non-pushable object');
         }
 
         // Connect this to output (sets this[0] and output.input)
@@ -397,7 +404,7 @@ export function Broadcast(pipeable, options) {
     // sending output 0 to nothing. It can now only be stopped by explicitly
     // calling .stop() on it, and not by stopping child streams.
     if (options && options.hot) {
-        this.pipe(nothing);
+        this.pipe({ push: noop });
     }
 }
 
@@ -428,6 +435,7 @@ Broadcast.prototype = assign(create(Stream.prototype), {
             this.input.pipe(this);
         }
 
+        if (output.stop && output !== nothing) { output.input = this; }
         this[n] = output;
 
         // If stream has value already, it is a memory stream

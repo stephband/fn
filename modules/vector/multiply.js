@@ -1,6 +1,8 @@
 
-export default function multiply(n, v2) {
-    return Float32Array.from(v2, (v) => v * n);
+export default function multiply(n, v2, buffer = Float32Array.from(v2)) {
+    let i = v2.length;
+    while (i--) buffer[i] = n * v2[i];
+    return buffer;
 }
 
 function multiplyMatrixPoint(m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, px, py, pz, pw = 1, buffer = new Float32Array(4), n = 0) {

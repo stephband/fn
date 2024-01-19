@@ -1,6 +1,6 @@
 
-import Stream      from './stream.js';
-import ClockStream from './clock-stream.js';
+import Stream     from './stream.js';
+import TimeStream from './clock-stream.js';
 
 const assign  = Object.assign;
 const create  = Object.create;
@@ -27,11 +27,8 @@ Throttle.prototype = assign(create(Stream.prototype), {
             return;
         }
 
-        const clock = new ClockStream(this.duration);
-
-        this.value  = value;
-        this.clock = clock
-        .each((time) => {
+        const clock = new TimeStream(this.duration);
+        const fn = (time) => {
             // If no value has been pushed since the last one stop the clock
             if (this.value === undefined) {
                 clock.stop();
@@ -42,8 +39,11 @@ Throttle.prototype = assign(create(Stream.prototype), {
             // Push the latest value to output
             this[0].push(this.value);
             this.value = undefined;
-        })
-        .start();
+        };
+
+
+        this.value = value;
+        this.clock = clock.each(fn).start();
     },
 
     stop: function(sendLastValue) {
