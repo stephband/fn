@@ -1,6 +1,6 @@
 
 import id         from './id.js';
-import parseValue from './parseValue.js';
+import parseValue from './parse-value.js';
 import toRad      from './to-rad.js';
 
 /**
