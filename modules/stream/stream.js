@@ -420,6 +420,8 @@ Broadcast.prototype = assign(create(Stream.prototype), {
 
         let n = -1;
         while (this[++n]) {
+            // TODO: should this push cause a child to .stop() and remove
+            // itself... we have a problem...
             this[n].push(value);
         }
     },
