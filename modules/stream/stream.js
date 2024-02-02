@@ -508,7 +508,7 @@ FlatMap.prototype = assign(create(Stream.prototype), {
         else if (values.pipe) {
             console.warn('FlatMapping pipeables is dodgy. Map to arrays for the moment please.');
             // Todo: support flattening of streams. This method is crude -
-            // it does not preserve order, for one thing. Should streams by
+            // it does not preserve order, for one thing. Should streams be
             // made iterable? CAN streams be made iterable? They'd have to
             // be async...
             this.done(values.each((value) => this[0].push(value)));
