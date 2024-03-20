@@ -5,10 +5,9 @@ import self            from './self.js';
 import Stream, { Broadcast, pipe, stop } from './stream/stream.js';
 import BufferStream    from './stream/buffer-stream.js';
 import CombineStream   from './stream/combine-stream.js';
-import FunctionStream  from './stream/function-stream.js';
 import MergeStream     from './stream/merge-stream.js';
 import PromiseStream   from './stream/promise-stream.js';
-import Frames          from './stream/frames-stream.js';
+import FrameStream     from './stream/clock-stream.js';
 import Throttle        from './stream/throttle-stream.js';
 
 const A      = Array.prototype;
@@ -55,7 +54,7 @@ assign(Stream, {
                 // Source is an object of streams, promises and values
                 new CombineStream(source) :
             // Source is a function
-            typeof source === 'function' ? new FunctionStream(source) :
+            typeof source === 'function' ? new Stream(source) :
             // Source cannot be made into a stream
             throwTypeError(source) ;
     },
@@ -115,9 +114,15 @@ assign(Stream, {
     combine: (object, options) => new CombineStream(object, options),
 
     /**
-    Stream.frames(time)
+    Stream.clock(duration)
+
+    If `duration` is a number, constructs an interval stream of DOM timestamps
+    at `duration` seconds apart.
+
+    If `duration` is `"frame"`, constructs a stream of DOM timestamps from
+    `requestAnimationFrame`.
     **/
-    frames: (duration) => new Frames(duration),
+    clock: (duration) => new FrameStream(duration),
 
     /**
     Stream.merge(stream1, stream2, ...)
@@ -131,16 +136,22 @@ assign(Stream, {
     });
     ```
     **/
-    merge: function() { return new MergeStream(arguments); }
+    merge: function() { return new MergeStream(arguments); },
+
+    /**
+    Stream.throttle(time)
+    **/
+    throttle: function(time) {
+        return new Throttle(null, time);
+    }
 });
 
 assign(Stream.prototype, {
     /**
-    .throttle(frames)
-
+    .throttle(time)
     **/
-    throttle: function(frames) {
-        return new Throttle(this, frames);
+    throttle: function(time) {
+        return new Throttle(this, time);
     },
 
     /**
@@ -162,4 +173,11 @@ assign(Stream.prototype, {
         self
 });
 
-export { Stream as default, pipe, stop };
+const frames = Stream.frames;
+
+export {
+    Stream as default,
+    pipe,
+    stop,
+    frames
+};

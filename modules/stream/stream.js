@@ -1,6 +1,7 @@
 
 import isIterable from '../is-iterable.js';
 import nothing    from '../nothing.js';
+import noop       from '../noop.js';
 import overload   from '../overload.js';
 import toType     from '../to-type.js';
 
@@ -32,25 +33,17 @@ export function pipe(stream, output) {
 
     // Add to outputs
     stream[0] = output;
+
     return output;
 }
 
-/*
-push()
-Force push a value into a `stream[0]`. This pushes the value even if `stream`
-has no `.push()` method.
-*/
-
-export function push(stream, value) {
-    console.trace('Stream push() is deprecated!');
-}
 
 /*
 unpipe(streams, output)
 Internal, part of the stop cycle. Disconnects output from stream.
 */
 
-function unpipe(stream, output) {
+export function unpipe(stream, output) {
     let n = -1;
     let o;
 
@@ -71,6 +64,7 @@ function unpipe(stream, output) {
 
     return output;
 }
+
 
 /**
 stop()
@@ -126,8 +120,54 @@ A `pipeable` is an object with `.pipe()` and `.stop()` methods, and optionally
 `.start()`.
 **/
 
+/**
+Stream(fn)
+Passing a function to `Stream()` creates a readable stream. The function `fn`
+is called when a consumer is first attached to the stream. It is passed two
+arguments, `push()`, used to write to the stream, and `stop()`, used to stop
+the stream.
+**/
+
+const readable = {
+    pipe: function(output) {
+        // Connect stream to output
+        pipe(this, output);
+
+        // Call fn(push, stop)
+        this.fn(
+            (value) => Stream.prototype.push.call(this, value),
+            () => this.stop()
+        );
+
+        // Return output stream
+        return output;
+    },
+
+    push: null,
+
+    stop: function() {
+        return this.status === 'done' ?
+            this :
+            stop(this) ;
+    }
+};
+
 export default function Stream(pipeable) {
-    this.input = pipeable;
+    const type = typeof pipeable;
+
+    if (type === 'object') {
+        // Set pipeable as input
+        this.input = pipeable;
+    }
+    else if (type === 'function') {
+        // Store function
+        this.fn = pipeable;
+        // Configure stream as a readonly stream
+        assign(this, readable);
+    }
+    else if (window.DEBUG) {
+        throw new Error('new Stream() may be called with a pipeable object or a function');
+    }
 }
 
 assign(Stream.prototype, {
@@ -155,8 +195,12 @@ assign(Stream.prototype, {
     Starts a stream and pushes its values into `stream`. Returns `stream`.
     **/
     pipe: function(output) {
-        if (this[0]) {
+        if (window.DEBUG && this[0]) {
             throw new Error('Stream: cannot .pipe() a unicast stream more than once');
+        }
+
+        if (window.DEBUG && !output.push) {
+            throw new Error('Stream: attempt to .pipe() to non-pushable object');
         }
 
         // Connect this to output (sets this[0] and output.input)
@@ -360,7 +404,7 @@ export function Broadcast(pipeable, options) {
     // sending output 0 to nothing. It can now only be stopped by explicitly
     // calling .stop() on it, and not by stopping child streams.
     if (options && options.hot) {
-        this.pipe(nothing);
+        this.pipe({ push: noop });
     }
 }
 
@@ -376,6 +420,8 @@ Broadcast.prototype = assign(create(Stream.prototype), {
 
         let n = -1;
         while (this[++n]) {
+            // TODO: should this push cause a child to .stop() and remove
+            // itself... we have a problem...
             this[n].push(value);
         }
     },
@@ -391,6 +437,7 @@ Broadcast.prototype = assign(create(Stream.prototype), {
             this.input.pipe(this);
         }
 
+        if (output.stop && output !== nothing) { output.input = this; }
         this[n] = output;
 
         // If stream has value already, it is a memory stream
@@ -451,21 +498,27 @@ FlatMap.prototype = assign(create(Stream.prototype), {
 
         if (values === undefined) { return; }
 
+        // Flatten array or array-like
         if (isIterable(values)) {
             for (const value of values) {
                 this[0].push(value);
             }
         }
+        // Flatten stream
         else if (values.pipe) {
             console.warn('FlatMapping pipeables is dodgy. Map to arrays for the moment please.');
             // Todo: support flattening of streams. This method is crude -
-            // it does not preserve order, for one thing. Should streams by
+            // it does not preserve order, for one thing. Should streams be
             // made iterable? CAN streams be made iterable? They'd have to
             // be async...
             this.done(values.each((value) => this[0].push(value)));
             // This causes problems if you try
             // stream.scan(...).flatMap(...)
             //values.pipe(this[0]);
+        }
+        // Flatten promise
+        else if (values.then) {
+            values.then((value) => this[0].push(value));
         }
     }
 });

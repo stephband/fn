@@ -1,19 +1,18 @@
 /**
 cache(fn)
-Returns a function that caches the output values of `fn(input)`
-against input values in a map, such that for each input value
-`fn` is only ever called once.
+Returns a function that caches the output values of `fn(input)` against input
+values in a map, such that for each input value `fn` is only ever called once.
 */
 
 let warned;
 
-export default function cache(fn) {
+export default function cacheByObject(fn) {
     var map = new Map();
 
     return function cache(object) {
         if (window.DEBUG && !warned && object === undefined) {
             warned = true;
-            console.warn('cache() called with undefined.');
+            console.warn('cache() called with undefined. Not illegal, but potentially bad.');
         }
 
         if (window.DEBUG && arguments.length > 1) {

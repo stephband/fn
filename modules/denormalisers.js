@@ -1,17 +1,19 @@
 
 import { def } from './types.js';
+import linear    from './denormalise.js';
+import quadratic from './denormalise-quadratic.js';
 
 // Denormalisers take a min and max and transform a value into that range
 // from the range of a curve of a given type
 
 export const linear = def(
     'Number, Number, Number => Number',
-    (min, max, value) => value * (max - min) + min
+    linear
 );
 
 export const quadratic = def(
     'Number, Number, Number => Number',
-    (min, max, value) => Math.pow(value, 2) * (max - min) + min
+    quadratic
 );
 
 export const cubic = def(
@@ -56,7 +58,7 @@ export const cubicBezier = def(
 
 
 /* Todo: does it do as we intend?? */
-// Todo: implement tanh with min max scaling or gradient and crossover 
+// Todo: implement tanh with min max scaling or gradient and crossover
 // centering or one or two of these others
 // https://en.wikipedia.org/wiki/Sigmoid_function#/media/File:Gjl-t(x).svg
 export const tanh = def(

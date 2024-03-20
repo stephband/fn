@@ -14,10 +14,6 @@ const parseUnitValue = parseValue({
     },
 
     catch: function(string) {
-        if (typeof string === 'number') {
-            return string;
-        }
-
         throw new Error('Cannot parse px value');
     }
 });
@@ -26,7 +22,7 @@ const parseUnitValue = parseValue({
 
 // Be generous in what we accept, space-wise, but exclude spaces between the
 // number and the unit
-const runit = /^\s*([+-]?\d*\.?\d+)([^\s\d]*)\s*$/;
+const runit = /^\s*([+-]?\d*\.?\d+)([^\s]*)\s*$/;
 
 export default function parseValue(units) {
     return function parseValue(string) {

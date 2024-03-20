@@ -192,7 +192,6 @@ assign(Trap.prototype, {
 /**
 isMuteable(object)
 **/
-
 export function isMuteable(object) {
     // Many built-in objects and DOM objects bork when calling their
     // methods via a proxy. They should be considered not observable.
@@ -241,21 +240,21 @@ Forces creation of an observer even where Observer would normally consider
 the object 'immutable'. Observer considers DOM nodes immutable, for example, but
 not because they are really immutable, more in order to prevent you calling node
 methods on a node's observer proxy, which is a source of hard-to-trace errors.
-Use `force = true` if you know what you are doing.
+Pass in `force` as `true` if you know what you are doing.
 **/
-
-export function Observer(object, force) {
+export default function Observer(object, force) {
     return !object ? undefined :
         object[$trap] ? object[$trap].observer :
         (force || isMuteable(object)) ? (new Trap(object)).observer :
         undefined ;
 }
 
+// Deprecated... Eh? How does this export even work??
+export { Observer as Observer };
 
 /**
 getTarget(object)
 **/
-
 export function getTarget(object) {
     return object && object[$trap] && object[$trap].target || object ;
 }
@@ -264,7 +263,6 @@ export function getTarget(object) {
 /**
 getTrap(object)
 **/
-
 export function getTrap(object) {
     return Observer(object) && object[$trap];
 }
@@ -274,7 +272,6 @@ export function getTrap(object) {
 notify(path, object)
 Force the `object`'s Observer to register a mutation at `path`.
 */
-
 export function notify(name, object) {
     const trap = object[$trap];
     if (trap) {
