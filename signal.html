@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<!-- Literal template "/Users/stephband/Sites/slide-show/index.html.literal" -->
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="author" content="Stephen Band" />
+    <meta name="description" content="Documentation for <slide-show>. A scroll-snapping slideshow/carousel, implemented as the custom element <slide-show>." />
+    <meta name="viewport" content="width=device-width" />
+
+    <title>Signal</title>
+
+    <script title="load">
+        document.documentElement.className += ' js loading';
+        // window.addEventListener('DOMContentLoaded', () => document.documentElement.classList.remove('content-loading'));
+        // Wait for other load handlers to run first - Bolt does a few things on
+        // load (eg. targetable scrolls) and we want them to run before the loading
+        // class is removed
+        window.addEventListener('load', () => window.requestAnimationFrame(() => document.documentElement.classList.remove('loading')));
+    </script>
+
+
+    <script title="debug">
+        window.DEBUG = true;
+    </script>
+</head>
+
+<body>
+    <script type="module">
+        window.DEBUG = true;
+
+        //import Stream from './modules/stream.js';
+
+        import './modules/test/signal-test.js';
+        import './modules/test/observer-signal-test.js';
+        //window.Stream = Stream;
+    </script>
+</body>
