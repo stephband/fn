@@ -62,7 +62,7 @@ function isStopped(object) {
 }
 
 function Pipe(input, name, stream, values, pipes) {
-    this.input = input.then ?
+    this[-1] = input.then ?
         // Turn promise into a stream
         new PromiseStream(input) :
         input ;
@@ -134,7 +134,7 @@ CombineStream.prototype = assign(create(Stream.prototype), {
 
         // Listen to inputs
         for (pipeable of pipes) {
-            pipeable.input
+            pipeable[-1]
             // Will call pipeable.stop()
             .done(pipeable)
             // Will call pipeable.push()
@@ -150,7 +150,7 @@ CombineStream.prototype = assign(create(Stream.prototype), {
 
         // Stop all inputs
         this.pipes.forEach((pipeable) => {
-            const input = pipeable.input;
+            const input = pipeable[-1];
 
             // Does input have more than 1 output? Don't stop it, unpipe()
             // this from it.

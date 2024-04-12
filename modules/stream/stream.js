@@ -17,18 +17,18 @@ const call = overload(toType, {
 
 /**
 pipe(stream)
-Connect stream to output. Sets up `stream[0]` and `output.input` (if output is
+Connect stream to output. Sets up `stream[0]` and `output[-1]` (if output is
 `.stop()`able).
 **/
 
 export function pipe(stream, output) {
-    // For internal objects `output.input === stream` already, but for other
+    // For internal objects `output[-1] === stream` already, but for other
     // streams it doesn't have a reference to input, so it doesn't participate
     // in the flow of .stop() unless we give it one. Let's use existence of
-    // .stop() to determine need for output.input, to avoid us setting
-    // array.input, for example, in case the consumer is an array.
+    // .stop() to determine need for output[-1], to avoid us setting
+    // array[-1], for example, in case the consumer is an array.
     if (output.stop) {
-        output.input = stream;
+        output[-1] = stream;
     }
 
     // Add to outputs
@@ -55,7 +55,7 @@ export function unpipe(stream, output) {
     }
 
     // Stop responding to stop() and start() on output
-    output.input = undefined;
+    output[-1] = undefined;
 
     // Decrement output n of higher number outputs
     while (stream[n++]) {
@@ -157,7 +157,7 @@ export default function Stream(pipeable) {
 
     if (type === 'object') {
         // Set pipeable as input
-        this.input = pipeable;
+        this[-1] = pipeable;
     }
     else if (type === 'function') {
         // Store function
@@ -203,11 +203,11 @@ assign(Stream.prototype, {
             throw new Error('Stream: attempt to .pipe() to non-pushable object');
         }
 
-        // Connect this to output (sets this[0] and output.input)
+        // Connect this to output (sets this[0] and output[-1])
         pipe(this, output);
 
         // Tell input to .pipe(), so pipe goes back up the chain
-        this.input.pipe(this);
+        this[-1].pipe(this);
         return output;
     },
 
@@ -307,7 +307,7 @@ assign(Stream.prototype, {
     **/
     start: function() {
         if (this.status === 'done') { return this; }
-        this.input.start.apply(this.input, arguments);
+        this[-1].start.apply(this[-1], arguments);
         return this;
     },
 
@@ -322,13 +322,13 @@ assign(Stream.prototype, {
         // Does input have more than 1 output? ie, is it a multicast or
         // broadcast stream? Don't stop it, unpipe() this from it, and
         // stop `this`.
-        if (this.input[1]) {
-            unpipe(this.input, this);
+        if (this[-1][1]) {
+            unpipe(this[-1], this);
             return stop(this);
         }
 
         // Otherwise delegate stop() up the chain
-        this.input.stop.apply(this.input, arguments);
+        this[-1].stop.apply(this[-1], arguments);
         return this;
     },
 
@@ -395,7 +395,7 @@ the optional properties:
 
 export function Broadcast(pipeable, options) {
     //Stream.apply(this, arguments);
-    this.input = pipeable;
+    this[-1] = pipeable;
 
     // Mark this stream as a memory stream
     this.memory = !!(options && options.memory);
@@ -434,10 +434,10 @@ Broadcast.prototype = assign(create(Stream.prototype), {
         // pipe. But we don't have any outputs yet! I know, but the latest value
         // is remembered and it gets pushed to output below.
         if (this.memory && n === 0) {
-            this.input.pipe(this);
+            this[-1].pipe(this);
         }
 
-        if (output.stop && output !== nothing) { output.input = this; }
+        if (output.stop && output !== nothing) { output[-1] = this; }
         this[n] = output;
 
         // If stream has value already, it is a memory stream
@@ -447,7 +447,7 @@ Broadcast.prototype = assign(create(Stream.prototype), {
 
         // If not a memory stream and this is the first output start the pipeline
         if (!this.memory && n === 0) {
-            this.input.pipe(this);
+            this[-1].pipe(this);
         }
 
         return output;
@@ -458,7 +458,7 @@ Broadcast.prototype = assign(create(Stream.prototype), {
 /* Each() */
 
 function Each(input, fn) {
-    this.input = input;
+    this[-1] = input;
     this.push  = fn;
 }
 
@@ -471,7 +471,7 @@ Each.prototype = assign(create(Stream.prototype), {
 /* Filter() */
 
 function Filter(input, fn) {
-    this.input = input;
+    this[-1] = input;
     this.fn    = fn;
 }
 
@@ -487,7 +487,7 @@ Filter.prototype = assign(create(Stream.prototype), {
 /* FlatMap() */
 
 function FlatMap(input, fn) {
-    this.input = input;
+    this[-1] = input;
     this.fn    = fn;
 }
 
@@ -527,7 +527,7 @@ FlatMap.prototype = assign(create(Stream.prototype), {
 /* Map() */
 
 function Map(input, fn) {
-    this.input = input;
+    this[-1] = input;
     this.fn    = fn;
 }
 
@@ -562,7 +562,7 @@ Reduce.prototype = assign(create(Stream.prototype), {
 /* Scan() */
 
 function Scan(input, fn, accumulator) {
-    this.input = input;
+    this[-1] = input;
     this.fn    = fn;
     this.value = accumulator;
 }
@@ -587,7 +587,7 @@ function Slice(input, n, m = Infinity) {
         throw new Error('Stream: .slice() requires a non-zero positive integer (n, ' + n + ')');
     }
 
-    this.input    = input;
+    this[-1]    = input;
     this.index    = -n;
     this.indexEnd = n + m;
 }
@@ -608,7 +608,7 @@ Slice.prototype = assign(create(Stream.prototype), {
 /* Split(input, fn) */
 
 function Split(input, fn) {
-    this.input = input;
+    this[-1] = input;
     this.chunk = [];
 
     if (typeof n === 'number') {

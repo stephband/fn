@@ -47,7 +47,7 @@ BufferStream.prototype = assign(create(Stream.prototype), {
     },
 
     stop: function() {
-        if (this.input) {
+        if (this[-1]) {
             return Stream.prototype.stop.apply(this, arguments);
         }
 
