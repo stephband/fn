@@ -79,7 +79,7 @@ function(test, done) {
                 // Test 2, 3
                 test(this.value);
 
-                // Dirty way of gettign out of tests
+                // Dirty way of getting out of tests
                 if (this.value === 6) { done(); }
 
                 // This triggers an invalidation, evaluated on next animation frame

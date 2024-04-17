@@ -5,8 +5,45 @@ const assign       = Object.assign;
 const define       = Object.defineProperties;
 const isExtensible = Object.isExtensible;
 
-const O     = Object.prototype;
-const $trap = Symbol('signals');
+const O          = Object.prototype;
+const $trap      = Symbol('signals');
+const properties = { [$trap]: {} };
+
+
+function isMuteable(object) {
+    // Many built-in objects and DOM objects bork when calling their
+    // methods via a proxy. They should be considered not observable.
+    // I wish there were a way of whitelisting rather than
+    // blacklisting, but it would seem not.
+
+    return object
+        // Reject primitives and other frozen objects
+        // This is really slow...
+        //&& !isFrozen(object)
+        // I haven't compared this, but it's necessary for audio nodes
+        // at least, but then only because we're extending with symbols...
+        // hmmm, that may need to change...
+        && isExtensible(object)
+        // This is less safe but faster.
+        //&& (typeof object === 'object' || typeof object === 'function')
+
+        // Reject DOM nodes
+        && !Node.prototype.isPrototypeOf(object)
+        // Reject WebAudio context
+        && (window.BaseAudioContext === undefined || !BaseAudioContext.prototype.isPrototypeOf(object))
+        // Reject date, their methods don't enjoy being proxied
+        && !(object instanceof Date)
+        // Reject regex
+        && !(object instanceof RegExp)
+        // Reject maps
+        && !(object instanceof Map)
+        && !(object instanceof WeakMap)
+        // Reject sets
+        && !(object instanceof Set)
+        && !(window.WeakSet && object instanceof WeakSet)
+        // Reject TypedArrays and DataViews
+        && !ArrayBuffer.isView(object) ;
+}
 
 function getSignal(signals, name, value) {
     let signal = signals[name];
@@ -44,16 +81,14 @@ function getTrap(object) {
 }
 
 
-/**
-Trap()
-**/
-
-const properties = { [$trap]: {} };
+/*
+Trap(target)
+*/
 
 function Trap(target) {
-    this.signals  = {};
-    this.target   = target;
-    this.observer = new Proxy(target, this);
+    this.signals = {};
+    this.object  = target;
+    this.data    = new Proxy(target, this);
 
     // Define trap as target[$trap]
     properties[$trap].value = this;
@@ -61,9 +96,6 @@ function Trap(target) {
 }
 
 assign(Trap.prototype, {
-
-    /* Traps */
-
     get: function get(target, name, proxy) {
         // Don't observe changes to symbol properties, and
         // don't allow Safari to log __proto__ as a Proxy. (That's dangerous!
@@ -140,45 +172,6 @@ assign(Trap.prototype, {
 
 
 /**
-isMuteable(object)
-**/
-export function isMuteable(object) {
-    // Many built-in objects and DOM objects bork when calling their
-    // methods via a proxy. They should be considered not observable.
-    // I wish there were a way of whitelisting rather than
-    // blacklisting, but it would seem not.
-
-    return object
-        // Reject primitives and other frozen objects
-        // This is really slow...
-        //&& !isFrozen(object)
-        // I haven't compared this, but it's necessary for audio nodes
-        // at least, but then only because we're extending with symbols...
-        // hmmm, that may need to change...
-        && isExtensible(object)
-        // This is less safe but faster.
-        //&& (typeof object === 'object' || typeof object === 'function')
-
-        // Reject DOM nodes
-        && !Node.prototype.isPrototypeOf(object)
-        // Reject WebAudio context
-        && (typeof BaseAudioContext === 'undefined' || !BaseAudioContext.prototype.isPrototypeOf(object))
-        // Reject dates
-        && !(object instanceof Date)
-        // Reject regex
-        && !(object instanceof RegExp)
-        // Reject maps
-        && !(object instanceof Map)
-        && !(object instanceof WeakMap)
-        // Reject sets
-        && !(object instanceof Set)
-        && !(window.WeakSet && object instanceof WeakSet)
-        // Reject TypedArrays and DataViews
-        && !ArrayBuffer.isView(object) ;
-}
-
-
-/**
 Data(object)
 Create an observer proxy around `object`. Mutations made to this proxy are
 observable via `observe(path, object` and `mutations(paths, object)`.
@@ -195,18 +188,18 @@ Pass in `force` as `true` if you know what you are doing.
 
 export default function Data(object, force) {
     return !object ? undefined :
-        object[$trap] ? object[$trap].observer :
-        (force || isMuteable(object)) ? (new Trap(object)).observer :
+        object[$trap] ? object[$trap].data :
+        (force || isMuteable(object)) ? (new Trap(object)).data :
         undefined ;
 }
 
 Data.signal = function(name, object) {
     const trap = getTrap(object);
-    return trap && getSignal(trap.signals, name, trap.target[name]);
+    return trap && getSignal(trap.signals, name, trap.object[name]);
 };
 
 Data.object = function(object) {
     return object && object[$trap] ?
-        object[$trap].target :
+        object[$trap].object :
         object ;
 };

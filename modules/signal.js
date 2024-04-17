@@ -1,4 +1,6 @@
 
+import noop from './noop.js';
+
 const assign = Object.assign;
 
 let evaluatingSignal;
@@ -15,7 +17,7 @@ function register(s2, s1) {
     s1[n] = s2;
 }
 
-function evaluate(signal) {
+function evaluate(signal, fn) {
     // Clear out input signals, they are about to be reevaluated
     let n = 0;
     while (signal[--n]) signal[n] = undefined;
@@ -24,12 +26,13 @@ function evaluate(signal) {
     // synchronous evaluation of fn()
     const childSignal = evaluatingSignal;
     evaluatingSignal = signal;
-    const value = signal.value = signal.fn();
+    const value = signal.value = fn();
     evaluatingSignal = childSignal;
 
-    // Enable use of evaluate(this) as a return value
+    // Enable use of `return evaluate(signal, fn);`
     return value;
 }
+
 
 /**
 Signal(fn)
@@ -41,12 +44,24 @@ value from `fn`.
 **/
 
 export default class Signal {
+
+    /**
+    Signal.of(value)
+    Creates a write/read signal with totally optional initial `value`.
+    **/
     static of(value) {
-        return assign(new this(), { value });
+        const signal = new this();
+        signal.value = value;
+        return signal;
     }
 
+    /**
+    Signal.from(fn)
+    Creates an evaluation signal. `signal.fn()` is called (`fn` is assigned as
+    a method of `signal`) when
+    **/
     static from(fn) {
-        return new this(...arguments);
+        return new this(fn);
     }
 
     /*
@@ -54,29 +69,29 @@ export default class Signal {
     The signal that is currently being evaluated, or undefined. This is exposed
     so that Data() can make a better call about when to create signals. If there
     is no evaluating signal, it needn't make a signal when a property is accessed.
+    Not documented deliberately.
     */
+
     static get evaluating() {
         return evaluatingSignal;
     }
 
     #valid;
     #cache;
+    #notify;
+    #fn;
 
-    constructor(fn) {
-        this.fn = fn;
+    constructor(fn, notify) {
+        // Signal is
+        if (fn) { this.#fn = fn; }
+        this.#notify = notify || noop;
     }
 
-    invalidate() {
-        if (this.#valid) {
-            // Invalidate this
-            this.#valid = false;
-            // Invalidate dependents
-            let n = -1;
-            while (this[++n]) this[n].invalidate();
-        }
-
-        return this;
-    }
+    /**
+    .value
+    Getting `.value` gets value from the cache or computes a value.
+    Setting `.value` updates the cache and invalidates all dependent signals.
+    **/
 
     set value(value) {
         // Don't update for no change in value
@@ -93,6 +108,7 @@ export default class Signal {
             // #valid is true and #cache is set so that's ok I think?
             let n = -1;
             while (this[++n]) this[n].invalidate();
+            this.#notify();
         }
         else {
             this.#valid = true;
@@ -106,7 +122,50 @@ export default class Signal {
             register(evaluatingSignal, this);
         }
 
-        return this.#valid ? this.#cache : evaluate(this) ;
+        return this.#valid ? this.#cache : evaluate(this, this.#fn) ;
+    }
+
+    /**
+    .each(fn[, initial])
+    Pulls value and calls `fn` whenever the signal is invalidated, making this a
+    hot signal. Will call `fn` immediately if current value is not equal
+    to `initial`.
+    **/
+
+    each(fn, initial) {
+        this.#notify = () => {
+            const value = this.value;
+
+            if (value === initial) {
+                // Nothing ever equals NaN
+                initial = NaN;
+                return;
+            }
+
+            fn(value);
+        };
+
+        // Notify immediately
+        this.#notify();
+        return this;
+    }
+
+    /**
+    .invalidate()
+    Invalidates signal and all dependent signals.
+    **/
+
+    invalidate() {
+        if (this.#valid) {
+            // Invalidate this
+            this.#valid = false;
+            // Invalidate dependents
+            let n = -1;
+            while (this[++n]) this[n].invalidate();
+            this.#notify();
+        }
+
+        return this;
     }
 
     valueOf() {
