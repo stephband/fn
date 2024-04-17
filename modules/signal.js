@@ -44,10 +44,9 @@ value from `fn`.
 **/
 
 export default class Signal {
-
     /**
     Signal.of(value)
-    Creates a write/read signal with totally optional initial `value`.
+    Creates a value signal with totally optional initial `value`.
     **/
     static of(value) {
         const signal = new this();
@@ -57,8 +56,9 @@ export default class Signal {
 
     /**
     Signal.from(fn)
-    Creates an evaluation signal. `signal.fn()` is called (`fn` is assigned as
-    a method of `signal`) when
+    Creates a compute signal where `fn` should compute and return a value.
+    While `fn` is running, reading other signals is being recorded, and this
+    signal is then invalidated when they become invalid.
     **/
     static from(fn) {
         return new this(fn);
