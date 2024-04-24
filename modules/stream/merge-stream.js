@@ -26,7 +26,6 @@ assign(Source.prototype, {
     },
 
     done: function(stopable) {
-        console.log('HELLO');
         this.stream.done(stopable);
     }
 });
