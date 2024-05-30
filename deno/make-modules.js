@@ -56,8 +56,8 @@ function getDateTime() {
 function getHeader(pkg, indent) {
     return (pkg.title ? pkg.title + ' ' : '')
     + (pkg.version ? '\n' + indent + pkg.version : '')
-    + (pkg.author ? '\n' + indent + 'By ' + (pkg.author.name ? pkg.author.name : pkg.author) : '')
-    + '\n' + indent + 'Built ' + getDateTime();
+    + (pkg.author ? '\n' + indent + 'By ' + (pkg.author.name ? pkg.author.name : pkg.author) : '');
+    //+ '\n' + indent + 'Built ' + getDateTime();
 }
 
 Deno
@@ -115,6 +115,15 @@ Deno
     logLevel:  'info',
 
     plugins: [{
+        // Rewrite relative URLs for font files
+        name: 'fonts',
+        setup: (build) => build.onResolve({
+            filter: /^..+\.(?:woff|woff2|eot|ttf|otf)(?:#|$)/
+        }, (args) => {
+            console.warn('Relative font import', args.path);
+            return { path: '../' + args.path, external: true };
+        })
+    }, {
         // Mark .png, .svg and so on as external files to avoid them being
         // bundled. Ideally, we want to rewrite their paths here. TODO!
         name: 'external',
