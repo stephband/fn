@@ -34,6 +34,7 @@ function evaluate(signal, fn) {
 }
 
 
+
 /**
 Signal(fn)
 An object that encapsulates a value and notifies when the value becomes invalid,
@@ -41,6 +42,9 @@ out of date. It has, essentially, one property, `.value`. Setting `.value`
 caches that value and invalidates any signals that depend on this signal.
 Getting `.value` returns the cached value, or if the cache is invalid, generates
 a new value by calling `fn()`.
+
+Signals implement `.valueOf()` and so in some contexts they may be used directly
+where a primitive is expected.
 **/
 
 export default class Signal {
@@ -170,15 +174,14 @@ export default class Signal {
         // Add to signals called on invalidation
         let n = -1;
         while (this[++n]);
-        this[n] = { invalidate: fn };
+        // TODO: make this some kind of simple observer signal
+        this[n] = new ObserverSignal(fn);
+
         // Run the observer if value is not initial
         if (this.value !== initial) { fn(); }
         return this;
     }
 
-    unobserve(fn) {
-
-    }
 
     /**
     .invalidate()
@@ -198,9 +201,9 @@ export default class Signal {
         return this;
     }
 
-    valueOf() {
+    /*valueOf() {
         return this.value;
-    }
+    }*/
 
     toString() {
         return this.valueOf() + '' ;
@@ -208,5 +211,60 @@ export default class Signal {
 
     toJSON() {
         return this.value;
+    }
+}
+
+
+/**
+ObserverSignal(fn)
+**/
+
+
+const $stopables = Symbol('stopables');
+
+function callStop(stopable) {
+    stopable.stop();
+}
+
+export class ObserverSignal extends Signal {
+    constructor(fn) {
+        super(noop);
+        this.invalidate = fn;
+    }
+
+    stop() {
+        // Check and set status
+        if (this.status === 'done') {
+            if (window.DEBUG) {
+                console.log(this);
+                throw new Error('Stream: cannot stop() stream that is done');
+            }
+
+            return this;
+        }
+
+        this.status = 'done';
+        this.invalidate = noop;
+
+        // Call done functions and listeners
+        const stopables = this[$stopables];
+        if (stopables) {
+            this[$stopables] = undefined;
+            stopables.forEach(callStop);
+        }
+
+        return this;
+    }
+
+    done(stopable) {
+        // Is stream already stopped? Call listener immediately.
+        if (this.status === 'done') {
+            stopable.stop();
+            return this;
+        }
+
+        const stopables = this[$stopables] || (this[$stopables] = []);
+        stopables.push(stopable);
+        return this;
     }
 }
