@@ -1,5 +1,5 @@
 
-import Signal from '../modules/signal.js';
+import Signal from './signal.js';
 
 const assign       = Object.assign;
 const define       = Object.defineProperties;
@@ -46,30 +46,23 @@ function isMuteable(object) {
 }
 
 function getSignal(signals, name, value) {
-    let signal = signals[name];
-
-    if (!signal) {
-        signal = signals[name] = new Signal();
-        signal.value = value;
-    }
-
-    return signal;
+    return signals[name] || (signals[name] = Signal.of(value));
 }
 
-function getValue(signals, name, target) {
+function getValue(signals, name, object) {
     // Is the property mutable? Note that unset properties have no descriptor
-    const descriptor = Object.getOwnPropertyDescriptor(target, name);
+    const descriptor = Object.getOwnPropertyDescriptor(object, name);
     const mutable    = descriptor ?
         descriptor.writable || descriptor.set :
-        target[name] === undefined ;
+        object[name] === undefined ;
 
     // If there is no evaluating signal there is no need to create
     // a property signal
     if (!mutable || !Signal.evaluating) {
-        return target[name];
+        return object[name];
     }
 
-    const signal = getSignal(signals, name, target[name]);
+    const signal = getSignal(signals, name, object[name]);
 
     // Reading signal.value causes whatever signal is reading
     // the property to become a dependency of this signal
@@ -82,34 +75,34 @@ function getTrap(object) {
 
 
 /*
-Trap(target)
+Trap(object)
 */
 
-function Trap(target) {
+function Trap(object) {
     this.signals = {};
-    this.object  = target;
-    this.data    = new Proxy(target, this);
+    this.object  = object;
+    this.data    = new Proxy(object, this);
 
-    // Define trap as target[$trap]
+    // Define trap as object[$trap]
     properties[$trap].value = this;
-    define(target, properties);
+    define(object, properties);
 }
 
 assign(Trap.prototype, {
-    get: function get(target, name, proxy) {
+    get: function get(object, name, proxy) {
         // Don't observe changes to symbol properties, and
         // don't allow Safari to log __proto__ as a Proxy. (That's dangerous!
         // It pollutes Object.prototpye with [$trap] which breaks everything.)
         // Also, we're not interested in observing the prototype chain so
         // stick to hasOwnProperty.
         if (typeof name === 'symbol' || name === '__proto__') {
-            return target[name];
+            return object[name];
         }
 
-        const value = getValue(this.signals, name, target);
+        const value = getValue(this.signals, name, object);
 
         // We are not interested in getting proxies of the prototype chain
-        if (!O.hasOwnProperty.call(target, name)) {
+        if (!O.hasOwnProperty.call(object, name)) {
             return value;
         }
 
@@ -117,9 +110,9 @@ assign(Trap.prototype, {
         return Data(value) || value ;
     },
 
-    set: function set(target, name, value, proxy) {
+    set: function set(object, name, value, proxy) {
         if (typeof name === 'symbol' || name === '__proto__') {
-            target[name] = value;
+            object[name] = value;
             return true;
         }
 
@@ -129,40 +122,40 @@ assign(Trap.prototype, {
 
         // If we are setting the same value, we're not really setting at all.
         // In this case regard a proxy as equivalent (??)
-        if (target[name] === value || target[name] === targetValue) {
+        if (object[name] === value || object[name] === targetValue) {
             return true;
         }
 
         // To support arrays keep a note of pre-change length
-        const length = target.length;
+        const length = object.length;
 
-        // Set value on target. Don't use value again, in case target
+        // Set value on object. Don't use value again, in case target
         // is doing something funky with property descriptors that return a
         // different value from the value that was set. Rare, but it can happen.
-        target[name] = targetValue;
+        object[name] = targetValue;
 
         // Set value on signal
         if (this.signals[name]) {
-            // Don't use targetValue again, in case target is doing something
+            // Don't use targetValue again, in case object is doing something
             // funky with property descriptors that return a different value
             // from the value that was set. Rare, but it can happen.
-            this.signals[name].value = target[name];
+            this.signals[name].value = object[name];
         }
 
         // Check if length has changed and update its signal if it has
-        if (name !== 'length' && target.length !== length && this.signals.length) {
-            this.signals.length.value = target.length;
+        if (name !== 'length' && object.length !== length && this.signals.length) {
+            this.signals.length.value = object.length;
         }
 
         // Return true to indicate success to Proxy
         return true;
     },
 
-    deleteProperty: function(target, name) {
-        delete target[name];
+    deleteProperty: function(object, name) {
+        delete object[name];
 
         if (typeof name !== 'symbol' && name !== '__proto__' && this.signals[name]) {
-            this.signals[name].value = target[name];
+            this.signals[name].value = object[name];
         }
 
         // Indicate success to the Proxy
@@ -192,6 +185,9 @@ export default function Data(object, force) {
         (force || isMuteable(object)) ? (new Trap(object)).data :
         undefined ;
 }
+
+/** Data.of(object) **/
+Data.of = Data;
 
 Data.signal = function(name, object) {
     const trap = getTrap(object);

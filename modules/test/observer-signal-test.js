@@ -1,6 +1,6 @@
 
 import run    from '../test.js';
-import Data   from '../../observer/observer-signal.js';
+import Data   from '../signal-data.js';
 import Signal from '../signal.js';
 
 
