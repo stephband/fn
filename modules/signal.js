@@ -4,44 +4,19 @@ import noop from './noop.js';
 const assign = Object.assign;
 
 let evaluatingSignal;
-/*
-function register(s2, s1) {
-    // Set input of evaluating signal NECESSARY?
-    //let n = 0;
-    //while (s2[--n]);
-    //s2[n] = s1;
-
-    // Set output of computing signal
-    let n = -1;
-    while (s1[++n]) if (s1[n] === s2) return;
-    s1[n] = s2;
-}
-*/
-export function evaluate(signal, fn) {
-    // Clear out input signals, they are about to be reevaluated NECESSARY?
-    //let n = 0;
-    //while (signal[--n]) signal[n] = undefined;
-
-    // Make signal the evaluating signal for the duration of this
-    // synchronous evaluation of fn()
-    const childSignal = evaluatingSignal;
-    evaluatingSignal = signal;
-    const value = /*signal.value =*/ fn.apply(signal);
-    evaluatingSignal = childSignal;
-
-    // Enable use of `return evaluate(signal, fn);`
-    return value;
-}
-
 
 
 /**
+Signal()
 Signal(fn)
-An object that encapsulates a value and notifies when the value becomes invalid,
-out of date. It has, essentially, one property, `.value`. Setting `.value`
-caches that value and invalidates any signals that depend on this signal.
-Getting `.value` returns the cached value, or if the cache is invalid, generates
-a new value by calling `fn()`.
+
+Creates an object that encapsulates a value and notifies when the value becomes
+invalid, out of date, irrelevant, historic, old. It has, essentially, one property,
+`.value`.
+
+Setting `.value` caches that value and invalidates any signals that depend on
+this signal. Getting `.value` returns the cached value – or, if the cache is
+invalid, evaluates a new value by calling `fn()`, where it exists.
 
 Signals implement `.valueOf()` and so in some contexts they may be used directly
 where a primitive is expected.
@@ -83,6 +58,28 @@ export default class Signal {
         }
     }
 
+    /**
+    Signal.evaluate(object, fn)
+    Evaluates `object` as a signal by applying it to `fn` and returning the
+    result. Signals read during `fn()` have `object` registered as a dependent,
+    so `object.invalidate()` is called when any of those signals are invalidated.
+
+    Typically `object.invalidate()` would cue a `Signal.evaluate(object, fn)` at
+    some point in the future. (It is not great to `Signal.evaluate(object, fn)`
+    synchronously inside `.invalidate()`, although this should only lead to
+    wasted invalidations, not bad results.)
+    **/
+
+    static evaluate(signal, fn) {
+        // Make signal the evaluating signal for the duration of this
+        // synchronous evaluation of fn()
+        const previous = evaluatingSignal;
+        evaluatingSignal = signal;
+        const value = fn.apply(signal);
+        evaluatingSignal = previous;
+        return value;
+    }
+
     /*
     Signal.evaluating
     The signal that is currently being evaluated, or undefined. This is exposed
@@ -90,27 +87,29 @@ export default class Signal {
     is no evaluating signal, it needn't make a signal when a property is accessed.
     Deliberately not documented.
     */
-
     static get evaluating() {
         return evaluatingSignal;
     }
 
+
     #valid;
     #cache;
-    // TEMP
-    #notify;
     #fn;
 
     constructor(fn, notify) {
-        // Signal is
         if (fn) { this.#fn = fn; }
-        this.#notify = notify || noop;
     }
+
 
     /**
     .value
-    Getting `.value` gets value from the cache or computes a value.
-    Setting `.value` updates the cache and invalidates all dependent signals.
+
+    Getting `.value` gets value from the cache or evaluates a value from `fn`.
+    During evaluation this signal is registered as dependent on other signals
+    whose `.value` is got.
+
+    Setting `.value`, assuming the set value differs from the previous value,
+    updates the cache and invalidates dependent signals.
     **/
 
     get value() {
@@ -122,7 +121,7 @@ export default class Signal {
             this[n] = evaluatingSignal;
         }
 
-        return this.#valid ? this.#cache : (this.value = evaluate(this, this.#fn)) ;
+        return this.#valid ? this.#cache : (this.value = Signal.evaluate(this, this.#fn)) ;
     }
 
     set value(value) {
@@ -140,50 +139,11 @@ export default class Signal {
             // ... but #valid is true and #cache is set so that's ok I think?
             let n = -1;
             while (this[++n]) this[n].invalidate(this);
-            this.#notify();
         }
         else {
             this.#valid = true;
         }
     }
-
-    /**
-    .each(fn[, initial])
-    TEMP
-    Pulls value and calls `fn` whenever the signal is invalidated, making this a
-    hot signal. Calls `fn` immediately if current value is not equal to `initial`.
-    **/
-
-    each(fn, initial) {
-        this.#notify = () => {
-            const value = this.value;
-
-            if (value === initial) {
-                // Nothing ever equals NaN
-                initial = NaN;
-                return;
-            }
-
-            fn(value);
-        };
-
-        // Notify immediately
-        this.#notify();
-        return this;
-    }
-
-    observe(fn, initial) {
-        // Add to signals called on invalidation
-        let n = -1;
-        while (this[++n]);
-
-        this[n] = new ObserverSignal(this, fn);
-
-        // Run the observer if value is not initial
-        if (this.value !== initial) { fn(); }
-        return this;
-    }
-
 
     /**
     .invalidate()
@@ -197,15 +157,34 @@ export default class Signal {
             // Invalidate dependents
             let n = -1;
             while (this[++n]) this[n].invalidate(this);
-            this.#notify();
         }
 
         return this;
     }
 
-    /*valueOf() {
+    /**
+    .observe(fn),
+    .observe(fn, initialValue)
+    Returns an observer that calls `fn` with `signal.value` whenever the signal
+    is invalidated. If signal does not have `initialValue`, `fn` is also called
+    immediately.
+    **/
+
+    observe(fn, initial) {
+        // Add to signals called on invalidation
+        let n = -1;
+        while (this[++n]);
+        return this[n] = new ObserverSignal(this, fn, initial);
+    }
+
+    /*
+    .valueOf()
+    Enable direct use in some contexts like addition or string concatenation.
+    */
+
+    valueOf() {
         return this.value;
-    }*/
+    }
 
     toString() {
         return this.valueOf() + '' ;
@@ -232,17 +211,18 @@ export class ObserverSignal {
     #signal;
     #fn;
 
-    constructor(signal, fn) {
+    constructor(signal, fn, initial) {
         this.#signal = signal;
-        this.#fn = fn;
+        this.#fn     = fn;
+
+        // Run the observer if value is not initial
+        // TODO: something spurious about this. fn() needs to be wrapped in
+        // Signal.evaluate(), no? Should we not do this inside ObserverSignal()?
+        if (signal.value !== initial) { this.invalidate(); }
     }
 
     invalidate() {
         if (this.status === 'done') return this;
-
-        // Clear out input signals, they are about to be reevaluated NECESSARY?
-        //let n = 0;
-        //while (this[--n]) this[n] = undefined;
 
         // Evaluate and send value to consumer.
         // TODO: it remains to be seen whether this is a safe thing to do
