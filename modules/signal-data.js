@@ -93,15 +93,14 @@ assign(Trap.prototype, {
         // Don't observe changes to symbol properties, and
         // don't allow Safari to log __proto__ as a Proxy. (That's dangerous!
         // It pollutes Object.prototpye with [$trap] which breaks everything.)
-        // Also, we're not interested in observing the prototype chain so
-        // stick to hasOwnProperty.
         if (typeof name === 'symbol' || name === '__proto__') {
             return object[name];
         }
 
         const value = getValue(this.signals, name, object);
 
-        // We are not interested in getting proxies of the prototype chain
+        // We are not interested in getting proxies of the prototype chain so
+        // stick to hasOwnProperty
         if (!O.hasOwnProperty.call(object, name)) {
             return value;
         }
@@ -116,8 +115,7 @@ assign(Trap.prototype, {
             return true;
         }
 
-        // Make sure we are dealing with an unproxied value... I dont think
-        // we actually want to do this... I can see situations where
+        // Make sure we are dealing with an unproxied value.
         const targetValue = Data.object(value);
 
         // If we are setting the same value, we're not really setting at all.
@@ -138,7 +136,8 @@ assign(Trap.prototype, {
         if (this.signals[name]) {
             // Don't use targetValue again, in case object is doing something
             // funky with property descriptors that return a different value
-            // from the value that was set. Rare, but it can happen.
+            // from the value that was set. Rare, but it can happen. Read the
+            // actual value back off the object.
             this.signals[name].value = object[name];
         }
 

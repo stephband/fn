@@ -4,29 +4,29 @@ import noop from './noop.js';
 const assign = Object.assign;
 
 let evaluatingSignal;
-
+/*
 function register(s2, s1) {
-    // Set input of evaluating signal
-    let n = 0;
-    while (s2[--n]);
-    s2[n] = s1;
+    // Set input of evaluating signal NECESSARY?
+    //let n = 0;
+    //while (s2[--n]);
+    //s2[n] = s1;
 
-    // Set output of value signal
-    n = -1;
+    // Set output of computing signal
+    let n = -1;
     while (s1[++n]) if (s1[n] === s2) return;
     s1[n] = s2;
 }
-
-function evaluate(signal, fn) {
-    // Clear out input signals, they are about to be reevaluated
-    let n = 0;
-    while (signal[--n]) signal[n] = undefined;
+*/
+export function evaluate(signal, fn) {
+    // Clear out input signals, they are about to be reevaluated NECESSARY?
+    //let n = 0;
+    //while (signal[--n]) signal[n] = undefined;
 
     // Make signal the evaluating signal for the duration of this
     // synchronous evaluation of fn()
     const childSignal = evaluatingSignal;
     evaluatingSignal = signal;
-    const value = signal.value = fn();
+    const value = /*signal.value =*/ fn.apply(signal);
     evaluatingSignal = childSignal;
 
     // Enable use of `return evaluate(signal, fn);`
@@ -117,10 +117,12 @@ export default class Signal {
         // If there is a signal currently evaluating then it becomes a
         // dependency of this signal, irrespective of state of #cache
         if (evaluatingSignal) {
-            register(evaluatingSignal, this);
+            let n = -1;
+            while (this[++n]) if (this[n] === evaluatingSignal) break;
+            this[n] = evaluatingSignal;
         }
 
-        return this.#valid ? this.#cache : evaluate(this, this.#fn) ;
+        return this.#valid ? this.#cache : (this.value = evaluate(this, this.#fn)) ;
     }
 
     set value(value) {
@@ -174,8 +176,8 @@ export default class Signal {
         // Add to signals called on invalidation
         let n = -1;
         while (this[++n]);
-        // TODO: make this some kind of simple observer signal
-        this[n] = new ObserverSignal(fn);
+
+        this[n] = new ObserverSignal(this, fn);
 
         // Run the observer if value is not initial
         if (this.value !== initial) { fn(); }
@@ -226,10 +228,34 @@ function callStop(stopable) {
     stopable.stop();
 }
 
-export class ObserverSignal extends Signal {
-    constructor(fn) {
-        super(noop);
-        this.invalidate = fn;
+export class ObserverSignal {
+    #signal;
+    #fn;
+
+    constructor(signal, fn) {
+        this.#signal = signal;
+        this.#fn = fn;
+    }
+
+    invalidate() {
+        if (this.status === 'done') return this;
+
+        // Clear out input signals, they are about to be reevaluated NECESSARY?
+        //let n = 0;
+        //while (this[--n]) this[n] = undefined;
+
+        // Evaluate and send value to consumer.
+        // TODO: it remains to be seen whether this is a safe thing to do
+        // synchronously. Because this happens during an invalidate it may be
+        // that some other signal due to be invalidated is evaluated here before
+        // that has occurred.
+        const childSignal = evaluatingSignal;
+        evaluatingSignal = this;
+        const value = this.#signal.value;
+        evaluatingSignal = childSignal;
+
+        this.#fn(value);
+        return this;
     }
 
     stop() {
@@ -244,7 +270,6 @@ export class ObserverSignal extends Signal {
         }
 
         this.status = 'done';
-        this.invalidate = noop;
 
         // Call done functions and listeners
         const stopables = this[$stopables];
