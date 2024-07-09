@@ -116,7 +116,7 @@ assign(Trap.prototype, {
         }
 
         // Make sure we are dealing with an unproxied value.
-        const targetValue = Data.object(value);
+        const targetValue = Data.objectOf(value);
 
         // If we are setting the same value, we're not really setting at all.
         // In this case regard a proxy as equivalent (??)
@@ -193,7 +193,7 @@ Data.signal = function(name, object) {
     return trap && getSignal(trap.signals, name, trap.object[name]);
 };
 
-Data.object = function(object) {
+Data.objectOf = function(object) {
     return object && object[$trap] ?
         object[$trap].object :
         object ;
