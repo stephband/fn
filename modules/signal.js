@@ -23,12 +23,20 @@ where a primitive is expected.
 **/
 
 export default class Signal {
+    #valid;
+    #cache;
+    #fn;
+
+    constructor(fn) {
+        if (fn) { this.#fn = fn; }
+    }
+
     /**
     Signal.of(value)
     Creates a value signal with totally optional initial `value`.
     **/
     static of(value) {
-        const signal = new this();
+        const signal = new Signal();
         signal.value = value;
         return signal;
     }
@@ -42,19 +50,19 @@ export default class Signal {
     static from(fn) {
         // Promise
         if (fn.then) {
-            const signal = new this();
+            const signal = new Signal();
             fn.then((value) => signal.value = value);
             return signal;
         }
         // Pipeable
         else if (fn.pipe) {
-            const signal = new this();
+            const signal = new Signal();
             fn.pipe({ push: (value) => signal.value = value });
             return signal;
         }
         // Function
         else {
-            return new this(fn);
+            return new Signal(fn);
         }
     }
 
@@ -92,15 +100,6 @@ export default class Signal {
     }
 
 
-    #valid;
-    #cache;
-    #fn;
-
-    constructor(fn, notify) {
-        if (fn) { this.#fn = fn; }
-    }
-
-
     /**
     .value
 
@@ -135,10 +134,15 @@ export default class Signal {
         this.#cache = value;
 
         if (this.#valid) {
-            // Invalidate dependents. This may cause them to update synchronously
-            // ... but #valid is true and #cache is set so that's ok I think?
+            // Invalidate dependents. If a dependent updates synchronously here
+            // we may be in trouble but #valid is true and #cache is set so
+            // that's ok I think?
             let n = -1;
-            while (this[++n]) this[n].invalidate(this);
+            let signal;
+            while (signal = this[++n]) {
+                this[n] = undefined;
+                signal.invalidate(this);
+            }
         }
         else {
             this.#valid = true;
@@ -147,19 +151,24 @@ export default class Signal {
 
     /**
     .invalidate()
-    Invalidates signal and all dependent signals.
+    Invalidates this signal and all dependent signals.
     **/
 
     invalidate() {
         if (this.#valid) {
             // Invalidate this
             this.#valid = false;
-            // Invalidate dependents
+            // Invalidate dependents. If a dependent updates synchronously here
+            // we may be in trouble, as it would evaluate and cache this signal
+            // and overwrite dependents before we have finished invalidating
+            // this set of dependents.
             let n = -1;
-            while (this[++n]) this[n].invalidate(this);
+            let signal;
+            while (signal = this[++n]) {
+                this[n] = undefined;
+                signal.invalidate(this);
+            }
         }
-
-        return this;
     }
 
     /**
@@ -200,13 +209,6 @@ export default class Signal {
 ObserverSignal(fn)
 **/
 
-
-const $stopables = Symbol('stopables');
-
-function callStop(stopable) {
-    stopable.stop();
-}
-
 export class ObserverSignal {
     #signal;
     #fn;
@@ -216,9 +218,11 @@ export class ObserverSignal {
         this.#fn     = fn;
 
         // Run the observer if value is not initial
-        // TODO: something spurious about this. fn() needs to be wrapped in
-        // Signal.evaluate(), no? Should we not do this inside ObserverSignal()?
         if (signal.value !== initial) { this.invalidate(); }
+    }
+
+    #evaluate() {
+        return this.#signal.value;
     }
 
     invalidate() {
@@ -229,13 +233,8 @@ export class ObserverSignal {
         // synchronously. Because this happens during an invalidate it may be
         // that some other signal due to be invalidated is evaluated here before
         // that has occurred.
-        const childSignal = evaluatingSignal;
-        evaluatingSignal = this;
-        const value = this.#signal.value;
-        evaluatingSignal = childSignal;
-
+        const value = Signal.evaluate(this, this.#evaluate);
         this.#fn(value);
-        return this;
     }
 
     stop() {
@@ -250,26 +249,6 @@ export class ObserverSignal {
         }
 
         this.status = 'done';
-
-        // Call done functions and listeners
-        const stopables = this[$stopables];
-        if (stopables) {
-            this[$stopables] = undefined;
-            stopables.forEach(callStop);
-        }
-
-        return this;
-    }
-
-    done(stopable) {
-        // Is stream already stopped? Call listener immediately.
-        if (this.status === 'done') {
-            stopable.stop();
-            return this;
-        }
-
-        const stopables = this[$stopables] || (this[$stopables] = []);
-        stopables.push(stopable);
         return this;
     }
 }
