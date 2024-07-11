@@ -6,8 +6,8 @@ import Signal from '../signal.js';
 run('Signal(() => s1.value + s2.value)',
 ['1', '2', '12', '3', '32'],
 function(test, done) {
-    const s1 = new Signal(() => '1');
-    const s2 = new Signal(() => '2');
+    const s1 = Signal.of('1');
+    const s2 = Signal.of('2');
     const s3 = new Signal(() => s1.value + s2.value);
 
     test(s1.value);
@@ -24,8 +24,8 @@ function(test, done) {
 run('Signal(() => s1 + s2), testing .valueOf()',
 ['1', '2', '12', '3', '32'],
 function(test, done) {
-    const s1 = Signal.from(() => '1');
-    const s2 = Signal.from(() => '2');
+    const s1 = Signal.of('1');
+    const s2 = Signal.of('2');
     const s3 = Signal.from(() => s1 + s2);
 
     test(s1 + '');

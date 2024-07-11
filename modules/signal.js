@@ -1,9 +1,108 @@
 
 import noop from './noop.js';
 
+const DEBUG  = false;//window.DEBUG && window.DEBUG.signal !== false;
 const assign = Object.assign;
 
 let evaluatingSignal;
+
+let L = 0;
+function setDependent(signal, dependent) {
+    //debugger
+    // Find the lowest empty output index
+    let n = -1;
+    while (signal[++n]) if (signal[n] === dependent) break;
+    signal[n] = dependent;
+
+    if (DEBUG) console.log(
+        '%cSignal%c connect%c ' + signal.constructor.name + '[' + signal.id + '] - ' + dependent.constructor.name + '[' + dependent.id + ']',
+        'color: #718893; font-weight: 300;',
+        'color: #3896BF; font-weight: 300;',
+        'color: #718893; font-weight: 300;'
+    );
+}
+
+function invalidateDependents(signal) {
+    let n = 0;
+    let dependent;
+
+    // Copy dependents to negative indexes to make way for possible synchronous
+    // setting of dependents
+    while (dependent = signal[++n]) {
+        signal[n] = undefined;
+        signal[-n] = dependent;
+    }
+
+    // Then invalidate them
+    n = 1;
+    while (dependent = signal[--n]) {
+        signal[n] = undefined;
+        dependent.invalidate();
+    }
+}
+
+let dd = 0;
+class ValueSignal {
+    #value;
+
+    constructor(value) {
+        this.id = ++dd;
+        this.#value = value;
+    }
+
+    /**
+    .value
+
+    Getting `.value` gets value from the cache.
+
+    Setting `.value`, assuming the set value differs from the previous value,
+    updates the cache and invalidates dependent signals.
+    **/
+
+    get value() {
+        // If there is a signal currently evaluating then it becomes a
+        // dependency of this signal, irrespective of state of #value
+        if (evaluatingSignal) setDependent(this, evaluatingSignal);
+        return this.#value;
+    }
+
+    set value(value) {
+        // Don't update for no change in value
+        if(this.#value === value) return;
+
+        // Set cached value
+        this.#value = value;
+
+        // Invalidate dependents. If a dependent updates synchronously here
+        // we may be in trouble but #valid is true and #value is set so
+        // that's ok I think?
+        invalidateDependents(this);
+    }
+
+    observe(fn, initial) {
+        // Add to signals called on invalidation
+        let n = -1;
+        while (this[++n]);
+        return this[n] = new ObserverSignal(this, fn, initial);
+    }
+
+    /*
+    .valueOf()
+    Enable direct use in some contexts like addition or string concatenation.
+    */
+
+    valueOf() {
+        return this.value;
+    }
+
+    toString() {
+        return this.valueOf() + '' ;
+    }
+
+    toJSON() {
+        return this.value;
+    }
+}
 
 
 /**
@@ -23,22 +122,12 @@ where a primitive is expected.
 **/
 
 export default class Signal {
-    #valid;
-    #cache;
-    #fn;
-
-    constructor(fn) {
-        if (fn) { this.#fn = fn; }
-    }
-
     /**
     Signal.of(value)
     Creates a value signal with totally optional initial `value`.
     **/
     static of(value) {
-        const signal = new Signal();
-        signal.value = value;
-        return signal;
+        return new ValueSignal(value);
     }
 
     /**
@@ -50,13 +139,13 @@ export default class Signal {
     static from(fn) {
         // Promise
         if (fn.then) {
-            const signal = new Signal();
+            const signal = new ValueSignal();
             fn.then((value) => signal.value = value);
             return signal;
         }
         // Pipeable
         else if (fn.pipe) {
-            const signal = new Signal();
+            const signal = new ValueSignal();
             fn.pipe({ push: (value) => signal.value = value });
             return signal;
         }
@@ -68,14 +157,22 @@ export default class Signal {
 
     /**
     Signal.evaluate(object, fn)
+    It's a bit niche, but this is useful for building objects that behave as
+    observer signals.
+
+    ```js
+    Signal.evaluate(object, fn)
+    ```
+
     Evaluates `object` as a signal by applying it to `fn` and returning the
     result. Signals read during `fn()` have `object` registered as a dependent,
     so `object.invalidate()` is called when any of those signals are invalidated.
+    It's the same function as that used internally to evaluate signals.
 
     Typically `object.invalidate()` would cue a `Signal.evaluate(object, fn)` at
     some point in the future. (It is not great to `Signal.evaluate(object, fn)`
     synchronously inside `.invalidate()`, although this should only lead to
-    wasted invalidations, not bad results.)
+    wasted invalidations, not bad results. Errm, in most cases, at least.)
     **/
 
     static evaluate(signal, fn) {
@@ -83,7 +180,18 @@ export default class Signal {
         // synchronous evaluation of fn()
         const previous = evaluatingSignal;
         evaluatingSignal = signal;
+
+        if (DEBUG) console.group(
+            '%cSignal%c evaluate%c ' + evaluatingSignal.constructor.name + '[' + evaluatingSignal.id + ']',
+            'color: #718893; font-weight: 300;',
+            'color: #3896BF; font-weight: 300;',
+            'color: #718893; font-weight: 300;'
+        );
+
         const value = fn.apply(signal);
+
+        if (window.DEBUG && window.DEBUG.signal !== false) console.groupEnd();
+
         evaluatingSignal = previous;
         return value;
     }
@@ -95,58 +203,37 @@ export default class Signal {
     is no evaluating signal, it needn't make a signal when a property is accessed.
     Deliberately not documented.
     */
+
     static get evaluating() {
         return evaluatingSignal;
     }
 
 
+    // Privates
+    #valid;
+    #value;
+    #fn;
+
+
+    constructor(fn) {
+        if (fn) { this.#fn = fn; }
+    }
+
     /**
     .value
-
     Getting `.value` gets value from the cache or evaluates a value from `fn`.
     During evaluation this signal is registered as dependent on other signals
     whose `.value` is got.
-
-    Setting `.value`, assuming the set value differs from the previous value,
-    updates the cache and invalidates dependent signals.
     **/
 
     get value() {
         // If there is a signal currently evaluating then it becomes a
-        // dependency of this signal, irrespective of state of #cache
-        if (evaluatingSignal) {
-            let n = -1;
-            while (this[++n]) if (this[n] === evaluatingSignal) break;
-            this[n] = evaluatingSignal;
-        }
-
-        return this.#valid ? this.#cache : (this.value = Signal.evaluate(this, this.#fn)) ;
-    }
-
-    set value(value) {
-        // Don't update for no change in value
-        if(this.#cache === value) {
-            this.#valid = true;
-            return;
-        }
-
-        // Set cached value
-        this.#cache = value;
-
-        if (this.#valid) {
-            // Invalidate dependents. If a dependent updates synchronously here
-            // we may be in trouble but #valid is true and #cache is set so
-            // that's ok I think?
-            let n = -1;
-            let signal;
-            while (signal = this[++n]) {
-                this[n] = undefined;
-                signal.invalidate(this);
-            }
-        }
-        else {
-            this.#valid = true;
-        }
+        // dependency of this signal, irrespective of state of #value
+        if (evaluatingSignal) setDependent(this, evaluatingSignal);
+        if (this.#valid) return this.#value;
+        this.#value = Signal.evaluate(this, this.#fn);
+        this.#valid = true;
+        return this.#value;
     }
 
     /**
@@ -155,20 +242,14 @@ export default class Signal {
     **/
 
     invalidate() {
-        if (this.#valid) {
-            // Invalidate this
-            this.#valid = false;
-            // Invalidate dependents. If a dependent updates synchronously here
-            // we may be in trouble, as it would evaluate and cache this signal
-            // and overwrite dependents before we have finished invalidating
-            // this set of dependents.
-            let n = -1;
-            let signal;
-            while (signal = this[++n]) {
-                this[n] = undefined;
-                signal.invalidate(this);
-            }
-        }
+        if (!this.#valid) return;
+        this.#valid = false;
+
+        // Invalidate dependents. If a dependent updates synchronously here
+        // we may be in trouble, as it would evaluate and cache this signal
+        // and overwrite dependents before we have finished invalidating
+        // this set of dependents.
+        invalidateDependents(this);
     }
 
     /**
