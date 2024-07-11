@@ -1,4 +1,6 @@
 
+import curry from '../curry.js';
+
 /**
 update(create, destroy, fn, target, source)
 
@@ -11,7 +13,7 @@ in `target` that are not matched to `source` objects are destroyed by calling
 
 const assign = Object.assign;
 
-export default function update(create, destroy, fn, target, source) {
+export function update(create, destroy, fn, target, source) {
     const ids     = target.map(fn);
     const indexes = {};
     const output  = source.map(function(data) {
@@ -41,3 +43,5 @@ export default function update(create, destroy, fn, target, source) {
 
     return output;
 }
+
+export default curry(update, true);
