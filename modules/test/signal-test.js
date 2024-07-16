@@ -8,7 +8,7 @@ run('Signal(() => s1.value + s2.value)',
 function(test, done) {
     const s1 = Signal.of('1');
     const s2 = Signal.of('2');
-    const s3 = new Signal(() => s1.value + s2.value);
+    const s3 = Signal.from(() => s1.value + s2.value);
 
     test(s1.value);
     test(s2.value);
