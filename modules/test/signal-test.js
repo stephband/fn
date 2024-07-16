@@ -2,7 +2,6 @@
 import run    from '../test.js';
 import Signal from '../signal.js';
 
-
 run('Signal(() => s1.value + s2.value)',
 ['1', '2', '12', '3', '32'],
 function(test, done) {
@@ -69,7 +68,7 @@ function(test, done) {
 });
 
 run('Signal.of()',
-[undefined, 2,/* NaN,*/ 3],
+[undefined, 2, 3],
 function(test, done) {
     let n, m;
     const s1 = Signal.of();
@@ -83,6 +82,39 @@ function(test, done) {
     s1.value = 1;
     test(s3.value);
 
+
+    done();
+});
+
+run('Signal a + b = c',
+[1, 2, 'compute', 3, 'compute', 4, 4],
+function(test, done) {
+    let n, m;
+    const a = Signal.of(1);
+    const b = Signal.of(2);
+    const c = Signal.from(() => {
+        const v = a.value === 1 ?
+            a.value + b.value :
+            a.value ;
+
+        test('compute');
+        return v;
+    });
+
+    test(a.value);
+    test(b.value);
+    test(c.value);
+
+    // Invalidate a, c must now be invalid
+    a.value = 4;
+
+    // evaluate c, c now has no dependency on b because b was not evaluated
+    test(c.value);
+
+    // Invalidate b. This should not cause c to invalidate, so should not test('compute').
+    // (But it does :))
+    b.value = 0;
+    test(c.value);
 
     done();
 });
