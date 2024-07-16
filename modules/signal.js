@@ -36,7 +36,7 @@ function invalidateDependents(signal) {
     n = 1;
     while (dependent = signal[--n]) {
         signal[n] = undefined;
-        dependent.invalidate();
+        dependent.invalidate(signal);
     }
 }
 
@@ -149,9 +149,9 @@ export default class Signal {
     /*
     Signal.evaluating
     The signal that is currently being evaluated, or undefined. This is exposed
-    so that Data() can make a better call about when to create signals. If there
-    is no evaluating signal, it needn't make a signal when a property is accessed.
-    Deliberately not documented.
+    so that Data() can make a better call about when to create signals (if there
+    is no evaluating signal, it needn't make a signal when a property is
+    accessed). Deliberately undocumented.
     */
 
     static get evaluating() {
@@ -162,10 +162,12 @@ export default class Signal {
         if (DEBUG) { this.id = ++id; }
     }
 
-    /*
+    /**
     .valueOf()
-    Enable direct use in some expressions like addition or string concatenation.
-    */
+    Enables direct use in some expressions like addition or string concatenation.
+    This may prove to be less useful than we think. For one thing, logging a
+    signal object now evaluates it, affecting the outcome.
+    **/
 
     valueOf() {
         return this.value;
@@ -203,8 +205,8 @@ class StateSignal extends Signal {
 
     Getting `.value` gets value from the cache.
 
-    Setting `.value`, assuming the set value differs from the previous value,
-    updates the cache and invalidates dependent signals.
+    Setting `.value`, assuming the newly set value differs from the previous
+    value, updates the cache and invalidates dependent signals.
     **/
 
     get value() {
@@ -246,9 +248,9 @@ class ComputeSignal extends Signal {
 
     /**
     .value
-    Getting `.value` gets value from the cache or evaluates a value from `fn`.
-    During evaluation this signal is registered as dependent on other signals
-    whose `.value` is got.
+    Getting `.value` gets value from the cache or, if the signal is invalid,
+    evaluates a value from `fn`. During evaluation this signal is registered as
+    dependent on other signals whose value is read.
     **/
 
     get value() {
@@ -262,11 +264,13 @@ class ComputeSignal extends Signal {
     }
 
     /**
-    .invalidate()
-    Invalidates this signal and all dependent signals.
+    .invalidate(signal)
+    Invalidates this signal and calls `.invalidate()` on all dependent signals.
+    The `signal` parameter is the signal causing the invalidation. It may be
+    `undefined`.
     **/
 
-    invalidate() {
+    invalidate(signal) {
         if (!this.#valid) return;
         this.#valid = false;
 
@@ -300,7 +304,7 @@ export class ObserveSignal {
         return this.#signal.value;
     }
 
-    invalidate() {
+    invalidate(signal) {
         if (this.status === 'done') return;
 
         // Evaluate and send value to consumer.
