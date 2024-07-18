@@ -7,9 +7,14 @@ const assign = Object.assign;
 let evaluatingSignal;
 let id = 0;
 
-function setDependent(signal, dependent) {
-    // Find the lowest empty output index
-    let n = -1;
+function setDependency(signal, dependent) {
+    // Set signal as an input of dependent
+    let n = 0;
+    while (dependent[--n]) if (dependent[n] === signal) break;
+    dependent[n] = signal;
+
+    // Set dependent as an output of signal
+    n = -1;
     while (signal[++n]) if (signal[n] === dependent) break;
     signal[n] = dependent;
 
@@ -22,22 +27,19 @@ function setDependent(signal, dependent) {
 }
 
 function invalidateDependents(signal) {
-    let n = 0;
+    let n = -1;
     let dependent;
-
-    // Copy dependents to negative indexes to make way for possible synchronous
-    // setting of dependents (although doing that is ill-advised)
     while (dependent = signal[++n]) {
-        signal[n] = undefined;
-        signal[-n] = dependent;
-    }
-
-    // Then invalidate them
-    n = 1;
-    while (dependent = signal[--n]) {
         signal[n] = undefined;
         dependent.invalidate(signal);
     }
+}
+
+function hasInput(signal, input) {
+    // Check if input exists in the -ve indexes
+    let n = 0;
+    while (signal[--n]) if (signal[n] === input) return true;
+    return false;
 }
 
 
@@ -105,9 +107,7 @@ export default class Signal {
 
     static observe(signal, fn, initial) {
         // Add to signals called on invalidation
-        let n = -1;
-        while (signal[++n]);
-        return signal[n] = new ObserveSignal(signal, fn, initial);
+        return new ObserveSignal(signal, fn, initial);
     }
 
     /**
@@ -212,7 +212,7 @@ class StateSignal extends Signal {
     get value() {
         // If there is a signal currently evaluating then it becomes a
         // dependency of this signal, irrespective of state of #value
-        if (evaluatingSignal) setDependent(this, evaluatingSignal);
+        if (evaluatingSignal) setDependency(this, evaluatingSignal);
         return this.#value;
     }
 
@@ -256,7 +256,7 @@ class ComputeSignal extends Signal {
     get value() {
         // If there is a signal currently evaluating then it becomes a
         // dependency of this signal, irrespective of state of #value
-        if (evaluatingSignal) setDependent(this, evaluatingSignal);
+        if (evaluatingSignal) setDependency(this, evaluatingSignal);
         if (this.#valid) return this.#value;
         this.#value = Signal.evaluate(this, this.#evaluate);
         this.#valid = true;
@@ -272,7 +272,17 @@ class ComputeSignal extends Signal {
 
     invalidate(signal) {
         if (!this.#valid) return;
+
+        // Verify that signal has the right to invalidate this to protect us
+        // against the case where a dependent is left on another signal due to
+        // an old evaluation
+        if (signal && !hasInput(this, signal)) return;
+
         this.#valid = false;
+
+        // Clear inputs
+        let n = 0;
+        while (this[--n]) this[n] = undefined;
 
         // Invalidate dependents. If a dependent updates synchronously here
         // we may be in trouble, as it would evaluate and cache this signal
@@ -287,6 +297,8 @@ class ComputeSignal extends Signal {
 ObserveSignal(fn)
 */
 
+const promise = Promise.resolve();
+
 export class ObserveSignal {
     #signal;
     #fn;
@@ -296,8 +308,11 @@ export class ObserveSignal {
         this.#signal = signal;
         this.#fn     = fn;
 
+        // Set up dependency graph, return value
+        const value = Signal.evaluate(this, this.#evaluate);
+
         // Run the observer if value is not initial
-        if (signal.value !== initial) { this.invalidate(); }
+        if (signal.value !== initial) this.#fn(value);
     }
 
     #evaluate() {
@@ -307,12 +322,15 @@ export class ObserveSignal {
     invalidate(signal) {
         if (this.status === 'done') return;
 
-        // Evaluate and send value to consumer.
-        // TODO: it remains to be seen whether this is a safe thing to do
-        // synchronously. Because this happens during an invalidate it may be
-        // that some other signal due to be invalidated is evaluated here before
-        // that has occurred.
-        this.#fn(Signal.evaluate(this, this.#evaluate));
+        // Verify that signal has the right to invalidate this
+        if (signal && !hasInput(this, signal)) return;
+
+        // Clear inputs
+        let n = 0;
+        while (this[--n]) this[n] = undefined;
+
+        // Evaluate and send value to consumer on next tick
+        promise.then(() => this.#fn(Signal.evaluate(this, this.#evaluate)));
     }
 
     stop() {
