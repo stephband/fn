@@ -6,7 +6,7 @@ const define       = Object.defineProperties;
 const isExtensible = Object.isExtensible;
 
 const O          = Object.prototype;
-const $trap      = Symbol('signals');
+const $trap      = Symbol('signal-data');
 const properties = { [$trap]: {} };
 
 
