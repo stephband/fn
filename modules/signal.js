@@ -263,12 +263,13 @@ class ComputeSignal extends Signal {
         return this.#value;
     }
 
-    /**
+    /*
     .invalidate(signal)
-    Invalidates this signal and calls `.invalidate()` on all dependent signals.
-    The `signal` parameter is the signal causing the invalidation. It may be
-    `undefined`.
-    **/
+    Invalidates this signal and calls `.invalidate(this)` on all dependent
+    signals. The `signal` parameter is the signal causing the invalidation; it
+    may be `undefined`: where it exists it is verified as a current input of
+    this before this is invalidated.
+    */
 
     invalidate(signal) {
         if (!this.#valid) return;
