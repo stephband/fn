@@ -1,14 +1,16 @@
 
-import nothing         from './nothing.js';
-import self            from './self.js';
+import nothing           from './nothing.js';
+import self              from './self.js';
+import Data              from './data.js';
 
 import Stream, { Broadcast, pipe, stop } from './stream/stream.js';
-import BufferStream    from './stream/buffer-stream.js';
-import CombineStream   from './stream/combine-stream.js';
-import MergeStream     from './stream/merge-stream.js';
-import PromiseStream   from './stream/promise-stream.js';
-import FrameStream     from './stream/clock-stream.js';
-import Throttle        from './stream/throttle-stream.js';
+import BufferStream      from './stream/buffer-stream.js';
+import CombineStream     from './stream/combine-stream.js';
+import MergeStream       from './stream/merge-stream.js';
+import PromiseStream     from './stream/promise-stream.js';
+import FrameStream       from './stream/clock-stream.js';
+import Throttle          from './stream/throttle-stream.js';
+import SignalStream      from './stream/signal-stream.js';
 
 const A      = Array.prototype;
 const assign = Object.assign;
@@ -51,12 +53,18 @@ assign(Stream, {
                 typeof source.then === 'function' ? new PromiseStream(source) :
                 // Source is an array or array-like
                 typeof source.length === 'number' ? new BufferStream(source) :
+                // Source is a Signal
+                Signal.isSignal(source) ? new SignalStream(signal) :
                 // Source is an object of streams, promises and values
                 new CombineStream(source) :
             // Source is a function
             typeof source === 'function' ? new Stream(source) :
             // Source cannot be made into a stream
             throwTypeError(source) ;
+    },
+
+    observe: function(path, object, initial) {
+        return new SignalStream(Data.signal(path, object), initial);
     },
 
     /*

@@ -1,6 +1,4 @@
 
-import noop from './noop.js';
-
 const DEBUG  = false;//window.DEBUG && window.DEBUG.signal !== false;
 const assign = Object.assign;
 
@@ -35,7 +33,7 @@ function invalidateDependents(signal) {
     }
 }
 
-function hasInput(signal, input) {
+export function hasInput(signal, input) {
     // Check if input exists in the -ve indexes
     let n = 0;
     while (signal[--n]) if (signal[n] === input) return true;
@@ -52,43 +50,60 @@ written, a compute signal's `.value` may only be read.
 
 The `Signal` constructor is not called directly, but calling `Signal.of(value)`
 creates a state signal, and `Signal.from(fn)` creates a compute signal.
-
-TODO: currently if you have 3 signals, a, b and c that is a dependent of a and b,
-a may invalidate c, which may evaluate without needing b, ... but c is still set
-as an index on b, so it may yet invalidate c unnecessarily.
 **/
 
 export default class Signal {
     /**
+    Signal.isSignal(object)
+
+    Returns `true` where `object` is an instance of `Signal`.
+
+    This guarantees that `object` has a gettable `value` property. This is not
+    true of an ObserveSignal, which is not really a signal at all – it cannot
+    have dependencies – but is only evaluated as one when invalidated.
+    **/
+
+    static isSignal(object) {
+        return object instanceof Signal;
+    }
+
+    /**
     Signal.of()
     Signal.of(value)
-    Creates a state signal object that has essentially one property, `.value`.
+
+    Creates a state signal that has essentially one property, `.value`.
     When `.value` is set the signal becomes invalid, stale, out of date,
     irrelevant, historic, old, and any signals that depend on it are invalidated.
     **/
 
     static of(value) {
-        return new StateSignal(value);
+        return new ValueSignal(value);
     }
 
     /**
     Signal.from(fn)
-    Creates a compute signal where `fn` computes a value by reading other
-    signals' values. This signal is then invalidated when any of the read
-    signals are invalidated.
+    Signal.from(promise)
+    Signal.from(stream)
+
+    Creates a compute signal from a function, where `fn` computes a value by
+    reading other signals' values. This signal is then invalidated when any of
+    the read signals are invalidated.
+
+    Creates a state signal from a promise or stream that invalidates
+    dependencies as the promise or streams' values resolve.
     **/
 
     static from(fn) {
         // Promise
         if (fn.then) {
-            const signal = new StateSignal();
+            const signal = new ValueSignal();
             fn.then((value) => signal.value = value);
             return signal;
         }
         // Pipeable
         else if (fn.pipe) {
             // TODO: make a PushableSignal
-            const signal = new StateSignal();
+            const signal = new ValueSignal();
             fn.pipe({ push: (value) => signal.value = value });
             return signal;
         }
@@ -100,6 +115,7 @@ export default class Signal {
 
     /**
     Signal.observe(signal, fn, initial)
+
     Returns an observer that calls `fn` with `signal.value` whenever the signal
     is invalidated. If `signal` does not have an initial value equal to `initial`
     `fn` is also called immediately.
@@ -112,6 +128,7 @@ export default class Signal {
 
     /**
     Signal.evaluate(object, fn)
+
     A function for building objects that behave as observer signals.
 
     Evaluates `object` as a signal by applying it to `fn` and returning the
@@ -164,6 +181,7 @@ export default class Signal {
 
     /**
     .valueOf()
+
     Enables direct use in some expressions like addition or string concatenation.
     This may prove to be less useful than we think. For one thing, logging a
     signal object now evaluates it, affecting the outcome.
@@ -176,6 +194,7 @@ export default class Signal {
     /*
     .toString()
     .toJSON()
+
     Treat `.value` as the value to output?
     */
 
@@ -189,10 +208,10 @@ export default class Signal {
 }
 
 /*
-StateSignal(value)
+ValueSignal(value)
 */
 
-class StateSignal extends Signal {
+class ValueSignal extends Signal {
     #value;
 
     constructor(value) {
@@ -248,9 +267,9 @@ class ComputeSignal extends Signal {
 
     /**
     .value
-    Getting `.value` gets value from the cache or, if the signal is invalid,
-    evaluates a value from `fn`. During evaluation this signal is registered as
-    dependent on other signals whose value is read.
+    Getting `.value` gets a cached value or, if the signal is invalid,
+    evaluates (and caches) value from `fn()`. During evaluation this signal is
+    registered as dependent on other signals whose value is got.
     **/
 
     get value() {
@@ -296,6 +315,7 @@ class ComputeSignal extends Signal {
 
 /*
 ObserveSignal(fn)
+TEMP: are we sure we are keeping this? Used by Data.observe() and <lieral-html>.
 */
 
 const promise = Promise.resolve();
@@ -305,7 +325,6 @@ export class ObserveSignal {
     #fn;
 
     constructor(signal, fn, initial) {
-        this.id      = ++id;
         this.#signal = signal;
         this.#fn     = fn;
 

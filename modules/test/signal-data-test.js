@@ -1,7 +1,7 @@
 
 import run    from '../test.js';
-import Data   from '../signal-data.js';
 import Signal from '../signal.js';
+import Data   from '../data.js';
 
 
 run('Data.signal()',

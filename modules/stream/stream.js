@@ -27,14 +27,10 @@ export function pipe(stream, output) {
     // in the flow of .stop() unless we give it one. Let's use existence of
     // .stop() to determine need for output[-1], to avoid us setting
     // array[-1], for example, in case the consumer is an array.
-    if (output.stop) {
-        output[-1] = stream;
-    }
+    if (output.stop) output[-1] = stream;
 
     // Add to outputs
-    stream[0] = output;
-
-    return output;
+    return stream[0] = output;
 }
 
 

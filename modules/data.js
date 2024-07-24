@@ -4,10 +4,9 @@ import Signal from './signal.js';
 const assign       = Object.assign;
 const define       = Object.defineProperties;
 const isExtensible = Object.isExtensible;
-
-const O          = Object.prototype;
-const $trap      = Symbol('signal-data');
-const properties = { [$trap]: {} };
+const O            = Object.prototype;
+const $trap        = Symbol('data');
+const properties   = { [$trap]: {} };
 
 
 function isMuteable(object) {
@@ -75,10 +74,10 @@ function getTrap(object) {
 
 
 /*
-Trap(object)
+DataTrap(object)
 */
 
-function Trap(object) {
+function DataTrap(object) {
     this.signals = {};
     this.object  = object;
     this.data    = new Proxy(object, this);
@@ -88,7 +87,7 @@ function Trap(object) {
     define(object, properties);
 }
 
-assign(Trap.prototype, {
+assign(DataTrap.prototype, {
     get: function get(object, name, proxy) {
         // Don't observe changes to symbol properties, and
         // don't allow Safari to log __proto__ as a Proxy. (That's dangerous!
@@ -163,38 +162,80 @@ assign(Trap.prototype, {
 });
 
 
-/**
-Data(object)
-Create an observer proxy around `object`. Mutations made to this proxy are
-observable via `observe(path, object` and `mutations(paths, object)`.
-**/
-
-/**
+/*
 Data(object, force)
 Forces creation of an observer even where Data would normally consider
 the object 'immutable'. Data considers DOM nodes immutable, for example, but
 not because they are really immutable, more in order to prevent you calling node
 methods on a node's observer proxy, which is a source of hard-to-trace errors.
 Pass in `force` as `true` if you know what you are doing.
-**/
+*/
 
 export default function Data(object, force) {
     return !object ? undefined :
         object[$trap] ? object[$trap].data :
-        (force || isMuteable(object)) ? (new Trap(object)).data :
+        (force || isMuteable(object)) ? (new DataTrap(object)).data :
         undefined ;
 }
 
-/** Data.of(object) **/
-Data.of = Data;
+/**
+Data.of(object)
 
-Data.signal = function(name, object) {
-    const trap = getTrap(object);
-    return trap && getSignal(trap.signals, name, trap.object[name]);
-};
+Returns the data proxy of `object`. The data proxy is a wrapper that observes
+mutations made to `object`. There is only ever one data proxy of `object`, and
+calls to `Data.of(object)` always return that data proxy.
+
+_Getting_ a property of a data proxy while evaluating a signal registers the
+signal as dependent on the property. _Setting_ a property of a data proxy
+notifies dependent signals.
+
+Getting a property of a data proxy returns a data proxy of that property
+of `object`. In this way access chains like `data.property.value` are also
+observed.
+
+Not all objects may be proxied. Frozen objects, unextensible objects, and
+various others like Sets, Maps and DOM and WebAudio nodes are deemed
+immutable or otherwise unobservable. They return `undefined`.
+**/
+
+Data.of = (object) => Data(object);
+
+/**
+Data.objectOf(data)
+
+Returns the un-proxied `object` wrapped by `Data.of(object)`, or, if `data` is
+already just an object, `data`. Getting and setting properties of `object` has
+no effect on the data proxy.
+**/
 
 Data.objectOf = function(object) {
     return object && object[$trap] ?
         object[$trap].object :
         object ;
+};
+
+/**
+Data.observe(data)
+
+Returns the un-proxied `object` wrapped by a `Data.of(object)` proxy, or,
+if `data` is already just an object, `data`.
+**/
+
+Data.observe = function(name, object, fn, initial) {
+    const trap = Data(object) && object[$trap];
+    if (!trap) return;
+
+    const signal = getSignal(trap.signals, name, trap.object[name]);
+    return Signal.observe(signal, fn, initial);
+};
+
+/*
+Data.signal(path, data)
+*/
+
+Data.signal = function(name, object) {
+    const trap   = Data.of(object) && object[$trap];
+    return trap ?
+        getSignal(trap.signals, name, trap.object[name]) :
+        nothing ;
 };
