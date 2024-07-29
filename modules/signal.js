@@ -93,24 +93,23 @@ export default class Signal {
     dependencies as the promise or streams' values resolve.
     **/
 
-    static from(fn) {
+    static from(fn, context) {
         // Promise
         if (fn.then) {
-            const signal = new ValueSignal();
+            const signal = Signal.of();
             fn.then((value) => signal.value = value);
             return signal;
         }
+
         // Pipeable
-        else if (fn.pipe) {
-            // TODO: make a PushableSignal
-            const signal = new ValueSignal();
+        if (fn.pipe) {
+            const signal = Signal.of();
             fn.pipe({ push: (value) => signal.value = value });
             return signal;
         }
+
         // Function
-        else {
-            return new ComputeSignal(fn);
-        }
+        return new ComputeSignal(fn, context);
     }
 
     /**
@@ -127,9 +126,9 @@ export default class Signal {
     }
 
     /**
-    Signal.evaluate(object, fn)
+    Signal.evaluate(signal, fn[, context])
 
-    A function for building objects that behave as observer signals.
+    A function for building objects that behave as compute signals.
 
     Evaluates `object` as a signal by applying it to `fn` and returning the
     result. Signals read during `fn()` have `object` registered as a dependent,
@@ -142,7 +141,7 @@ export default class Signal {
     wasted invalidations, not bad results. Errm, in most cases, at least.)
     **/
 
-    static evaluate(signal, fn) {
+    static evaluate(signal, fn, context = signal) {
         // Make signal the evaluating signal for the duration of this
         // synchronous evaluation of fn()
         const previous = evaluatingSignal;
@@ -155,7 +154,7 @@ export default class Signal {
             'color: #718893; font-weight: 300;'
         );
 
-        const value = fn.apply(signal);
+        const value = fn.apply(context);
 
         if (window.DEBUG && window.DEBUG.signal !== false) console.groupEnd();
 
@@ -256,13 +255,15 @@ ComputeSignal(value)
 
 class ComputeSignal extends Signal {
     // Privates
+    #fn;
+    #context;
     #valid;
     #value;
-    #evaluate;
 
-    constructor(fn) {
+    constructor(fn, context) {
         super();
-        if (fn) { this.#evaluate = fn; }
+        this.#fn      = fn;
+        this.#context = context;
     }
 
     /**
@@ -277,7 +278,7 @@ class ComputeSignal extends Signal {
         // dependency of this signal, irrespective of state of #value
         if (evaluatingSignal) setDependency(this, evaluatingSignal);
         if (this.#valid) return this.#value;
-        this.#value = Signal.evaluate(this, this.#evaluate);
+        this.#value = Signal.evaluate(this, this.#fn, this.#context);
         this.#valid = true;
         return this.#value;
     }
