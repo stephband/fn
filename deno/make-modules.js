@@ -9,7 +9,8 @@ import postpad from '../modules/postpad.js';
 // Find latest version here:
 // https://deno.land/x/esbuild
 //import * as es from 'https://deno.land/x/esbuild@v0.12.28/mod.js';
-import * as es from 'https://deno.land/x/esbuild@v0.19.2/mod.js';
+import * as es from 'https://deno.land/x/esbuild@v0.23.0/mod.js';
+import { denoPlugins } from "jsr:@luca/esbuild-deno-loader@^0.10.3";
 
 
 // Arguments - slice args to get a muteable array
@@ -111,10 +112,15 @@ Deno
 
     minify:    true,
     bundle:    true,
+    write:     true,
     format:    'esm',
     logLevel:  'info',
 
-    plugins: [{
+    plugins: [...denoPlugins({
+        // This has to be absolute according to docs at https://jsr.io/@luca/esbuild-deno-loader/doc/~/DenoResolverPluginOptions.configPath
+        configPath: workingdir + 'deno.json',
+        lockPath:   workingdir + 'deno.lock'
+    })/*, {
         // Rewrite relative URLs for font files
         name: 'fonts',
         setup: (build) => build.onResolve({
@@ -133,7 +139,7 @@ Deno
             console.warn('URL not rewritten:', args.path);
             return { path: args.path, external: true };
         })
-    }],
+    }*/],
 
     loader: {
         // These have been marked as external in the plugin above, so this does
