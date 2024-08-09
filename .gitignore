@@ -3,4 +3,3 @@ node_modules/*
 .nova/*
 archive/*
 build/*
-deno.lock
