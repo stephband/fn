@@ -10,7 +10,7 @@ import postpad from '../modules/postpad.js';
 // https://deno.land/x/esbuild
 //import * as es from 'https://deno.land/x/esbuild@v0.12.28/mod.js';
 import * as es from 'https://deno.land/x/esbuild@v0.23.0/mod.js';
-import { denoPlugins } from "jsr:@luca/esbuild-deno-loader@^0.10.3";
+//import { denoPlugins } from "jsr:@luca/esbuild-deno-loader@^0.10.3";
 
 
 // Arguments - slice args to get a muteable array
@@ -82,12 +82,6 @@ Deno
     // Disable ASCII character escaping
     charset:   'utf8',
 
-    // Set DEBUG to false to remove any conditions that depend on it
-    define: {
-        'window.DEBUG': 'false',
-        'DEBUG':        'false'
-    },
-
     // Modules become entry points
     entryPoints: modules,
 
@@ -116,11 +110,40 @@ Deno
     format:    'esm',
     logLevel:  'info',
 
-    plugins: [...denoPlugins({
-        // This has to be absolute according to docs at https://jsr.io/@luca/esbuild-deno-loader/doc/~/DenoResolverPluginOptions.configPath
-        configPath: workingdir + 'deno.json',
-        lockPath:   workingdir + 'deno.lock'
-    })],
+    plugins: [{
+        // Rewrite relative URLs for font files
+        name: 'fonts',
+        setup: (build) => build.onResolve({
+            filter: /^..+\.(?:woff|woff2|eot|ttf|otf)(?:#|$)/
+        }, (args) => {
+            console.warn('Relative font import', args.path);
+            return { path: '../' + args.path, external: true };
+        })
+    }, {
+        // Mark .png, .svg and so on as external files to avoid them being
+        // bundled. Ideally, we want to rewrite their paths here. TODO!
+        name: 'external',
+        setup: (build) => build.onResolve({
+            filter: /\.(?:png|jpg|svg|woff|woff2|eot|ttf|otf)(?:#|$)/
+        }, (args) => {
+            console.warn('URL not rewritten:', args.path);
+            return { path: args.path, external: true };
+        })
+    }],
+
+    loader: {
+        // These have been marked as external in the plugin above, so this does
+        // nothing. I leave it here for indication how to bundle url(image)
+        // stuff with a 'file' loader should you need to.
+        '.eot':   'file',
+        '.woff':  'file',
+        '.woff2': 'file',
+        '.svg':   'file',
+        '.ttf':   'file',
+        '.otf':   'file',
+        '.png':   'file',
+        '.jpg':   'file'
+    },
 
     // Generate data about build
     metafile: true
@@ -158,19 +181,20 @@ Deno
 
     paths['../js'].sort();
     paths['./js'].sort();
-    /*paths['../css'].sort();
-    paths['./css'].sort();*/
+    paths['../css'].sort();
+    paths['./css'].sort();
 
-    const colWidth = 4 + Math.max(
-        paths['./js']
-        .reduce((l, path) => path.length > l ? path.length : l, 0)/*,
+    const colWidth = 4 + Math.min(60, Math.max(
+        /*paths['./js']
+        .reduce((l, path) => path.length > l ? path.length : l, 0),*/
         paths['./css']
-        .reduce((l, path) => path.length > l ? path.length : l, 0)*/
-    );
+        .reduce((l, path) => path.length > l ? path.length : l, 0)
+    ));
 
-    const jslength = Math.max(paths['../js'].length, paths['./js'].length);
-    //const csslength = Math.max(paths['../css'].length, paths['./css'].length);
+    //const jslength = Math.max(paths['../js'].length, paths['./js'].length);
+    const csslength = Math.max(paths['../css'].length, paths['./css'].length);
 
+    /*
     while (paths['../js'].length < jslength) {
         paths['../js'].push('');
     }
@@ -178,7 +202,8 @@ Deno
     while (paths['./js'].length < jslength) {
         paths['./js'].push('');
     }
-    /*
+    */
+
     while (paths['../css'].length < csslength) {
         paths['../css'].push('');
     }
@@ -186,8 +211,8 @@ Deno
     while (paths['./css'].length < csslength) {
         paths['./css'].push('');
     }
-    */
 
+    /*
     console.log('\n  ' + postpad(' ', colWidth, 'Project modules') + postpad(' ', colWidth, 'Local modules') + '\n');
 
     console.log(green, '  ' +
@@ -196,7 +221,8 @@ Deno
         .map((path, i) => path + paths['../js'][i])
         .join('\n  ')
     );
-    /*
+    */
+
     console.log('\n  ' + postpad(' ', colWidth, 'Project CSS') + postpad(' ', colWidth, 'Local CSS') + '\n');
 
     console.log(green, '  ' +
@@ -206,7 +232,6 @@ Deno
         .join('\n  ') +
         '\n'
     );
-    */
 
     // Explicitly stop esbuild
     es.stop();
