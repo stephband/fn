@@ -114,7 +114,7 @@ Deno
         // Rewrite relative URLs for font files
         name: 'fonts',
         setup: (build) => build.onResolve({
-            filter: /^..+\.(?:woff|woff2|eot|ttf|otf)(?:#|$)/
+            filter: /^\..+\.(?:woff|woff2|eot|ttf|otf)(?:#|$)/
         }, (args) => {
             console.warn('Relative font import', args.path);
             return { path: '../' + args.path, external: true };
