@@ -18,7 +18,7 @@ const args  = Deno.args.slice();
 
 // Extract flags
 const flags = {
-    sourcemaps: false
+    sourcemaps: true
 };
 
 while (/^--/.test(args[0])) {
