@@ -100,11 +100,12 @@ assign(DataTrap.prototype, {
 
         const value = getValue(this.signals, name, object);
 
-        // We are not interested in getting proxies of the prototype chain so
-        // stick to hasOwnProperty
-        if (!O.hasOwnProperty.call(object, name)) {
+        // We are not interested in getting proxies of stuff in the prototype
+        // chain so stick to hasOwnProperty. TODO: ARE WE REALLY NOT, THO? What about
+        // values returned by getters? Eh?
+        /*if (!O.hasOwnProperty.call(object, name)) {
             return value;
-        }
+        }*/
 
         // Return observer
         return Data(value) || value ;
