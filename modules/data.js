@@ -48,24 +48,26 @@ function getSignal(signals, name, value) {
     return signals[name] || (signals[name] = Signal.of(value));
 }
 
-function getValue(signals, name, object) {
-    // Is the property mutable? Note that unset properties have no descriptor
+function isMutableProperty(object, name) {
+    // If there's a descriptor return its mutability
     const descriptor = Object.getOwnPropertyDescriptor(object, name);
-    const mutable    = descriptor ?
-        descriptor.writable || descriptor.set :
-        object[name] === undefined ;
+    if (descriptor) return descriptor.writable || !!descriptor.set ;
 
-    // If there is no evaluating signal there is no need to create
-    // a property signal
-    if (!mutable || !Signal.evaluating) {
-        return object[name];
-    }
+    // If there's a prototype look for property on it
+    const prototype = Object.getPrototypeOf(object);
+    if (prototype) return getPropertyDescriptor(prototype, name);
 
-    const signal = getSignal(signals, name, object[name]);
+    // If there is no prototypes property must be unset
+    return true;
+}
 
-    // Reading signal.value causes whatever signal is reading
-    // the property to become a dependency of this signal
-    return signal.value;
+function getValue(signals, name, object) {
+    // If there is no evaluating signal or the property is not mutable
+    return (!Signal.evaluating || !isMutableProperty(object, name)) ?
+        // ...there is no need to register the get
+        object[name] :
+        // ...otherwise read value from the signal graph
+        getSignal(signals, name, object[name]).value;
 }
 
 function getTrap(object) {
@@ -91,7 +93,7 @@ assign(DataTrap.prototype, {
     get: function get(object, name, proxy) {
         // Don't observe changes to symbol properties, and
         // don't allow Safari to log __proto__ as a Proxy. (That's dangerous!
-        // It pollutes Object.prototpye with [$trap] which breaks everything.)
+        // It pollutes Object.prototype with [$trap] which breaks everything.)
         if (typeof name === 'symbol' || name === '__proto__') {
             return object[name];
         }
