@@ -55,7 +55,7 @@ function isMutableProperty(object, name) {
 
     // If there's a prototype look for property on it
     const prototype = Object.getPrototypeOf(object);
-    if (prototype) return getPropertyDescriptor(prototype, name);
+    if (prototype) return isMutableProperty(prototype, name);
 
     // If there is no prototypes property must be unset
     return true;
