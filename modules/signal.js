@@ -239,7 +239,6 @@ class ValueSignal extends Signal {
     #value;
 
     constructor(value) {
-        console.log('VALUE SIGNAL');
         super();
         this.#value = value;
     }
