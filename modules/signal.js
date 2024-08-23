@@ -17,7 +17,7 @@ function setDependency(signal, dependent) {
     signal[n] = dependent;
 
     if (DEBUG) console.log(
-        '%cSignal%c connect%c ' + signal.constructor.name + '[' + signal.id + '] - ' + dependent.constructor.name + '[' + dependent.id + ']',
+        '%cSignal%c connect%c ' + signal.constructor.name + '#' + signal.id + ' - ' + dependent.constructor.name + '#' + dependent.id,
         'color: #718893; font-weight: 300;',
         'color: #3896BF; font-weight: 300;',
         'color: #718893; font-weight: 300;'
@@ -25,6 +25,15 @@ function setDependency(signal, dependent) {
 }
 
 function invalidateDependents(signal) {
+    if (DEBUG) {
+        console.log(
+            '%cSignal%c invalidate%c ' + signal.constructor.name + '#' + signal.id + (signal.name ? ' "' + signal.name + '"' : ''),
+            'color: #718893; font-weight: 300;',
+            'color: #3896BF; font-weight: 300;',
+            'color: #718893; font-weight: 300;'
+        );
+    }
+
     let n = -1;
     let dependent;
     while (dependent = signal[++n]) {
@@ -112,6 +121,11 @@ export default class Signal {
         return new ComputeSignal(fn, context);
     }
 
+    static fromProperty(name, object) {
+        // Function
+        return new PropertySignal(name, object);
+    }
+
     /**
     Signal.observe(signal, fn, initial)
 
@@ -148,7 +162,7 @@ export default class Signal {
         evaluatingSignal = signal;
 
         if (DEBUG) console.group(
-            '%cSignal%c evaluate%c ' + evaluatingSignal.constructor.name + '[' + evaluatingSignal.id + ']',
+            '%cSignal%c evaluate%c ' + evaluatingSignal.constructor.name + '#' + evaluatingSignal.id + (evaluatingSignal.name ? ' "' + evaluatingSignal.name + '"' : ''),
             'color: #718893; font-weight: 300;',
             'color: #3896BF; font-weight: 300;',
             'color: #718893; font-weight: 300;'
@@ -174,8 +188,18 @@ export default class Signal {
         return evaluatingSignal;
     }
 
-    constructor() {
-        if (DEBUG) { this.id = ++id; }
+    constructor(name) {
+        if (name) this.name = name;
+
+        if (DEBUG) {
+            this.id   = ++id;
+            console.log(
+                '%cSignal%c create%c ' + this.constructor.name + '#' + this.id + (this.name ? ' "' + this.name + '"' : ''),
+                'color: #718893; font-weight: 300;',
+                'color: #3896BF; font-weight: 300;',
+                'color: #718893; font-weight: 300;'
+            );
+        }
     }
 
     /**
@@ -206,6 +230,7 @@ export default class Signal {
     }
 }
 
+
 /*
 ValueSignal(value)
 */
@@ -214,6 +239,7 @@ class ValueSignal extends Signal {
     #value;
 
     constructor(value) {
+        console.log('VALUE SIGNAL');
         super();
         this.#value = value;
     }
@@ -312,6 +338,105 @@ class ComputeSignal extends Signal {
         invalidateDependents(this);
     }
 }
+
+
+/*
+PropertySignal(value)
+*/
+
+class PropertySignal extends Signal {
+    // Privates
+    #valid;
+    #value;
+
+    constructor(name, object) {
+        super(name);
+        this.object = object;
+    }
+
+    evaluate() {
+        return this.object[this.name];
+    }
+
+    /**
+    .value
+    Getting `.value` gets a cached value or, if the signal is invalid,
+    evaluates (and caches) value from `fn()`. During evaluation this signal is
+    registered as dependent on other signals whose value is got.
+    **/
+
+    get value() {
+        // If there is a signal currently evaluating then it becomes a
+        // dependency of this signal, irrespective of state of #value
+        if (evaluatingSignal) setDependency(this, evaluatingSignal);
+        if (this.#valid) return this.#value;
+        this.#value = Signal.evaluate(this, this.evaluate, this);
+        this.#valid = true;
+        return this.#value;
+    }
+
+    set value(value) {
+        // Don't update for no change in value.
+        if(this.#value === value) return;
+
+        const { object, name } = this;
+
+        // Set value on object and update value from object in case target is
+        // doing something funky with property descriptors that return a
+        // different value from the value set.
+        object[name] = value;
+        value = object[name];
+
+        // Don't invalidate for no change in value.
+        if(this.#value === value) return;
+
+        // Set cache by reading value back off the object in case object is
+        // doing something funky with property descriptors that return a
+        // different value from the value that was set. Rare, but it can happen.
+        this.#value = value;
+
+        // Invalidate dependents. If a dependent updates synchronously here
+        // we may be in trouble but #valid is true and #value is set so
+        // that's ok I think?
+        invalidateDependents(this);
+    }
+
+    /*
+    .invalidate(signal)
+    Invalidates this signal and calls `.invalidate(this)` on all dependent
+    signals. The `signal` parameter is the signal causing the invalidation; it
+    may be `undefined`: where it exists it is verified as a current input of
+    this before this is invalidated.
+    */
+
+    invalidate(signal) {
+        if (!this.#valid) return;
+
+        // Verify that signal has the right to invalidate this to protect us
+        // against the case where a dependent is left on another signal due to
+        // an old evaluation
+        if (signal && !hasInput(this, signal)) return;
+
+        this.#valid = false;
+
+        // Clear inputs
+        let n = 0;
+        while (this[--n]) this[n] = undefined;
+
+        // Invalidate dependents. If a dependent updates synchronously here
+        // we may be in trouble, as it would evaluate and cache this signal
+        // and overwrite dependents before we have finished invalidating
+        // this set of dependents.
+        invalidateDependents(this);
+    }
+}
+
+
+
+
+
+
+
 
 
 /*

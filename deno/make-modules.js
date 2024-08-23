@@ -116,6 +116,31 @@ Deno
     format:    'esm',
     logLevel:  'info',
 
+
+
+    // TODO: Handle CSS BEFORE denoPlugins()
+    //{
+    //  name: "skip css",
+    //  setup: (build) => {
+    //    build.onResolve({ filter: /\.css$/, namespace: "file" }, (args) => {
+    //      return {
+    //        path: Path.resolve(args.resolveDir, args.path),
+    //      };
+    //    });
+    //    build.onLoad({ filter: /\.css$/, namespace: "file" }, (args) => {
+    //      const contents = Deno.readFileSync(args.path);
+    //      return {
+    //        contents: contents,
+    //        loader: "css",
+    //      };
+    //    });
+    //    build.onResolve({ filter: /.*/, namespace: "data" }, (args) => {
+    //      return args.kind !== "url-token" ? undefined : { external: true };
+    //    });
+    //  },
+    //},
+
+
     plugins: [...denoPlugins({
         // This has to be absolute according to docs at https://jsr.io/@luca/esbuild-deno-loader/doc/~/DenoResolverPluginOptions.configPath
         configPath: workingdir + 'deno.json',

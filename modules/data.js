@@ -44,8 +44,8 @@ function isMuteable(object) {
         && !ArrayBuffer.isView(object) ;
 }
 
-function getSignal(signals, name, value) {
-    return signals[name] || (signals[name] = Signal.of(value));
+function getSignal(signals, name, object) {
+    return signals[name] || (signals[name] = Signal.fromProperty(name, object));
 }
 
 function isMutableProperty(object, name) {
@@ -62,12 +62,12 @@ function isMutableProperty(object, name) {
 }
 
 function getValue(signals, name, object) {
-    // If there is no evaluating signal or the property is not mutable
-    return (!Signal.evaluating || !isMutableProperty(object, name)) ?
-        // ...there is no need to register the get
-        object[name] :
-        // ...otherwise read value from the signal graph
-        getSignal(signals, name, object[name]).value;
+    // If there is an evaluating signal and the property is mutable
+    return (Signal.evaluating && isMutableProperty(object, name)) ?
+        // ...read value from the signal graph
+        getSignal(signals, name, object).value :
+        // ...otherwise there is no need to register the get
+        object[name] ;
 }
 
 function getTrap(object) {
@@ -91,14 +91,15 @@ function DataTrap(object) {
 
 assign(DataTrap.prototype, {
     get: function get(object, name, proxy) {
-        // Don't observe changes to symbol properties, and
-        // don't allow Safari to log __proto__ as a Proxy. (That's dangerous!
-        // It pollutes Object.prototype with [$trap] which breaks everything.)
+        // Don't observe changes to symbol properties, and don't allow Safari to
+        // log __proto__ as a Proxy. That's dangerous! It pollutes
+        // Object.prototype with [$trap], which breaks everything.
         if (typeof name === 'symbol' || name === '__proto__') {
             return object[name];
         }
 
         const value = getValue(this.signals, name, object);
+        //console.log(value, !!Signal.evaluating, isMutableProperty(object, name));
 
         // We are not interested in getting proxies of stuff in the prototype
         // chain so stick to hasOwnProperty. TODO: ARE WE REALLY NOT, THO? What about
@@ -117,30 +118,16 @@ assign(DataTrap.prototype, {
             return true;
         }
 
-        // Make sure we are dealing with an unproxied value.
-        const targetValue = Data.objectOf(value);
-
-        // If we are setting the same value, we're not really setting at all.
-        // In this case regard a proxy as equivalent (??)
-        if (object[name] === value || object[name] === targetValue) {
-            return true;
-        }
-
         // To support arrays keep a note of pre-change length
         const length = object.length;
 
-        // Set value on object. Don't use value again, in case target
-        // is doing something funky with property descriptors that return a
-        // different value from the value that was set. Rare, but it can happen.
-        object[name] = targetValue;
-
-        // Set value on signal
+        // Set unproxied value on signal or directly on object
         if (this.signals[name]) {
-            // Don't use targetValue again, in case object is doing something
-            // funky with property descriptors that return a different value
-            // from the value that was set. Rare, but it can happen. Read the
-            // actual value back off the object.
-            this.signals[name].value = object[name];
+            // Make sure we are setting an unproxied value.
+            this.signals[name].value = Data.objectOf(value);
+        }
+        else {
+            object[name] = Data.objectOf(value);
         }
 
         // Check if length has changed and update its signal if it has
@@ -228,7 +215,7 @@ Data.observe = function(name, object, fn, initial) {
     const trap = Data(object) && object[$trap];
     if (!trap) return;
 
-    const signal = getSignal(trap.signals, name, trap.object[name]);
+    const signal = getSignal(trap.signals, name, trap.object);
     return Signal.observe(signal, fn, initial);
 };
 
@@ -237,8 +224,8 @@ Data.signal(path, data)
 */
 
 Data.signal = function(name, object) {
-    const trap   = Data.of(object) && object[$trap];
+    const trap = Data.of(object) && object[$trap];
     return trap ?
-        getSignal(trap.signals, name, trap.object[name]) :
+        getSignal(trap.signals, name, trap.object) :
         nothing ;
 };
