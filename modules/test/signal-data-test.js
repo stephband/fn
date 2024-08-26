@@ -63,45 +63,6 @@ function(test, done) {
 
     done();
 });
-/*
-run('Signal subclassing',
-[3, 5, 6],
-function(test, done) {
-    const data1  = Data({ a: 1 });
-    const data2  = Data({ a: 2 });
-
-    class S extends Signal {
-        invalidate() {
-            console.log('INV');
-            super.invalidate();
-
-            // Invalid, cue 'render'...
-            requestAnimationFrame(() => {
-                // Test 2, 3
-                test(this.value);
-
-console.log(this.value);
-
-                // Dirty way of getting out of tests
-                if (this.value === 6) { done(); }
-
-                // This triggers an invalidation, evaluated on next animation frame
-                data1.a = 4;
-            });
-        }
-    }
-
-    const s1 = S.from(() => data1.a + data2.a);
-
-    // Test 1
-    test(s1.value);
-
-console.log('HEY', S.from === Signal.from);
-
-    // This triggers an invalidation, which is evaluated on next animation frame
-    data1.a = 3;
-});
-*/
 
 run('Signal.fromProperty(name, object) value',
 [1, 2],
@@ -161,3 +122,43 @@ function(test, done) {
 
     done();
 });
+
+/*
+run('Signal subclassing',
+[3, 5, 6],
+function(test, done) {
+    const data1  = Data({ a: 1 });
+    const data2  = Data({ a: 2 });
+
+    class S extends Signal {
+        invalidate() {
+            console.log('INV');
+            super.invalidate();
+
+            // Invalid, cue 'render'...
+            requestAnimationFrame(() => {
+                // Test 2, 3
+                test(this.value);
+
+console.log(this.value);
+
+                // Dirty way of getting out of tests
+                if (this.value === 6) { done(); }
+
+                // This triggers an invalidation, evaluated on next animation frame
+                data1.a = 4;
+            });
+        }
+    }
+
+    const s1 = S.from(() => data1.a + data2.a);
+
+    // Test 1
+    test(s1.value);
+
+console.log('HEY', S.from === Signal.from);
+
+    // This triggers an invalidation, which is evaluated on next animation frame
+    data1.a = 3;
+});
+*/

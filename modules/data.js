@@ -91,10 +91,10 @@ function DataTrap(object) {
 
 assign(DataTrap.prototype, {
     get: function get(object, name, proxy) {
-        // Don't observe changes to symbol properties, and don't allow Safari to
-        // log __proto__ as a Proxy. That's dangerous! It pollutes
-        // Object.prototype with [$trap], which breaks everything.
-        if (typeof name === 'symbol' || name === '__proto__') {
+        // Don't observe changes to symbol properties or the constructor, and
+        // don't allow Safari to log __proto__ as a Proxy. That's dangerous! It
+        // pollutes Object.prototype with [$trap], which breaks everything.
+        if (typeof name === 'symbol' || name === 'constructor' || name === '__proto__') {
             return object[name];
         }
 
