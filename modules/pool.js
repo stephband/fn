@@ -5,7 +5,7 @@ const assign = Object.assign;
 Pool(constructor, reset, isIdle)
 **/
 
-export default function Pool(Construct, reset, isIdle) {
+export default function Pool(Constructor, reset, isIdle) {
 	const pool = [];
 
 	return assign(function Pooled() {
@@ -16,8 +16,8 @@ export default function Pool(Construct, reset, isIdle) {
 			return object;
 		}
 
-		object = new Construct(...arguments);
+		object = new Constructor(...arguments);
 		pool.push(object);
 		return object;
-	}, { pool });
+	}, Constructor, { pool });
 }

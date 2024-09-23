@@ -166,6 +166,8 @@ export default function Stream(pipeable) {
     }
 }
 
+assign(Stream, { pipe, stop });
+
 assign(Stream.prototype, {
     /**
     .push(value)
