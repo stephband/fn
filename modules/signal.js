@@ -165,9 +165,8 @@ export default class Signal {
             },
 
             set: descriptor.writable && function(value) {
-                const signal = this[symbol];
-                if (signal) signal.value = value;
-                else this[symbol] = Signal.of(value);
+                const signal = this[symbol] || (this[symbol] = Signal.of(value));
+                signal.value = value;
             },
 
             value:    undefined,
