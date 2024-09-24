@@ -139,6 +139,56 @@ export default class Signal {
         return new ObserveSignal(signal, fn, initial);
     }
 
+
+    /**
+    Signal.createPropertyDescriptor(descriptor)
+    Creates a signal-backed get/set property descriptor object from a standard
+    `descriptor` object.
+
+    If `descriptor` has a getter function any signals evaluated by that function
+    invalidate the property when they become invalid. If `descriptor` has `.value`
+    the property is invalidated when a new value is assigned to `object.name`.
+    **/
+
+    static createPropertyDescriptor(descriptor) {
+        const symbol = Symbol();
+
+        return assign({}, descriptor, descriptor.get ? {
+            get: function() {
+                const signal = this[symbol] || (this[symbol] = Signal.from(descriptor.get, this));
+                return signal.value;
+            }
+        } : {
+            get: function() {
+                const signal = this[symbol] || (this[symbol] = Signal.of(descriptor.value));
+                return signal.value;
+            },
+
+            set: descriptor.writable && function(value) {
+                const signal = this[symbol];
+                if (signal) signal.value = value;
+                else this[symbol] = Signal.of(value);
+            },
+
+            value:    undefined,
+            writable: undefined
+        }) ;
+    }
+
+    /**
+    Signal.define(object, name, descriptor)
+    Apes `Object.defineProperty()` by defining a signal-backed get/set property
+    `object.name` from a `descriptor` object.
+
+    If `descriptor` has a getter function any signals evaluated by that function
+    invalidate the property when they become invalid. If `descriptor` has `.value`
+    the property is invalidated when a new value is assigned to `object.name`.
+    **/
+
+    static define(object, name, descriptor) {
+        return Object.defineProperty(object, name, Signal.createPropertyDescriptor(descriptor)) ;
+    }
+
     /**
     Signal.evaluate(signal, fn[, context])
 
