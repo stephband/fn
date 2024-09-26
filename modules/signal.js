@@ -157,6 +157,14 @@ export default class Signal {
             get: function() {
                 const signal = this[symbol] || (this[symbol] = Signal.from(descriptor.get, this));
                 return signal.value;
+            },
+
+            set: descriptor.set && function(value) {
+                descriptor.set.call(this, value);
+                // We must assume the value has changed here as we don't have
+                // access to the old value ... ?
+                const signal = this[symbol];
+                if (signal) invalidateDependents(signal);
             }
         } : {
             get: function() {
@@ -164,7 +172,7 @@ export default class Signal {
                 return signal.value;
             },
 
-            set: descriptor.writable && function(value) {
+            set: function(value) {
                 const signal = this[symbol] || (this[symbol] = Signal.of(value));
                 signal.value = value;
             },
