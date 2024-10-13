@@ -8,7 +8,8 @@ const create  = Object.create;
 
 /** Throttle(stream, frames) **/
 
-export default function Throttle(duration) {
+export default function Throttle(input, duration) {
+    Stream.call(this, input);
     this.duration = duration;
 }
 

@@ -1,16 +1,9 @@
 
-import nothing           from './nothing.js';
-import self              from './self.js';
-import Data              from './data.js';
-
-import Stream, { Broadcast, pipe, stop } from './stream/stream.js';
-import BufferStream      from './stream/buffer-stream.js';
-import CombineStream     from './stream/combine-stream.js';
-import MergeStream       from './stream/merge-stream.js';
-import PromiseStream     from './stream/promise-stream.js';
-import FrameStream       from './stream/clock-stream.js';
-import Throttle          from './stream/throttle-stream.js';
-import SignalStream      from './stream/signal-stream.js';
+import self     from './self.js';
+import Stream   from './stream/stream.js';
+import Combine  from './stream/combine-stream.js';
+import Clock    from './stream/clock-stream.js';
+import Throttle from './stream/throttle-stream.js';
 
 const A      = Array.prototype;
 const assign = Object.assign;
@@ -28,51 +21,6 @@ assign(Stream, {
     isStream: function(object) {
         return Stream.prototype.isPrototypeOf(object);
     },
-
-    /**
-    Stream.of(value1, value2, ...)
-    Creates a pushable BufferStream from the given parameters.
-    **/
-    of: function() {
-        return new BufferStream(A.slice.apply(arguments));
-    },
-
-    /**
-    Stream.from(source)
-    Creates a stream from `source`, which may be an **array** (or array-like),
-    a **promise**, a **function**, a **producer** (an object with `.pipe()` and
-    `.stop()` methods), or an **object** of streams, promises or values.
-    **/
-    from: function(source) {
-        return !source ? throwTypeError(source) :
-            // Source is an object
-            typeof source === 'object' ?
-                // Source is a stream or producer
-                typeof source.pipe === 'function' ? new Stream(source) :
-                // Source is a promise
-                typeof source.then === 'function' ? new PromiseStream(source) :
-                // Source is an array or array-like
-                typeof source.length === 'number' ? new BufferStream(source) :
-                // Source is a Signal
-                Signal.isSignal(source) ? new SignalStream(signal) :
-                // Source is an object of streams, promises and values
-                new CombineStream(source) :
-            // Source is a function
-            typeof source === 'function' ? new Stream(source) :
-            // Source cannot be made into a stream
-            throwTypeError(source) ;
-    },
-
-    observe: function(path, object, initial) {
-        return new SignalStream(Data.signal(path, object), initial);
-    },
-
-    /*
-    Stream.broadcast(options)
-    Returns a broadcast stream. Methods called on this stream each
-    create a new stream.
-    */
-    broadcast: (options) => new Broadcast(nothing, options),
 
     /**
     Stream.combine(inputs)
@@ -119,7 +67,7 @@ assign(Stream, {
     });
     ```
     **/
-    combine: (object, options) => new CombineStream(object, options),
+    combine: (object, options) => new Combine(object, options),
 
     /**
     Stream.clock(duration)
@@ -130,21 +78,7 @@ assign(Stream, {
     If `duration` is `"frame"`, constructs a stream of DOM timestamps from
     `requestAnimationFrame`.
     **/
-    clock: (duration) => new FrameStream(duration),
-
-    /**
-    Stream.merge(stream1, stream2, ...)
-    Creates a stream by merging values from any number of input streams into a
-    single output stream. Values are emitted in the time order they are received
-    from inputs.
-
-    ```js
-    Stream.merge(stream1, stream2).each((value) => {
-        // value is from stream1 or stream 2
-    });
-    ```
-    **/
-    merge: function() { return new MergeStream(arguments); },
+    clock: (duration) => new Clock(duration),
 
     /**
     Stream.throttle(time)
@@ -163,16 +97,7 @@ assign(Stream.prototype, {
     },
 
     /**
-    Stream.merge(stream1, stream2, ...)
-    Creates a stream by merging values from any number of input streams into a
-    single output stream. Values are emitted in the time order they are received
-    from inputs.
-
-    ```js
-    Stream.merge(stream1, stream2).each((value) => {
-        // value is from stream1 or stream 2
-    });
-    ```
+    .log(...parameters)
     **/
     log: (window.DEBUG && window.console) ?
         function log(...parameters) {
@@ -181,11 +106,4 @@ assign(Stream.prototype, {
         self
 });
 
-const frames = Stream.frames;
-
-export {
-    Stream as default,
-    pipe,
-    stop,
-    frames
-};
+export { Stream as default }

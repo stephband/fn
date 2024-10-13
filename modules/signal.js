@@ -5,6 +5,20 @@ const assign = Object.assign;
 let evaluatingSignal;
 let id = 0;
 
+function removeInput(signal, input) {
+    // Remove input from stream
+    let i = 0;
+    while (signal[--i] && signal[i] !== input);
+    while (signal[i--]) signal[i + 1] = signal[i];
+}
+
+function removeOutput(signal, output) {
+    // Remove output from stream
+    let o = -1;
+    while (signal[++o] && signal[o] !== output);
+    while (signal[o++]) signal[o - 1] = signal[o];
+}
+
 function setDependency(signal, dependent) {
     // Set signal as an input of dependent
     let n = 0;
@@ -46,7 +60,6 @@ export function hasInput(signal, input) {
     // Check if input exists in the -ve indexes
     let n = 0;
     while (signal[--n]) if (signal[n] === input) return true;
-    return false;
 }
 
 
@@ -68,7 +81,7 @@ export default class Signal {
     Returns `true` where `object` is an instance of `Signal`.
 
     This guarantees that `object` has a gettable `value` property. This is not
-    true of an ObserveSignal, which is not really a signal at all – it cannot
+    true of an Observer, which is not really a signal at all – it cannot
     have dependencies – but is only evaluated as one when invalidated.
     **/
 
@@ -127,18 +140,28 @@ export default class Signal {
     }
 
     /**
-    Signal.observe(signal, fn, initial)
-
-    Returns an observer that calls `fn` with `signal.value` whenever the signal
-    is invalidated. If `signal` does not have an initial value equal to `initial`
-    `fn` is also called immediately.
+    Signal.tick(fn, initial)
+    Returns an observe signal, a form of compute signal that calls `fn` once
+    immediately, and then on every tick following the invalidation of any signal
+    read during the execution of `fn`.
     **/
 
-    static observe(signal, fn, initial) {
+    static tick(fn) {
         // Add to signals called on invalidation
-        return new ObserveSignal(signal, fn, initial);
+        return new TickObserver(fn);
     }
 
+    /**
+    Signal.frame(fn, initial)
+    Returns an observe signal, a form of compute signal that calls `fn` once
+    immediately, and then on every animation frame following the invalidation
+    of any signal read during the execution of `fn`.
+    **/
+
+    static frame(fn) {
+        // Add to signals called on invalidation
+        return new FrameObserver(fn);
+    }
 
     /**
     Signal.createPropertyDescriptor(descriptor)
@@ -332,71 +355,6 @@ class ValueSignal extends Signal {
 
 
 /*
-ComputeSignal(value)
-*/
-
-class ComputeSignal extends Signal {
-    // Privates
-    #fn;
-    #context;
-    #valid;
-    #value;
-
-    constructor(fn, context) {
-        super();
-        this.#fn      = fn;
-        this.#context = context;
-    }
-
-    /**
-    .value
-    Getting `.value` gets a cached value or, if the signal is invalid,
-    evaluates (and caches) value from `fn()`. During evaluation this signal is
-    registered as dependent on other signals whose value is got.
-    **/
-
-    get value() {
-        // If there is a signal currently evaluating then it becomes a
-        // dependency of this signal, irrespective of state of #value
-        if (evaluatingSignal) setDependency(this, evaluatingSignal);
-        if (this.#valid) return this.#value;
-        this.#value = Signal.evaluate(this, this.#fn, this.#context);
-        this.#valid = true;
-        return this.#value;
-    }
-
-    /*
-    .invalidate(signal)
-    Invalidates this signal and calls `.invalidate(this)` on all dependent
-    signals. The `signal` parameter is the signal causing the invalidation; it
-    may be `undefined`: where it exists it is verified as a current input of
-    this before this is invalidated.
-    */
-
-    invalidate(signal) {
-        if (!this.#valid) return;
-
-        // Verify that signal has the right to invalidate this to protect us
-        // against the case where a dependent is left on another signal due to
-        // an old evaluation
-        if (signal && !hasInput(this, signal)) return;
-
-        this.#valid = false;
-
-        // Clear inputs
-        let n = 0;
-        while (this[--n]) this[n] = undefined;
-
-        // Invalidate dependents. If a dependent updates synchronously here
-        // we may be in trouble, as it would evaluate and cache this signal
-        // and overwrite dependents before we have finished invalidating
-        // this set of dependents.
-        invalidateDependents(this);
-    }
-}
-
-
-/*
 PropertySignal(value)
 */
 
@@ -489,64 +447,181 @@ class PropertySignal extends Signal {
 
 
 
-
-
-
-
-
-
 /*
-ObserveSignal(fn)
-TEMP: are we sure we are keeping this? Used by Data.observe() and <lieral-html>.
+ComputeSignal(value)
 */
 
-const promise = Promise.resolve();
-
-export class ObserveSignal {
-    #signal;
+class ComputeSignal extends Signal {
+    // Privates
     #fn;
+    #context;
+    #valid;
+    #value;
 
-    constructor(signal, fn, initial) {
-        this.#signal = signal;
-        this.#fn     = fn;
-
-        // Set up dependency graph, return value
-        const value = Signal.evaluate(this, this.#evaluate);
-
-        // Run the observer if value is not initial
-        if (signal.value !== initial) this.#fn(value);
+    constructor(fn, context) {
+        super();
+        this.#fn      = fn;
+        this.#context = context;
     }
 
-    #evaluate() {
-        return this.#signal.value;
+    /**
+    .value
+    Getting `.value` gets a cached value or, if the signal is invalid,
+    evaluates (and caches) value from `fn()`. During evaluation this signal is
+    registered as dependent on other signals whose value is got.
+    **/
+
+    get value() {
+        // If there is a signal currently evaluating then it becomes a
+        // dependency of this signal, irrespective of state of #value
+        if (evaluatingSignal) setDependency(this, evaluatingSignal);
+        if (this.#valid) return this.#value;
+        this.#value = Signal.evaluate(this, this.#fn, this.#context);
+        this.#valid = true;
+        return this.#value;
     }
+
+    /*
+    .invalidate(signal)
+    Invalidates this signal and calls `.invalidate(this)` on all dependent
+    signals. The `signal` parameter is the signal causing the invalidation; it
+    may be `undefined`: where it exists it is verified as a current input of
+    this before this is invalidated.
+    */
 
     invalidate(signal) {
-        if (this.status === 'done') return;
+        if (!this.#valid) return;
 
-        // Verify that signal has the right to invalidate this
+        // Verify that signal has the right to invalidate this to protect us
+        // against the case where a dependent is left on another signal due to
+        // an old evaluation
         if (signal && !hasInput(this, signal)) return;
+
+        this.#valid = false;
 
         // Clear inputs
         let n = 0;
         while (this[--n]) this[n] = undefined;
 
-        // Evaluate and send value to consumer on next tick
-        promise.then(() => this.#fn(Signal.evaluate(this, this.#evaluate)));
-    }
-
-    stop() {
-        // Check and set status
-        if (this.status === 'done') {
-            if (window.DEBUG) {
-                console.log(this);
-                throw new Error('Stream: cannot stop() stream that is done');
-            }
-
-            return this;
-        }
-
-        this.status = 'done';
-        return this;
+        // Invalidate dependents. If a dependent updates synchronously here
+        // we may be in trouble, as it would evaluate and cache this signal
+        // and overwrite dependents before we have finished invalidating
+        // this set of dependents.
+        invalidateDependents(this);
     }
 }
+
+
+/*
+Observer(fn)
+An Observer is a signal that calls `fn` on construction and again on every
+cue following an invalidation of any signal read by `fn`. Internal only,
+sub-classed by `TickObserver` and `FrameObserver`.
+*/
+
+class Observer {
+    constructor(fn) {
+        this.fn = fn;
+
+        // An initial, synchronous evaluation binds this observer to changes
+        Signal.evaluate(this, fn);
+    },
+
+    invalidate(input) {
+        // Verify that input signal has the right to invalidate this
+        if (input && !hasInput(this, input)) return;
+
+        // Static observers list
+        const obseervers = this.constructor.observers;
+
+        // If the observer is already cued do nothing
+        if (observers.indexOf(this) !== -1) return;
+
+        // Clear inputs
+        let n = 0;
+        while (this[--n]) this[n] = undefined;
+
+        this.cue();
+    },
+
+    stop() {
+        // Remove this from signal graph
+        let n = 0, input;
+        while (input = this[--n]) {
+            let m = -1;
+            removeOutput(input, this);
+            this[n] = undefined;
+        }
+
+        // Remove from observers if cued
+        this.uncue();
+
+        return this;
+    },
+
+    uncue() {
+        const obseervers = this.constructor.observers;
+        const i = observers.indexOf(this);
+        if (i !== -1) observers.splice(i, 1);
+    }
+}
+
+
+/*
+TickObserver
+A TickObserver is a signal that calls `fn` on construction and again on every
+tick following an invalidation of any signal read by `fn`. Use `Signal.tick(fn)`.
+*/
+
+const promise = Promise.resolve();
+
+function tick() {
+    const observers = TickObserver.observers;
+    let n = -1, observer;
+    while (observer = observers[++n]) Signal.evaluate(observer, observer.fn);
+    observers.length = 0;
+}
+
+class TickObserver extends Observer {
+    static observers = [];
+
+    cue() {
+        const obseervers = this.constructor.observers;
+
+        // If no observers are cued, cue tick() on the next tick
+        if (!observers.length) promise.then(tick);
+
+        // Add this observer to observers
+        observers.push(this);
+    }
+}
+
+
+/*
+FrameObserver
+A FrameObserver is a signal that calls `fn` on construction and again on every
+animation frame following an invalidation of any signal read by `fn`. Use
+`Signal.frame(fn)`.
+*/
+
+function frame() {
+    const observers = FrameObserver.observers;
+    let n = -1, observer;
+    while (observer = observers[++n]) Signal.evaluate(observer, observer.fn);
+    observers.length = 0;
+}
+
+class FrameObserver extends Observer {
+    static observers = [];
+
+    cue() {
+        const obseervers = this.constructor.observers;
+
+        // If no observers are cued, cue tick() on the next tick
+        if (!observers.length) window.requestAnimationFrame(frame);
+
+        // Add this observer to observers
+        observers.push(this);
+    }
+}
+

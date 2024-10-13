@@ -5,6 +5,7 @@ const tests  = [];
 const stops  = [];
 const totals = { pass: 0, fail: 0 };
 let running = false;
+let count = 0;
 
 function assert(expected, value, name, message) {
 	if (!equals(value, expected)) {
@@ -62,8 +63,8 @@ function run(name, expected, fn, next) {
 	.resolve()
 	.then(() => {
 		if (window.DEBUG) {
-			console.group('%c' + name, 'color: #aaaaaa; font-weight: 300;', passed);
-			console.log('%c✔%c Tested', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', passed);
+			console.group('%c' + (++count) + ' - ' + name, 'color: #aaaaaa; font-weight: 300;', passed);
+			//console.log('%c✔%c Tested', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', passed);
 		}
 
 		fn(expect, function done() {

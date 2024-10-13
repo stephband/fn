@@ -212,6 +212,7 @@ if `data` is already just an object, `data`.
 **/
 
 Data.observe = function(name, object, fn, initial) {
+    console.trace('Deprecated. Use Signal.observer(() => { Data.of(object).name ... }).');
     const trap = Data(object) && object[$trap];
     if (!trap) return;
 

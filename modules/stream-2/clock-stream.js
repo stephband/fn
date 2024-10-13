@@ -1,5 +1,5 @@
 
-import Stream from './stream.js';
+import Stream, { pipe, stop } from './stream.js';
 
 const assign = Object.assign;
 const create = Object.create;
@@ -25,6 +25,12 @@ export default function ClockStream(duration) {
 }
 
 ClockStream.prototype = assign(create(Stream.prototype), {
+    push: null,
+
+    pipe: function(output) {
+        return pipe(this, output);
+    },
+
     start: function(startTime) {
         if (this.status !== 'idle') {
             return this;
@@ -35,7 +41,7 @@ ClockStream.prototype = assign(create(Stream.prototype), {
         if (this.duration === 'frame') {
             const fn = (time) => {
                 this.timer = requestAnimationFrame(fn);
-                Stream.push(this, time / 1000);
+                this[0].push(time / 1000);
             };
 
             // Start producing values
@@ -49,11 +55,11 @@ ClockStream.prototype = assign(create(Stream.prototype), {
             // Wait until startTime, or where startTime is undefined, next tick
             this.timer = setTimeout(() => {
                 const time = performance.now() / 1000;
-                const fn = () => Stream.push(this, performance.now() / 1000);
+                const fn = () => this[0].push(performance.now() / 1000);
 
                 // Push time and start interval timer
                 this.status = 'playing';
-                Stream.push(this, time);
+                this[0].push(time);
                 this.timer = setInterval(fn, this.duration * 1000);
             }, (time > startTime ? startTime - time : 0));
         }
@@ -81,6 +87,6 @@ ClockStream.prototype = assign(create(Stream.prototype), {
         }
 
         this.timer  = undefined;
-        return Stream.stop(this);
+        return stop(this);
     }
 });
