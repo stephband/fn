@@ -525,14 +525,14 @@ class Observer {
 
         // An initial, synchronous evaluation binds this observer to changes
         Signal.evaluate(this, fn);
-    },
+    }
 
     invalidate(input) {
         // Verify that input signal has the right to invalidate this
         if (input && !hasInput(this, input)) return;
 
         // Static observers list
-        const obseervers = this.constructor.observers;
+        const observers = this.constructor.observers;
 
         // If the observer is already cued do nothing
         if (observers.indexOf(this) !== -1) return;
@@ -542,7 +542,7 @@ class Observer {
         while (this[--n]) this[n] = undefined;
 
         this.cue();
-    },
+    }
 
     stop() {
         // Remove this from signal graph
@@ -557,10 +557,10 @@ class Observer {
         this.uncue();
 
         return this;
-    },
+    }
 
     uncue() {
-        const obseervers = this.constructor.observers;
+        const observers = this.constructor.observers;
         const i = observers.indexOf(this);
         if (i !== -1) observers.splice(i, 1);
     }
@@ -586,7 +586,7 @@ class TickObserver extends Observer {
     static observers = [];
 
     cue() {
-        const obseervers = this.constructor.observers;
+        const observers = this.constructor.observers;
 
         // If no observers are cued, cue tick() on the next tick
         if (!observers.length) promise.then(tick);
@@ -615,7 +615,7 @@ class FrameObserver extends Observer {
     static observers = [];
 
     cue() {
-        const obseervers = this.constructor.observers;
+        const observers = this.constructor.observers;
 
         // If no observers are cued, cue tick() on the next tick
         if (!observers.length) window.requestAnimationFrame(frame);
