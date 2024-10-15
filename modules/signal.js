@@ -519,12 +519,18 @@ cue following an invalidation of any signal read by `fn`. Internal only,
 sub-classed by `TickObserver` and `FrameObserver`.
 */
 
-class Observer {
+export class Observer {
     constructor(fn) {
-        this.fn = fn;
+        // If no fn passed in we do not want to evaluate the signal immediately.
+        // This provides for a sub-class to define .evaluate() and launch it
+        // when it likes, as in Literal's Renderer.
+        if (!fn) return;
+
+        // Set fn as evaluation sunction
+        this.evaluate = fn;
 
         // An initial, synchronous evaluation binds this observer to changes
-        Signal.evaluate(this, fn);
+        Signal.evaluate(this, this.evaluate);
     }
 
     invalidate(input) {
@@ -554,15 +560,11 @@ class Observer {
         }
 
         // Remove from observers if cued
-        this.uncue();
-
-        return this;
-    }
-
-    uncue() {
         const observers = this.constructor.observers;
         const i = observers.indexOf(this);
         if (i !== -1) observers.splice(i, 1);
+
+        return this;
     }
 }
 
@@ -577,12 +579,12 @@ const promise = Promise.resolve();
 
 function tick() {
     const observers = TickObserver.observers;
-    let n = -1, observer;
-    while (observer = observers[++n]) Signal.evaluate(observer, observer.fn);
+    let n = -1, signal;
+    while (signal = observers[++n]) Signal.evaluate(signal, signal.evaluate);
     observers.length = 0;
 }
 
-class TickObserver extends Observer {
+export class TickObserver extends Observer {
     static observers = [];
 
     cue() {
@@ -606,12 +608,12 @@ animation frame following an invalidation of any signal read by `fn`. Use
 
 function frame() {
     const observers = FrameObserver.observers;
-    let n = -1, observer;
-    while (observer = observers[++n]) Signal.evaluate(observer, observer.fn);
+    let n = -1, signal;
+    while (signal = observers[++n]) Signal.evaluate(signal, signal.evaluate);
     observers.length = 0;
 }
 
-class FrameObserver extends Observer {
+export class FrameObserver extends Observer {
     static observers = [];
 
     cue() {
