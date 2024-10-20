@@ -134,6 +134,10 @@ export default class Signal {
         return new ComputeSignal(fn, context);
     }
 
+    static compute(fn, context) {
+        return new ComputeSignal(fn, context);
+    }
+
     static fromProperty(name, object) {
         // Function
         return new PropertySignal(name, object);
@@ -356,6 +360,7 @@ class ValueSignal extends Signal {
 
 /*
 PropertySignal(value)
+Wraps a property in a signal. TODO: is this really needed?
 */
 
 class PropertySignal extends Signal {
