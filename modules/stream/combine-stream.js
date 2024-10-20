@@ -77,7 +77,7 @@ Combine()
 function isActive(stream) {
     if (stream.active) return true;
     let i = 0, input;
-    while (input = this[--i]) if (!input.active) return false;
+    while (input = stream[--i]) if (!input.active) return false;
     return stream.active = true;
 }
 
@@ -93,7 +93,7 @@ Combine.prototype = assign(create(Stream.prototype), {
 
         let name;
         for (name in inputs) {
-            const input = inputs[name];
+            let input = inputs[name];
 
             // Ignore non-streamable inputs
             if (!input || typeof input !== 'object') continue;
