@@ -134,6 +134,10 @@ export default class Signal {
         return new ComputeSignal(fn, context);
     }
 
+    static compute(fn, context) {
+        return new ComputeSignal(fn, context);
+    }
+
     static fromProperty(name, object) {
         // Function
         return new PropertySignal(name, object);
