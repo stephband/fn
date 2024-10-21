@@ -46,54 +46,24 @@ import Stream from './stream.js';
 const assign = Object.assign;
 const create = Object.create;
 
-function Pipe(name, input, object) {
-    this.name   = name;
-    this.input  = input;
-    this.object = object;
-}
-
-Pipe.prototype = assign(create(Stream.prototype), {
-    push: function(value) {
-        const { object, input, name } = this;
-        object[name] = value;
-        input.active = true;
-
-        return isActive(this) ?
-            this.mutable ?
-                // Treat inputs as mutable, return it directly
-                object :
-                // Create new object of the same kind as the original
-                assign(new object.constructor(), object) :
-            // Not active yet, undefined is ignored by stream
-            undefined ;
-    }
-});
-
 
 /*
 Combine()
 */
 
-function isActive(stream) {
-    if (stream.active) return true;
-    let i = 0, input;
-    while (input = stream[--i]) if (!input.active) return false;
-    return stream.active = true;
-}
-
-export default function Combine(inputs, options) {
-    this.inputs  = inputs;
+export default function Combine(object, options) {
+    this.object  = object;
     this.mutable = options && (options === true || options.mutable);
     this.active  = false;
 }
 
 Combine.prototype = assign(create(Stream.prototype), {
     start: function() {
-        const inputs = this.inputs;
+        const object = this.object;
+        const inputs = {};
 
-        let name;
-        for (name in inputs) {
-            let input = inputs[name];
+        for (let name in object) {
+            let input = object[name];
 
             // Ignore non-streamable inputs
             if (!input || typeof input !== 'object') continue;
@@ -105,9 +75,27 @@ Combine.prototype = assign(create(Stream.prototype), {
                 else continue;
             }
 
-            input
-            .pipe(new Pipe(name, input, inputs))
-            .pipe(this);
+            inputs[name] = input;
+        }
+
+        for (let name in inputs) {
+            let input = inputs[name];
+
+            input.each((value) => {
+                object[name] = value;
+                input.active = true;
+
+                // If there is an input not yet active abort
+                if (!this.active && Object.values(inputs).find((input) => !input.active)) return;
+                this.active = true;
+
+                Stream.push(this, this.mutable ?
+                    // Treat inputs as mutable, return it directly
+                    object :
+                    // Create new object of the same kind as the original
+                    assign(new object.constructor(), object)
+                );
+            });
         }
 
         return this;
