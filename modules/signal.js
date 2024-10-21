@@ -5,6 +5,7 @@ const assign = Object.assign;
 let evaluatingSignal;
 let id = 0;
 
+
 function removeInput(signal, input) {
     // Remove input from stream
     let i = 0;
@@ -168,48 +169,6 @@ export default class Signal {
     }
 
     /**
-    Signal.createPropertyDescriptor(descriptor)
-    Creates a signal-backed get/set property descriptor object from a standard
-    `descriptor` object.
-
-    If `descriptor` has a getter function any signals evaluated by that function
-    invalidate the property when they become invalid. If `descriptor` has `.value`
-    the property is invalidated when a new value is assigned to `object.name`.
-    **/
-
-    static createPropertyDescriptor(descriptor) {
-        const symbol = Symbol();
-
-        return assign({}, descriptor, descriptor.get ? {
-            get: function() {
-                const signal = this[symbol] || (this[symbol] = Signal.from(descriptor.get, this));
-                return signal.value;
-            },
-
-            set: descriptor.set && function(value) {
-                descriptor.set.call(this, value);
-                // We must assume the value has changed here as we don't have
-                // access to the old value ... ?
-                const signal = this[symbol];
-                if (signal) invalidateDependents(signal);
-            }
-        } : {
-            get: function() {
-                const signal = this[symbol] || (this[symbol] = Signal.of(descriptor.value));
-                return signal.value;
-            },
-
-            set: function(value) {
-                const signal = this[symbol] || (this[symbol] = Signal.of(value));
-                signal.value = value;
-            },
-
-            value:    undefined,
-            writable: undefined
-        }) ;
-    }
-
-    /**
     Signal.define(object, name, descriptor)
     Apes `Object.defineProperty()` by defining a signal-backed get/set property
     `object.name` from a `descriptor` object.
@@ -224,9 +183,9 @@ export default class Signal {
     }
 
     /**
-    Signal.evaluate(signal, fn[, context])
+    Signal.evaluate(object, fn[, context])
 
-    A function for building objects that behave as compute signals.
+    A function for building objects that behave as compute or observe signals.
 
     Evaluates `object` as a signal by applying it to `fn` and returning the
     result. Signals read during `fn()` have `object` registered as a dependent,
@@ -234,9 +193,9 @@ export default class Signal {
     It's the same function as that used internally to evaluate signals.
 
     Typically `object.invalidate()` would cue a `Signal.evaluate(object, fn)` at
-    some point in the future. (It is not great to `Signal.evaluate(object, fn)`
+    some point in the future. (It is ill-advised to `Signal.evaluate(object, fn)`
     synchronously inside `.invalidate()`, although this should only lead to
-    wasted invalidations, not bad results. Errm, in most cases, at least.)
+    wasted invalidations, not bad results, errm, in most cases, at least.)
     **/
 
     static evaluate(signal, fn, context = signal) {
@@ -276,7 +235,7 @@ export default class Signal {
         if (name) this.name = name;
 
         if (DEBUG) {
-            this.id   = ++id;
+            this.id = ++id;
             console.log(
                 '%cSignal%c create%c ' + this.constructor.name + '#' + this.id + (this.name ? ' "' + this.name + '"' : ''),
                 'color: #718893; font-weight: 300;',
@@ -451,7 +410,6 @@ class PropertySignal extends Signal {
 }
 
 
-
 /*
 ComputeSignal(value)
 */
@@ -526,6 +484,16 @@ sub-classed by `TickObserver` and `FrameObserver`.
 
 export class Observer {
     constructor(fn) {
+        if (DEBUG) {
+            this.id   = ++id;
+            console.log(
+                '%cSignal%c create%c ' + this.constructor.name + '#' + this.id + (this.name ? ' "' + this.name + '"' : ''),
+                'color: #718893; font-weight: 300;',
+                'color: #3896BF; font-weight: 300;',
+                'color: #718893; font-weight: 300;'
+            );
+        }
+
         // If no fn passed in we do not want to evaluate the signal immediately.
         // This provides for a sub-class to define .evaluate() and launch it
         // when it likes, as in Literal's Renderer.

@@ -2,9 +2,7 @@
 import run    from '../test.js';
 import Signal from '../signal.js';
 
-run('Signal(() => s1.value + s2.value)',
-['1', '2', '12', '3', '32'],
-function(test, done) {
+run('Signal(() => s1.value + s2.value)', ['1', '2', '12', '3', '32'], (test, done) => {
     const s1 = Signal.of('1');
     const s2 = Signal.of('2');
     const s3 = Signal.from(() => s1.value + s2.value);
@@ -20,9 +18,7 @@ function(test, done) {
     done();
 });
 
-run('Signal(() => s1 + s2), testing .valueOf()',
-['1', '2', '12', '3', '32'],
-function(test, done) {
+run('Signal(() => s1 + s2), testing .valueOf()', ['1', '2', '12', '3', '32'], (test, done) => {
     const s1 = Signal.of('1');
     const s2 = Signal.of('2');
     const s3 = Signal.from(() => s1 + s2);
@@ -38,9 +34,7 @@ function(test, done) {
     done();
 });
 
-run('Signal.from() invalidation',
-[2, 3, 2, 2, 4, 3],
-function(test, done) {
+run('Signal.from() invalidation', [2, 3, 2, 2, 4, 3], (test, done) => {
     let n, m;
     const s1 = Signal.from(() => n = !n);
     const s2 = Signal.from(() => m = (m === 2 ? 4 : 2));
@@ -67,9 +61,7 @@ function(test, done) {
     done();
 });
 
-run('Signal.of()',
-[undefined, 2, 3],
-function(test, done) {
+run('Signal.of()', [undefined, 2, 3], (test, done) => {
     let n, m;
     const s1 = Signal.of();
     const s2 = Signal.of(2);
@@ -86,9 +78,7 @@ function(test, done) {
     done();
 });
 
-run('Signal a + b = c',
-[1, 2, 'compute', 3, 'compute', 4, 4],
-function(test, done) {
+run('Signal a + b = c', [1, 2, 'compute', 3, 'compute', 4, 4], (test, done) => {
     let n, m;
     const a = Signal.of(1);
     const b = Signal.of(2);
@@ -117,4 +107,18 @@ function(test, done) {
     test(c.value);
 
     done();
+});
+
+run('Signal.tick()', [0, 1], (test, done) => {
+    const a        = Signal.of(0);
+    const renderer = Signal.tick(() => test(a.value));
+    a.value = 1;
+    Promise.resolve().then(done);
+});
+
+run('Signal.frame()', [0, 1], (test, done) => {
+    const a        = Signal.of(0);
+    const renderer = Signal.frame(() => test(a.value));
+    a.value = 1;
+    requestAnimationFrame(done);
 });

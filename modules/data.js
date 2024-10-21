@@ -102,8 +102,8 @@ assign(DataTrap.prototype, {
         //console.log(value, !!Signal.evaluating, isMutableProperty(object, name));
 
         // We are not interested in getting proxies of stuff in the prototype
-        // chain so stick to hasOwnProperty. TODO: ARE WE REALLY NOT, THO? What about
-        // values returned by getters? Eh?
+        // chain so stick to hasOwnProperty. TODO: ARE WE REALLY NOT, THO? What
+        // about values returned by getters? Eh?
         /*if (!O.hasOwnProperty.call(object, name)) {
             return value;
         }*/
@@ -204,21 +204,6 @@ Data.objectOf = function(object) {
         object ;
 };
 
-/**
-Data.observe(data)
-
-Returns the un-proxied `object` wrapped by a `Data.of(object)` proxy, or,
-if `data` is already just an object, `data`.
-**/
-
-Data.observe = function(name, object, fn, initial) {
-    console.trace('Deprecated. Use Signal.observer(() => { Data.of(object).name ... }).');
-    const trap = Data(object) && object[$trap];
-    if (!trap) return;
-
-    const signal = getSignal(trap.signals, name, trap.object);
-    return Signal.observe(signal, fn, initial);
-};
 
 /*
 Data.signal(path, data)

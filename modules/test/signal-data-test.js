@@ -4,11 +4,9 @@ import Signal from '../signal.js';
 import Data   from '../data.js';
 
 
-run('Data.signal()',
-[1, 2, 2],
-function(test, done) {
+run('Data.signal()', [1, 2, 2], (test, done) => {
     const object = { a: 1, b: 2 };
-    const data   = Data(object);
+    const data   = Data.of(object);
     const s1     = Data.signal('a', object);
 
     test(s1.value);
@@ -24,11 +22,9 @@ function(test, done) {
     done();
 });
 
-run('Signal.from(() => data.a)',
-[1, 2, 2],
-function(test, done) {
+run('Signal.from(() => data.a)', [1, 2, 2], (test, done) => {
     const object = { a: 1, b: 2 };
-    const data   = Data(object);
+    const data   = Data.of(object);
     const s1     = Signal.from(() => data.a);
 
     test(s1.value);
@@ -44,11 +40,9 @@ function(test, done) {
     done();
 });
 
-run('Signal.from(() => data1.a + data2.a)',
-[3, 5, 9],
-function(test, done) {
-    const data1  = Data({ a: 1 });
-    const data2  = Data({ a: 2 });
+run('Signal.from(() => data1.a + data2.a)', [3, 5, 9], (test, done) => {
+    const data1  = Data.of({ a: 1 });
+    const data2  = Data.of({ a: 2 });
     const s1     = Signal.from(() => data1.a + data2.a);
 
     test(s1.value);
@@ -64,26 +58,31 @@ function(test, done) {
     done();
 });
 
-run('Signal.fromProperty(name, object) value',
-[1, 2],
-function(test, done) {
-    const object = { thing: 1 };
+run('Signal.frame(() => test(data.a))', [undefined, 0, 1], (test, done) => {
+    const object = {};
     const data   = Data.of(object);
-    const signal = Signal.from(() => data.thing);
+    const signal = Signal.frame(() => test(data.a));
 
-    test(signal.value);
-
-    // Invalidates signal
-    data.thing = 2;
-
-    test(signal.value);
-
-    done();
+    data.a = 0;
+    requestAnimationFrame(() => {
+        data.a = 1;
+        requestAnimationFrame(done);
+    });
 });
 
-run('Signal.fromProperty(name, object) getter/setter',
-[1, 2],
-function(test, done) {
+run('Signal.frame(() => test(`${ data.a }`))', ['undefined', '0', '1'], (test, done) => {
+    const object = {};
+    const data   = Data.of(object);
+    const signal = Signal.frame(() => test(`${ data.a }`));
+
+    data.a = 0;
+    requestAnimationFrame(() => {
+        data.a = 1;
+        requestAnimationFrame(done);
+    });
+});
+
+run('Signal getter/setter', [1, 2], (test, done) => {
     // Object with a getter/setter ont he prototype
     class OOO {
         #thing = 1;
@@ -124,9 +123,7 @@ function(test, done) {
 });
 
 /*
-run('Signal subclassing',
-[3, 5, 6],
-function(test, done) {
+run('Signal subclassing', [3, 5, 6], (test, done) => {
     const data1  = Data({ a: 1 });
     const data2  = Data({ a: 2 });
 

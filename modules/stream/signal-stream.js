@@ -1,45 +1,55 @@
 
 import Signal, { hasInput } from '../signal.js';
-import Stream, { pipe }     from './stream.js';
+import Stream from './stream.js';
 
-const assign = Object.assign;
-const create = Object.create;
-const S      = Stream.prototype;
+const assign  = Object.assign;
+const create  = Object.create;
+const promise = Promise.resolve();
 
-function evaluate() {
-    return this.signal.value;
-}
-
-export default function SignalStream(signal, initial) {
-    this.signal  = signal;
-    this.initial = initial;
+export default function SignalStream(evaluate, context) {
+    this.fn = () => {
+        this.status = undefined;
+        Stream.push(this, Signal.evaluate(this, evaluate, context));
+    };
 }
 
 SignalStream.prototype = assign(create(Stream.prototype), {
-    push: null,
+    invalidate: function(input) {
+        // If the observer is already cued do nothing
+        if (this.status === 'cued') return;
 
-    invalidate: function(signal) {
-        if (this.status === 'done') return;
-
-        // Verify that signal has the right to invalidate this
-        if (signal && !hasInput(this, signal)) return;
+        // Verify that input signal has the right to invalidate this
+        if (input && !hasInput(this, input)) return;
 
         // Clear inputs
         let n = 0;
         while (this[--n]) this[n] = undefined;
 
         // Evaluate and send value to consumer on next tick
-        promise.then(() =>  S.push.apply(this, Signal.evaluate(this, evaluate)));
+        this.status = 'cued';
+        promise.then(this.fn);
     },
 
-    pipe: function(output) {
-        // Set up dependency graph, return value
-        const value = Signal.evaluate(this, evaluate);
-        pipe(this, output);
+    start: function() {
+        // Evaluate and send value to consumer
+        this.fn();
+        return this;
+    },
 
-        // Run the observer if value is not initial
-        if (value !== initial) S.push.apply(this, value);
+    stop: function() {
+        // Remove this from signal graph, loop through inputs
+        let n = 0, input;
+        while (input = this[--n]) {
+            let m = -1;
+            removeOutput(input, this);
+            this[n] = undefined;
+        }
 
-        return output;
+        // Stop .done() listeners and downstream pipes
+        return Stream.stop(this);
     }
 });
+
+Stream.signal = function(fn, context) {
+    return new SignalStream(fn, context);
+};
