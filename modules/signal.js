@@ -145,18 +145,6 @@ export default class Signal {
     }
 
     /**
-    Signal.tick(fn, initial)
-    Returns an observe signal, a form of compute signal that calls `fn` once
-    immediately, and then on every tick following the invalidation of any signal
-    read during the execution of `fn`.
-    **/
-
-    static tick(fn) {
-        // Add to signals called on invalidation
-        return new TickObserver(fn);
-    }
-
-    /**
     Signal.frame(fn, initial)
     Returns an observe signal, a form of compute signal that calls `fn` once
     immediately, and then on every animation frame following the invalidation
@@ -169,17 +157,24 @@ export default class Signal {
     }
 
     /**
-    Signal.define(object, name, descriptor)
-    Apes `Object.defineProperty()` by defining a signal-backed get/set property
-    `object.name` from a `descriptor` object.
-
-    If `descriptor` has a getter function any signals evaluated by that function
-    invalidate the property when they become invalid. If `descriptor` has `.value`
-    the property is invalidated when a new value is assigned to `object.name`.
+    Signal.tick(fn, initial)
+    Returns an observe signal, a form of compute signal that calls `fn` once
+    immediately, and then on every tick following the invalidation of any signal
+    read during the execution of `fn`.
     **/
 
-    static define(object, name, descriptor) {
-        return Object.defineProperty(object, name, Signal.createPropertyDescriptor(descriptor)) ;
+    static tick(fn) {
+        // Add to signals called on invalidation
+        return new TickObserver(fn);
+    }
+
+    /**
+    Signal.observe(signal, fn)
+    Calls `fn` on the next tick after `signal` changes.
+    **/
+
+    static observe(signal, fn) {
+        return new ObserveSignal(signal, fn);
     }
 
     /**
@@ -473,6 +468,53 @@ class ComputeSignal extends Signal {
         invalidateDependents(this);
     }
 }
+
+
+/*
+ObserveSignal(signal, fn)
+*/
+
+export class ObserveSignal {
+    constructor(signal, fn) {
+        this.signal = signal;
+        this.fn = () => fn(Signal.evaluate(this, this.evaluate, this));
+        this.fn();
+    }
+
+    evaluate() {
+        this.promise = undefined;
+        return this.signal.value;
+    }
+
+    invalidate(input) {
+        // If the observer is already cued do nothing
+        if (this.promise) return;
+
+        // Verify that input signal has the right to invalidate this
+        if (input && !hasInput(this, input)) return;
+
+        // Clear inputs
+        let n = 0;
+        while (this[--n]) this[n] = undefined;
+
+        // Evaluate and send value to consumer on next tick
+        this.promise = promise.then(this.fn);
+    }
+
+    stop() {
+        // Remove this from signal graph
+        let n = 0, input;
+        while (input = this[--n]) {
+            let m = -1;
+            removeOutput(input, this);
+            this[n] = undefined;
+        }
+
+        return this;
+    }
+}
+
+
 
 
 /*
