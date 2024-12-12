@@ -574,7 +574,7 @@ assign(Stream, {
             Stream.from(array)
             Create a pushable buffer stream from an array or array-like object.
             **/
-            typeof object.length === 'number' ? new Buffer(Array.from(values)) :
+            typeof object.length === 'number' ? new Buffer(Array.from(object)) :
 
             // object cannot be made into stream
             throwTypeError(object)
