@@ -30,6 +30,7 @@ function stop(stream) {
     // Call done functions and listeners
     const listeners = stream[$listeners];
     stream[$listeners] = undefined;
+
     if (listeners) listeners.forEach(call);
 
     // Loop through outputs, propagate stop() down the pipe
@@ -599,17 +600,18 @@ assign(Stream, {
     **/
     merge: (...inputs) =>  new Merge(inputs),
 
-    /*
+    /**
     Stream.push(stream, value)
-    Pushes `value` to `stream`'s outputs. For internal use when sub-classing Stream.
-    */
+    Pushes `value` to `stream`'s outputs (even on streams that have no `.push()`
+    method). For use in sub-classing Stream.
+    **/
     push,
 
-    /*
+    /**
     Stream.stop(stream)
     Stops stream, calling `.done()` handlers, setting status to `'done'` and
     stopping dependent streams. For internal use when sub-classing Stream.
-    */
+    **/
     stop,
 
     /*

@@ -1,20 +1,12 @@
 
 import { def } from './types.js';
-import linear    from './normalise.js';
-import quadratic from './normalise-quadratic.js';
+import linear  from './normalise.js';
+import quadratic from './normalise/normalise-quadratic.js';
 
 // Normalisers take a min and max and transform a value in that range
 // to a value on the normal curve of a given type
 
-export const linear = def(
-    'Number, Number, Number => Number',
-    linear
-);
-
-export const quadratic = def(
-    'Number, Number, Number => Number',
-    quadratic
-);
+export { linear, quadratic };
 
 export const cubic = def(
     'Number, Number, Number => Number',

@@ -39,9 +39,11 @@ function isMuteable(object) {
         && !(object instanceof WeakMap)
         // Reject sets
         && !(object instanceof Set)
-        && !(window.WeakSet && object instanceof WeakSet)
-        // Reject TypedArrays and DataViews
-        && !ArrayBuffer.isView(object) ;
+        && !(window.WeakSet && object instanceof WeakSet);
+        // Reject TypedArrays and DataViews. They don't enjoy having their
+        // methods called from a proxy. On the other hand, it is useful to be
+        // able to observe them...
+        //&& !ArrayBuffer.isView(object) ;
 }
 
 function getSignal(signals, name, object) {

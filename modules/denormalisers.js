@@ -1,20 +1,12 @@
 
 import { def } from './types.js';
 import linear    from './denormalise.js';
-import quadratic from './denormalise-quadratic.js';
+import quadratic from './normalise/denormalise-quadratic.js';
 
 // Denormalisers take a min and max and transform a value into that range
 // from the range of a curve of a given type
 
-export const linear = def(
-    'Number, Number, Number => Number',
-    linear
-);
-
-export const quadratic = def(
-    'Number, Number, Number => Number',
-    quadratic
-);
+export { linear, quadratic };
 
 export const cubic = def(
     'Number, Number, Number => Number',

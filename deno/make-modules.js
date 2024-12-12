@@ -84,6 +84,7 @@ Deno
 
     // Set DEBUG to false to remove any conditions that depend on it
     define: {
+        'window':       'true',
         'window.DEBUG': 'false',
         'DEBUG':        'false'
     },
@@ -113,7 +114,9 @@ Deno
     minify:    true,
     bundle:    true,
     write:     true,
+    platform:  'browser',
     format:    'esm',
+    treeShaking: true,
     logLevel:  'info',
 
 
