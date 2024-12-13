@@ -30,6 +30,8 @@ function isMuteable(object) {
         && !Node.prototype.isPrototypeOf(object)
         // Reject WebAudio context
         && (window.BaseAudioContext === undefined || !BaseAudioContext.prototype.isPrototypeOf(object))
+        // Reject WebAudio params
+        && !AudioParam.prototype.isPrototypeOf(object)
         // Reject date, their methods don't enjoy being proxied
         && !(object instanceof Date)
         // Reject regex
