@@ -84,7 +84,7 @@ Deno
 
     // Set DEBUG to false to remove any conditions that depend on it
     define: {
-        'window':       'true',
+        //'window':       'true',
         'window.DEBUG': 'false',
         'DEBUG':        'false'
     },
