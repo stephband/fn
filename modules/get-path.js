@@ -9,8 +9,6 @@ const value = getPath('path.to.value', object);
 ```
 */
 
-import curry from './curry.js';
-
 const rpath = /\.?([\w-]+)/g;
 
 function getRegexPathThing(regex, path, object) {
@@ -26,16 +24,14 @@ function getRegexPathThing(regex, path, object) {
 function getRegexPath(regex, path, object) {
         // At the end of a path return what we've got there
     return regex.lastIndex === path.length ? object :
-        // Otherwise where object is falsy further drilldown is not possoble
+        // Otherwise where object is falsey further drilldown is not possible
         !object ? undefined :
         // Otherwise drill down
         getRegexPathThing(regex, path, object) ;
 }
 
-export function getPath(path, object) {
+export default function getPath(path, object) {
     rpath.lastIndex = 0;
     // Accept numbers or strings as path
     return getRegexPath(rpath, '' + path, object) ;
 }
-
-export default curry(getPath, true);

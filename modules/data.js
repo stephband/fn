@@ -192,7 +192,7 @@ various others like Sets, Maps and DOM and WebAudio nodes are deemed
 immutable or otherwise unobservable. They return `undefined`.
 **/
 
-Data.of = (object) => Data(object);
+Data.of = (object, force) => Data(object, force);
 
 /**
 Data.objectOf(data)

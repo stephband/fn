@@ -4,15 +4,13 @@ setPath(path, object, value)
 Sets `value` at `path` in `object`, where path exists.
 */
 
-import curry from './curry.js';
-
-export function setPath(path, object, value) {
-    const key = path.replace(/([^.]+)\./g, ($0, $1) => {
-        object = object[$1];
-        return '';
-    });
-
-    return object[key] = value;
+function get(object, name) {
+    return object[name];
 }
 
-export default curry(setPath, true);
+export default function setPath(path, object, value) {
+    const names = path.split(/\s*\.\s*/);
+    const key   = names.pop();
+    object = names.reduce(get, object);
+    return object[key] = value;
+}

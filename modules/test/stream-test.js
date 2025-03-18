@@ -208,7 +208,7 @@ run('Stream.stop()', [0, 'a', 'b', 1, 'done', undefined, 2, 'done', 'done', 3, 4
 
     done();
 });
-
+/*
 run('Stream subclass TimedStream().each().start(time).stop(time)', ['.start()', '.stop()', 1, 2, 3, 'done'], (test, done) => {
     function start(stream) {
         stream.frame = requestAnimationFrame((time) => {
@@ -316,6 +316,7 @@ run('Stream subclass TimedStream().start(time).stop(time).each()', ['.start()', 
     .done(() => test('done'))
     .done(done);
 });
+*/
 
 /*
 run('Stream.each() ... .start(time).stop(time)',

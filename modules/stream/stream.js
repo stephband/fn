@@ -30,7 +30,6 @@ function stop(stream) {
     // Call done functions and listeners
     const listeners = stream[$listeners];
     stream[$listeners] = undefined;
-
     if (listeners) listeners.forEach(call);
 
     // Loop through outputs, propagate stop() down the pipe
@@ -68,13 +67,14 @@ function unpipe(output, input) {
 }
 
 
-/* Consumer() */
+/* InputStream() */
 
-function Consumer(fn) {
+function InputStream(fn, STARTABLE_STREAM) {
     this.push = fn;
+    this.STARTABLE_STREAM = STARTABLE_STREAM;
 }
 
-assign(Consumer.prototype, {
+assign(InputStream.prototype, {
     /**
     .start()
     The `.start()` method is provided as a way to build timed streams. It echoes
@@ -106,6 +106,8 @@ assign(Consumer.prototype, {
     **/
     stop: function() {
         if (this.status === 'done') return this;
+// ARE YOU SURE????? TEST IT!!!
+        this.status = 'done';
 
         // Loop through inputs, track inputs that this stop depends on
         let input;
@@ -159,7 +161,7 @@ function Reduce(fn, accumulator) {
     this.i     = 0;
 }
 
-Reduce.prototype = assign(create(Consumer.prototype), {
+Reduce.prototype = assign(create(InputStream.prototype), {
     push: function(value) {
         const fn = this.fn;
         this.value = fn(this.value, value, this.i++, this);
@@ -169,7 +171,7 @@ Reduce.prototype = assign(create(Consumer.prototype), {
 
 /**
 Stream(start)
-Creates a stream from a `start` function, called when a consumer is first
+Creates a stream from a `start` function, called when a InputStream is first
 attached, with two arguments, `start(push, stop)`. `push(value)` is called to
 write `value` to the stream and `stop()` is called to stop the stream.
 **/
@@ -184,11 +186,11 @@ export default function Stream(fn) {
         };
     }
     else {
-        throw new TypeError('new Stream() cannot be created from ' + typeof fn);
+        //throw new TypeError('new Stream() cannot be created from ' + typeof fn);
     }
 }
 
-assign(Stream.prototype, Consumer.prototype, {
+assign(Stream.prototype, InputStream.prototype, {
     /**
     .pipe(stream)
     Starts a stream and pushes its values into `stream`. Returns `stream`.
@@ -201,11 +203,16 @@ assign(Stream.prototype, Consumer.prototype, {
             while (output[--i]) if (output[i] === this) break;
             output[i] = this;
 
+            // If output is not to be immediately started go no further
+            // TODO: we need a better heuristic than this crap property!! See
+            // Soundstage.
+            if (output.STARTABLE_STREAM) return output;
+
             // if output is a cold pipeable go no further
             if (output.pipe && !output[0]) return output;
         }
 
-        // It must be a consumer (or a hot pipeable), start this immediately
+        // It must be a InputStream (or a hot pipeable), start this immediately
         let o = -1;
         while (this[++o]) if (this[o] === output) break;
         this[o] = output;
@@ -217,12 +224,12 @@ assign(Stream.prototype, Consumer.prototype, {
 
     /**
     .each(fn)
-    Consumer the stream, calling `fn(value)` for each value in it.
+    InputStream the stream, calling `fn(value)` for each value in it.
     Returns the stream.
     **/
     each: function(fn) {
-        // Start the consumer immediately
-        return this.pipe(new Consumer(fn));
+        // Start the InputStream immediately
+        return this.pipe(new InputStream(fn));
     },
 
     /**
@@ -261,7 +268,7 @@ assign(Stream.prototype, Consumer.prototype, {
 
     /**
     .reduce(fn, initial)
-    Consumer the stream, calling `fn(accumulator, value)` for each value in it.
+    Consume the stream, calling `fn(accumulator, value)` for each value in it.
     Returns the accumulator.
     **/
     reduce: function(fn, accumulator) {
@@ -623,5 +630,6 @@ assign(Stream, {
     */
     unpipe,
 
-    Each: Consumer
+    each:   (fn, STARTABLE_STREAM) => new InputStream(fn, STARTABLE_STREAM),
+    reduce: (fn, accumulator) => new Reduce(fn, accumulator)
 });
