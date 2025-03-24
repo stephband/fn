@@ -10,6 +10,15 @@
 
     <title>Signal</title>
 
+    <script type="importmap">{
+        "imports": {
+            "bolt/":       "../bolt/",
+            "dom/":        "../dom/modules/",
+            "fn/":         "./modules/",
+            "stage/":      "../stage/"
+        }
+    }</script>
+
     <script title="load">
         document.documentElement.className += ' js loading';
         // window.addEventListener('DOMContentLoaded', () => document.documentElement.classList.remove('content-loading'));
@@ -22,9 +31,45 @@
     <script title="debug">
         window.DEBUG = true;
     </script>
+
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 150px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+
+        .value-display {
+            background: #f8f8f8;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-family: monospace;
+        }
+    </style>
 </head>
 
 <body>
+
+    <h1>FrameObserver Test</h1>
+    <p>Testing the FrameObserver implementation that observes context.currentTime-based values.</p>
+
+    <div class="value-display" id="param-value">Param value: 0</div>
+    <div class="value-display" id="frame-count">Frame count: 0</div>
+    <div class="value-display" id="time-display">CurrentTime: 0</div>
+
+    <canvas id="value-graph" width="800" height="150"></canvas>
+
     <script type="module">
         window.DEBUG = true;
 
@@ -32,6 +77,6 @@
 
         import './modules/test/signal-test.js';
         import './modules/test/signal-data-test.js';
-        //window.Stream = Stream;
+        import './modules/test/signal-frame-test.js';
     </script>
 </body>

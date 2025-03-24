@@ -3,9 +3,7 @@ remove(array, value)
 Remove `value` from `array`. Where `value` is not in `array`, does nothing.
 **/
 
-import curry from './curry.js';
-
-export function remove(array, value) {
+export default function remove(array, value) {
     if (array.remove) { array.remove(value); }
 
     let i;
@@ -15,5 +13,3 @@ export function remove(array, value) {
 
     return array;
 }
-
-export default curry(remove, true);

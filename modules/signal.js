@@ -3,6 +3,7 @@ const DEBUG  = false;//window.DEBUG && window.DEBUG.signal !== false;
 const assign = Object.assign;
 
 let evaluatingSignal;
+let hasInvalidDependency;
 let id = 0;
 
 
@@ -177,6 +178,10 @@ export default class Signal {
         return new ObserveSignal(signal, fn);
     }
 
+    static timed(name, object) {
+        return new TimedSignal(name, object);
+    }
+
     /**
     Signal.evaluate(object, fn[, context])
 
@@ -190,7 +195,7 @@ export default class Signal {
     Typically `object.invalidate()` would cue a `Signal.evaluate(object, fn)` at
     some point in the future. (It is ill-advised to `Signal.evaluate(object, fn)`
     synchronously inside `.invalidate()`, although this should only lead to
-    wasted invalidations, not bad results, errm, in most cases, at least.)
+    wasted cycles, not bad results... errm, in most cases, at least.)
     **/
 
     static evaluate(signal, fn, context = signal) {
@@ -199,16 +204,19 @@ export default class Signal {
         const previous = evaluatingSignal;
         evaluatingSignal = signal;
 
-        if (DEBUG) console.group(
+        // Clear the decks
+        if (!previous) hasInvalidDependency = false;
+
+        /*if (window.DEBUG && window.DEBUG.signal !== false) console.group(
             '%cSignal%c evaluate%c ' + evaluatingSignal.constructor.name + '#' + evaluatingSignal.id + (evaluatingSignal.name ? ' "' + evaluatingSignal.name + '"' : ''),
             'color: #718893; font-weight: 300;',
             'color: #3896BF; font-weight: 300;',
             'color: #718893; font-weight: 300;'
-        );
+        );*/
 
         const value = fn.apply(context);
 
-        if (window.DEBUG && window.DEBUG.signal !== false) console.groupEnd();
+        /*if (window.DEBUG && window.DEBUG.signal !== false) console.groupEnd();*/
 
         evaluatingSignal = previous;
         return value;
@@ -344,7 +352,7 @@ class PropertySignal extends Signal {
         if (evaluatingSignal) setDependency(this, evaluatingSignal);
         if (this.#valid) return this.#value;
         this.#value = Signal.evaluate(this, this.evaluate, this);
-        this.#valid = true;
+        if (!hasInvalidDependency) this.#valid = true;
         return this.#value;
     }
 
@@ -435,7 +443,7 @@ class ComputeSignal extends Signal {
         if (evaluatingSignal) setDependency(this, evaluatingSignal);
         if (this.#valid) return this.#value;
         this.#value = Signal.evaluate(this, this.#fn, this.#context);
-        this.#valid = true;
+        if (!hasInvalidDependency) this.#valid = true;
         return this.#value;
     }
 
@@ -466,6 +474,75 @@ class ComputeSignal extends Signal {
         // and overwrite dependents before we have finished invalidating
         // this set of dependents.
         invalidateDependents(this);
+    }
+}
+
+
+/**
+TimedSignal(name, object)
+A signal that wraps an AudioParam and remains invalid until a specified time in
+the future. This ensures that any FrameObserver signals that depend on it keep
+rendering until automation completes.
+**/
+
+export class TimedSignal extends Signal {
+    #validTime;
+
+    constructor(name, object) {
+        super(name);
+        this.object = object;
+    }
+
+    /**
+    .value
+    Getting `.value` gets the object's value. If there's an evaluating signal,
+    it becomes dependent on this ParamSignal. The signal remains invalid until
+    the `.getTime()` reaches `.invalidateUntil(time)` time.
+    **/
+    get value() {
+        // If there is a signal currently evaluating then it becomes a
+        // dependency of this signal
+        if (Signal.evaluating) {
+            setDependency(this, Signal.evaluating);
+
+            // This is a timed signal, therefore may remain invalid following an
+            // evaluation. We can't invalidate the graph while evaluating, but
+            // the invalid state must prevent dependents from becoming valid...
+            if (this.getTime() < this.#validTime && Signal.evaluating) {
+                // ...so set a flag marking the current evaluation as invalid
+                hasInvalidDependency = true;
+            }
+        }
+
+        // Get the current value from the audio param
+        return this.object[this.name];
+    }
+
+    getTime() {
+        return window.performance.now();
+    }
+
+    /**
+    .invalidateUntil(time)
+    Sets a time at which this signal becomes valid. Until this time is reached
+    the signal remains invalid, causing dependent observer signals to keep
+    observing.
+    **/
+    invalidateUntil(time) {
+        // Don't do anything if the #validTime isn't changing
+        if (time === this.#validTime) return;
+
+        const currentTime = this.getTime();
+        const isValid     = currentTime >= this.#validTime;
+
+        // Update the #validTime
+        this.#validTime = time;
+
+        // If we are moving into a valid state do nothing
+        if (currentTime >= time) return;
+
+        // If we are moving out of a valid state invalid dependents
+        if (isValid) invalidateDependents(this);
     }
 }
 
@@ -545,7 +622,7 @@ export class Observer {
         this.evaluate = fn;
 
         // An initial, synchronous evaluation binds this observer to changes
-        Signal.evaluate(this, this.evaluate);
+        if (Signal.evaluate(this, this.evaluate) || hasInvalidDependency) this.cue();
     }
 
     invalidate(input) {
@@ -616,16 +693,30 @@ export class TickObserver extends Observer {
 
 /*
 FrameObserver
-A FrameObserver is a signal that calls `fn` on construction and again on every
-animation frame following an invalidation of any signal read by `fn`. Use
-`Signal.frame(fn)`.
+
+A FrameObserver is an observer signal that calls `fn` on construction and again
+on every animation frame following an invalidation of any signal read by `fn`.
+Additionally where the return value of `fn()` is truthy the signal remains
+active and will evaluate on following frames until `fn()` is false-y.
+
+Use `Signal.frame(fn)` to create a FrameObserver signal.
 */
 
 function frame() {
     const observers = FrameObserver.observers;
+
     let n = -1, signal;
-    while (signal = observers[++n]) Signal.evaluate(signal, signal.evaluate);
-    observers.length = 0;
+    while (signal = observers[++n]) {
+        // Evaluate the signal, if it returns false-y, and nothing has flagged
+        // it as having invalid dependencies...
+        if (!Signal.evaluate(signal, signal.evaluate) && !hasInvalidDependency) {
+            // ...remove the signal from observers and decrement n
+            observers.splice(n--, 1);
+        }
+    }
+
+    // Where observers remain schedule the next frame
+    if (observers.length) requestAnimationFrame(frame);
 }
 
 export class FrameObserver extends Observer {
@@ -634,7 +725,7 @@ export class FrameObserver extends Observer {
     cue() {
         const observers = this.constructor.observers;
 
-        // If no observers are cued, cue tick() on the next tick
+        // If no observers are cued, cue frame() on the next frame
         if (!observers.length) window.requestAnimationFrame(frame);
 
         // Add this observer to observers
