@@ -222,6 +222,10 @@ export default class Signal {
         return value;
     }
 
+    static get hasInvalidDependency() {
+        return hasInvalidDependency;
+    }
+
     /*
     Signal.evaluating
     The signal that is currently being evaluated, or undefined. This is exposed
@@ -601,7 +605,7 @@ cue following an invalidation of any signal read by `fn`. Internal only,
 sub-classed by `TickObserver` and `FrameObserver`.
 */
 
-export class Observer {
+class Observer {
     constructor(fn) {
         if (DEBUG) {
             this.id   = ++id;
@@ -629,12 +633,6 @@ export class Observer {
         // Verify that input signal has the right to invalidate this
         if (input && !hasInput(this, input)) return;
 
-        // Static observers list
-        const observers = this.constructor.observers;
-
-        // If the observer is already cued do nothing
-        if (observers.indexOf(this) !== -1) return;
-
         // Clear inputs
         let n = 0;
         while (this[--n]) this[n] = undefined;
@@ -650,13 +648,6 @@ export class Observer {
             removeOutput(input, this);
             this[n] = undefined;
         }
-
-        // Remove from observers if cued
-        const observers = this.constructor.observers;
-        const i = observers.indexOf(this);
-        if (i !== -1) observers.splice(i, 1);
-
-        return this;
     }
 }
 
@@ -669,24 +660,59 @@ tick following an invalidation of any signal read by `fn`. Use `Signal.tick(fn)`
 
 const promise = Promise.resolve();
 
-function tick() {
-    const observers = TickObserver.observers;
+function render(observers) {
     let n = -1, signal;
-    while (signal = observers[++n]) Signal.evaluate(signal, signal.evaluate);
-    observers.length = 0;
+
+    while (signal = observers[++n]) {
+        // Evaluate the signal, if it returns false-y, and nothing has flagged
+        // it as having invalid dependencies...
+        if (!Signal.evaluate(signal, signal.evaluate) && !hasInvalidDependency) {
+            // ...remove the signal from observers and decrement n
+            observers.splice(n--, 1);
+        }
+    }
+
+    return observers;
+}
+
+function tick() {
+    const observers = render(TickObserver.observers);
+
+    // Where observers remain schedule the next frame
+    if (observers.length) promise.then(tick);
 }
 
 export class TickObserver extends Observer {
     static observers = [];
 
     cue() {
-        const observers = this.constructor.observers;
+        const observers = TickObserver.observers;
 
         // If no observers are cued, cue tick() on the next tick
         if (!observers.length) promise.then(tick);
 
         // Add this observer to observers
         observers.push(this);
+    }
+
+    invalidate(input) {
+        // Static observers list
+        const observers = TickObserver.observers;
+
+        // If the observer is already cued do nothing
+        if (observers.indexOf(this) !== -1) return;
+
+        return super.invalidate(input);
+    }
+
+    stop() {
+        super.stop();
+
+        // Remove from observers if cued
+        const observers = TickObserver.observers;
+        const i = observers.indexOf(this);
+        if (i !== -1) observers.splice(i, 1);
+        return this;
     }
 }
 
@@ -703,27 +729,18 @@ Use `Signal.frame(fn)` to create a FrameObserver signal.
 */
 
 function frame() {
-    const observers = FrameObserver.observers;
-
-    let n = -1, signal;
-    while (signal = observers[++n]) {
-        // Evaluate the signal, if it returns false-y, and nothing has flagged
-        // it as having invalid dependencies...
-        if (!Signal.evaluate(signal, signal.evaluate) && !hasInvalidDependency) {
-            // ...remove the signal from observers and decrement n
-            observers.splice(n--, 1);
-        }
-    }
+    const observers = render(FrameObserver.observers);
 
     // Where observers remain schedule the next frame
     if (observers.length) requestAnimationFrame(frame);
 }
 
 export class FrameObserver extends Observer {
+    // Exposed for Literal's renderer
     static observers = [];
 
     cue() {
-        const observers = this.constructor.observers;
+        const observers = FrameObserver.observers;
 
         // If no observers are cued, cue frame() on the next frame
         if (!observers.length) window.requestAnimationFrame(frame);
@@ -731,5 +748,24 @@ export class FrameObserver extends Observer {
         // Add this observer to observers
         observers.push(this);
     }
-}
 
+    invalidate(input) {
+        // Static observers list
+        const observers = FrameObserver.observers;
+
+        // If the observer is already cued do nothing
+        if (observers.indexOf(this) !== -1) return;
+
+        return super.invalidate(input);
+    }
+
+    stop() {
+        super.stop();
+
+        // Remove from observers if cued
+        const observers = FrameObserver.observers;
+        const i = observers.indexOf(this);
+        if (i !== -1) observers.splice(i, 1);
+        return this;
+    }
+}
