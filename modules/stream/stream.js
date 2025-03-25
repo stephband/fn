@@ -37,10 +37,13 @@ function stop(stream) {
     while (output = stream[++o]) {
         // Remove output from this
         stream[o] = undefined;
-        // Remove this from output's inputs
-        removeInput(output, stream);
-        // If output has no inputs left, stop it
-        if (!output[-1]) output.stop();
+        // If it's not stoppable it never got this as an input in pipe()
+        if (output.stop) {
+            // Remove this from output's inputs
+            removeInput(output, stream);
+            // If output has no inputs left, stop it
+            if (!output[-1]) output.stop();
+        }
     }
 
     return stream;
@@ -116,11 +119,8 @@ assign(InputStream.prototype, {
             let i = -1;
             while (this[i--]) this[i + 1] = this[i];
 
-            // Input is not a stoppable (I don't think this should happen?).
-            if (!input.stop) {console.log('This shouldn\'t happen?');continue;}
-
-            // If input has no other outputs, stop it
-            if (!input[1]) {
+            // If input is stoppable and has no other outputs, stop it
+            if (input.stop && !input[1]) {
                 // Call .stop() and quit the process to wait until input calls
                 // .stop() on this once again – which may happen synchronously
                 // or asynchronously
@@ -208,15 +208,17 @@ assign(Stream.prototype, InputStream.prototype, {
             // Soundstage.
             if (output.STARTABLE_STREAM) return output;
 
-            // if output is a cold pipeable go no further
+            // if output is a consumer that is not being consumed go no further
             if (output.pipe && !output[0]) return output;
         }
 
-        // It must be a InputStream (or a hot pipeable), start this immediately
+        // It must be a InputStream (or a hot pipeable)
         let o = -1;
         while (this[++o]) if (this[o] === output) break;
         this[o] = output;
-        this.start();
+
+        // Start this immediately, assuming it's startable
+        if (this.start) this.start();
 
         // Return output
         return output;
