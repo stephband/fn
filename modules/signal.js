@@ -490,7 +490,7 @@ rendering until automation completes.
 **/
 
 export class TimedSignal extends Signal {
-    #validTime;
+    #validTime = 0;
 
     constructor(name, object) {
         super(name);
@@ -533,8 +533,9 @@ export class TimedSignal extends Signal {
     observing.
     **/
     invalidateUntil(time) {
-        // Don't do anything if the #validTime isn't changing
-        if (time === this.#validTime) return;
+        // Don't do anything if the #validTime isn't changing ... Hmmm ... see
+        // below. I think this condition suffers the same problem.
+        //if (time === this.#validTime) return;
 
         const currentTime = this.getTime();
         const isValid     = currentTime >= this.#validTime;
@@ -542,8 +543,12 @@ export class TimedSignal extends Signal {
         // Update the #validTime
         this.#validTime = time;
 
-        // If we are moving into a valid state do nothing
-        if (currentTime >= time) return;
+        // If we are moving into a valid state do nothing ... Hmmmmmm ...
+        // This condition interferes with being able to invalidate a time in the
+        // past, which we may want to do for example for latency compensation.
+        // If we are calling .invalidateUntil(), I think we can assume something
+        // has changed and we need to invalidate unless we were already invalid.
+        //if (currentTime > time) return;
 
         // If we are moving out of a valid state invalid dependents
         if (isValid) invalidateDependents(this);
