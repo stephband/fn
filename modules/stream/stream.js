@@ -21,6 +21,7 @@ function push(stream, value) {
     if (value === undefined) return;
     let n = -1;
     while (stream[++n]) stream[n].push(value);
+    return stream;
 }
 
 function stop(stream) {

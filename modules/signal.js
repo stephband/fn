@@ -522,6 +522,15 @@ export class TimedSignal extends Signal {
         return this.object[this.name];
     }
 
+    set value(value) {
+        // Don't update for no change in value.
+        if(this.object[this.name] === value) return;
+
+        // Update value and invalidate until now
+        this.object[this.name] = value;
+        invalidateUntil(this.getTime());
+    }
+
     getTime() {
         return window.performance.now();
     }

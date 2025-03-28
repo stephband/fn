@@ -49,7 +49,7 @@ function isMuteable(object) {
 }
 
 function getSignal(signals, name, object) {
-    return signals[name] || (signals[name] = Signal.fromProperty(name, object));
+    return signals[name] || (signals[name] = Data.toSignal(name, object));
 }
 
 function isMutableProperty(object, name) {
@@ -207,6 +207,16 @@ Data.objectOf = function(object) {
         object[$trap].object :
         object ;
 };
+
+
+/**
+Data.toSignal(name, object)
+The internals of the Data proxy call this function when a signal is created.
+Normally it is assumed that Data proxies use property signals and this function
+is set to `Signal.forProperty`. Override it to opt for different types of
+signals.
+**/
+Data.toSignal = Signal.fromProperty;
 
 
 /*
