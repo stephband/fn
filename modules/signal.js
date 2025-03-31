@@ -507,7 +507,7 @@ export class TimedSignal extends Signal {
         // If there is a signal currently evaluating then it becomes a
         // dependency of this signal
         if (Signal.evaluating) {
-            setDependency(this, Signal.evaluating);
+            setDependency(this, evaluatingSignal);
 
             // This is a timed signal, therefore may remain invalid following an
             // evaluation. We can't invalidate the graph while evaluating, but
