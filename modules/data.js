@@ -112,7 +112,9 @@ assign(DataTrap.prototype, {
             return value;
         }*/
 
-        // Return observer
+        // Return data proxy. There's a problem here. If object[name] is not
+        // writable AND not configurable returning a proxy of value throws
+        // an error regardless as to whether value is itself proxy-able
         return Data(value) || value ;
     },
 

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!-- Literal template "/Users/stephband/Sites/slide-show/index.html.literal" -->
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="author" content="Stephen Band" />
+    <meta name="description" content="Documentation for <slide-show>. A scroll-snapping slideshow/carousel, implemented as the custom element <slide-show>." />
+    <meta name="viewport" content="width=device-width" />
+
+    <title>Signal</title>
+
+    <script type="importmap">{
+        "imports": {
+            "bolt/":       "../bolt/",
+            "dom/":        "../dom/modules/",
+            "fn/":         "./modules/",
+            "stage/":      "../stage/"
+        }
+    }</script>
+
+    <script title="load">
+        document.documentElement.className += ' js loading';
+        // window.addEventListener('DOMContentLoaded', () => document.documentElement.classList.remove('content-loading'));
+        // Wait for other load handlers to run first - Bolt does a few things on
+        // load (eg. targetable scrolls) and we want them to run before the loading
+        // class is removed
+        window.addEventListener('load', () => window.requestAnimationFrame(() => document.documentElement.classList.remove('loading')));
+    </script>
+
+    <script title="debug">
+        window.DEBUG = true;
+    </script>
+
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Data Test</h1>
+    <script type="module">
+        window.DEBUG = true;
+        import './modules/test/data-test.js';
+    </script>
+</body>
