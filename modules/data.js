@@ -1,5 +1,7 @@
 
 import Signal from './signal.js';
+import isMutableProperty from './is-mutable-property.js';
+
 
 const assign       = Object.assign;
 const define       = Object.defineProperties;
@@ -52,22 +54,9 @@ function getSignal(signals, name, object) {
     return signals[name] || (signals[name] = Data.toSignal(name, object));
 }
 
-function isMutableProperty(object, name) {
-    // If there's a descriptor return its mutability
-    const descriptor = Object.getOwnPropertyDescriptor(object, name);
-    if (descriptor) return descriptor.writable || !!descriptor.set ;
-
-    // If there's a prototype look for property on it
-    const prototype = Object.getPrototypeOf(object);
-    if (prototype) return isMutableProperty(prototype, name);
-
-    // If there is no prototypes property must be unset
-    return true;
-}
-
 function getValue(signals, name, object) {
     // If there is an evaluating signal and the property is mutable
-    return (Signal.evaluating && isMutableProperty(object, name)) ?
+    return (Signal.evaluating && isMutableProperty(name, object)) ?
         // ...read value from the signal graph
         getSignal(signals, name, object).value :
         // ...otherwise there is no need to register the get
