@@ -497,6 +497,14 @@ export class TimedSignal extends Signal {
         this.object = object;
     }
 
+    getTime() {
+        return window.performance.now();
+    }
+
+    evaluate() {
+        return this.object[this.name];
+    }
+
     /**
     .value
     Getting `.value` gets the object's value. If there's an evaluating signal,
@@ -512,14 +520,12 @@ export class TimedSignal extends Signal {
             // This is a timed signal, therefore may remain invalid following an
             // evaluation. We can't invalidate the graph while evaluating, but
             // the invalid state must prevent dependents from becoming valid...
-            if (this.getTime() < this.#validTime && Signal.evaluating) {
-                // ...so set a flag marking the current evaluation as invalid
-                hasInvalidDependency = true;
-            }
+            // ...so set a flag marking the current evaluation as invalid
+            if (this.getTime() < this.#validTime) hasInvalidDependency = true;
         }
 
         // Get the current value from the audio param
-        return this.object[this.name];
+        return this.evaluate();
     }
 
     set value(value) {
@@ -529,10 +535,6 @@ export class TimedSignal extends Signal {
         // Update value and invalidate until now
         this.object[this.name] = value;
         invalidateUntil(this.getTime());
-    }
-
-    getTime() {
-        return window.performance.now();
     }
 
     /**
