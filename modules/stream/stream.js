@@ -1,17 +1,13 @@
 
-//import nothing    from '../nothing.js';
 import noop       from '../noop.js';
 import overload   from '../overload.js';
 import toType     from '../to-type.js';
+import Stopable   from './stopable.js';
 
-const assign     = Object.assign;
-const create     = Object.create;
-const $listeners = Symbol('done');
 
-const call = overload(toType, {
-    function: (fn) => fn(),
-    object:   (object) => object.stop()
-});
+const assign = Object.assign;
+const create = Object.create;
+
 
 function throwTypeError(source) {
     throw new TypeError('Stream cannot be created .from() ' + typeof source);
@@ -25,13 +21,8 @@ function push(stream, value) {
 }
 
 function stop(stream) {
-    // Set status
-    stream.status = 'done';
-
     // Call done functions and listeners
-    const listeners = stream[$listeners];
-    stream[$listeners] = undefined;
-    if (listeners) listeners.forEach(call);
+    Stopable.prototype.stop.apply(stream);
 
     // Loop through outputs, propagate stop() down the pipe
     let o = -1, output;
@@ -71,169 +62,155 @@ function unpipe(output, input) {
 }
 
 
-/* InputStream() */
+/* Consumer() */
 
-function InputStream(fn, STARTABLE_STREAM) {
-    this.push = fn;
-    this.STARTABLE_STREAM = STARTABLE_STREAM;
-}
-
-assign(InputStream.prototype, {
-    /**
-    .start()
-    The `.start()` method is provided as a way to build timed streams. It echoes
-    its arguments to the stream head `.start()`, so the head determines whether
-    the stream starts immediately or asynchronously.
-    **/
-    start: function() {
-        if (this.status === 'done') return this;
-
-        // Loop through inputs
-        let i = 0, input;
-        while (input = this[--i]) {
-            // Loop through input's outputs
-            let o = -1;
-            while (input[++o]) if (input[o] === this) break;
-            input[o] = this;
-            /* If we don't qualify this, all producers must have a start method
-               SHOULD WE DO THAT?*/
-            if (input.start) input.start.apply(input, arguments);
-        }
-
-        return this;
-    },
-
+class Consumer extends Stopable {
     /**
     .stop()
-    Stops the stream, passing any parameters up to the head of the stream. The
-    head determines whether the stream stops immediately or asynchronously.
+    Stops the stream.
     **/
-    stop: function() {
+    stop() {
         if (this.status === 'done') return this;
-// ARE YOU SURE????? TEST IT!!!
-        this.status = 'done';
 
-        // Loop through inputs, track inputs that this stop depends on
+        // Loop through inputs, notify them we are detaching
         let input;
         while (input = this[-1]) {
             // Remove input from this
             let i = -1;
             while (this[i--]) this[i + 1] = this[i];
 
-            // If input is stoppable and has no other outputs, stop it
-            if (input.stop && !input[1]) {
-                // Call .stop() and quit the process to wait until input calls
-                // .stop() on this once again – which may happen synchronously
-                // or asynchronously
-                input.stop.apply(input, arguments);
-                return this;
-            }
-
-            // Input has more than one output, remove this from input's outputs
+            // Remove this from input's outputs
             removeOutput(input, this);
+
+            // If input is stop-able and has no other outputs, stop it
+            if (input.stop && !input[0]) input.stop(input);
         }
 
-        return stop(this);
-    },
-
-    /**
-    .done(fn)
-    Cues `fn` to be called when the stream is stopped.
-    **/
-    done: function(listener) {
-        // Is stream already stopped? Call listener immediately.
-        if (this.status === 'done') {
-            call(listener);
-            return this;
-        }
-
-        const listeners = this[$listeners] || (this[$listeners] = []);
-        listeners.push(listener);
-        return this;
+        // Set status and call done(fn) handlers
+        return super.stop();
     }
-});
+}
+
+
+/* Each(fn) */
+
+class Each extends Consumer {
+    constructor(fn) {
+        super();
+        this.push = fn;
+    }
+}
 
 
 /* Reduce() */
 
-function Reduce(fn, accumulator) {
-    this.fn    = fn;
-    this.value = accumulator;
-    this.i     = 0;
-}
+class Reduce extends Consumer {
+    constructor(fn, accumulator) {
+        super();
+        this.fn    = fn;
+        this.value = accumulator;
+        this.i     = 0;
+    }
 
-Reduce.prototype = assign(create(InputStream.prototype), {
-    push: function(value) {
+    push(value) {
         const fn = this.fn;
         this.value = fn(this.value, value, this.i++, this);
     }
-});
+}
 
 
 /**
 Stream(start)
-Creates a stream from a `start` function, called when a InputStream is first
+Creates a stream from a `start` function, called when a consumer is first
 attached, with two arguments, `start(push, stop)`. `push(value)` is called to
 write `value` to the stream and `stop()` is called to stop the stream.
 **/
 
-export default function Stream(fn) {
-    if (typeof fn === 'function') {
-        this.start = function() {
-            const pushFn = (value) => push(this, value);
-            const stopFn = (...args) => this.stop.apply(this, args);
-            fn(pushFn, stopFn, ...arguments);
-            return this;
-        };
-    }
-    else {
-        //throw new TypeError('new Stream() cannot be created from ' + typeof fn);
-    }
-}
+export default class Stream extends Consumer {
+    /**
+    .start()
+    **/
+    start() {
+        // If this is 'running' or 'done' we need do nothing here
+        if (this.status) return this;
 
-assign(Stream.prototype, InputStream.prototype, {
+        // Loop through inputs
+        let i = 0, input;
+        inputloop: while (input = this[--i]) {
+            // Loop through input's outputs
+            let o = -1;
+            // If input already has this as an output skip set up
+            while (input[++o]) if (input[o] === this) continue inputloop;
+            // Set this as input's output
+            input[o] = this;
+            // If input is start-able and this is its first consumer, start it,
+            // otherwise assume it is running
+            if (o === 0 && input.start) input.start();
+        }
+
+        return this;
+    }
+
+    stop() {
+        if (this.status === 'done') return this;
+
+        super.stop();
+
+        // Loop through outputs, propagate stop() down the pipe
+        let o = -1, output;
+        while (output = this[++o]) {
+            // Remove output from this
+            this[o] = undefined;
+            // If output is not stop-able it never got this as an input
+            if (!output.stop) continue;
+            // Remove this from output's inputs
+            removeInput(output, this);
+            // If output has no inputs left, stop it
+            if (!output[-1]) output.stop();
+        }
+
+        return this;
+    }
+
     /**
     .pipe(stream)
-    Starts a stream and pushes its values into `stream`. Returns `stream`.
+    Sets up this stream to pipe values into `stream` when started. Starts
+    immediately where `stream` is already running. Returns `stream`.
     **/
-    pipe: function(output) {
-        // If output is stoppable set this as its input
+    pipe(output) {
+        // If output is stop-able set this as its input
         if (output.stop) {
             // Guard against this piping twice to output
             let i = 0;
             while (output[--i]) if (output[i] === this) break;
             output[i] = this;
-
-            // If output is not to be immediately started go no further
-            // TODO: we need a better heuristic than this crap property!! See
-            // Soundstage.
-            if (output.STARTABLE_STREAM) return output;
-
-            // if output is a consumer that is not being consumed go no further
-            if (output.pipe && !output[0]) return output;
         }
 
-        // It must be a InputStream (or a hot pipeable)
+        // If output is start-able and is not already running wait to start this
+        if (output.start && !(output[0] || output.status === 'running')) {
+            return output;
+        }
+
+        // Start piping right away
         let o = -1;
         while (this[++o]) if (this[o] === output) break;
         this[o] = output;
-
-        // Start this immediately, assuming it's startable
-        if (this.start) this.start();
+        // If output is the first consumer to be added start this
+        if (!o) this.start();
 
         // Return output
         return output;
-    },
+    }
 
     /**
     .each(fn)
-    InputStream the stream, calling `fn(value)` for each value in it.
-    Returns the stream.
+    Consumes the stream, calling `fn(value)` for each piped value. Returns the
+    stream.
     **/
-    each: function(fn) {
-        // Start the InputStream immediately
-        return this.pipe(new InputStream(fn));
-    },
+    each(fn) {
+        // Start the Consumer immediately
+        return this.pipe(new Each(fn));
+    }
 
     /**
     .buffer(...values)
@@ -241,42 +218,42 @@ assign(Stream.prototype, InputStream.prototype, {
     is not hot, before it is started .push() may be used to add values to the
     buffer.
     **/
-    buffer: function(...values) {
+    buffer(...values) {
         return this.pipe(new Buffer(values));
-    },
+    }
 
     /**
     .filter(fn)
     Filters out values where `fn(value)` is falsy.
     **/
-    filter: function(fn) {
+    filter(fn) {
         return this.pipe(new Filter(fn));
-    },
+    }
 
     /**
     .flatMap(fn)
     **/
-    flatMap: function(fn) {
+    flatMap(fn) {
         return this.pipe(new FlatMap(fn));
-    },
+    }
 
     /**
     .map(fn)
     Maps each value in a stream to `fn(value)` and pipes non-`undefined` results
     downstream.
     **/
-    map: function(fn) {
+    map(fn) {
         return this.pipe(new Map(fn));
-    },
+    }
 
     /**
     .reduce(fn, initial)
     Consume the stream, calling `fn(accumulator, value)` for each value in it.
     Returns the accumulator.
     **/
-    reduce: function(fn, accumulator) {
+    reduce(fn, accumulator) {
         return this.pipe(new Reduce(fn, accumulator)).start().value;
-    },
+    }
 
     /**
     .scan(fn, initial)
@@ -285,28 +262,28 @@ assign(Stream.prototype, InputStream.prototype, {
     on the next iteration. Where `fn` returns `undefined` nothing is pushed and
     `current` remains unchanged.
     **/
-    scan: function(fn, initial) {
+    scan(fn, initial) {
         return this.pipe(new Scan(fn, initial));
-    },
+    }
 
     /**
     .slice(n, m)
     Returns a stream of the nth to mth values of stream.
     **/
-    slice: function(n, m) {
+    slice(n, m) {
         return this.pipe(new Slice(n, m));
-    },
+    }
 
     /**
     .split(n)
     **/
-    split: function(n) {
+    split(n) {
         return this.pipe(new Split(n));
-    },
+    }
 
     /* Experimental async iterator support for `for await (x of stream)`
        loops. */
-    [Symbol.asyncIterator]: async function*() {
+    [Symbol.asyncIterator] = async function*() {
         // Buffer for synchronous values
         const values = [];
         let push = (value) => values.push(value);
@@ -327,25 +304,112 @@ assign(Stream.prototype, InputStream.prototype, {
                 await new Promise(setResolve) ;
         }
     }
-});
+
+    static from = overload(toType, {
+        /**
+        Stream.from(fn)
+        Create a pushable map stream from function `fn`.
+        **/
+        function: (fn) => new Map(fn),
+
+        object: (object) =>
+            /**
+            Stream.from(stream)
+            Treat a pipe-able as a stream directly.
+            **/
+            typeof object.pipe === 'function' ? object :
+
+            /**
+            Stream.from(promise)
+            Create a read-only stream from a promise. The stream is stopped when
+            the promise resolves or rejects.
+            **/
+            typeof object.then === 'function' ? new PromiseStream(object) :
+
+            /**
+            Stream.from(array)
+            Create a pushable buffer stream from an array or array-like object.
+            **/
+            typeof object.length === 'number' ? new Buffer(Array.from(object)) :
+
+            // object cannot be made into stream
+            throwTypeError(object)
+    });
+
+    /**
+    Stream.of(...values)
+    Create a pushable buffer stream from parameter values.
+    **/
+    static of(...values) {
+        return new Buffer(values);
+    }
+
+    /**
+    Stream.merge(stream1, stream2, ...)
+    Creates a stream by merging values from any number of input streams into a
+    single output stream. Values are emitted in the time order they are received
+    from inputs.
+
+    ```js
+    Stream.merge(stream1, stream2).each((value) => {
+        // value is from stream1 or stream 2
+    });
+    ```
+    **/
+    static merge(...inputs) {
+        return new Merge(inputs);
+    }
+
+    /**
+    Stream.push(stream, value)
+    Pushes `value` to `stream`'s outputs (even on streams that have no `.push()`
+    method). For use in sub-classing Stream.
+    **/
+    static push = push;
+
+    /**
+    Stream.stop(stream)
+    Stops stream, calling `.done()` handlers, setting status to `'done'` and
+    stopping dependent streams. For internal use when sub-classing Stream.
+    **/
+    static stop = stop;
+
+    /*
+    Stream.input(stream, output)
+    Remove output stream from `stream` and vice-versa, without stopping either
+    stream. Normally `stream.stop()` should be used to stop the flow of a pipe -
+    this function is used when making dynamic graphs of streams that need to
+    stay alive.
+    */
+    static unpipe = unpipe;
+
+    static each(fn) {
+        return new Each(fn);
+    }
+
+    static reduce(fn, accumulator) {
+        return new Reduce(fn, accumulator);
+    }
+}
 
 
 /**
 PromiseStream(promise)
 **/
 
-function PromiseStream(promise) {
-    this.promise = promise;
-}
+class PromiseStream extends Stream {
+    constructor(promise) {
+        super();
+        this.promise = promise;
+    }
 
-PromiseStream.prototype = assign(create(Stream.prototype), {
-    start: function() {
+    start() {
         this.promise
         .then((value) => push(this, value))
         .finally(() => this.stop());
         return this;
     }
-});
+}
 
 
 /*
@@ -354,22 +418,21 @@ A Buffer stream may be pushed to before it is piped, as it starts life with an
 array buffer of values.
 */
 
-function Buffer(values) {
-    this.values = values || [];
-}
+class Buffer extends Stream {
+    constructor(values) {
+        super();
+        this.values = values || [];
+    }
 
-Buffer.prototype = assign(create(Stream.prototype), {
-    start: function() {
+    start() {
         const values = this.values;
-
-        if (!values) return Stream.prototype.start.apply(this);
+        if (!values) return super.start();
 
         // Loop over values
         let n = -1;
         while(n++ < values.length) {
             // Push values to stream
             push(this, values[n]);
-
             // If stream was stopped as a result of a push, don't continue pushing
             if (this.status === 'done') return this;
         }
@@ -378,39 +441,41 @@ Buffer.prototype = assign(create(Stream.prototype), {
         this.values = undefined;
 
         // Start streams that are piped to this buffer stream
-        return Stream.prototype.start.apply(this);
-    },
+        return super.start();
+    }
 
-    push: function(value) {
+    push(value) {
         return this.values ?
             this.values.push(value) :
             push(this, value) ;
     }
-});
+}
 
 
 /* Filter() */
 
-function Filter(fn) {
-    this.fn = fn;
-}
+class Filter extends Stream {
+    constructor(fn) {
+        super();
+        this.fn = fn;
+    }
 
-Filter.prototype = assign(create(Stream.prototype), {
-    push: function filter(value) {
+    push(value) {
         const fn = this.fn;
         return fn(value) && push(this, value);
     }
-});
+}
 
 
 /* FlatMap() */
 
-function FlatMap(fn) {
-    this.fn = fn;
-}
+class FlatMap extends Stream {
+    constructor(fn) {
+        super();
+        this.fn = fn;
+    }
 
-FlatMap.prototype = assign(create(Stream.prototype), {
-    push: function flatMap(value) {
+    push(value) {
         const fn     = this.fn;
         const values = fn(value);
 
@@ -439,109 +504,105 @@ FlatMap.prototype = assign(create(Stream.prototype), {
             values.then((value) => push(this, value));
         }
     }
-});
+}
 
 
 /* Map() */
 
-function Map(fn) {
-    this.fn = fn;
-}
+class Map extends Stream {
+    constructor(fn) {
+        super();
+        this.fn = fn;
+    }
 
-Map.prototype = assign(create(Stream.prototype), {
-    push: function map(value) {
+    push(value) {
         const fn     = this.fn;
         const result = fn(value);
         // Reject undefined
         return result !== undefined && push(this, result);
     }
-});
+}
 
 
 /*
 Merge()
 */
 
-function Merge(inputs) {
-    this.inputs = inputs;
-}
+class Merge extends Stream {
+    constructor(inputs) {
+        super();
+        this.inputs = inputs;
+    }
 
-Merge.prototype = assign(create(Stream.prototype), {
-    push: function(value) {
+    push(value) {
         return push(this, value);
-    },
+    }
 
-    pipe: function(output) {
+    pipe(output) {
         let n = -1, input;
-        while (input = this.inputs[++n]) {
-            if (input.pipe) input.pipe(this) ;
-            else Stream.from(input).pipe(this) ;
-        }
-
+        while (input = this.inputs[++n]) Stream.from(input).pipe(this);
         return Stream.prototype.pipe.call(this, output)
     }
-});
+}
 
 
 /* Scan() */
 
-function Scan(fn, accumulator) {
-    this.fn    = fn;
-    this.value = accumulator;
-}
+class Scan extends Stream {
+    constructor(fn, accumulator) {
+        super();
+        this.fn    = fn;
+        this.value = accumulator;
+    }
 
-Scan.prototype = assign(create(Stream.prototype), {
-    push: function(value) {
+    push(value) {
         const fn = this.fn;
         this.value = fn(this.value, value);
         push(this, this.value);
     }
-});
+}
 
 
 /* Slice() */
 
-function Slice(n, m = Infinity) {
-    if (window.DEBUG && (typeof n !== 'number' || n < 0)) {
-        throw new Error('Stream: .slice() requires a positive integer (' + n + ')');
+class Slice extends Stream {
+    constructor(n, m = Infinity) {
+        if (window.DEBUG && (typeof n !== 'number' || n < 0)) {
+            throw new Error('Stream: .slice() requires a positive integer (' + n + ')');
+        }
+
+        if (window.DEBUG && (typeof m !== 'number' || m < 1)) {
+            throw new Error('Stream: .slice() requires a non-zero positive integer (n, ' + n + ')');
+        }
+
+        super();
+        this.index = -n;
+        this.indexEnd = m - n;
     }
 
-    if (window.DEBUG && (typeof m !== 'number' || m < 1)) {
-        throw new Error('Stream: .slice() requires a non-zero positive integer (n, ' + n + ')');
+    push(value) {
+        if (++this.index > 0) push(this, value);
+        if (this.index === this.indexEnd) this.stop();
     }
-
-    this.index    = -n;
-    this.indexEnd = n + m;
 }
-
-Slice.prototype = assign(create(Stream.prototype), {
-    push: function take(value) {
-        if (++this.index > 0) {
-            push(this, value);
-        }
-
-        if (this.index === this.indexEnd) {
-            this.stop();
-        }
-    }
-});
 
 
 /* Split(input, fn) */
 
-function Split(fn) {
-    this.chunk = [];
+class Split extends Stream {
+    constructor(fn) {
+        super();
+        this.chunk = [];
 
-    if (typeof fn === 'number') this.n = fn;
-    else this.fn = fn;
-}
+        if (typeof fn === 'number') this.n = fn;
+        else this.fn = fn;
+    }
 
-Split.prototype = assign(create(Stream.prototype), {
-    fn: function() {
+    fn() {
         return this.chunk.length === this.n;
-    },
+    }
 
-    push: function map(value) {
+    push(value) {
         const chunk = this.chunk;
 
         if (this.fn(value)) {
@@ -554,85 +615,4 @@ Split.prototype = assign(create(Stream.prototype), {
             chunk.push(value);
         }
     }
-});
-
-
-assign(Stream, {
-    from: overload(toType, {
-        /**
-        Stream.from(fn)
-        Create a pushable map stream from function `fn`.
-        **/
-        function: (fn) => new Map(fn),
-
-        object: (object) =>
-            /**
-            Stream.from(stream)
-            Create a read-only stream from a producer, an object with a
-            `.pipe()` method. ???
-            **/
-            typeof object.pipe === 'function' ? object.pipe(Stream.of()) :
-
-            /**
-            Stream.from(promise)
-            Create a read-only stream from a promise. The stream is stopped when
-            the promise resolves or rejects.
-            **/
-            typeof object.then === 'function' ? new PromiseStream(object) :
-
-            /**
-            Stream.from(array)
-            Create a pushable buffer stream from an array or array-like object.
-            **/
-            typeof object.length === 'number' ? new Buffer(Array.from(object)) :
-
-            // object cannot be made into stream
-            throwTypeError(object)
-    }),
-
-    /**
-    Stream.of(...values)
-    Create a pushable buffer stream from parameter values.
-    **/
-    of: (...values) => new Buffer(values),
-
-    /**
-    Stream.merge(stream1, stream2, ...)
-    Creates a stream by merging values from any number of input streams into a
-    single output stream. Values are emitted in the time order they are received
-    from inputs.
-
-    ```js
-    Stream.merge(stream1, stream2).each((value) => {
-        // value is from stream1 or stream 2
-    });
-    ```
-    **/
-    merge: (...inputs) =>  new Merge(inputs),
-
-    /**
-    Stream.push(stream, value)
-    Pushes `value` to `stream`'s outputs (even on streams that have no `.push()`
-    method). For use in sub-classing Stream.
-    **/
-    push,
-
-    /**
-    Stream.stop(stream)
-    Stops stream, calling `.done()` handlers, setting status to `'done'` and
-    stopping dependent streams. For internal use when sub-classing Stream.
-    **/
-    stop,
-
-    /*
-    Stream.input(stream, output)
-    Remove output stream from `stream` and vice-versa, without stopping either
-    stream. Normally `stream.stop()` should be used to stop the flow of a pipe -
-    this function is used when making dynamic graphs of streams that need to
-    stay alive.
-    */
-    unpipe,
-
-    each:   (fn, STARTABLE_STREAM) => new InputStream(fn, STARTABLE_STREAM),
-    reduce: (fn, accumulator) => new Reduce(fn, accumulator)
-});
+}

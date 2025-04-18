@@ -127,9 +127,7 @@ export default class Signal {
 
         // Pipeable
         if (fn.pipe) {
-            const signal = Signal.of();
-            fn.pipe({ push: (value) => signal.value = value });
-            return signal;
+            return fn.pipe(new PushSignal());
         }
 
         // Function
@@ -319,6 +317,46 @@ class ValueSignal extends Signal {
         // Invalidate dependents. If a dependent updates synchronously here
         // we may be in trouble but #valid is true and #value is set so
         // that's ok I think?
+        invalidateDependents(this);
+    }
+}
+
+
+/*
+PushSignal(value)
+*/
+
+class PushSignal extends Signal {
+    #value;
+
+    constructor(value) {
+        super();
+        this.#value = value;
+    }
+
+    /**
+    .value
+    Getting `.value` gets value from the cache.
+    **/
+    get value() {
+        // If there is a signal currently evaluating then it becomes a
+        // dependency of this signal, irrespective of state of #value
+        if (evaluatingSignal) setDependency(this, evaluatingSignal);
+        return this.#value;
+    }
+
+    /**
+    .push(value)
+    Updates the cache with `value` and invalidates dependent signals.
+    **/
+    push(value) {
+        // Don't update for no change in value
+        if(this.#value === value) return;
+
+        // Set cached value
+        this.#value = value;
+
+        // Invalidate dependents.
         invalidateDependents(this);
     }
 }
