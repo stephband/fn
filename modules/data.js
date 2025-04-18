@@ -92,7 +92,7 @@ assign(DataTrap.prototype, {
         }
 
         const value = getValue(this.signals, name, object);
-        //console.log(value, !!Signal.evaluating, isMutableProperty(object, name));
+        //console.log(value, !!Signal.evaluating, isMutableProperty(name, object));
 
         // We are not interested in getting proxies of stuff in the prototype
         // chain so stick to hasOwnProperty. TODO: ARE WE REALLY NOT, THO? What
