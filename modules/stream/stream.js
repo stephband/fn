@@ -63,7 +63,7 @@ function unpipe(output, input) {
 
 /* Consumer() */
 
-class Consumer extends Stopable {
+export class Consumer extends Stopable {
     /**
     .stop()
     Stops the stream.
