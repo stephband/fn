@@ -566,6 +566,7 @@ export class TimedSignal extends Signal {
         return this.evaluate();
     }
 
+    // DEPRECATE
     set value(value) {
         // Don't update for no change in value.
         if(this.object[this.name] === value) return;
