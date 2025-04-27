@@ -324,6 +324,11 @@ class ValueSignal extends Signal {
 
 /*
 PushSignal(value)
+An consumer interface that allows you to terminate a Stream in a signal.
+
+```js
+Stream.of(1).pipe(new PushSignal())
+```
 */
 
 class PushSignal extends Signal {
