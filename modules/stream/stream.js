@@ -27,15 +27,14 @@ function stop(stream) {
     // Loop through outputs, propagate stop() down the pipe
     let o = -1, output;
     while (output = stream[++o]) {
-        // Remove output from this
+        // Remove output from stream
         stream[o] = undefined;
-        // If it's not stoppable it never got this as an input in pipe()
-        if (output.stop) {
-            // Remove this from output's inputs
-            removeInput(output, stream);
-            // If output has no inputs left, stop it
-            if (!output[-1]) output.stop();
-        }
+        // If output is not stop-able it never got stream as an input
+        if (!output.stop) continue;
+        // Remove stream from output's inputs
+        removeInput(output, stream);
+        // If output has no inputs left, stop it
+        if (!output[-1]) output.stop();
     }
 
     return stream;
@@ -64,7 +63,7 @@ function unpipe(output, input) {
 
 /* Consumer() */
 
-class Consumer extends Stopable {
+export class Consumer extends Stopable {
     /**
     .stop()
     Stops the stream.

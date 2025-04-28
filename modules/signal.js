@@ -324,6 +324,11 @@ class ValueSignal extends Signal {
 
 /*
 PushSignal(value)
+An consumer interface that allows you to terminate a Stream in a signal.
+
+```js
+Stream.of(1).pipe(new PushSignal())
+```
 */
 
 class PushSignal extends Signal {
@@ -566,6 +571,7 @@ export class TimedSignal extends Signal {
         return this.evaluate();
     }
 
+    // DEPRECATE
     set value(value) {
         // Don't update for no change in value.
         if(this.object[this.name] === value) return;
