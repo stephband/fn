@@ -15,7 +15,7 @@ function removeInput(signal, input) {
 }
 
 function removeOutput(signal, output) {
-    // Remove output from stream
+    // Remove output from signal
     let o = -1;
     while (signal[++o] && signal[o] !== output);
     while (signal[o++]) signal[o - 1] = signal[o];
@@ -171,11 +171,11 @@ export default class Signal {
     Signal.observe(signal, fn)
     Calls `fn` on the next tick after `signal` changes.
     **/
-
+/*
     static observe(signal, fn) {
         return new ObserveSignal(signal, fn);
     }
-
+*/
     static timed(name, object) {
         return new TimedSignal(name, object);
     }
@@ -608,7 +608,7 @@ export class TimedSignal extends Signal {
 /*
 ObserveSignal(signal, fn)
 */
-
+/*
 export class ObserveSignal {
     constructor(signal, fn) {
         this.signal = signal;
@@ -648,21 +648,21 @@ export class ObserveSignal {
         return this;
     }
 }
-
+*/
 
 
 
 /*
-Observer(fn)
-An Observer is a signal that calls `fn` on construction and again on every
-cue following an invalidation of any signal read by `fn`. Internal only,
+Observer(evaluate)
+An Observer is a signal that calls `evaluate` on construction and again on every
+cue following an invalidation of any signal read by `evaluate`. Internal only,
 sub-classed by `TickObserver` and `FrameObserver`.
 */
 
 class Observer {
     constructor(fn) {
         if (DEBUG) {
-            this.id   = ++id;
+            this.id = ++id;
             console.log(
                 '%cSignal%c create%c ' + this.constructor.name + '#' + this.id + (this.name ? ' "' + this.name + '"' : ''),
                 'color: #718893; font-weight: 300;',
@@ -676,14 +676,28 @@ class Observer {
         // when it likes, as in Literal's Renderer.
         if (!fn) return;
 
-        // Set fn as evaluation sunction
+        // Set fn as evaluation function
         this.evaluate = fn;
+
+        // Check we are not currently evaluating
+        if (evaluatingSignal) {
+            // Make recovery possible? I'm not convinced this works in all cases
+            // but it works where an observer is instantiated inside an observer
+            evaluatingSignal = undefined;
+            throw new Error('Illegal nested ' + this.constructor.name + ' – cannot instantiate observer during signal evaluation');
+        }
 
         // An initial, synchronous evaluation binds this observer to changes
         if (Signal.evaluate(this, this.evaluate) || hasInvalidDependency) this.cue();
     }
 
     invalidate(input) {
+        // Static observers list
+        const observers = this.constructor.observers;
+
+        // If the observer is already cued do nothing
+        if (observers.indexOf(this) !== -1) return;
+
         // Verify that input signal has the right to invalidate this
         if (input && !hasInput(this, input)) return;
 
@@ -702,6 +716,12 @@ class Observer {
             removeOutput(input, this);
             this[n] = undefined;
         }
+
+        // Remove from observers if cued
+        const observers = this.constructor.observers;
+        const i = observers.indexOf(this);
+        if (i !== -1) observers.splice(i, 1);
+        return this;
     }
 }
 
@@ -748,26 +768,6 @@ export class TickObserver extends Observer {
         // Add this observer to observers
         observers.push(this);
     }
-
-    invalidate(input) {
-        // Static observers list
-        const observers = TickObserver.observers;
-
-        // If the observer is already cued do nothing
-        if (observers.indexOf(this) !== -1) return;
-
-        return super.invalidate(input);
-    }
-
-    stop() {
-        super.stop();
-
-        // Remove from observers if cued
-        const observers = TickObserver.observers;
-        const i = observers.indexOf(this);
-        if (i !== -1) observers.splice(i, 1);
-        return this;
-    }
 }
 
 
@@ -794,32 +794,12 @@ export class FrameObserver extends Observer {
     static observers = [];
 
     cue() {
-        const observers = FrameObserver.observers;
+        const observers = this.constructor.observers;
 
         // If no observers are cued, cue frame() on the next frame
         if (!observers.length) window.requestAnimationFrame(frame);
 
         // Add this observer to observers
         observers.push(this);
-    }
-
-    invalidate(input) {
-        // Static observers list
-        const observers = FrameObserver.observers;
-
-        // If the observer is already cued do nothing
-        if (observers.indexOf(this) !== -1) return;
-
-        return super.invalidate(input);
-    }
-
-    stop() {
-        super.stop();
-
-        // Remove from observers if cued
-        const observers = FrameObserver.observers;
-        const i = observers.indexOf(this);
-        if (i !== -1) observers.splice(i, 1);
-        return this;
     }
 }

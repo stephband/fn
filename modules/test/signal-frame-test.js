@@ -7,6 +7,31 @@ import events            from 'dom/events.js';
 import requestBuffer     from 'stage/modules/request-buffer.js';
 import { createContext } from 'stage/modules/context.js';
 
+
+
+
+
+// Test that observer stops at the right time
+test('Nested Signal.frame() throws error', [], (test, done) => {
+    const a = Signal.of(0);
+    const b = Signal.of(0);
+
+    try {
+        Signal.frame(() => {
+            Signal.frame(() => {});
+        });
+    }
+    catch (e) {
+        done();
+    }
+});
+
+
+
+
+
+
+
 // Initialize test elements
 const paramValueEl = document.getElementById('param-value');
 const frameCountEl = document.getElementById('frame-count');
