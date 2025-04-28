@@ -152,7 +152,7 @@ export default class Signal {
 
     static frame(fn) {
         // Add to signals called on invalidation
-        return new FrameObserver(fn);
+        return new FrameSignal(fn);
     }
 
     /**
@@ -164,7 +164,7 @@ export default class Signal {
 
     static tick(fn) {
         // Add to signals called on invalidation
-        return new TickObserver(fn);
+        return new TickSignal(fn);
     }
 
     /**
@@ -525,7 +525,7 @@ class ComputeSignal extends Signal {
 /**
 TimedSignal(name, object)
 A signal that wraps an AudioParam and remains invalid until a specified time in
-the future. This ensures that any FrameObserver signals that depend on it keep
+the future. This ensures that any FrameSignal signals that depend on it keep
 rendering until automation completes.
 **/
 
@@ -612,7 +612,7 @@ export class TimedSignal extends Signal {
 Observer(evaluate)
 An Observer is a signal that calls `evaluate` on construction and again on every
 cue following an invalidation of any signal read by `evaluate`. Internal only,
-sub-classed by `TickObserver` and `FrameObserver`.
+sub-classed by `TickSignal` and `FrameSignal`.
 */
 
 class Observer extends Signal {
@@ -704,25 +704,25 @@ function render(observers) {
 
 
 /*
-TickObserver
-A TickObserver is a signal that calls `fn` on construction and again on every
+TickSignal
+A TickSignal is a signal that calls `fn` on construction and again on every
 tick following an invalidation of any signal read by `fn`. Use `Signal.tick(fn)`.
 */
 
 const promise = Promise.resolve();
 
 function tick() {
-    const observers = render(TickObserver.observers);
+    const observers = render(TickSignal.observers);
 
     // Where observers remain schedule the next frame
     if (observers.length) promise.then(tick);
 }
 
-export class TickObserver extends Observer {
+export class TickSignal extends Observer {
     static observers = [];
 
     cue() {
-        const observers = TickObserver.observers;
+        const observers = TickSignal.observers;
 
         // If no observers are cued, cue tick() on the next tick
         if (!observers.length) promise.then(tick);
@@ -734,24 +734,24 @@ export class TickObserver extends Observer {
 
 
 /*
-FrameObserver
+FrameSignal
 
-A FrameObserver is an observer signal that calls `fn` on construction and again
+A FrameSignal is an observer signal that calls `fn` on construction and again
 on every animation frame following an invalidation of any signal read by `fn`.
 Additionally where the return value of `fn()` is truthy the signal remains
 active and will evaluate on following frames until `fn()` is false-y.
 
-Use `Signal.frame(fn)` to create a FrameObserver signal.
+Use `Signal.frame(fn)` to create a FrameSignal signal.
 */
 
 function frame() {
-    const observers = render(FrameObserver.observers);
+    const observers = render(FrameSignal.observers);
 
     // Where observers remain schedule the next frame
     if (observers.length) requestAnimationFrame(frame);
 }
 
-export class FrameObserver extends Observer {
+export class FrameSignal extends Observer {
     static observers = [];
 
     cue() {
