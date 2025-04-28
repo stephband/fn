@@ -168,15 +168,12 @@ export default class Signal {
     }
 
     /**
-    Signal.observe(signal, fn)
-    Calls `fn` on the next tick after `signal` changes.
+    Signal.temporal(name, object)
+    Creates a signal with an `.invalidateUntil(time)` method that maintains
+    invalidity until `time` is reached.
     **/
-/*
-    static observe(signal, fn) {
-        return new ObserveSignal(signal, fn);
-    }
-*/
-    static timed(name, object) {
+
+    static temporal(name, object) {
         return new TimedSignal(name, object);
     }
 
@@ -612,61 +609,16 @@ export class TimedSignal extends Signal {
 
 
 /*
-ObserveSignal(signal, fn)
-*/
-/*
-export class ObserveSignal {
-    constructor(signal, fn) {
-        this.signal = signal;
-        this.fn = () => fn(Signal.evaluate(this, this.evaluate, this));
-        this.fn();
-    }
-
-    evaluate() {
-        this.promise = undefined;
-        return this.signal.value;
-    }
-
-    invalidate(input) {
-        // If the observer is already cued do nothing
-        if (this.promise) return;
-
-        // Verify that input signal has the right to invalidate this
-        if (input && !hasInput(this, input)) return;
-
-        // Clear inputs
-        let n = 0;
-        while (this[--n]) this[n] = undefined;
-
-        // Evaluate and send value to consumer on next tick
-        this.promise = promise.then(this.fn);
-    }
-
-    stop() {
-        // Remove this from signal graph
-        let n = 0, input;
-        while (input = this[--n]) {
-            let m = -1;
-            removeOutput(input, this);
-            this[n] = undefined;
-        }
-
-        return this;
-    }
-}
-*/
-
-
-
-/*
 Observer(evaluate)
 An Observer is a signal that calls `evaluate` on construction and again on every
 cue following an invalidation of any signal read by `evaluate`. Internal only,
 sub-classed by `TickObserver` and `FrameObserver`.
 */
 
-class Observer {
+class Observer extends Signal {
     constructor(fn) {
+        super();
+
         if (DEBUG) {
             this.id = ++id;
             console.log(
@@ -729,16 +681,11 @@ class Observer {
         if (i !== -1) observers.splice(i, 1);
         return this;
     }
+
+    valueOf()  { return this; }
+    toString() { return '[object Signal]' ; }
+    toJSON()   { return; }
 }
-
-
-/*
-TickObserver
-A TickObserver is a signal that calls `fn` on construction and again on every
-tick following an invalidation of any signal read by `fn`. Use `Signal.tick(fn)`.
-*/
-
-const promise = Promise.resolve();
 
 function render(observers) {
     let n = -1, signal;
@@ -754,6 +701,15 @@ function render(observers) {
 
     return observers;
 }
+
+
+/*
+TickObserver
+A TickObserver is a signal that calls `fn` on construction and again on every
+tick following an invalidation of any signal read by `fn`. Use `Signal.tick(fn)`.
+*/
+
+const promise = Promise.resolve();
 
 function tick() {
     const observers = render(TickObserver.observers);
@@ -796,7 +752,6 @@ function frame() {
 }
 
 export class FrameObserver extends Observer {
-    // Exposed for Literal's renderer
     static observers = [];
 
     cue() {
