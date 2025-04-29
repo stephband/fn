@@ -39,11 +39,9 @@ test('Nested Signal.frame() does not persist after outer signal closed', [
     const b = Signal.of(0);
 
     Signal.frame(() => {
-        console.log('OUTER');
         test('outer');
         test(a.value);
         Signal.frame(() => {
-            console.log('INNER');
             test('inner');
             test(b.value);
         });
@@ -55,9 +53,8 @@ test('Nested Signal.frame() does not persist after outer signal closed', [
         // Should rerender both
         a.value = 1;
         setTimeout(() => {
-            // The problem is at this point whereas there remains one outer
-            // there are now two inners, one old, one new. Bad. Perhaps we
-            // should disallow nested Signal.frame() and error when it happens?
+            // There should only be one inner at this point, the old one should
+            // have been stopped and the new one will log 'inner', 2.
             b.value = 2;
             setTimeout(done, 100);
         }, 100);

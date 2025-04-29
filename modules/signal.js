@@ -649,21 +649,20 @@ class Observer extends Signal {
         // evaluation is ephemereal – it may run again, leaving this signal in
         // memory yet superseded by the one created in the latest evaluation.
         if (evaluatingSignal) {
-            // Make recovery possible? I'm not convinced this works in all cases
-            // but it works where an observer is instantiated inside an observer
-            //evaluatingSignal = undefined;
-            //throw new Error('Illegal nested ' + this.constructor.name + ' – cannot instantiate observer during signal evaluation');
-
             // ------------------------ Experimental ---------------------------
             // We can set this as an input of evaluatingSignal. this will never
             // invalidate evaluatingSignal – it has no mechanism to do so – but
             // when evaluatingSignal is invalidated this will be stopped.
-            //setDependency(this, evaluatingSignal);
-            // Set signal as an input of dependent
             let n = 0;
             while (evaluatingSignal[--n]) if (evaluatingSignal[n] === this) break;
             evaluatingSignal[n] = this;
             // -----------------------------------------------------------------
+
+            // The old way was to throw an error.
+            // Make recovery possible? I'm not convinced this works in all cases
+            // but it works where an observer is instantiated inside an observer
+            //evaluatingSignal = undefined;
+            //throw new Error('Illegal nested ' + this.constructor.name + ' – cannot instantiate observer during signal evaluation');
         }
 
         // If no fn passed in we do not want to evaluate the signal immediately.
