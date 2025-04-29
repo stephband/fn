@@ -12,7 +12,7 @@ import { createContext } from 'stage/modules/context.js';
 
 
 // Test that observer stops at the right time
-test('Nested Signal.frame() throws error', [], (test, done) => {
+/*test('Nested Signal.frame() throws error', [], (test, done) => {
     const a = Signal.of(0);
     const b = Signal.of(0);
 
@@ -24,7 +24,7 @@ test('Nested Signal.frame() throws error', [], (test, done) => {
     catch (e) {
         done();
     }
-});
+});*/
 
 // Test that observer stops at the right time
 test('Nested Signal.frame() does not persist after outer signal closed', [

@@ -23,7 +23,17 @@ function removeOutput(signal, output) {
 
 function clearInputs(signal) {
     let n = 0;
-    while (signal[--n]) signal[n] = undefined;
+    while (signal[--n]) {
+        // -------------------------- Experimental -----------------------------
+        // Stop inputs? An input with a stop method – an observer – can only have
+        // become a dependency if it were constructed during a render (they don't
+        // evaluate synchronously so they don't become dependencies otherwise).
+        // Therefore also, it can only have one output, this. Therefore it is
+        // safe to stop it. I am right about this am I not?
+        if (signal[n].stop) signal[n].stop();
+        // ---------------------------------------------------------------------
+        signal[n] = undefined;
+    }
 }
 
 function setDependency(signal, dependent) {
@@ -573,6 +583,9 @@ export class TimedSignal extends Signal {
 
     // DEPRECATE
     set value(value) {
+        console.warn('Dont really want to be setting value of TimedSignal');
+        console.trace();
+
         // Don't update for no change in value.
         if(this.object[this.name] === value) return;
 
@@ -641,13 +654,15 @@ class Observer extends Signal {
             //evaluatingSignal = undefined;
             //throw new Error('Illegal nested ' + this.constructor.name + ' – cannot instantiate observer during signal evaluation');
 
-
-
             // ------------------------ Experimental ---------------------------
             // We can set this as an input of evaluatingSignal. this will never
             // invalidate evaluatingSignal – it has no mechanism to do so – but
             // when evaluatingSignal is invalidated this will be stopped.
-            setDependency(this, evaluatingSignal);
+            //setDependency(this, evaluatingSignal);
+            // Set signal as an input of dependent
+            let n = 0;
+            while (evaluatingSignal[--n]) if (evaluatingSignal[n] === this) break;
+            evaluatingSignal[n] = this;
             // -----------------------------------------------------------------
         }
 
@@ -673,16 +688,6 @@ class Observer extends Signal {
         // Verify that input signal has the right to invalidate this
         if (input && !hasInput(this, input)) return;
 
-        // -------------------------- Experimental -----------------------------
-        // Stop inputs? An input with a stop method – an observer – can only have
-        // become a dependency if it were constructed during a render (they don't
-        // evaluate synchronously so they don't become dependencies otherwise).
-        // Therefore also, it can only have one dependent, this. Therefore it is
-        // safe to stop it. I am right about this am I not?
-        let n = 0;
-        while (this[--n]) if (this[n].stop) this[n].stop();
-        // ---------------------------------------------------------------------
-
         // Clear inputs
         clearInputs(this);
 
@@ -694,8 +699,12 @@ class Observer extends Signal {
         let n = 0, input;
         while (input = this[--n]) {
             let m = -1;
-            removeOutput(input, this);
             this[n] = undefined;
+            // --------------------- Experimental ------------------------------
+            // A stopable signal has no output
+            if (input.stop) input.stop();
+            // -----------------------------------------------------------------
+            else removeOutput(input, this);
         }
 
         // Remove from observers if cued
