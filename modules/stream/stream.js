@@ -492,9 +492,10 @@ class Buffer extends Stream {
     }
 
     push(value) {
+        this.value = value;
         return this.values ?
-            this.values.push(value) :
-            push(this, value) ;
+            this.values.push(this.value) :
+            push(this, this.value) ;
     }
 }
 

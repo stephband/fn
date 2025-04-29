@@ -60,6 +60,7 @@ export default function Combine(object, options) {
 Combine.prototype = assign(create(Stream.prototype), {
     start: function() {
         const object = this.object;
+        const values = this.mutable ? object : {} ;
         const inputs = {};
 
         for (let name in object) {
@@ -82,7 +83,7 @@ Combine.prototype = assign(create(Stream.prototype), {
             let input = inputs[name];
 
             input.each((value) => {
-                object[name] = value;
+                values[name] = value;
                 input.active = true;
 
                 // If there is an input not yet active abort
@@ -93,7 +94,7 @@ Combine.prototype = assign(create(Stream.prototype), {
                     // Treat inputs as mutable, return it directly
                     object :
                     // Create new object of the same kind as the original
-                    assign(new object.constructor(), object)
+                    assign(new object.constructor(), object, values)
                 );
             });
         }
