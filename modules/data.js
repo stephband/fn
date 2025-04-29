@@ -90,7 +90,7 @@ assign(DataTrap.prototype, {
         if (typeof name === 'symbol' || name === 'constructor' || name === '__proto__') {
             return object[name];
         }
-console.log('GET', name, object);
+
         const value = getValue(this.signals, name, object);
         //console.log(value, !!Signal.evaluating, isMutableProperty(name, object));
 
@@ -112,7 +112,7 @@ console.log('GET', name, object);
             object[name] = value;
             return true;
         }
-console.log('SET', name, object);
+
         // To support arrays keep a note of pre-change length
         const length = object.length;
 
