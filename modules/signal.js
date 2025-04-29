@@ -21,6 +21,11 @@ function removeOutput(signal, output) {
     while (signal[o++]) signal[o - 1] = signal[o];
 }
 
+function clearInputs(signal) {
+    let n = 0;
+    while (signal[--n]) signal[n] = undefined;
+}
+
 function setDependency(signal, dependent) {
     // Set signal as an input of dependent
     let n = 0;
@@ -445,8 +450,7 @@ class PropertySignal extends Signal {
         this.#valid = false;
 
         // Clear inputs
-        let n = 0;
-        while (this[--n]) this[n] = undefined;
+        clearInputs(this);
 
         // Invalidate dependents. If a dependent updates synchronously here
         // we may be in trouble, as it would evaluate and cache this signal
@@ -510,8 +514,7 @@ class ComputeSignal extends Signal {
         this.#valid = false;
 
         // Clear inputs
-        let n = 0;
-        while (this[--n]) this[n] = undefined;
+        clearInputs(this);
 
         // Invalidate dependents. If a dependent updates synchronously here
         // we may be in trouble, as it would evaluate and cache this signal
@@ -610,9 +613,9 @@ export class TimedSignal extends Signal {
 
 /*
 Observer(evaluate)
-An Observer is a signal that calls `evaluate` on construction and again on every
-cue following an invalidation of any signal read by `evaluate`. Internal only,
-sub-classed by `TickSignal` and `FrameSignal`.
+An Observer is a signal that schedules it's own evaluation. It calls `evaluate`
+on construction and again on every cue following an invalidation of any signal
+read by `evaluate`. Internal only, sub-classed by `TickSignal` and `FrameSignal`.
 */
 
 class Observer extends Signal {
@@ -629,6 +632,25 @@ class Observer extends Signal {
             );
         }
 
+        // Check we are not currently evaluating. This would be bad because an
+        // evaluation is ephemereal – it may run again, leaving this signal in
+        // memory yet superseded by the one created in the latest evaluation.
+        if (evaluatingSignal) {
+            // Make recovery possible? I'm not convinced this works in all cases
+            // but it works where an observer is instantiated inside an observer
+            //evaluatingSignal = undefined;
+            //throw new Error('Illegal nested ' + this.constructor.name + ' – cannot instantiate observer during signal evaluation');
+
+
+
+            // ------------------------ Experimental ---------------------------
+            // We can set this as an input of evaluatingSignal. this will never
+            // invalidate evaluatingSignal – it has no mechanism to do so – but
+            // when evaluatingSignal is invalidated this will be stopped.
+            setDependency(this, evaluatingSignal);
+            // -----------------------------------------------------------------
+        }
+
         // If no fn passed in we do not want to evaluate the signal immediately.
         // This provides for a sub-class to define .evaluate() and launch it
         // when it likes, as in Literal's Renderer.
@@ -636,14 +658,6 @@ class Observer extends Signal {
 
         // Set fn as evaluation function
         this.evaluate = fn;
-
-        // Check we are not currently evaluating
-        if (evaluatingSignal) {
-            // Make recovery possible? I'm not convinced this works in all cases
-            // but it works where an observer is instantiated inside an observer
-            evaluatingSignal = undefined;
-            throw new Error('Illegal nested ' + this.constructor.name + ' – cannot instantiate observer during signal evaluation');
-        }
 
         // An initial, synchronous evaluation binds this observer to changes
         if (Signal.evaluate(this, this.evaluate) || hasInvalidDependency) this.cue();
@@ -659,9 +673,18 @@ class Observer extends Signal {
         // Verify that input signal has the right to invalidate this
         if (input && !hasInput(this, input)) return;
 
-        // Clear inputs
+        // -------------------------- Experimental -----------------------------
+        // Stop inputs? An input with a stop method – an observer – can only have
+        // become a dependency if it were constructed during a render (they don't
+        // evaluate synchronously so they don't become dependencies otherwise).
+        // Therefore also, it can only have one dependent, this. Therefore it is
+        // safe to stop it. I am right about this am I not?
         let n = 0;
-        while (this[--n]) this[n] = undefined;
+        while (this[--n]) if (this[n].stop) this[n].stop();
+        // ---------------------------------------------------------------------
+
+        // Clear inputs
+        clearInputs(this);
 
         this.cue();
     }

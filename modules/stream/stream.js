@@ -337,10 +337,28 @@ export default class Stream extends Consumer {
 
     /**
     Stream.of(...values)
-    Create a pushable buffer stream from parameter values.
+    Create a pushable value or buffer stream from parameter values.
     **/
     static of(...values) {
+        return values.length < 2 ?
+            new Value(values[0]) :
+            new Buffer(values) ;
+    }
+
+    /**
+    Stream.buffer(...values)
+    Create a pushable buffer stream with initial buffer of arguments.
+    **/
+    static buffer(values) {
         return new Buffer(values);
+    }
+
+    /**
+    Stream.value(value)
+    Create a pushable value stream with initial `value`.
+    **/
+    static value(value) {
+        return new Value(value);
     }
 
     /**
@@ -407,6 +425,36 @@ class PromiseStream extends Stream {
         .then((value) => push(this, value))
         .finally(() => this.stop());
         return this;
+    }
+}
+
+
+/*
+Value(value)
+A Value stream represents a persistent value. Streams piped from a value stream
+are given its current value. A Value stream may be pushed to before it is piped.
+*/
+
+class Value extends Stream {
+    constructor(value) {
+        super();
+        this.value = value;
+    }
+
+    start() {
+        if (this.value !== undefined) {
+            push(this, this.value);
+            // If stream was stopped as a result of a push, don't continue pushing
+            if (this.status === 'done') return this;
+        }
+
+        // Start streams that are piped to this buffer stream
+        return super.start();
+    }
+
+    push(value) {
+        this.value = value;
+        return push(this, value);
     }
 }
 

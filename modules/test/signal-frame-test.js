@@ -1,7 +1,7 @@
 
 import noop              from 'fn/noop.js';
 import overload          from 'fn/overload.js';
-import Signal, { FrameObserver } from 'fn/signal.js';
+import Signal, { FrameSignal } from 'fn/signal.js';
 import test, { done as testDone } from 'fn/test.js';
 import events            from 'dom/events.js';
 import requestBuffer     from 'stage/modules/request-buffer.js';
@@ -24,6 +24,44 @@ test('Nested Signal.frame() throws error', [], (test, done) => {
     catch (e) {
         done();
     }
+});
+
+// Test that observer stops at the right time
+test('Nested Signal.frame() does not persist after outer signal closed', [
+    'outer', 0,
+    'inner', 0,
+    'inner', 1,
+    'outer', 1,
+    'inner', 1,
+    'inner', 2
+], (test, done) => {
+    const a = Signal.of(0);
+    const b = Signal.of(0);
+
+    Signal.frame(() => {
+        console.log('OUTER');
+        test('outer');
+        test(a.value);
+        Signal.frame(() => {
+            console.log('INNER');
+            test('inner');
+            test(b.value);
+        });
+    });
+
+    // Should only trigger render of inner frame
+    b.value = 1;
+    setTimeout(() => {
+        // Should rerender both
+        a.value = 1;
+        setTimeout(() => {
+            // The problem is at this point whereas there remains one outer
+            // there are now two inners, one old, one new. Bad. Perhaps we
+            // should disallow nested Signal.frame() and error when it happens?
+            b.value = 2;
+            setTimeout(done, 100);
+        }, 100);
+    }, 100);
 });
 
 
@@ -101,8 +139,8 @@ function drawValues() {
     ctx.stroke();
 }
 
-// Basic test for FrameObserver with scheduled parameter changes
-test('FrameObserver tracks AudioParam changes', [true, true], (expect, done) => {
+// Basic test for FrameSignal with scheduled parameter changes
+test('FrameSignal tracks AudioParam changes', [true, true], (expect, done) => {
     // Clear previous values
     values.length = 0;
     times.length = 0;
@@ -182,14 +220,14 @@ test('FrameObserver tracks AudioParam changes', [true, true], (expect, done) => 
 });
 
 // Test creating observer and adding to queue
-test('FrameObserver(() => false) adds observer to queue', [true], (expect, done) => {
+test('FrameSignal(() => false) adds observer to queue', [true], (expect, done) => {
     const stopTime = context.currentTime + 0.1;
     const observer = Signal.frame(() => {
         return context.currentTime < stopTime;
     });
 
     // Verify observer is in the static observers array
-    expect(FrameObserver.observers.includes(observer), "Observer should be in the queue");
+    expect(FrameSignal.observers.includes(observer), "Observer should be in the queue");
 
     // Clean up after test
     observer.stop();
@@ -198,7 +236,7 @@ test('FrameObserver(() => false) adds observer to queue', [true], (expect, done)
 
 
 // Test that observer stops at the right time
-test('FrameObserver stops at validTime', [true], (expect, done) => {
+test('FrameSignal stops at validTime', [true], (expect, done) => {
     const startTime = context.currentTime;
     let lastTime = 0;
     let updateCount = 0;
@@ -229,7 +267,7 @@ test('FrameObserver stops at validTime', [true], (expect, done) => {
 });
 
 // Test that observer stops at the right time
-test('FrameObserver updates when dependencies change', [3, 0, 1, 4, 0], (expect, done) => {
+test('FrameSignal updates when dependencies change', [3, 0, 1, 4, 0], (expect, done) => {
     const startTime = context.currentTime;
     const signal    = Signal.of(3);
     const observer  = Signal.frame(() => {
@@ -241,16 +279,16 @@ test('FrameObserver updates when dependencies change', [3, 0, 1, 4, 0], (expect,
 
     setTimeout(() => {
         // 1 - Should be 0
-        expect(FrameObserver.observers.length);
+        expect(FrameSignal.observers.length);
 
         signal.value = 2;
         signal.value = 4;
         // 2 - Should be 1
-        expect(FrameObserver.observers.length);
+        expect(FrameSignal.observers.length);
 
         setTimeout(() => {
             // 4 - Should be 0
-            expect(FrameObserver.observers.length);
+            expect(FrameSignal.observers.length);
             done();
         }, 100);
     }, 100);
