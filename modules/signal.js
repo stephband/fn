@@ -229,6 +229,10 @@ export default class Signal {
         /*if (window.DEBUG && window.DEBUG.signal !== false) console.groupEnd();*/
 
         evaluatingSignal = previous;
+
+        // Call synchronous updates
+        //if (!evaluatingSignal) handlers.forEach(call);
+
         return value;
     }
 
@@ -709,7 +713,11 @@ class Observer extends Signal {
         // Remove from observers if cued
         const observers = this.constructor.observers;
         const i = observers.indexOf(this);
-        if (i !== -1) observers.splice(i, 1);
+        if (i !== -1) {
+            // You cannot do this during a render cycle
+            if (observers === rendering) throw new Error('Attempt to remove observer while observers is rendering');
+            observers.splice(i, 1);
+        }
         return this;
     }
 
@@ -718,9 +726,12 @@ class Observer extends Signal {
     toJSON()   { return; }
 }
 
+let rendering;
+
 function render(observers) {
     let n = -1, signal;
 
+    rendering = observers;
     while (signal = observers[++n]) {
         // Evaluate the signal, if it returns false-y, and nothing has flagged
         // it as having invalid dependencies...
@@ -729,7 +740,7 @@ function render(observers) {
             observers.splice(n--, 1);
         }
     }
-
+    rendering = undefined;
     return observers;
 }
 
@@ -745,7 +756,7 @@ const promise = Promise.resolve();
 function tick() {
     const observers = render(TickSignal.observers);
 
-    // Where observers remain schedule the next frame
+    // Where observers remain schedule the next tick
     if (observers.length) promise.then(tick);
 }
 
@@ -753,7 +764,7 @@ export class TickSignal extends Observer {
     static observers = [];
 
     cue() {
-        const observers = TickSignal.observers;
+        const observers = this.constructor.observers;
 
         // If no observers are cued, cue tick() on the next tick
         if (!observers.length) promise.then(tick);
