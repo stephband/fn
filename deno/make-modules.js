@@ -18,6 +18,7 @@ const args  = Deno.args.slice();
 
 // Extract flags
 const flags = {
+    debug: false,
     sourcemaps: true
 };
 
@@ -84,9 +85,8 @@ Deno
 
     // Set DEBUG to false to remove any conditions that depend on it
     define: {
-        //'window':       'true',
-        'window.DEBUG': 'false',
-        'DEBUG':        'false'
+        'window.DEBUG': (!!flags.debug) + '',
+        'DEBUG':        (!!flags.debug) + ''
     },
 
     // Modules become entry points
