@@ -25,7 +25,16 @@ const flags = {
 
 while (/^--/.test(args[0])) {
     const flag = args.shift().slice(2);
-    flags[flag] = true;
+
+    if (flag === 'external') {
+        flags[flag] = [];
+        while (!/^--/.test(args[0])) {
+            flags[flag].push(args.shift());
+        }
+    }
+    else {
+        flags[flag] = true;
+    }
 }
 
 // First argument is name of output file (if it has a file extension), otherwise
@@ -93,20 +102,23 @@ Deno
     // Modules become entry points
     entryPoints: modules,
 
+    chunkNames: 'modules/module-[hash]',
+
     // and are built into outdir along with shared chunks, or into outfile
     outdir:    outdir,
     outfile:   outfile,
 
     // Code splitting requires outdir, not outfile
-    splitting: !!outdir,
+    splitting: false,//!!outdir,
 
     // Specify which environments to support
     // https://esbuild.github.io/content-types/
     target:    [
-        'edge109',
-        'firefox109',
-        'chrome109',
-        'safari16'
+        'es2024',
+        //'edge109',
+        //'firefox109',
+        //'chrome109',
+        //'safari16'
     ],
 
     // Yeah, I suppose we oughtta have sourcemaps so we can debug the bugs
