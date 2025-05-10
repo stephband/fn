@@ -4,6 +4,7 @@
 // or
 // deno run --allow-read --allow-env --allow-net --allow-write --allow-run ./build-modules.js outdir infile1 infile2 ...
 
+import './deno-2-support.js';
 import postpad from '../modules/postpad.js';
 
 // Find latest version here:
@@ -11,10 +12,6 @@ import postpad from '../modules/postpad.js';
 //import * as es from 'https://deno.land/x/esbuild@v0.12.28/mod.js';
 import * as es from 'https://deno.land/x/esbuild@v0.23.0/mod.js';
 import { denoPlugins } from "jsr:@luca/esbuild-deno-loader@^0.10.3";
-
-
-// Deno 2 removed window, so lets declare it
-globalThis.window = globalThis;
 
 
 // Arguments - slice args to get a muteable array

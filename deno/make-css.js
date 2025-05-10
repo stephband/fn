@@ -4,6 +4,7 @@
 // or
 // deno run --allow-read --allow-env --allow-net --allow-write --allow-run ./build-modules.js outdir infile1 infile2 ...
 
+import './deno-2-support.js';
 import postpad from '../modules/postpad.js';
 
 // Find latest version here:
