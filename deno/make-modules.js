@@ -13,6 +13,10 @@ import * as es from 'https://deno.land/x/esbuild@v0.23.0/mod.js';
 import { denoPlugins } from "jsr:@luca/esbuild-deno-loader@^0.10.3";
 
 
+// Deno 2 removed window, so lets declare it
+globalThis.window = globalThis;
+
+
 // Arguments - slice args to get a muteable array
 const args  = Deno.args.slice();
 
