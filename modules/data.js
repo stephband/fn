@@ -147,14 +147,7 @@ assign(DataTrap.prototype, {
 });
 
 
-/*
-Data(object, force)
-Forces creation of an observer even where Data would normally consider
-the object 'immutable'. Data considers DOM nodes immutable, for example, but
-not because they are really immutable, more in order to prevent you calling node
-methods on a node's observer proxy, which is a source of hard-to-trace errors.
-Pass in `force` as `true` if you know what you are doing.
-*/
+/** @module **/
 
 export default function Data(object, force) {
     return !object ? undefined :
@@ -163,12 +156,15 @@ export default function Data(object, force) {
         undefined ;
 }
 
-/**
-Data.of(object)
 
-Returns the data proxy of `object`. The data proxy is a wrapper that observes
-mutations made to `object`. There is only ever one data proxy of `object`, and
-calls to `Data.of(object)` always return that data proxy.
+/**
+Get the data proxy of `object`. The data proxy is a wrapper that observes
+mutations. There is only ever one data proxy of `object`, and calls to
+`Data.of(object)` always return that data proxy.
+
+Not all objects may be proxied. Frozen objects, unextensible objects, and
+various others like Sets, Maps and DOM and WebAudio nodes are deemed
+immutable or otherwise unobservable. They return `undefined`.
 
 _Getting_ a property of a data proxy while evaluating a signal registers the
 signal as dependent on the property. _Setting_ a property of a data proxy
@@ -178,19 +174,32 @@ Getting a property of a data proxy returns a data proxy of that property
 of `object`. In this way access chains like `data.property.value` are also
 observed.
 
-Not all objects may be proxied. Frozen objects, unextensible objects, and
-various others like Sets, Maps and DOM and WebAudio nodes are deemed
-immutable or otherwise unobservable. They return `undefined`.
+@param {object} object
+An object or array.
+
+@param {boolean} force
+Forces the creation of a data proxy where `object` would otherwise be deemed
+immutable. DOM nodes are considered immutable, for example, but not because they
+really are immutable, more in order to prevent you calling node methods on a
+node's observer proxy, a source of hard-to-trace errors. Pass in `force` as
+`true` if you know what you are doing.
+
+@returns {object}
+The data proxy of `object`.
 **/
 
 Data.of = (object, force) => Data(object, force);
 
-/**
-Data.objectOf(data)
 
-Returns the un-proxied `object` wrapped by `Data.of(object)`, or, if `data` is
-already just an object, `data`. Getting and setting properties of `object` has
-no effect on the data proxy.
+/**
+Get the un-proxied `object` wrapped by `Data.of(object)` (or, if `data` is
+already an un-proxied object, `data`).
+
+@param {object} data
+A data proxy.
+
+@returns {object}
+The un-wrapped, un-proxied object.
 **/
 
 Data.objectOf = function(object) {
@@ -201,16 +210,19 @@ Data.objectOf = function(object) {
 
 
 /**
-Data.toSignal(name, object)
+@ignore
+Data.toSignal
 The internals of the Data proxy call this function when a signal is created.
 Normally it is assumed that Data proxies use property signals and this function
 is set to `Signal.forProperty`. Override it to opt for different types of
 signals.
-**/
+*/
+
 Data.toSignal = Signal.fromProperty;
 
 
-/*
+/**
+@ignore
 Data.signal(path, data)
 */
 

@@ -10,8 +10,8 @@ import postpad from '../modules/postpad.js';
 // Find latest version here:
 // https://deno.land/x/esbuild
 //import * as es from 'https://deno.land/x/esbuild@v0.12.28/mod.js';
-import * as es from 'https://deno.land/x/esbuild@v0.23.0/mod.js';
-import { denoPlugins } from "jsr:@luca/esbuild-deno-loader@^0.10.3";
+import * as es from 'https://deno.land/x/esbuild@v0.25.4/mod.js';
+import { denoPlugins } from "jsr:@luca/esbuild-deno-loader@^0.11.1";
 
 
 // Arguments - slice args to get a muteable array
@@ -20,6 +20,7 @@ const args  = Deno.args.slice();
 // Extract flags
 const flags = {
     debug: false,
+    external: [],
     sourcemaps: true
 };
 
@@ -27,9 +28,9 @@ while (/^--/.test(args[0])) {
     const flag = args.shift().slice(2);
 
     if (flag === 'external') {
-        flags[flag] = [];
-        while (!/^--/.test(args[0])) {
-            flags[flag].push(args.shift());
+        while (args.length && !/^--/.test(args[0])) {
+            console.log(args[0]);
+            flags.external.push(args.shift());
         }
     }
     else {
@@ -102,14 +103,15 @@ Deno
     // Modules become entry points
     entryPoints: modules,
 
-    chunkNames: 'modules/module-[hash]',
+    chunkNames: 'modules/chunk-[hash]',
+    external: flags.external,
 
     // and are built into outdir along with shared chunks, or into outfile
-    outdir:    outdir,
-    outfile:   outfile,
+    outdir,
+    outfile,
 
     // Code splitting requires outdir, not outfile
-    splitting: false,//!!outdir,
+    splitting: !!outdir,
 
     // Specify which environments to support
     // https://esbuild.github.io/content-types/
