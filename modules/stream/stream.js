@@ -465,7 +465,7 @@ A BufferStream may be pushed to before it is piped, as it starts life with an
 array buffer of values.
 */
 
-export class BufferStream extends Stream {
+class BufferStream extends Stream {
     constructor(values) {
         super();
         this.values = values || [];
