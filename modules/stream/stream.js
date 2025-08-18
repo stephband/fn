@@ -251,7 +251,7 @@ export default class Stream extends Consumer {
     Returns the accumulator.
     **/
     reduce(fn, accumulator) {
-        return this.pipe(new Reduce(fn, accumulator)).start().value;
+        return this.pipe(new Reduce(fn, accumulator)).value;
     }
 
     /**
