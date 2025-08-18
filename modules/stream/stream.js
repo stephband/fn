@@ -218,7 +218,7 @@ export default class Stream extends Consumer {
     buffer.
     **/
     buffer(...values) {
-        return this.pipe(new Buffer(values));
+        return this.pipe(new BufferStream(values));
     }
 
     /**
@@ -329,7 +329,7 @@ export default class Stream extends Consumer {
             Stream.from(array)
             Create a pushable buffer stream from an array or array-like object.
             **/
-            typeof object.length === 'number' ? new Buffer(Array.from(object)) :
+            typeof object.length === 'number' ? new BufferStream(Array.from(object)) :
 
             // object cannot be made into stream
             throwTypeError(object)
@@ -342,7 +342,7 @@ export default class Stream extends Consumer {
     static of(...values) {
         return values.length < 2 ?
             new Value(values[0]) :
-            new Buffer(values) ;
+            new BufferStream(values) ;
     }
 
     /**
@@ -350,7 +350,7 @@ export default class Stream extends Consumer {
     Create a pushable buffer stream with initial buffer of arguments.
     **/
     static buffer(values) {
-        return new Buffer(values);
+        return new BufferStream(values);
     }
 
     /**
@@ -460,12 +460,12 @@ class Value extends Stream {
 
 
 /*
-Buffer(values)
-A Buffer stream may be pushed to before it is piped, as it starts life with an
+BufferStream(values)
+A BufferStream may be pushed to before it is piped, as it starts life with an
 array buffer of values.
 */
 
-class Buffer extends Stream {
+class BufferStream extends Stream {
     constructor(values) {
         super();
         this.values = values || [];
