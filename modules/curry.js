@@ -5,7 +5,7 @@ Returns a function that wraps `fn` and makes it partially applicable.
 
 import cache from './cache.js';
 
-const A     = Array.prototype;
+const A = Array.prototype;
 
 function applyFn(fn, args) {
     return typeof fn === 'function' ? fn.apply(null, args) : fn ;
@@ -50,7 +50,7 @@ function curry(fn, muteable, arity) {
 //    };
 //}
 
-if (window.DEBUG) {
+if (typeof window !== 'undefined' && window.DEBUG) {
     const _curry = curry;
 
     // Feature test
