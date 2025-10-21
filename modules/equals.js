@@ -5,9 +5,9 @@ Compares `a` and `b` for deep equality and returns `true` where they are equal,
 otherwise false.
 **/
 
-import curry from './curry.js';
+//import curry from './curry.js';
 
-export function equals(a, b) {
+export default function equals(a, b) {
     // Fast out if references are for the same object
     if (a === b) { return true; }
 
@@ -65,4 +65,4 @@ export function equals(a, b) {
     return true;
 }
 
-export default curry(equals, true);
+//export default curry(equals, true);

@@ -1,3 +1,6 @@
+
+const global = globalThis || window;
+
 /**
 curry(fn [, muteable, arity])
 Returns a function that wraps `fn` and makes it partially applicable.
@@ -50,7 +53,7 @@ function curry(fn, muteable, arity) {
 //    };
 //}
 
-if (typeof window !== 'undefined' && window.DEBUG) {
+if (typeof global !== 'undefined' && global.DEBUG) {
     const _curry = curry;
 
     // Feature test

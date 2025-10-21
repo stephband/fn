@@ -1,9 +1,11 @@
 
-import { equals } from './equals.js';
+import equals from './equals.js';
 
+const global = globalThis || window;
 const tests  = [];
 const stops  = [];
 const totals = { pass: 0, fail: 0 };
+
 let running = false;
 let count = 0;
 
@@ -17,7 +19,7 @@ function assert(expected, value, name, message) {
 		console.trace('%c' + string, 'color: #ee8833; font-weight: 300;');
 		return false;
 	}
-	else if (window.DEBUG) {
+	else if (global.DEBUG) {
 		//console.log('%c✔%c pass', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', value);
 	}
 
@@ -62,7 +64,7 @@ function run(name, expected, fn, next) {
 	Promise
 	.resolve()
 	.then(() => {
-		if (window.DEBUG) {
+		if (global.DEBUG) {
 			console.group('%c' + (++count) + ' - ' + name, 'color: #aaaaaa; font-weight: 300;', passed);
 			//console.log('%c✔%c Tested', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', passed);
 		}
@@ -80,7 +82,7 @@ function run(name, expected, fn, next) {
 			if (pass) {
 				++totals.pass;
 				// Final PASS message
-				console.log('%c✔%c %s', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', 'Tests passed'/*name*/);
+				console.log('%c✔%c %s', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', 'Passed – ' + passed.length + ' test' + (passed.length === 1 ? ' ' : 's') + ' – ' + name);
 			}
 			else {
 				++totals.fail;
@@ -88,18 +90,18 @@ function run(name, expected, fn, next) {
 
 			expect = expectDone;
 
-			if (window.DEBUG) {
+			if (global.DEBUG) {
 				console.groupEnd();
 			}
 			else {
-				console.log('%c✔%c ' + name, 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', passed);
+				//console.log('%c✔%c ' + name, 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', passed);
 			}
 
 			next();
 		});
 	})
 	.catch((error) => {
-		if (window.DEBUG) {
+		if (global.DEBUG) {
 			console.groupEnd();
 		}
 

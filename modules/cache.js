@@ -1,3 +1,6 @@
+
+const global = globalThis || window;
+
 /**
 cache(fn)
 Returns a function that caches the output values of `fn(input)` against input
@@ -10,12 +13,12 @@ export default function cacheByObject(fn) {
     var map = new Map();
 
     return function cache(object) {
-        if (window.DEBUG && !warned && object === undefined) {
+        if (global.DEBUG && !warned && object === undefined) {
             warned = true;
             console.warn('cache() called with undefined. Not illegal, but potentially bad.');
         }
 
-        if (window.DEBUG && arguments.length > 1) {
+        if (global.DEBUG && arguments.length > 1) {
             console.warn('cache() called with ' + arguments.length + ' arguments. Accepts exactly 1.');
         }
 

@@ -27,9 +27,7 @@ const runit = /^\s*([+-]?\d*\.?\d+)([^\s]*)\s*$/;
 export default function parseValue(units) {
     return function parseValue(string) {
         // Allow number to pass through
-        if (typeof string === 'number') {
-            return string;
-        }
+        if (typeof string === 'number') return string;
 
         var entry = runit.exec(string);
 
