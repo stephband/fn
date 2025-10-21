@@ -31,14 +31,14 @@ export default function parseValue(units) {
 
         var entry = runit.exec(string);
 
-        if (!entry || !units[entry[2] || '']) {
-            if (!units.catch) {
-                throw new Error('Cannot parse value "' + string + '" (accepted units ' + Object.keys(units).join(', ') + ')');
-            }
+        if (!entry) {
+            if (!units.catch) throw new Error('Cannot parse value "' + string + '" (accepted units ' + Object.keys(units).join(', ') + ')');
+            return units.catch(string);
+        }
 
-            return entry ?
-                units.catch(parseFloat(entry[1]), entry[2]) :
-                units.catch(parseFloat(string)) ;
+        if (!units[entry[2] || '']) {
+            if (!units.catch) throw new Error('Cannot parse value "' + string + '" (accepted units ' + Object.keys(units).join(', ') + ')');
+            return units.catch(parseFloat(entry[1]), entry[2]);
         }
 
         return units[entry[2] || ''](parseFloat(entry[1]));
