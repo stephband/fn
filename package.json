@@ -1,8 +1,8 @@
 {
     "name": "fn",
     "title": "Fn",
-    "version": "1.6.2",
-    "description": "A library of functions, observers and streams, published as ES6 modules.",
+    "version": "1.5.7",
+    "description": "A library of functions, signals and streams, published as ES6 modules.",
     "author": {
         "name": "Stephen Band",
         "url": "http://stephen.band",
