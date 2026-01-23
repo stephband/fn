@@ -18,10 +18,8 @@ export default function slugify(string) {
         .toLowerCase()
         // Normalize unicode (NFKC)
         .normalize('NFKC')
-        // Remove characters that are genuinely problematic in URLs
-        .replace(/[\/\?#\[\]@!$&'()*+,;=\\]/g, '')
-        // Replace whitespace and remaining punctuation with hyphens
-        .replace(/[\s\._]+/g, '-')
+        // Replace characters that are problematic with hyphens
+        .replace(/[\/\?#\[\]@!$&'()*+,;=\\\s\._]+/g, '-')
         // Strip hyphens from start/end
         .replace(/^-+/, '')
         .replace(/-+$/, '');
