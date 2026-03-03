@@ -1,29 +1,44 @@
 
-import equals from './equals.js';
+import equals  from './equals.js';
+import matches from './matches.js';
 
 const global = globalThis || window;
 const tests  = [];
 const stops  = [];
 const totals = { pass: 0, fail: 0 };
 
+const passStyle = 'color: #6f9940; font-weight: 300;';
+const failStyle = 'color: #ee8833; font-weight: 300;';
+
 let running = false;
 let count = 0;
 
-function assert(expected, value, name, message) {
-	if (!equals(value, expected)) {
-		var string = '✘ ' + name + '\n  '
-			+ 'expected: ' + (typeof expected === 'object' ? JSON.stringify(expected) : expected) + ', '
-			+ 'received: ' + (typeof value    === 'object' ? JSON.stringify(value)    : value)
-			+ ( message ? '\n  ' + message : '') ;
+function createAssert(fn, name, expected, state) {
+    return (value, message) => {
+        if (!expected.length) {
+            console.trace(`%c✘ ${ name }
+expected ${ n } assertions
+received ${ n + (++m) }
+${ typeof value === 'object' ? JSON.stringify(value) : value }`, failStyle);
+            state.pass = false;
+            return;
+        }
 
-		console.trace('%c' + string, 'color: #ee8833; font-weight: 300;');
-		return false;
-	}
-	else if (global.DEBUG) {
-		//console.log('%c✔%c pass', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', value);
-	}
+        const expectation = expected.shift();
+        const result = fn(expectation, value);
 
-	return true;
+        if (result) {
+            passed.push(value);
+        }
+        else {
+            console.trace(`%c✘ ${ name } (assertion ${ n - expected.length })
+expected: ${ typeof expectation === 'object' ? JSON.stringify(expectation) : expectation }
+received: ${ typeof value === 'object' ? JSON.stringify(value) : value }
+${ message || '' }`, failStyle);
+        }
+
+        state.pass = state.pass && result;
+    };
 }
 
 function expectDone(expected, value, name) {
@@ -34,55 +49,46 @@ function expectDone(expected, value, name) {
 	++totals.fail;
 
 	// expect() called after done() message
-	console.log('%c' + string, 'color: #ee8833; font-weight: 300;');
+	console.log('%c' + string, failStyle);
 }
+
+// Support legacy test(expect, done) and new test({ equals, matches }, done)
+expectDone.equals = expectDone;
+expectDone.matches = expectDone;
 
 function run(name, expected, fn, next) {
 	const n      = expected.length;
 	const passed = [];
-	let m      = 0;
-	let pass   = true;
+	let m        = 0;
+    const state  = { pass: true };
 
-	let expect = (value, message) => {
-		if (!expected.length) {
-			var string = '✘ ' + name + '\n  '
-				+ 'expected ' + n + ' assertions, '
-				+ 'received ' + (n + (++m)) + ': '
-				+ value ;
-
-			console.trace('%c' + string, 'color: #ee8833; font-weight: 300;');
-			pass = false;
-		}
-		else {
-			const e = expected.shift();
-			const p = assert(e, value, name + ' (assertion ' + (n - expected.length) + ')', message);
-			if (p) { passed.push(value); }
-			pass = pass && p;
-		}
-	};
+    // Support legacy test(expect, done) and new test({ equals, matches }, done)
+	let expect = createAssert(equals, name, expected, state);
+    expect.equals = expect;
+    expect.matches = createAssert(matches, name, expected, state);
 
 	Promise
 	.resolve()
 	.then(() => {
 		if (global.DEBUG) {
-			console.group('%c' + (++count) + ' - ' + name, 'color: #aaaaaa; font-weight: 300;', passed);
-			//console.log('%c✔%c Tested', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', passed);
+			console.group(`%c${ ++count } - ${ name }`, 'color: #aaaaaa; font-weight: 300;', passed);
+			//console.log('%c✔%c Tested', 'color: #b4d094;', passStyle, passed);
 		}
 
 		fn(expect, function done() {
-			if (pass && expected.length) {
+			if (state.pass && expected.length) {
 				var string = '✘ ' + name + '\n  '
 					+ 'expected ' + n + ' assertions, '
 					+ 'received ' + (n - expected.length) ;
 
-				console.trace('%c' + string, 'color: #ee8833; font-weight: 300;');
-				pass = false;
+				console.trace('%c' + string, failStyle);
+				state.pass = false;
 			}
 
-			if (pass) {
+			if (state.pass) {
 				++totals.pass;
 				// Final PASS message
-				console.log('%c✔%c %s', 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', 'Passed – ' + passed.length + ' test' + (passed.length === 1 ? ' ' : 's') + ' – ' + name);
+				console.log('%c✔%c %s', 'color: #b4d094;', passStyle, `Passed – ${ passed.length } test${ passed.length === 1 ? '' : 's' } – ${ name }`);
 			}
 			else {
 				++totals.fail;
@@ -94,7 +100,7 @@ function run(name, expected, fn, next) {
 				console.groupEnd();
 			}
 			else {
-				//console.log('%c✔%c ' + name, 'color: #b4d094;', 'color: #6f9940; font-weight: 300;', passed);
+				//console.log('%c✔%c ' + name, 'color: #b4d094;', passStyle, passed);
 			}
 
 			next();
