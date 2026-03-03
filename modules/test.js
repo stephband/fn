@@ -14,6 +14,8 @@ let running = false;
 let count = 0;
 
 function createAssert(fn, name, expected, state) {
+    const n = expected.length;
+    let m = 0;
     return (value, message) => {
         if (!expected.length) {
             console.trace(`%c✘ ${ name }
@@ -59,7 +61,6 @@ expectDone.matches = expectDone;
 function run(name, expected, fn, next) {
 	const n      = expected.length;
 	const passed = [];
-	let m        = 0;
     const state  = { pass: true };
 
     // Support legacy test(expect, done) and new test({ equals, matches }, done)
