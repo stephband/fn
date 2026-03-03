@@ -30,7 +30,7 @@ ${ typeof value === 'object' ? JSON.stringify(value) : value }`, failStyle);
         const result = fn(expectation, value);
 
         if (result) {
-            passed.push(value);
+            state.passed.push(value);
         }
         else {
             console.trace(`%c✘ ${ name } (assertion ${ n - expected.length })
@@ -60,8 +60,7 @@ expectDone.matches = expectDone;
 
 function run(name, expected, fn, next) {
 	const n      = expected.length;
-	const passed = [];
-    const state  = { pass: true };
+    const state  = { pass: true, passed: [] };
 
     // Support legacy test(expect, done) and new test({ equals, matches }, done)
 	let expect = createAssert(equals, name, expected, state);
@@ -72,7 +71,7 @@ function run(name, expected, fn, next) {
 	.resolve()
 	.then(() => {
 		if (global.DEBUG) {
-			console.group(`%c${ ++count } - ${ name }`, 'color: #aaaaaa; font-weight: 300;', passed);
+			console.group(`%c${ ++count } - ${ name }`, 'color: #aaaaaa; font-weight: 300;', state.passed);
 			//console.log('%c✔%c Tested', 'color: #b4d094;', passStyle, passed);
 		}
 
@@ -89,7 +88,7 @@ function run(name, expected, fn, next) {
 			if (state.pass) {
 				++totals.pass;
 				// Final PASS message
-				console.log('%c✔%c %s', 'color: #b4d094;', passStyle, `Passed – ${ passed.length } test${ passed.length === 1 ? '' : 's' } – ${ name }`);
+				console.log('%c✔%c %s', 'color: #b4d094;', passStyle, `Passed – ${ state.passed.length } test${ state.passed.length === 1 ? '' : 's' } – ${ name }`);
 			}
 			else {
 				++totals.fail;
