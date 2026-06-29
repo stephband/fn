@@ -19,7 +19,9 @@ export default function slugify(string) {
         // Normalize unicode (NFKC)
         .normalize('NFKC')
         // Replace characters that are problematic with hyphens
-        .replace(/[\/\?#\[\]@!$&'()*+,;=\\\s\._]+/g, '-')
+        //.replace(/[\/\?#\[\]@!$&'()*+,;=\\\s\._–-]+/g, '-')
+        // Replace any strings of punctuation or symbols characters
+        .replace(/[\p{P}\p{S}]+/gu, '-')
         // Strip hyphens from start/end
         .replace(/^-+/, '')
         .replace(/-+$/, '');
