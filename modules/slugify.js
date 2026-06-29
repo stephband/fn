@@ -18,10 +18,10 @@ export default function slugify(string) {
         .toLowerCase()
         // Normalize unicode (NFKC)
         .normalize('NFKC')
-        // Replace characters that are problematic with hyphens
-        //.replace(/[\/\?#\[\]@!$&'()*+,;=\\\s\._–-]+/g, '-')
-        // Replace any strings of punctuation or symbols characters
-        .replace(/[\p{P}\p{S}]+/gu, '-')
+        // Replace any run of punctuation, symbols or whitespace with a hyphen.
+        // \p{P} punctuation, \p{S} symbols, \p{Z} unicode separators (spaces),
+        // \s catches ASCII whitespace (tab, newline) that \p{Z} misses.
+        .replace(/[\p{P}\p{S}\p{Z}\s]+/gu, '-')
         // Strip hyphens from start/end
         .replace(/^-+/, '')
         .replace(/-+$/, '');
