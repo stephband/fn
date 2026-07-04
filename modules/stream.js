@@ -5,6 +5,7 @@ import Combine  from './stream/combine-stream.js';
 import Clock    from './stream/clock-stream.js';
 import Throttle from './stream/throttle-stream.js';
 
+const global = globalThis;
 const A      = Array.prototype;
 const assign = Object.assign;
 
@@ -99,7 +100,7 @@ assign(Stream.prototype, {
     /**
     .log(...parameters)
     **/
-    log: (window.DEBUG && window.console) ?
+    log: (global.DEBUG && global.console) ?
         function log(...parameters) {
             return this.map((value) => (console.log(...parameters, value), value))
         } :

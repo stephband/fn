@@ -4,5 +4,9 @@
         "fn/":      "https://cdn.jsdelivr.net/gh/stephband/fn@master/modules/",
         "bolt/":    "https://cdn.jsdelivr.net/gh/stephband/bolt-2@main/",
         "literal/": "https://cdn.jsdelivr.net/gh/stephband/literal@main/"
+    },
+
+    "test": {
+        "include": ["test.js"]
     }
 }

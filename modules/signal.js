@@ -1,4 +1,5 @@
 
+const global = globalThis;
 const DEBUG  = false;//window.DEBUG && window.DEBUG.signal !== false;
 const assign = Object.assign;
 
@@ -562,7 +563,7 @@ export class TimedSignal extends Signal {
     }
 
     getTime() {
-        return window.performance.now();
+        return global.performance.now();
     }
 
     evaluate() {
@@ -807,7 +808,7 @@ export class FrameSignal extends Observer {
         const observers = this.constructor.observers;
 
         // If no observers are cued, cue frame() on the next frame
-        if (!observers.length) window.requestAnimationFrame(frame);
+        if (!observers.length) requestAnimationFrame(frame);
 
         // Add this observer to observers
         observers.push(this);

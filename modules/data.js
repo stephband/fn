@@ -9,7 +9,7 @@ const isExtensible = Object.isExtensible;
 const O            = Object.prototype;
 const $trap        = Symbol('data');
 const properties   = { [$trap]: {} };
-
+const global       = globalThis;
 
 function isMuteable(object) {
     // Many built-in objects and DOM objects bork when calling their
@@ -29,11 +29,11 @@ function isMuteable(object) {
         //&& (typeof object === 'object' || typeof object === 'function')
 
         // Reject DOM nodes
-        && !Node.prototype.isPrototypeOf(object)
+        && (!global.Node || !Node.prototype.isPrototypeOf(object))
         // Reject WebAudio context
-        && (window.BaseAudioContext === undefined || !BaseAudioContext.prototype.isPrototypeOf(object))
+        && (!global.BaseAudioContext || !BaseAudioContext.prototype.isPrototypeOf(object))
         // Reject WebAudio params
-        && !AudioParam.prototype.isPrototypeOf(object)
+        && (!global.AudioParam || !AudioParam.prototype.isPrototypeOf(object))
         // Reject date, their methods don't enjoy being proxied
         && !(object instanceof Date)
         // Reject regex
@@ -43,7 +43,7 @@ function isMuteable(object) {
         && !(object instanceof WeakMap)
         // Reject sets
         && !(object instanceof Set)
-        && !(window.WeakSet && object instanceof WeakSet);
+        && !(object instanceof WeakSet);
         // Reject TypedArrays and DataViews. They don't enjoy having their
         // methods called from a proxy. On the other hand, it is useful to be
         // able to observe them...
