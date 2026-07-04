@@ -153,6 +153,13 @@ export default class Signal {
         return new ComputeSignal(fn, context);
     }
 
+    /**
+    Signal.property(name, property)
+    Returns a get/set signal that wraps property `name` of `object`. Setting
+    this signal invalidates the dependency graph, causing signals computed
+    by getting this signal to re-evaluate.
+    **/
+
     static fromProperty(name, object) {
         // Function
         return new PropertySignal(name, object);

@@ -1,6 +1,6 @@
 
 import Signal from './signal.js';
-import isMutableProperty from './is-mutable-property.js';
+//import isMutableProperty from './is-mutable-property.js';
 
 
 const assign       = Object.assign;
@@ -51,20 +51,29 @@ function isMuteable(object) {
 }
 
 function getSignal(signals, name, object) {
-    return signals[name] || (signals[name] = Data.toSignal(name, object));
-}
-
-function getValue(signals, name, object) {
-    // If there is an evaluating signal and the property is mutable
-    return (Signal.evaluating && isMutableProperty(name, object)) ?
-        // ...read value from the signal graph
-        getSignal(signals, name, object).value :
-        // ...otherwise there is no need to register the get
-        object[name] ;
+    return signals[name] || (signals[name] = Signal.fromProperty(name, object));
 }
 
 function getTrap(object) {
     return Data(object) && object[$trap];
+}
+
+function isMutableProperty(name, object, enumerables, functions, methods) {
+    // If there's a descriptor return its mutability
+    const descriptor = Object.getOwnPropertyDescriptor(object, name);
+    if (descriptor) {
+        return (!enumerables || descriptor.enumerable)
+            && (descriptor.writable ?
+                functions || typeof object[name] !== 'function' :
+                !!descriptor.set);
+    }
+
+    // If there's a prototype look for property on it
+    const prototype = Object.getPrototypeOf(object);
+    if (prototype) return isMutableProperty(name, prototype, enumerables, methods, methods);
+
+    // If there is no prototypes property must be unset
+    return true;
 }
 
 
@@ -72,10 +81,17 @@ function getTrap(object) {
 DataTrap(object)
 */
 
-function DataTrap(object) {
+function DataTrap(object, enumerables = false, functions = true, methods = false) {
     this.signals = {};
     this.object  = object;
     this.data    = new Proxy(object, this);
+
+    // If enumerables is true only enumerable properties are observed
+    this.enumerables = enumerables;
+    // If functions is true writable function properties are observed, true by default
+    this.functions   = functions;
+    // If methods is true writable function properties in the prototype chain are observed
+    this.methods     = methods;
 
     // Define trap as object[$trap]
     properties[$trap].value = this;
@@ -91,8 +107,11 @@ assign(DataTrap.prototype, {
             return object[name];
         }
 
-        const value = getValue(this.signals, name, object);
-        //console.log(value, !!Signal.evaluating, isMutableProperty(name, object));
+        const value = Signal.evaluating && isMutableProperty(name, object, this.enumerables, this.functions, this.methods) ?
+            // ...read value from the signal graph
+            getSignal(this.signals, name, object).value :
+            // ...otherwise there is no need to register the get
+            object[name] ;
 
         // We are not interested in getting proxies of stuff in the prototype
         // chain so stick to hasOwnProperty. TODO: ARE WE REALLY NOT, THO? What
@@ -147,12 +166,37 @@ assign(DataTrap.prototype, {
 });
 
 
-/** @module **/
+/**
+Data(object),
+Data(object, options)
 
-export default function Data(object, force) {
+Get the data proxy of `object`. The data proxy is a wrapper that observes
+mutations. There is only ever one data proxy of `object`, and calls to
+`Data(object)` always return that data proxy.
+
+Takes an optional `options` object:
+
+```
+{
+    // Force objects normally considered immutable to pass the mutability test
+    force: true,
+    // Observe only enumerable properties
+    enumerables: true,
+    // Observe changes to properties that are functions
+    functions: true,
+    // Observe changes to properties that are (at least initially) functions in
+    // the prototype chain
+    methods: true
+}
+```
+**/
+
+const defaults = {};
+
+export default function Data(object, options = defaults) {
     return !object ? undefined :
         object[$trap] ? object[$trap].data :
-        (force || isMuteable(object)) ? (new DataTrap(object)).data :
+        (options.force || isMuteable(object)) ? (new DataTrap(object, options.enumerables, options.functions, options.methods)).data :
         undefined ;
 }
 
@@ -188,7 +232,7 @@ node's observer proxy, a source of hard-to-trace errors. Pass in `force` as
 The data proxy of `object`.
 **/
 
-Data.of = (object, force) => Data(object, force);
+Data.of = (object, options) => Data(object, options);
 
 
 /**
@@ -207,18 +251,6 @@ Data.objectOf = function(object) {
         object[$trap].object :
         object ;
 };
-
-
-/**
-@ignore
-Data.toSignal
-The internals of the Data proxy call this function when a signal is created.
-Normally it is assumed that Data proxies use property signals and this function
-is set to `Signal.forProperty`. Override it to opt for different types of
-signals.
-*/
-
-Data.toSignal = Signal.fromProperty;
 
 
 /**
