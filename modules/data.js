@@ -134,7 +134,7 @@ assign(DataTrap.prototype, {
         }
 
         // Arrays: note pre-change length to detect length-affecting mutations
-        const length = this.isArray ? object.length : undefined;
+        const length = object.length;
 
         // Set unproxied value on signal or directly on object
         if (this.signals[name]) {
@@ -170,7 +170,7 @@ assign(DataTrap.prototype, {
         delete object[name];
 
         if (typeof name !== 'symbol' && name !== '__proto__' && this.signals[name]) {
-            this.signals[name].value = object[name];
+            this.signals[name].invalidate();
         }
 
         // Indicate success to the Proxy
