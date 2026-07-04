@@ -58,7 +58,7 @@ function getTrap(object) {
     return Data(object) && object[$trap];
 }
 
-function isMutableProperty(name, object, enumerables, functions, methods) {
+function isObservableProperty(name, object, enumerables, functions, methods) {
     // If there's a descriptor return its mutability
     const descriptor = Object.getOwnPropertyDescriptor(object, name);
     if (descriptor) {
@@ -70,7 +70,7 @@ function isMutableProperty(name, object, enumerables, functions, methods) {
 
     // If there's a prototype look for property on it
     const prototype = Object.getPrototypeOf(object);
-    if (prototype) return isMutableProperty(name, prototype, enumerables, methods, methods);
+    if (prototype) return isObservableProperty(name, prototype, enumerables, methods, methods);
 
     // If there is no prototypes property must be unset
     return true;
@@ -85,6 +85,7 @@ function DataTrap(object, enumerables = false, functions = true, methods = false
     this.signals = {};
     this.object  = object;
     this.data    = new Proxy(object, this);
+    this.isArray = Array.isArray(object);
 
     // If enumerables is true only enumerable properties are observed
     this.enumerables = enumerables;
@@ -107,7 +108,7 @@ assign(DataTrap.prototype, {
             return object[name];
         }
 
-        const value = Signal.evaluating && isMutableProperty(name, object, this.enumerables, this.functions, this.methods) ?
+        const value = Signal.evaluating && isObservableProperty(name, object, this.enumerables, this.functions, this.methods) ?
             // ...read value from the signal graph
             getSignal(this.signals, name, object).value :
             // ...otherwise there is no need to register the get
@@ -132,8 +133,8 @@ assign(DataTrap.prototype, {
             return true;
         }
 
-        // To support arrays keep a note of pre-change length
-        const length = object.length;
+        // Arrays: note pre-change length to detect length-affecting mutations
+        const length = this.isArray ? object.length : undefined;
 
         // Set unproxied value on signal or directly on object
         if (this.signals[name]) {
@@ -144,9 +145,21 @@ assign(DataTrap.prototype, {
             object[name] = Data.objectOf(value);
         }
 
-        // Check if length has changed and update its signal if it has
-        if (name !== 'length' && object.length !== length && this.signals.length) {
-            this.signals.length.value = object.length;
+        if (this.isArray) {
+            // Shortening an array via .length removes members without firing
+            // deleteProperty, so their signals hold stale cached values -
+            // invalidate them
+            if (name === 'length') {
+                let i = value - 1;
+                while (++i < length) {
+                    if (this.signals[i]) this.signals[i].invalidate();
+                }
+            }
+            // A non-length set that changed length (push, array[n] = x) must
+            // invalidate the length signal
+            else if (object.length !== length && this.signals.length) {
+                this.signals.length.invalidate();
+            }
         }
 
         // Return true to indicate success to Proxy
