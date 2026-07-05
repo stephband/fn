@@ -6,6 +6,7 @@
 import './test/signal.js';
 import './test/signal-data.js';
 import './test/signal-data-array.js';
+import './test/signal-data-props.js';
 import './test/signal-frame.js';
 //import './test/signal-frame-webaudio.js';  // Browser-only test
 //import './test/stream.js';

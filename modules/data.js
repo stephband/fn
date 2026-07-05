@@ -58,22 +58,53 @@ function getTrap(object) {
     return Data(object) && object[$trap];
 }
 
-function isObservableProperty(name, object, enumerables, functions, methods) {
+function getProperty(name, object, signals, enumerables, functions, methods, o = object) {
     // If there's a descriptor return its mutability
-    const descriptor = Object.getOwnPropertyDescriptor(object, name);
+    const descriptor = Object.getOwnPropertyDescriptor(o, name);
     if (descriptor) {
-        return (!enumerables || descriptor.enumerable)
-            && (descriptor.writable ?
-                functions || typeof object[name] !== 'function' :
-                !!descriptor.set);
+        // The enumerables flag, false by default, tells us non-enumerables are
+        // not observable (the enumerables flag should not be set by the user
+        // where the enumerable shape of an object is expected to change)
+        if (enumerables && !descriptor.enumerable) {
+            signals[name] = null;
+            return object[name];
+        }
+
+        // The functions, or the methods (for prototypes), flag tells us that
+        // function properties are observable (functions is true by default,
+        // making them behave as any other property, methods should be set to
+        // true by the user where functions on a prototype may be overridden)
+        if (descriptor.writable) {
+            if (functions || typeof o[name] !== 'function') {
+                return getSignal(signals, name, object).value;
+            }
+
+            signals[name] = null;
+            return object[name] ;
+        }
+
+        // If descriptor has a getter and a setter it is observable
+        if (descriptor.get && descriptor.set) {
+            return getSignal(signals, name, object).value;
+        }
+
+        // Property is not writable nor has a setter – if it is an own
+        // non-configurable we know it can never be made observable: non-writable
+        // non-configurable value properties cannot return proxies, flag them as
+        // false; flag non observables as null
+        if (o === object && !descriptor.configurable) {
+            signals[name] = null;
+        }
+
+        return object[name];
     }
 
     // If there's a prototype look for property on it
-    const prototype = Object.getPrototypeOf(object);
-    if (prototype) return isObservableProperty(name, prototype, enumerables, methods, methods);
+    const prototype = Object.getPrototypeOf(o);
+    if (prototype) return getProperty(name, object, signals, enumerables, methods, methods, prototype);
 
-    // If there is no prototypes property must be unset
-    return true;
+    // If there is no prototype property must be observable and unset
+    return getSignal(signals, name, object).value;
 }
 
 
@@ -108,22 +139,20 @@ assign(DataTrap.prototype, {
             return object[name];
         }
 
-        const value = Signal.evaluating && isObservableProperty(name, object, this.enumerables, this.functions, this.methods) ?
-            // ...read value from the signal graph
-            getSignal(this.signals, name, object).value :
-            // ...otherwise there is no need to register the get
-            object[name] ;
+        // If signal graph is not evaluating read directly from object
+        const value = !Signal.evaluating ? object[name] :
+            // Is name in signals?
+            name in this.signals ?
+                // If it's a signal object we know this property is observable
+                this.signals[name] ? this.signals[name].value :
+                // If it's null we know it's not
+                object[name] :
+            // Test property for observability, cacheable state, and return value
+            getProperty(name, object, this.signals, this.enumerables, this.functions, this.methods) ;
 
-        // We are not interested in getting proxies of stuff in the prototype
-        // chain so stick to hasOwnProperty. TODO: ARE WE REALLY NOT, THO? What
-        // about values returned by getters? Eh?
-        /*if (!O.hasOwnProperty.call(object, name)) {
-            return value;
-        }*/
-
-        // Return data proxy. There's a problem here. If object[name] is not
-        // writable AND not configurable returning a proxy of value throws
-        // an error regardless as to whether value is itself proxy-able
+        // Per-spec, if the property is a non-configurable non-writable own property
+        // returning its proxy will error. At least then the user knows their
+        // code is not doing what they might have assumed.
         return Data(value) || value ;
     },
 
@@ -187,21 +216,27 @@ Get the data proxy of `object`. The data proxy is a wrapper that observes
 mutations. There is only ever one data proxy of `object`, and calls to
 `Data(object)` always return that data proxy.
 
-Takes an optional `options` object:
+Not all objects may be proxied. Frozen objects, non-extensible objects, and
+various others like Sets, Maps and DOM and WebAudio nodes are deemed immutable
+or otherwise unobservable. They return `undefined`.
 
-```
-{
-    // Force objects normally considered immutable to pass the mutability test
-    force: true,
-    // Observe only enumerable properties
-    enumerables: true,
-    // Observe changes to properties that are functions
-    functions: true,
-    // Observe changes to properties that are (at least initially) functions in
-    // the prototype chain
-    methods: true
-}
-```
+Getting_ a property of a data proxy while evaluating a signal registers the
+signal as dependent on the property. _Setting_ a property of a data proxy
+notifies dependent signals.
+
+Getting a property of a data proxy returns a data proxy of that property
+of `object`. In this way access chains like `data.property.value` are also
+observed.
+
+Takes an optional `options` object that may have the following properties:
+
+- `force`:       forces objects normally considered immutable to pass the mutability test, `false` by default
+- `enumerables`: observes only enumerable properties, `false` by default
+- `methods`:     observes changes to prototype properties that are functions, `false` by default
+- `functions`:   observes changes to own properties that are functions, `true` by default
+
+A data proxy's options are set the first time the proxy is created. They are not
+changed by subsequent calls to `Data()`.
 **/
 
 const defaults = {};
@@ -215,48 +250,17 @@ export default function Data(object, options = defaults) {
 
 
 /**
-Get the data proxy of `object`. The data proxy is a wrapper that observes
-mutations. There is only ever one data proxy of `object`, and calls to
-`Data.of(object)` always return that data proxy.
-
-Not all objects may be proxied. Frozen objects, unextensible objects, and
-various others like Sets, Maps and DOM and WebAudio nodes are deemed
-immutable or otherwise unobservable. They return `undefined`.
-
-_Getting_ a property of a data proxy while evaluating a signal registers the
-signal as dependent on the property. _Setting_ a property of a data proxy
-notifies dependent signals.
-
-Getting a property of a data proxy returns a data proxy of that property
-of `object`. In this way access chains like `data.property.value` are also
-observed.
-
-@param {object} object
-An object or array.
-
-@param {boolean} force
-Forces the creation of a data proxy where `object` would otherwise be deemed
-immutable. DOM nodes are considered immutable, for example, but not because they
-really are immutable, more in order to prevent you calling node methods on a
-node's observer proxy, a source of hard-to-trace errors. Pass in `force` as
-`true` if you know what you are doing.
-
-@returns {object}
-The data proxy of `object`.
+Data.of(object)
 **/
 
-Data.of = (object, options) => Data(object, options);
+Data.of = (object) => Data(object);
 
 
 /**
+Data.objectOf(object)
+
 Get the un-proxied `object` wrapped by `Data.of(object)` (or, if `data` is
 already an un-proxied object, `data`).
-
-@param {object} data
-A data proxy.
-
-@returns {object}
-The un-wrapped, un-proxied object.
 **/
 
 Data.objectOf = function(object) {
@@ -267,9 +271,8 @@ Data.objectOf = function(object) {
 
 
 /**
-@ignore
 Data.signal(path, data)
-*/
+**/
 
 Data.signal = function(name, object) {
     const trap = Data.of(object) && object[$trap];
