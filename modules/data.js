@@ -1,15 +1,16 @@
 
 import Signal from './signal.js';
-//import isMutableProperty from './is-mutable-property.js';
 
 
 const assign       = Object.assign;
 const define       = Object.defineProperties;
 const isExtensible = Object.isExtensible;
 const O            = Object.prototype;
-const $trap        = Symbol('data');
+const $trap        = Symbol('data-trap');
+const $options     = Symbol('data-options');
 const properties   = { [$trap]: {} };
 const global       = globalThis;
+
 
 function isMuteable(object) {
     // Many built-in objects and DOM objects bork when calling their
@@ -50,15 +51,30 @@ function isMuteable(object) {
         //&& !ArrayBuffer.isView(object) ;
 }
 
-function getSignal(signals, name, object) {
-    return signals[name] || (signals[name] = Signal.fromProperty(name, object));
+function getSignal(signals, name, object, proxy) {
+    return signals[name] || (signals[name] = Signal.fromProperty(name, object, proxy));
 }
 
 function getTrap(object) {
     return Data(object) && object[$trap];
 }
 
-function getProperty(name, object, signals, enumerables, functions, methods, o = object) {
+function getDescriptor(name, object) {
+    // If there's a descriptor return its mutability
+    const descriptor = Object.getOwnPropertyDescriptor(object, name);
+    if (descriptor) return descriptor;
+
+    // If there's a prototype look for property on it
+    const prototype = Object.getPrototypeOf(object);
+    if (prototype) return getDescriptor(name, prototype);
+}
+
+function isSetable(name, object) {
+    const descriptor = getDescriptor(name, object);
+    return descriptor && !!descriptor.set;
+}
+
+function getProperty(name, object, proxy, signals, enumerables, functions, methods, computed, o = object) {
     // If there's a descriptor return its mutability
     const descriptor = Object.getOwnPropertyDescriptor(o, name);
     if (descriptor) {
@@ -85,7 +101,8 @@ function getProperty(name, object, signals, enumerables, functions, methods, o =
 
         // If descriptor has a getter and a setter it is observable
         if (descriptor.get && descriptor.set) {
-            return getSignal(signals, name, object).value;
+            const signal = getSignal(signals, name, object, computed && computed.includes(name) && proxy);
+            return signal.value;
         }
 
         // Property is not writable nor has a setter – if it is an own
@@ -101,7 +118,7 @@ function getProperty(name, object, signals, enumerables, functions, methods, o =
 
     // If there's a prototype look for property on it
     const prototype = Object.getPrototypeOf(o);
-    if (prototype) return getProperty(name, object, signals, enumerables, methods, methods, prototype);
+    if (prototype) return getProperty(name, object, proxy, signals, enumerables, methods, methods, computed, prototype);
 
     // If there is no prototype property must be observable and unset
     return getSignal(signals, name, object).value;
@@ -112,7 +129,7 @@ function getProperty(name, object, signals, enumerables, functions, methods, o =
 DataTrap(object)
 */
 
-function DataTrap(object, enumerables = false, functions = true, methods = false) {
+function DataTrap(object, enumerables = false, functions = true, methods = false, computed) {
     this.signals = {};
     this.object  = object;
     this.data    = new Proxy(object, this);
@@ -124,6 +141,8 @@ function DataTrap(object, enumerables = false, functions = true, methods = false
     this.functions   = functions;
     // If methods is true writable function properties in the prototype chain are observed
     this.methods     = methods;
+    // If properties are labelled as computed they are get/set with their proxies as context
+    this.computed    = computed;
 
     // Define trap as object[$trap]
     properties[$trap].value = this;
@@ -148,11 +167,11 @@ assign(DataTrap.prototype, {
                 // If it's null we know it's not
                 object[name] :
             // Test property for observability, cacheable state, and return value
-            getProperty(name, object, this.signals, this.enumerables, this.functions, this.methods) ;
+            getProperty(name, object, proxy, this.signals, this.enumerables, this.functions, this.methods, this.computed) ;
 
-        // Per-spec, if the property is a non-configurable non-writable own property
-        // returning its proxy will error. At least then the user knows their
-        // code is not doing what they might have assumed.
+        // Per-spec, if the property is a non-configurable non-writable own
+        // property returning its proxy will error. At least then the user
+        // knows their code is not doing what they might have assumed.
         return Data(value) || value ;
     },
 
@@ -165,13 +184,23 @@ assign(DataTrap.prototype, {
         // Arrays: note pre-change length to detect length-affecting mutations
         const length = object.length;
 
-        // Set unproxied value on signal or directly on object
+        // Always set an unproxied value
+        value = Data.objectOf(value);
+
+        // Signal registered, set on signal
         if (this.signals[name]) {
             // Make sure we are setting an unproxied value.
-            this.signals[name].value = Data.objectOf(value);
+            this.signals[name].value = value;
         }
+        // No signal registered. Handle a very niche and gnarly corner case
+        // where a computed accessor accesses a reactive property that is
+        // already tied into the signal graph.
+        else if (this.computed && this.computed.includes(name) && isSetable(name, object)) {
+            Reflect.set(object, name, value, proxy);
+        }
+        // No signal registered, set directly on object
         else {
-            object[name] = Data.objectOf(value);
+            object[name] = value;
         }
 
         if (this.isArray) {
@@ -234,6 +263,9 @@ Takes an optional `options` object that may have the following properties:
 - `enumerables`: observes only enumerable properties, `false` by default
 - `methods`:     observes changes to prototype properties that are functions, `false` by default
 - `functions`:   observes changes to own properties that are functions, `true` by default
+- `computed`:    an array of property names of accessor properties that
+    themselves access other reactive properties; properties marked as computed
+    cannot access private fields: `undefined` by default
 
 A data proxy's options are set the first time the proxy is created. They are not
 changed by subsequent calls to `Data()`.
@@ -242,10 +274,12 @@ changed by subsequent calls to `Data()`.
 const defaults = {};
 
 export default function Data(object, options = defaults) {
-    return !object ? undefined :
-        object[$trap] ? object[$trap].data :
-        (options.force || isMuteable(object)) ? (new DataTrap(object, options.enumerables, options.functions, options.methods)).data :
-        undefined ;
+    if (!object) return undefined;
+    if (object[$trap]) return object[$trap].data;
+    const settings = object.constructor && object.constructor[$options] || options;
+    if (!(settings.force || isMuteable(object))) return undefined;
+    const trap = new DataTrap(object, settings.enumerables, settings.functions, settings.methods, settings.computed);
+    return trap.data;
 }
 
 
@@ -269,6 +303,21 @@ Data.objectOf = function(object) {
         object ;
 };
 
+/**
+Data.define(constructor, options)
+Defines Data options as a static symbol property on a class constructor.
+Constructed objects use these options for their reactive behaviour.
+**/
+
+Data.define = function(constructor, options) {
+    if (constructor.hasOwnProperty($options)) {
+        throw new Error(`Data.define() options already defined for class ${ constructor.name }`);
+    }
+
+    constructor[$options] = options;
+    return constructor;
+};
+
 
 /**
 Data.signal(path, data)
@@ -278,5 +327,5 @@ Data.signal = function(name, object) {
     const trap = Data.of(object) && object[$trap];
     return trap ?
         getSignal(trap.signals, name, trap.object) :
-        nothing ;
+        undefined ;
 };

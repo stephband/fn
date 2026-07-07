@@ -123,14 +123,13 @@ export default class Signal {
     /**
     Signal.from(fn)
     Signal.from(promise)
-    Signal.from(stream)
 
     Creates a compute signal from a function, where `fn` computes a value by
     reading other signals' values. This signal is then invalidated when any of
     the read signals are invalidated.
 
-    Creates a state signal from a promise or stream that invalidates
-    dependencies as the promise or streams' values resolve.
+    Creates a state signal from a promise that invalidates dependencies when the
+    promise resolves.
     **/
 
     static from(fn, context) {
@@ -139,11 +138,6 @@ export default class Signal {
             const signal = Signal.of();
             fn.then((value) => signal.value = value);
             return signal;
-        }
-
-        // Pipeable
-        if (fn.pipe) {
-            return fn.pipe(new PushSignal());
         }
 
         // Function
@@ -155,15 +149,24 @@ export default class Signal {
     }
 
     /**
-    Signal.property(name, property)
-    Returns a get/set signal that wraps property `name` of `object`. Setting
-    this signal invalidates the dependency graph, causing signals computed
-    by getting this signal to re-evaluate.
+    Signal.fromProperty(name, object)
+    Signal.fromProperty(name, object, context)
+
+    Returns a signal that wraps property `name` of `object`. Setting
+    `signal.value` invalidates the dependency graph. Getting `signal.value`
+    reads a cached value, or if the signal is invalid, the property `name` of
+    `object`.
+
+    Where a `context` object is given the property is evaluated with `context`
+    set as context rather than `object`. If the property has a getter this
+    means that any properties it reads are read from `context`. Here be dragons!
+    Only if `context` is a subclass of `object` will the getter be able to read
+    private fields of `object`. Proxies and objects inheriting via
+    `Object.create(object)` will throw an error. Use with caution.
     **/
 
-    static fromProperty(name, object) {
-        // Function
-        return new PropertySignal(name, object);
+    static fromProperty(name, object, context) {
+        return new PropertySignal(name, object, context);
     }
 
     /**
@@ -174,7 +177,6 @@ export default class Signal {
     **/
 
     static frame(fn) {
-        // Add to signals called on invalidation
         return new FrameSignal(fn);
     }
 
@@ -347,53 +349,10 @@ class ValueSignal extends Signal {
 
 
 /*
-PushSignal(value)
-An consumer interface that allows you to terminate a Stream in a signal.
-
-```js
-Stream.of(1).pipe(new PushSignal())
-```
-*/
-
-class PushSignal extends Signal {
-    #value;
-
-    constructor(value) {
-        super();
-        this.#value = value;
-    }
-
-    /**
-    .value
-    Getting `.value` gets value from the cache.
-    **/
-    get value() {
-        // If there is a signal currently evaluating then it becomes a
-        // dependency of this signal, irrespective of state of #value
-        if (evaluatingSignal) setDependency(this, evaluatingSignal);
-        return this.#value;
-    }
-
-    /**
-    .push(value)
-    Updates the cache with `value` and invalidates dependent signals.
-    **/
-    push(value) {
-        // Don't update for no change in value
-        if(this.#value === value) return;
-
-        // Set cached value
-        this.#value = value;
-
-        // Invalidate dependents.
-        invalidateDependents(this);
-    }
-}
-
-
-/*
-PropertySignal(value)
-Wraps a property in a signal. TODO: is this really needed?
+PropertySignal(name, object)
+PropertySignal(name, object, context)
+Wraps a property in a signal. The optional `context` object evaluates the
+property in the context of `context` rather than `object`.
 */
 
 class PropertySignal extends Signal {
@@ -401,13 +360,17 @@ class PropertySignal extends Signal {
     #valid;
     #value;
 
-    constructor(name, object) {
+    constructor(name, object, context) {
         super(name);
-        this.object = object;
+        this.object  = object;
+        this.context = context;
     }
 
     evaluate() {
-        return this.object[this.name];
+        const { object, name, context } = this;
+        return context ?
+            Reflect.get(object, name, context) :
+            object[name] ;
     }
 
     /**
@@ -431,26 +394,41 @@ class PropertySignal extends Signal {
         // Don't update for no change in value.
         if(this.#value === value) return;
 
-        const { object, name } = this;
+        const { object, name, context } = this;
 
         // Set value on object and update value from object in case target is
         // doing something funky with property descriptors that return a
         // different value from the value set.
-        object[name] = value;
-        value = object[name];
+        if (context) {
+            Reflect.set(object, name, value, context);
+        }
+        else {
+            object[name] = value;
+        }
 
-        // Don't invalidate for no change in value.
-        if(this.#value === value) return;
+        this.invalidate();
 
-        // Set cache by reading value back off the object in case object is
-        // doing something funky with property descriptors that return a
-        // different value from the value that was set. Rare, but it can happen.
-        this.#value = value;
-
-        // Invalidate dependents. If a dependent updates synchronously here
-        // we may be in trouble but #valid is true and #value is set so
-        // that's ok I think?
-        invalidateDependents(this);
+// THIS VERSION UPDATES THE CACHE AND AVOIDS INVALIDATION IF OLD VALUE AND NEW
+// VALUE ARE THE SAME
+//        if (context) {
+//            Reflect.set(object, name, value, context);
+//            value = Reflect.get(object, name, context);
+//        }
+//        else {
+//            object[name] = value;
+//            value = object[name];
+//        }
+//
+//        // Don't invalidate for no change in value.
+//        if(this.#value === value) return;
+//
+//        // Set cache
+//        this.#value = value;
+//
+//        // Invalidate dependents. If a dependent updates synchronously here
+//        // we may be in trouble but #valid is true and #value is set so
+//        // that's ok I think?
+//        invalidateDependents(this);
     }
 
     /*

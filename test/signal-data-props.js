@@ -48,3 +48,24 @@ Deno.test('Data(object, { functions: false })', function() {
     s.value;                 // function not observed → no re-run
     equals(runs, 1);
 });
+
+class Thing {
+    constructor(n)  { this.prop = n; }
+    get accessor()  { return this.prop; }
+    set accessor(n) { this.prop = n; }
+}
+
+Data.define(Thing, {
+    computed: ['accessor']
+});
+
+Deno.test('Signal.from(() => data.computedeAccessor)', function() {
+    const data = Data.of(new Thing(60));
+    const s    = Signal.from(() => data.accessor);
+
+    equals(s.value, 60);
+    data.accessor = 61;
+    equals(s.value, 61);
+    data.prop = 62;
+    equals(s.value, 62);
+});
