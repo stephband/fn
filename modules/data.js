@@ -82,6 +82,14 @@ function getProperty(name, object, proxy, signals, enumerables, functions, metho
         // not observable (the enumerables flag should not be set by the user
         // where the enumerable shape of an object is expected to change)
         if (enumerables && !descriptor.enumerable) {
+            // If property is an accessor in the computed list we nonetheless
+            // need to reflect it to the proxy so that it accesses other
+            // signalled properties. Cache it as false.
+            if (descriptor.get && computed && computed.includes(name)) {
+                signals[name] = false;
+                return Reflect.get(object, name, proxy);
+            }
+
             signals[name] = null;
             return object[name];
         }
@@ -99,7 +107,8 @@ function getProperty(name, object, proxy, signals, enumerables, functions, metho
             return object[name] ;
         }
 
-        // If descriptor has a getter and a setter it is observable
+        // If descriptor has a getter and a setter it is observable, and if it
+        // is in the list of computed properties we pass the proxy in as receiver
         if (descriptor.get && descriptor.set) {
             const signal = getSignal(signals, name, object, computed && computed.includes(name) && proxy);
             return signal.value;
@@ -164,14 +173,16 @@ assign(DataTrap.prototype, {
             name in this.signals ?
                 // If it's a signal object we know this property is observable
                 this.signals[name] ? this.signals[name].value :
+                // If it's false we know it's a computed accessor
+                this.signals[name] === false ? Reflect.get(object, name, proxy) :
                 // If it's null we know it's not
                 object[name] :
             // Test property for observability, cacheable state, and return value
             getProperty(name, object, proxy, this.signals, this.enumerables, this.functions, this.methods, this.computed) ;
 
         // Per-spec, if the property is a non-configurable non-writable own
-        // property returning its proxy will error. At least then the user
-        // knows their code is not doing what they might have assumed.
+        // property returning the proxy of its value will error. Meh. At least
+        // the user knows their code is not doing what they might have assumed.
         return Data(value) || value ;
     },
 
@@ -321,11 +332,17 @@ Data.define = function(constructor, options) {
 
 /**
 Data.signal(path, data)
+Warning! Legacy. Setting up signals without running through options can mess
+with the logic of Data proxies.
 **/
-
+/*
 Data.signal = function(name, object) {
     const trap = Data.of(object) && object[$trap];
     return trap ?
         getSignal(trap.signals, name, trap.object) :
         undefined ;
 };
+*/
+
+// Expose for debugging
+export { $trap }

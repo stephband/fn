@@ -10,7 +10,7 @@ import Signal from '../modules/signal.js';
 import Data   from '../modules/data.js';
 import './request-animation-frame.js';
 
-
+/*
 Deno.test('Data.signal()', function() {
     const expected = [1, 2, 2];
     let i = 0;
@@ -32,6 +32,7 @@ Deno.test('Data.signal()', function() {
 
     equals(i, expected.length);
 });
+*/
 
 Deno.test('Signal.from(() => data.a)', function() {
     const expected = [1, 2, 2];
