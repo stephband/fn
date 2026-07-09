@@ -37,6 +37,23 @@ function clearInputs(signal) {
     }
 }
 
+function stopInputs(signal) {
+    // Remove this from signal graph
+    let n = 0;
+    while (signal[--n]) {
+        // -------------------------- Experimental -----------------------------
+        // Stop inputs? An input with a stop method – an observer – can only have
+        // become a dependency if it were constructed during a render (they don't
+        // evaluate synchronously so they don't become dependencies otherwise).
+        // Therefore also, it can only have one output, this. Therefore it is
+        // safe to stop it. I am right about this am I not?
+        if (signal[n].stop) signal[n].stop();
+        // -----------------------------------------------------------------
+        else removeOutput(signal[n], signal);
+        signal[n] = undefined;
+    }
+}
+
 function setDependency(signal, dependent) {
     // Set signal as an input of dependent
     let n = 0;
@@ -621,6 +638,10 @@ on construction and again on every cue following an invalidation of any signal
 read by `evaluate`. Internal only, sub-classed by `TickSignal` and `FrameSignal`.
 */
 
+function throwInvalidReturn(signal) {
+    throw new Error(`Signal.${ signal.constructor.name.slice(0,-6).toLowerCase() }(fn) callback must return true, false or undefined`);
+}
+
 class Observer extends Signal {
     constructor(fn) {
         super();
@@ -664,7 +685,22 @@ class Observer extends Signal {
         this.evaluate = fn;
 
         // An initial, synchronous evaluation binds this observer to changes
-        if (Signal.evaluate(this, this.evaluate) || hasInvalidDependency) this.cue();
+        switch (Signal.evaluate(this, this.evaluate)) {
+            case undefined:
+                // If invalid dependency is flagged cue a render
+                if (hasInvalidDependency) this.cue();
+                break;
+            case true:
+                // Force cue a render
+                this.cue();
+                break;
+            case false:
+                // Force removal from signal graph
+                stopInputs(this);
+                break;
+            default:
+                throwInvalidReturn(this);
+        }
     }
 
     invalidate(input) {
@@ -684,24 +720,15 @@ class Observer extends Signal {
     }
 
     stop() {
-        // Remove this from signal graph
-        let n = 0, input;
-        while (input = this[--n]) {
-            let m = -1;
-            this[n] = undefined;
-            // --------------------- Experimental ------------------------------
-            // A stopable signal has no output
-            if (input.stop) input.stop();
-            // -----------------------------------------------------------------
-            else removeOutput(input, this);
-        }
+        // Remove from signal graph
+        stopInputs(this);
 
         // Remove from observers if cued
         const observers = this.constructor.observers;
         const i = observers.indexOf(this);
         if (i !== -1) {
             // You cannot do this during a render cycle
-            if (observers === rendering) throw new Error('Attempt to remove observer while observers is rendering');
+            if (observers === rendering) throw new Error('Cannot remove observer while observers is rendering');
             observers.splice(i, 1);
         }
         return this;
@@ -719,14 +746,27 @@ function render(observers) {
 
     rendering = observers;
     while (signal = observers[++n]) {
-        // Evaluate the signal, if it returns false-y, and nothing has flagged
-        // it as having invalid dependencies...
-        if (!Signal.evaluate(signal, signal.evaluate) && !hasInvalidDependency) {
-            // ...remove the signal from observers and decrement n
-            observers.splice(n--, 1);
+        // Evaluate the signal
+        switch (Signal.evaluate(signal, signal.evaluate)) {
+            case undefined:
+                // Unless an invalid dependency is flagged remove from observers
+                if (!hasInvalidDependency) observers.splice(n--, 1);
+                break;
+            case true:
+                // Keep it in observers to force re-render on next tick/frame
+                break;
+            case false:
+                // Force removal from signal graph
+                stopInputs(signal);
+                // And remove from observers
+                observers.splice(n--, 1);
+                break;
+            default:
+                throwInvalidReturn(signal)
         }
     }
     rendering = undefined;
+
     return observers;
 }
 
