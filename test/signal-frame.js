@@ -135,3 +135,29 @@ Deno.test('FrameSignal updates when dependencies change', async function() {
 
     equals(i, expected.length);
 });
+
+Deno.test('Signal.frame(() => false)', async function() {
+    const signal = Signal.frame(() => false);
+
+    // No inputs or outputs
+    equals(signal[-1], undefined);
+    equals(signal[0], undefined);
+});
+
+Deno.test('Signal.frame(() => false)', async function() {
+    const count  = Signal.of(0);
+    const signal = Signal.frame(() => {
+        if (count.value === 1) return false;
+        equals(count.value, 0);
+    });
+
+    equals(signal[-1], count);
+
+    ++count.value;
+    await wait(40);
+    equals(signal[-1], undefined);
+
+    ++count.value;
+    await wait(40);
+    equals(signal[-1], undefined);
+});
