@@ -624,44 +624,52 @@ read by `evaluate`. Internal only, sub-classed by `TickSignal` and `FrameSignal`
 */
 
 function link(a, b) {
-    b.cued = true;
+    b.prev = a;
     return a.next = b;
 }
 
-function unlink(a, b) {
-    b.cued = false;
-    a.next = b.next;
+function unlink(b) {
+    const a = b.prev;
+    const c = b.next;
+    b.prev = null;
+    a.next = c;
     // If b.next is not null it now should be
-    if (b.next) b.next = null;
+    if (c) {
+        b.next = null;
+        c.prev = a;
+    }
     // And if it is it must have been the tail of the list. Note that it is fine
     // if `a` is constructor at this point - a.next is null so constructor.tail
     // will be overwritten in the next .cue().
-    else b.constructor.tail = a;
+    else {
+        b.constructor.tail = a;
+    }
 }
 
 function render(constructor) {
-    let a = constructor;
+    let a = constructor.next;
     let b;
-    while (b = a && a.next) {
+    while (a) {
+        b = a.next;
         // Evaluate the signal
-        switch (Signal.evaluate(b, b.evaluate)) {
+        switch (Signal.evaluate(a, a.evaluate)) {
             case undefined:
                 // Unless an invalid dependency is flagged remove from observers
-                if (!hasInvalidDependency) unlink(a, b);
+                if (!hasInvalidDependency) unlink(a);
                 break;
             case true:
                 // Keep it in observers to force re-render on next tick/frame
-                a = b;
                 break;
             case false:
                 // Force removal from signal graph
-                stopInputs(b);
+                stopInputs(a);
                 // And remove from observers
-                unlink(a, b);
+                unlink(a);
                 break;
             default:
-                throwInvalidReturn(b)
+                throwInvalidReturn(a)
         }
+        a = b;
     }
 }
 
@@ -706,7 +714,7 @@ class Observer extends Signal {
         this.evaluate = fn;
 
         // Prepare for linked list
-        this.cued = false;
+        this.prev = null;
         this.next = null;
 
         // An initial, synchronous evaluation binds this observer to changes
@@ -733,7 +741,7 @@ class Observer extends Signal {
         let head = this.constructor;
 
         // If the observer is already cued do nothing
-        if (this.cued) return;
+        if (this.prev) return;
         //while (head = head.next) if (head === this) return;
 
         // Verify that input signal has the right to invalidate this
@@ -748,18 +756,9 @@ class Observer extends Signal {
     stop() {
         // Remove from signal graph
         stopInputs(this);
-
-        // Remove from observers if cued
-        let a = this.constructor;
-        let b;
-        if (this.cued) while (b = a.next) {
-            if (b === this) {
-                unlink(a, b);
-                break;
-            }
-            a = b;
-        }
-
+        // If cued remove from cued queue
+        if (this.prev) unlink(this);
+        // Allow chaining in case Observer is subclassed elsewhere
         return this;
     }
 
