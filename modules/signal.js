@@ -409,6 +409,8 @@ class PropertySignal extends Signal {
 
     set value(value) {
         // Don't update for no change in value.
+// WE PROBABLY CAN DO THIS FOR OWN NON-ACCESSOR PROPERTIES, BUT WE DON'T
+// CURRENTLY ASK ABOUT THE DESCRIPTOR
 //if (this.#value === value) return;
 
         const { object, name, context } = this;
