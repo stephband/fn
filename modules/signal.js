@@ -722,15 +722,16 @@ class Observer extends Signal {
     stop() {
         // Remove from signal graph
         stopInputs(this);
+        unlink(this);
 
         // Remove from observers if cued
-        const observers = this.constructor.observers;
-        const i = observers.indexOf(this);
-        if (i !== -1) {
-            // You cannot do this during a render cycle
-            if (observers === rendering) throw new Error('Cannot remove observer while observers is rendering');
-            observers.splice(i, 1);
-        }
+        //const observers = this.constructor.observers;
+        //const i = observers.indexOf(this);
+        //if (i !== -1) {
+        //    // You cannot do this during a render cycle
+        //    if (observers === rendering) throw new Error('Cannot remove observer while observers is rendering');
+        //    observers.splice(i, 1);
+        //}
         return this;
     }
 
@@ -741,16 +742,16 @@ class Observer extends Signal {
 
 let rendering;
 
-function render(observers) {
-    let n = -1, signal;
+function render(constructor) {
+    let head = constructor;
 
-    rendering = observers;
-    while (signal = observers[++n]) {
+    //rendering = observers;
+    while (signal = head.next) {
         // Evaluate the signal
         switch (Signal.evaluate(signal, signal.evaluate)) {
             case undefined:
                 // Unless an invalid dependency is flagged remove from observers
-                if (!hasInvalidDependency) observers.splice(n--, 1);
+                if (!hasInvalidDependency) unlink(head, signal);
                 break;
             case true:
                 // Keep it in observers to force re-render on next tick/frame
@@ -759,15 +760,15 @@ function render(observers) {
                 // Force removal from signal graph
                 stopInputs(signal);
                 // And remove from observers
-                observers.splice(n--, 1);
+                unlink(head, signal);
                 break;
             default:
                 throwInvalidReturn(signal)
         }
+        head = signal;
     }
-    rendering = undefined;
-
-    return observers;
+    //rendering = undefined;
+    //return observers;
 }
 
 
@@ -780,23 +781,37 @@ tick following an invalidation of any signal read by `fn`. Use `Signal.tick(fn)`
 const promise = Promise.resolve();
 
 function tick() {
-    const observers = render(TickSignal.observers);
-
+    render(TickSignal);
     // Where observers remain schedule the next tick
-    if (observers.length) promise.then(tick);
+    if (TickSignal.next) promise.then(tick);
+}
+
+function link(a, b) {
+    return a.next = b;
+}
+
+function unlink(a, b) {
+    return a.next = b.next;
 }
 
 export class TickSignal extends Observer {
-    static observers = [];
+    static next = undefined;
+    static last = undefined;
 
     cue() {
-        const observers = this.constructor.observers;
+        const constructor = this.constructor;
 
-        // If no observers are cued, cue tick() on the next tick
-        if (!observers.length) promise.then(tick);
-
-        // Add this observer to observers
-        observers.push(this);
+        // No observers are cued for render
+        if (!constructor.next) {
+            // Start the link list
+            constructor.last = link(constructor, this);
+            // Cue tick() on the next tick
+            promise.then(tick);
+        }
+        else {
+            // Add to link list
+            link(constructor.last, this);
+        }
     }
 }
 
@@ -813,22 +828,27 @@ Use `Signal.frame(fn)` to create a FrameSignal signal.
 */
 
 function frame() {
-    const observers = render(FrameSignal.observers);
-
+    render(FrameSignal);
     // Where observers remain schedule the next frame
-    if (observers.length) requestAnimationFrame(frame);
+    if (FrameSignal.next) requestAnimationFrame(frame);
 }
 
 export class FrameSignal extends Observer {
     static observers = [];
 
     cue() {
-        const observers = this.constructor.observers;
+        const constructor = this.constructor;
 
-        // If no observers are cued, cue frame() on the next frame
-        if (!observers.length) requestAnimationFrame(frame);
-
-        // Add this observer to observers
-        observers.push(this);
+        // No observers are cued for render
+        if (!constructor.next) {
+            // Start the link list
+            constructor.last = link(constructor, this);
+            // Cue frame() on the next frame
+            requestAnimationFrame(frame);
+        }
+        else {
+            // Add to link list
+            link(constructor.last, this);
+        }
     }
 }
