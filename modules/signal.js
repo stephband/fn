@@ -695,12 +695,6 @@ class Observer extends Signal {
             while (evaluatingSignal[--n]) if (evaluatingSignal[n] === this) break;
             evaluatingSignal[n] = this;
             // -----------------------------------------------------------------
-
-            // The old way was to throw an error.
-            // Make recovery possible? I'm not convinced this works in all cases
-            // but it works where an observer is instantiated inside an observer
-            //evaluatingSignal = undefined;
-            //throw new Error('Illegal nested ' + this.constructor.name + ' – cannot instantiate observer during signal evaluation');
         }
 
         // If no fn passed in we do not want to evaluate the signal immediately.
