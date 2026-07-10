@@ -409,7 +409,7 @@ class PropertySignal extends Signal {
 
     set value(value) {
         // Don't update for no change in value.
-        if(this.#value === value) return;
+//if (this.#value === value) return;
 
         const { object, name, context } = this;
 
