@@ -647,14 +647,14 @@ function unlink(a, b) {
 }
 
 function render(constructor) {
-    let head = constructor;
-
-    while (signal = head.next) {
+    let a = constructor;
+    let b;
+    while (b = a.next) {
         // Evaluate the signal
-        switch (Signal.evaluate(signal, signal.evaluate)) {
+        switch (Signal.evaluate(b, b.evaluate)) {
             case undefined:
                 // Unless an invalid dependency is flagged remove from observers
-                if (!hasInvalidDependency) unlink(head, signal);
+                if (!hasInvalidDependency) unlink(a, b);
                 break;
             case true:
                 // Keep it in observers to force re-render on next tick/frame
@@ -663,12 +663,12 @@ function render(constructor) {
                 // Force removal from signal graph
                 stopInputs(signal);
                 // And remove from observers
-                unlink(head, signal);
+                unlink(a, b);
                 break;
             default:
-                throwInvalidReturn(signal)
+                throwInvalidReturn(b)
         }
-        head = signal;
+        b = a;
     }
 }
 
