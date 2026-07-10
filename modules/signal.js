@@ -409,7 +409,10 @@ class PropertySignal extends Signal {
 
     set value(value) {
         // Don't update for no change in value.
-        if(this.#value === value) return;
+        // WE PROBABLY SHOULD NOT DO THIS FOR ACCESSOR PROPERTIES, they can return
+        // something other than what is set, after all. In fact we probably should only
+        // do this on own non-accessors. We don't currently ask for the descriptor.
+        if (this.#valid && this.#value === value) return;
 
         const { object, name, context } = this;
 
@@ -421,31 +424,13 @@ class PropertySignal extends Signal {
         }
         else {
             object[name] = value;
+
+            // AGAIN, IF IT'S AN OWN NON-ACCESSOR WE CAN CHECK FOR VALUE HERE
+            // AND AVOID INVALIDATION IF VALUE HAS NOT CHANGED AGAINST #value.
+            // if(this.#value === value) return;
         }
 
         this.invalidate();
-
-// THIS VERSION UPDATES THE CACHE AND AVOIDS INVALIDATION IF OLD VALUE AND NEW
-// VALUE ARE THE SAME
-//        if (context) {
-//            Reflect.set(object, name, value, context);
-//            value = Reflect.get(object, name, context);
-//        }
-//        else {
-//            object[name] = value;
-//            value = object[name];
-//        }
-//
-//        // Don't invalidate for no change in value.
-//        if(this.#value === value) return;
-//
-//        // Set cache
-//        this.#value = value;
-//
-//        // Invalidate dependents. If a dependent updates synchronously here
-//        // we may be in trouble but #valid is true and #value is set so
-//        // that's ok I think?
-//        invalidateDependents(this);
     }
 
     /*
