@@ -624,17 +624,25 @@ read by `evaluate`. Internal only, sub-classed by `TickSignal` and `FrameSignal`
 */
 
 function link(a, b) {
+    b.cued = true;
     return a.next = b;
 }
 
 function unlink(a, b) {
-    return a.next = b.next;
+    b.cued = false;
+    a.next = b.next;
+    // If b.next is not null it now should be
+    if (b.next) b.next = null;
+    // And if it is it must have been the tail of the list. Note that it is fine
+    // if `a` is constructor at this point - a.next is null so constructor.tail
+    // will be overwritten in the next .cue().
+    else b.constructor.tail = a;
 }
 
 function render(constructor) {
     let a = constructor;
     let b;
-    while (b = a.next) {
+    while (b = a && a.next) {
         // Evaluate the signal
         switch (Signal.evaluate(b, b.evaluate)) {
             case undefined:
@@ -643,17 +651,17 @@ function render(constructor) {
                 break;
             case true:
                 // Keep it in observers to force re-render on next tick/frame
+                a = b;
                 break;
             case false:
                 // Force removal from signal graph
-                stopInputs(signal);
+                stopInputs(b);
                 // And remove from observers
                 unlink(a, b);
                 break;
             default:
                 throwInvalidReturn(b)
         }
-        b = a;
     }
 }
 
@@ -703,6 +711,10 @@ class Observer extends Signal {
         // Set fn as evaluation function
         this.evaluate = fn;
 
+        // Prepare for linked list
+        this.cued = false;
+        this.next = null;
+
         // An initial, synchronous evaluation binds this observer to changes
         switch (Signal.evaluate(this, this.evaluate)) {
             case undefined:
@@ -727,7 +739,8 @@ class Observer extends Signal {
         let head = this.constructor;
 
         // If the observer is already cued do nothing
-        while (head = head.next) if (head === this) return;
+        if (this.cued) return;
+        //while (head = head.next) if (head === this) return;
 
         // Verify that input signal has the right to invalidate this
         if (input && !hasInput(this, input)) return;
@@ -743,10 +756,14 @@ class Observer extends Signal {
         stopInputs(this);
 
         // Remove from observers if cued
-        let a = this.constructor, b;
-        while (b = a.next) if (b === this) {
-            unlink(a, b);
-            break;
+        let a = this.constructor;
+        let b;
+        if (this.cued) while (b = a.next) {
+            if (b === this) {
+                unlink(a, b);
+                break;
+            }
+            a = b;
         }
 
         return this;
@@ -773,8 +790,8 @@ function tick() {
 }
 
 export class TickSignal extends Observer {
-    static next = undefined;
-    static last = undefined;
+    static next = null;
+    static tail = null;
 
     cue() {
         const constructor = this.constructor;
@@ -782,13 +799,13 @@ export class TickSignal extends Observer {
         // No observers are cued for render
         if (!constructor.next) {
             // Start the link list
-            constructor.last = link(constructor, this);
+            constructor.tail = link(constructor, this);
             // Cue tick() on the next tick
             promise.then(tick);
         }
         else {
             // Add to link list
-            link(constructor.last, this);
+            constructor.tail = link(constructor.tail, this);
         }
     }
 }
@@ -812,8 +829,8 @@ function frame() {
 }
 
 export class FrameSignal extends Observer {
-    static next = undefined;
-    static last = undefined;
+    static next = null;
+    static tail = null;
 
     cue() {
         const constructor = this.constructor;
@@ -821,13 +838,13 @@ export class FrameSignal extends Observer {
         // No observers are cued for render
         if (!constructor.next) {
             // Start the link list
-            constructor.last = link(constructor, this);
+            constructor.tail = link(constructor, this);
             // Cue frame() on the next frame
             requestAnimationFrame(frame);
         }
         else {
             // Add to link list
-            link(constructor.last, this);
+            constructor.tail =link(constructor.tail, this);
         }
     }
 }
