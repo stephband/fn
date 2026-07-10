@@ -638,6 +638,40 @@ on construction and again on every cue following an invalidation of any signal
 read by `evaluate`. Internal only, sub-classed by `TickSignal` and `FrameSignal`.
 */
 
+function link(a, b) {
+    return a.next = b;
+}
+
+function unlink(a, b) {
+    return a.next = b.next;
+}
+
+function render(constructor) {
+    let head = constructor;
+
+    while (signal = head.next) {
+        // Evaluate the signal
+        switch (Signal.evaluate(signal, signal.evaluate)) {
+            case undefined:
+                // Unless an invalid dependency is flagged remove from observers
+                if (!hasInvalidDependency) unlink(head, signal);
+                break;
+            case true:
+                // Keep it in observers to force re-render on next tick/frame
+                break;
+            case false:
+                // Force removal from signal graph
+                stopInputs(signal);
+                // And remove from observers
+                unlink(head, signal);
+                break;
+            default:
+                throwInvalidReturn(signal)
+        }
+        head = signal;
+    }
+}
+
 function throwInvalidReturn(signal) {
     throw new Error(`Signal.${ signal.constructor.name.slice(0,-6).toLowerCase() }(fn) callback must return true, false or undefined`);
 }
@@ -705,10 +739,10 @@ class Observer extends Signal {
 
     invalidate(input) {
         // Static observers list
-        const observers = this.constructor.observers;
+        let head = this.constructor;
 
         // If the observer is already cued do nothing
-        if (observers.indexOf(this) !== -1) return;
+        while (head = head.next) if (head === this) return;
 
         // Verify that input signal has the right to invalidate this
         if (input && !hasInput(this, input)) return;
@@ -722,53 +756,20 @@ class Observer extends Signal {
     stop() {
         // Remove from signal graph
         stopInputs(this);
-        unlink(this);
 
         // Remove from observers if cued
-        //const observers = this.constructor.observers;
-        //const i = observers.indexOf(this);
-        //if (i !== -1) {
-        //    // You cannot do this during a render cycle
-        //    if (observers === rendering) throw new Error('Cannot remove observer while observers is rendering');
-        //    observers.splice(i, 1);
-        //}
+        let a = this.constructor, b;
+        while (b = a.next) if (b === this) {
+            unlink(a, b);
+            break;
+        }
+
         return this;
     }
 
     valueOf()  { return this; }
     toString() { return '[object Signal]' ; }
     toJSON()   { return; }
-}
-
-let rendering;
-
-function render(constructor) {
-    let head = constructor;
-
-    //rendering = observers;
-    while (signal = head.next) {
-        // Evaluate the signal
-        switch (Signal.evaluate(signal, signal.evaluate)) {
-            case undefined:
-                // Unless an invalid dependency is flagged remove from observers
-                if (!hasInvalidDependency) unlink(head, signal);
-                break;
-            case true:
-                // Keep it in observers to force re-render on next tick/frame
-                break;
-            case false:
-                // Force removal from signal graph
-                stopInputs(signal);
-                // And remove from observers
-                unlink(head, signal);
-                break;
-            default:
-                throwInvalidReturn(signal)
-        }
-        head = signal;
-    }
-    //rendering = undefined;
-    //return observers;
 }
 
 
@@ -784,14 +785,6 @@ function tick() {
     render(TickSignal);
     // Where observers remain schedule the next tick
     if (TickSignal.next) promise.then(tick);
-}
-
-function link(a, b) {
-    return a.next = b;
-}
-
-function unlink(a, b) {
-    return a.next = b.next;
 }
 
 export class TickSignal extends Observer {
@@ -834,7 +827,8 @@ function frame() {
 }
 
 export class FrameSignal extends Observer {
-    static observers = [];
+    static next = undefined;
+    static last = undefined;
 
     cue() {
         const constructor = this.constructor;
