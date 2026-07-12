@@ -2,6 +2,10 @@
 const global = globalThis;
 const DEBUG  = false;//window.DEBUG && window.DEBUG.signal !== false;
 const assign = Object.assign;
+const prev   = Symbol('prev');
+const next   = Symbol('next');
+const head   = Symbol('head');
+const tail   = Symbol('tail');
 
 let evaluatingSignal;
 let hasInvalidDependency;
@@ -22,7 +26,7 @@ function removeOutput(signal, output) {
     while (signal[o++]) signal[o - 1] = signal[o];
 }
 
-function clearInputs(signal) {
+export function clearInputs(signal) {
     let n = 0;
     while (signal[--n]) {
         // -------------------------- Experimental -----------------------------
@@ -37,7 +41,7 @@ function clearInputs(signal) {
     }
 }
 
-function stopInputs(signal) {
+export function stopInputs(signal) {
     // Remove this from signal graph
     let n = 0;
     while (signal[--n]) {
@@ -54,7 +58,7 @@ function stopInputs(signal) {
     }
 }
 
-function setDependency(signal, dependent) {
+export function setDependency(signal, dependent) {
     // Set signal as an input of dependent
     let n = 0;
     while (dependent[--n]) if (dependent[n] === signal) break;
@@ -73,21 +77,19 @@ function setDependency(signal, dependent) {
     );
 }
 
-function invalidateDependents(signal) {
-    if (DEBUG) {
-        console.log(
-            '%cSignal%c invalidate%c ' + signal.constructor.name + '#' + signal.id + (signal.name ? ' "' + signal.name + '"' : ''),
-            'color: #718893; font-weight: 300;',
-            'color: #3896BF; font-weight: 300;',
-            'color: #718893; font-weight: 300;'
-        );
-    }
+export function invalidateOutputs(signal) {
+    if (DEBUG) console.log(
+        '%cSignal%c invalidate%c ' + signal.constructor.name + '#' + signal.id + (signal.name ? ' "' + signal.name + '"' : ''),
+        'color: #718893; font-weight: 300;',
+        'color: #3896BF; font-weight: 300;',
+        'color: #718893; font-weight: 300;'
+    );
 
     let n = -1;
-    let dependent;
-    while (dependent = signal[++n]) {
+    let output;
+    while (output = signal[++n]) {
         signal[n] = undefined;
-        dependent.invalidate(signal);
+        output.invalidate(signal);
     }
 }
 
@@ -279,6 +281,11 @@ export default class Signal {
         return evaluatingSignal;
     }
 
+    // TEMP
+    static set evaluating(signal) {
+        evaluatingSignal = signal;
+    }
+
     constructor(name) {
         if (name) this.name = name;
 
@@ -360,7 +367,7 @@ class ValueSignal extends Signal {
         // Invalidate dependents. If a dependent updates synchronously here
         // we may be in trouble but #valid is true and #value is set so
         // that's ok I think?
-        invalidateDependents(this);
+        invalidateOutputs(this);
     }
 }
 
@@ -458,7 +465,7 @@ class PropertySignal extends Signal {
         // we may be in trouble, as it would evaluate and cache this signal
         // and overwrite dependents before we have finished invalidating
         // this set of dependents.
-        invalidateDependents(this);
+        invalidateOutputs(this);
     }
 }
 
@@ -515,14 +522,9 @@ class ComputeSignal extends Signal {
 
         this.#valid = false;
 
-        // Clear inputs
+        // Clear inputs and invalidate outputs
         clearInputs(this);
-
-        // Invalidate dependents. If a dependent updates synchronously here
-        // we may be in trouble, as it would evaluate and cache this signal
-        // and overwrite dependents before we have finished invalidating
-        // this set of dependents.
-        invalidateDependents(this);
+        invalidateOutputs(this);
     }
 }
 
@@ -611,7 +613,7 @@ export class TimedSignal extends Signal {
         //if (currentTime > time) return;
 
         // If we are moving out of a valid state invalid dependents
-        if (isValid) invalidateDependents(this);
+        if (isValid) invalidateOutputs(this);
     }
 }
 
@@ -624,33 +626,33 @@ read by `evaluate`. Internal only, sub-classed by `TickSignal` and `FrameSignal`
 */
 
 function link(a, b) {
-    b.prev = a;
-    return a.next = b;
+    b[prev] = a;
+    return a[next] = b;
 }
 
 function unlink(b) {
-    const a = b.prev;
-    const c = b.next;
-    b.prev = null;
-    a.next = c;
-    // If b.next is not null it now should be
+    const a = b[prev];
+    const c = b[next];
+    b[prev] = null;
+    a[next] = c;
+    // If b[next] is not null it now should be
     if (c) {
-        b.next = null;
-        c.prev = a;
+        b[next] = null;
+        c[prev] = a;
     }
     // And if it is it must have been the tail of the list. Note that it is fine
-    // if `a` is constructor at this point - a.next is null so constructor.tail
+    // if `a` is constructor at this point - a[next] is null so constructor[tail]
     // will be overwritten in the next .cue().
     else {
-        b.constructor.tail = a;
+        b.constructor[tail] = a;
     }
 }
 
 function render(constructor) {
-    let a = constructor.next;
+    let a = constructor[next];
     let b;
     while (a) {
-        b = a.next;
+        b = a[next];
         // Evaluate the signal
         switch (Signal.evaluate(a, a.evaluate)) {
             case undefined:
@@ -714,8 +716,8 @@ class Observer extends Signal {
         this.evaluate = fn;
 
         // Prepare for linked list
-        this.prev = null;
-        this.next = null;
+        this[prev] = null;
+        this[next] = null;
 
         // An initial, synchronous evaluation binds this observer to changes
         switch (Signal.evaluate(this, this.evaluate)) {
@@ -741,8 +743,8 @@ class Observer extends Signal {
         let head = this.constructor;
 
         // If the observer is already cued do nothing
-        if (this.prev) return;
-        //while (head = head.next) if (head === this) return;
+        if (this[prev]) return;
+        //while (head = head[next]) if (head === this) return;
 
         // Verify that input signal has the right to invalidate this
         if (input && !hasInput(this, input)) return;
@@ -757,7 +759,7 @@ class Observer extends Signal {
         // Remove from signal graph
         stopInputs(this);
         // If cued remove from cued queue
-        if (this.prev) unlink(this);
+        if (this[prev]) unlink(this);
         // Allow chaining in case Observer is subclassed elsewhere
         return this;
     }
@@ -779,28 +781,28 @@ const promise = Promise.resolve();
 function tick() {
     render(TickSignal);
     // Where observers remain schedule the next tick
-    if (TickSignal.next) promise.then(tick);
+    if (TickSignal[next]) promise.then(tick);
 }
 
 export class TickSignal extends Observer {
-    static next = null;
-    static tail = null;
-
     cue() {
         const constructor = this.constructor;
 
         // No observers are cued for render
-        if (!constructor.next) {
+        if (!constructor[next]) {
             // Start the link list
-            constructor.tail = link(constructor, this);
+            constructor[tail] = link(constructor, this);
             // Cue tick() on the next tick
             promise.then(tick);
         }
         else {
             // Add to link list
-            constructor.tail = link(constructor.tail, this);
+            constructor[tail] = link(constructor[tail], this);
         }
     }
+
+    static [next] = null;
+    static [tail] = null;
 }
 
 
@@ -818,26 +820,26 @@ Use `Signal.frame(fn)` to create a FrameSignal signal.
 function frame() {
     render(FrameSignal);
     // Where observers remain schedule the next frame
-    if (FrameSignal.next) requestAnimationFrame(frame);
+    if (FrameSignal[next]) requestAnimationFrame(frame);
 }
 
 export class FrameSignal extends Observer {
-    static next = null;
-    static tail = null;
-
     cue() {
         const constructor = this.constructor;
 
         // No observers are cued for render
-        if (!constructor.next) {
+        if (!constructor[next]) {
             // Start the link list
-            constructor.tail = link(constructor, this);
+            constructor[tail] = link(constructor, this);
             // Cue frame() on the next frame
             requestAnimationFrame(frame);
         }
         else {
             // Add to link list
-            constructor.tail =link(constructor.tail, this);
+            constructor[tail] =link(constructor[tail], this);
         }
     }
+
+    static [next] = null;
+    static [tail] = null;
 }
