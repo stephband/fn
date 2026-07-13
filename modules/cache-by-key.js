@@ -7,9 +7,7 @@ key `fn` is only ever called once.
 
 let warned;
 
-export default function cacheByKey(fn) {
-    var map = {};
-
+export default function cacheByKey(fn, map = {}) {
     return function cache(input) {
         /*if (window.DEBUG && !warned && input === undefined) {
             warned = true;

@@ -8,8 +8,6 @@ lcm(a, b)
 Returns the lowest common multiple of `a` and `b`.
 **/
 
-export function lcm(a, b) {
+export default function lcm(a, b) {
     return a * b / gcd(a, b);
 }
-
-export default curry(lcm);
