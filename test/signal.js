@@ -3,7 +3,8 @@ import {
     assert,
     assertEquals as equals,
     assertStrictEquals as is,
-    assertObjectMatch as matches
+    assertObjectMatch as matches,
+    assertThrows as throws
 } from 'jsr:@std/assert@1';
 
 import Signal from '../modules/signal.js';
@@ -160,4 +161,76 @@ Deno.test('Signal.frame()', async function() {
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
     equals(i, expected.length);
+});
+
+Deno.test('Signal.tick() graph errors', async () => {
+    const expected = [1, 3, 4, 5, 6];
+
+    let i = 0;
+    const s1 = Signal.of(1);
+    const s2 = Signal.of(2);
+    const s3 = Signal.from(() => {
+        // Error after initial evaluation
+        if (i++) throw new Error('Signal 3 throws');
+        return s1 + s2;
+    });
+    const s4 = Signal.of(4);
+    const s5 = Signal.from(() => {
+        // Error on initial evaluation
+        throw new Error('Signal 5 throws');
+    });
+
+    Signal.tick(() => equals(s1.value, expected.shift()));
+    Signal.tick(() => equals(s3.value, expected.shift()));
+    Signal.tick(() => equals(s4.value, expected.shift()));
+    Signal.tick(() => equals(s5.value, expected.shift()));
+
+    // Schedule invalidations
+    s1.value = 5;
+    s4.value = 6;
+
+    // Wait for ticks to render
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    // Check bad signal propagate error throws
+    throws(() => s3.value);
+    throws(() => s5.value);
+
+    equals(0, expected.length);
+});
+
+Deno.test('Signal.frame() graph errors', async () => {
+    const expected = [1, 3, 4, 5, 6];
+
+    let i = 0;
+    const s1 = Signal.of(1);
+    const s2 = Signal.of(2);
+    const s3 = Signal.from(() => {
+        // Error after initial evaluation
+        if (i++) throw new Error('Signal 3 throws');
+        return s1 + s2;
+    });
+    const s4 = Signal.of(4);
+    const s5 = Signal.from(() => {
+        // Error on initial evaluation
+        throw new Error('Signal 5 throws');
+    });
+
+    Signal.frame(() => equals(s1.value, expected.shift()));
+    Signal.frame(() => equals(s3.value, expected.shift()));
+    Signal.frame(() => equals(s4.value, expected.shift()));
+    Signal.frame(() => equals(s5.value, expected.shift()));
+
+    // Schedule invalidations
+    s1.value = 5;
+    s4.value = 6;
+
+    // Wait for ticks to render
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    // Check bad signal propagate error throws
+    throws(() => s3.value);
+    throws(() => s5.value);
+
+    equals(0, expected.length);
 });

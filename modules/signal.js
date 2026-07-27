@@ -1,6 +1,6 @@
 
 const global = globalThis;
-const DEBUG  = false;//window.DEBUG && window.DEBUG.signal !== false;
+const DEBUG  = global.DEBUG;
 const assign = Object.assign;
 const prev   = Symbol('prev');
 const next   = Symbol('next');
@@ -69,21 +69,21 @@ export function setDependency(signal, dependent) {
     while (signal[++n]) if (signal[n] === dependent) break;
     signal[n] = dependent;
 
-    if (DEBUG) console.log(
+    /*if (DEBUG) console.log(
         '%cSignal%c connect%c ' + signal.constructor.name + '#' + signal.id + ' - ' + dependent.constructor.name + '#' + dependent.id,
         'color: #718893; font-weight: 300;',
         'color: #3896BF; font-weight: 300;',
         'color: #718893; font-weight: 300;'
-    );
+    );*/
 }
 
 export function invalidateOutputs(signal) {
-    if (DEBUG) console.log(
+    /*if (DEBUG) console.log(
         '%cSignal%c invalidate%c ' + signal.constructor.name + '#' + signal.id + (signal.name ? ' "' + signal.name + '"' : ''),
         'color: #718893; font-weight: 300;',
         'color: #3896BF; font-weight: 300;',
         'color: #718893; font-weight: 300;'
-    );
+    );*/
 
     let n = -1;
     let output;
@@ -246,23 +246,21 @@ export default class Signal {
         // Clear the decks
         if (!previous) hasInvalidDependency = false;
 
-        /*if (window.DEBUG && window.DEBUG.signal !== false) console.group(
+        /*if (DEBUG && DEBUG.signal !== false) console.group(
             '%cSignal%c evaluate%c ' + evaluatingSignal.constructor.name + '#' + evaluatingSignal.id + (evaluatingSignal.name ? ' "' + evaluatingSignal.name + '"' : ''),
             'color: #718893; font-weight: 300;',
             'color: #3896BF; font-weight: 300;',
             'color: #718893; font-weight: 300;'
         );*/
 
-        const value = fn.apply(context);
-
-        /*if (window.DEBUG && window.DEBUG.signal !== false) console.groupEnd();*/
-
-        evaluatingSignal = previous;
-
-        // Call synchronous updates
-        //if (!evaluatingSignal) handlers.forEach(call);
-
-        return value;
+        try {
+            return fn.apply(context);
+        }
+        // The finally block runs before the function actually returns
+        finally {
+            /*if (window.DEBUG && window.DEBUG.signal !== false) console.groupEnd();*/
+            evaluatingSignal = previous;
+        }
     }
 
     static get hasInvalidDependency() {
@@ -478,6 +476,7 @@ class ComputeSignal extends Signal {
     // Privates
     #fn;
     #context;
+    #error;
     #valid;
     #value;
 
@@ -499,8 +498,18 @@ class ComputeSignal extends Signal {
         // dependency of this signal, irrespective of state of #value
         if (evaluatingSignal) setDependency(this, evaluatingSignal);
         if (this.#valid) return this.#value;
-        this.#value = Signal.evaluate(this, this.#fn, this.#context);
-        if (!hasInvalidDependency) this.#valid = true;
+        if (this.#error) throw this.#error;
+
+        try {
+            this.#value = Signal.evaluate(this, this.#fn, this.#context);
+            if (!hasInvalidDependency) this.#valid = true;
+        }
+        catch(error) {
+            this.#error = error;
+            this.#valid = false;
+            throw error;
+        }
+
         return this.#value;
     }
 
@@ -513,7 +522,7 @@ class ComputeSignal extends Signal {
     */
 
     invalidate(signal) {
-        if (!this.#valid) return;
+        if (!this.#valid && !this.#error) return;
 
         // Verify that signal has the right to invalidate this to protect us
         // against the case where a dependent is left on another signal due to
@@ -521,6 +530,7 @@ class ComputeSignal extends Signal {
         if (signal && !hasInput(this, signal)) return;
 
         this.#valid = false;
+        this.#error = null;
 
         // Clear inputs and invalidate outputs
         clearInputs(this);
@@ -653,24 +663,36 @@ function render(constructor) {
     let b;
     while (a) {
         b = a[next];
-        // Evaluate the signal
-        switch (Signal.evaluate(a, a.evaluate)) {
-            case undefined:
-                // Unless an invalid dependency is flagged remove from observers
-                if (!hasInvalidDependency) unlink(a);
-                break;
-            case true:
-                // Keep it in observers to force re-render on next tick/frame
-                break;
-            case false:
-                // Force removal from signal graph
-                stopInputs(a);
-                // And remove from observers
-                unlink(a);
-                break;
-            default:
-                throwInvalidReturn(a)
+        try {
+            // Evaluate the signal
+            switch (Signal.evaluate(a, a.evaluate)) {
+                case undefined:
+                    // Unless an invalid dependency is flagged remove from observers
+                    if (!hasInvalidDependency) unlink(a);
+                    break;
+                case true:
+                    // Keep it in observers to force re-render on next tick/frame
+                    break;
+                case false:
+                    // Force removal from signal graph
+                    stopInputs(a);
+                    // And remove from observers
+                    unlink(a);
+                    break;
+                default:
+                    throwInvalidReturn(a)
+            }
         }
+        catch(error) {
+            unlink(a);
+            if (DEBUG) console.error(
+                `%cSignal %c${ error.stack.replace(':', '%c') }`,
+                'color:#718893;',
+                'color:#ff003a;',
+                'color:#a2a8b3;'
+            );
+        }
+
         a = b;
     }
 }
@@ -679,19 +701,22 @@ function throwInvalidReturn(signal) {
     throw new Error(`Signal.${ signal.constructor.name.slice(0,-6).toLowerCase() }(fn) callback must return true, false or undefined`);
 }
 
+const colors = {
+    'aqua':   '#00a8a9',
+    'blue':   '#3a8ab0',
+    //'green':  '#B6BD00',
+    'green':  'oklch(0.77 0.2 113.57)',
+    'yellow': '#DDB523',
+    'orange': '#ff9433',
+    'red':    '#ff003a',
+    'grey':   '#81868f',
+    'lightgrey': '#a2a8b3'
+};
+
+
 class Observer extends Signal {
     constructor(fn) {
         super();
-
-        if (DEBUG) {
-            this.id = ++id;
-            console.log(
-                '%cSignal%c create%c ' + this.constructor.name + '#' + this.id + (this.name ? ' "' + this.name + '"' : ''),
-                'color: #718893; font-weight: 300;',
-                'color: #3896BF; font-weight: 300;',
-                'color: #718893; font-weight: 300;'
-            );
-        }
 
         // Check we are not currently evaluating. This would be bad because an
         // evaluation is ephemereal – it may run again, leaving this signal in
@@ -719,22 +744,32 @@ class Observer extends Signal {
         this[prev] = null;
         this[next] = null;
 
-        // An initial, synchronous evaluation binds this observer to changes
-        switch (Signal.evaluate(this, this.evaluate)) {
-            case undefined:
-                // If invalid dependency is flagged cue a render
-                if (hasInvalidDependency) this.cue();
-                break;
-            case true:
-                // Force cue a render
-                this.cue();
-                break;
-            case false:
-                // Force removal from signal graph
-                stopInputs(this);
-                break;
-            default:
-                throwInvalidReturn(this);
+        try {
+            // An initial, synchronous evaluation binds this observer to changes
+            switch (Signal.evaluate(this, this.evaluate)) {
+                case undefined:
+                    // If invalid dependency is flagged cue a render
+                    if (hasInvalidDependency) this.cue();
+                    break;
+                case true:
+                    // Force cue a render
+                    this.cue();
+                    break;
+                case false:
+                    // Force removal from signal graph
+                    stopInputs(this);
+                    break;
+                default:
+                    throwInvalidReturn(this);
+            }
+        }
+        catch(error) {
+            if (DEBUG) console.error(
+                `%cSignal %c${ error.stack.replace(':', '%c') }`,
+                'color:#718893;',
+                'color:#ff003a;',
+                'color:#a2a8b3;'
+            );
         }
     }
 
