@@ -1,14 +1,22 @@
 
 /**
-insert(fn, array, object)
+insert(by, array, object)
 Inserts `object` into `array` at the first index where the result of
-`fn(object)` is greater than `fn(array[index])`.
+`by(array[index], object)` is less than 1.
 **/
-
-//import curry  from './curry.js';
 
 const A = Array.prototype;
 
+export default function insert(by, array, object) {
+    console.warn('insert() has changed. Now expects a comparison fn.');
+    let n = -1;
+    while (array[++n] && by(array[n], object) < 1);
+    A.splice.call(array, n, 0, object);
+    return n;
+}
+
+/*
+The old way:
 export default function insert(fn, array, object) {
     var n = -1;
     var l = array.length;
@@ -17,5 +25,4 @@ export default function insert(fn, array, object) {
     A.splice.call(array, n, 0, object);
     return object;
 }
-
-//export default curry(insert);
+*/

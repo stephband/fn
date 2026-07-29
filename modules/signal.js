@@ -246,19 +246,11 @@ export default class Signal {
         // Clear the decks
         if (!previous) hasInvalidDependency = false;
 
-        /*if (DEBUG && DEBUG.signal !== false) console.group(
-            '%cSignal%c evaluate%c ' + evaluatingSignal.constructor.name + '#' + evaluatingSignal.id + (evaluatingSignal.name ? ' "' + evaluatingSignal.name + '"' : ''),
-            'color: #718893; font-weight: 300;',
-            'color: #3896BF; font-weight: 300;',
-            'color: #718893; font-weight: 300;'
-        );*/
-
         try {
             return fn.apply(context);
         }
         // The finally block runs before the function actually returns
         finally {
-            /*if (window.DEBUG && window.DEBUG.signal !== false) console.groupEnd();*/
             evaluatingSignal = previous;
         }
     }
@@ -281,6 +273,7 @@ export default class Signal {
 
     // TEMP
     static set evaluating(signal) {
+console.trace('WHAT IS THIS FOR?');
         evaluatingSignal = signal;
     }
 
@@ -289,12 +282,12 @@ export default class Signal {
 
         if (DEBUG) {
             this.id = ++id;
-            console.log(
-                '%cSignal%c create%c ' + this.constructor.name + '#' + this.id + (this.name ? ' "' + this.name + '"' : ''),
+            /*console.log(
+                `%cSignal%c create%c #${ this.id } ${ this.constructor.name.replace('Signal', '').toLowerCase() } ${ this.name ? ' "' + this.name + '"' : '' }`,
                 'color: #718893; font-weight: 300;',
                 'color: #3896BF; font-weight: 300;',
                 'color: #718893; font-weight: 300;'
-            );
+            );*/
         }
     }
 
