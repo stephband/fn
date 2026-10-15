@@ -6,14 +6,14 @@ against input values in a WeakMap, such that for each input value
 */
 
 export default function weakCache(fn) {
-    var map = new WeakMap();
+    const map = new WeakMap();
 
     return function weakCache(object) {
-        if (window.DEBUG && object === undefined) {
+        if (globalThis.DEBUG && object === undefined) {
             throw new Error('Fn: weakCache() called with undefined.');
         }
 
-        if (window.DEBUG && arguments.length > 1) {
+        if (globalThis.DEBUG && arguments.length > 1) {
             throw new Error('Fn: weakCache() called with ' + arguments.length + ' arguments. Accepts exactly 1.');
         }
 
@@ -21,7 +21,7 @@ export default function weakCache(fn) {
             return map.get(object);
         }
 
-        var value = fn(object);
+        const value = fn(object);
         map.set(object, value);
         return value;
     };

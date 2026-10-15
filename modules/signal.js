@@ -1,23 +1,23 @@
 
 const global = globalThis;
 const DEBUG  = global.DEBUG;
-const assign = Object.assign;
 const prev   = Symbol('prev');
 const next   = Symbol('next');
-const head   = Symbol('head');
 const tail   = Symbol('tail');
+const graph  = DEBUG && new Set() ;
 
 let evaluatingSignal;
 let hasInvalidDependency;
 let id = 0;
 
-
+/*
 function removeInput(signal, input) {
     // Remove input from stream
     let i = 0;
     while (signal[--i] && signal[i] !== input);
     while (signal[i--]) signal[i + 1] = signal[i];
 }
+*/
 
 function removeOutput(signal, output) {
     // Remove output from signal
@@ -276,6 +276,12 @@ export default class Signal {
 console.trace('WHAT IS THIS FOR?');
         evaluatingSignal = signal;
     }
+
+    static log() {
+        if (!graph) return;
+    }
+
+    static graph = graph;
 
     constructor(name) {
         if (name) this.name = name;
@@ -694,19 +700,6 @@ function throwInvalidReturn(signal) {
     throw new Error(`Signal.${ signal.constructor.name.slice(0,-6).toLowerCase() }(fn) callback must return true, false or undefined`);
 }
 
-const colors = {
-    'aqua':   '#00a8a9',
-    'blue':   '#3a8ab0',
-    //'green':  '#B6BD00',
-    'green':  'oklch(0.77 0.2 113.57)',
-    'yellow': '#DDB523',
-    'orange': '#ff9433',
-    'red':    '#ff003a',
-    'grey':   '#81868f',
-    'lightgrey': '#a2a8b3'
-};
-
-
 class Observer extends Signal {
     constructor(fn) {
         super();
@@ -764,6 +757,9 @@ class Observer extends Signal {
                 'color:#a2a8b3;'
             );
         }
+
+        // Add to output map
+        if (DEBUG) graph.add(this);
     }
 
     invalidate(input) {
@@ -788,6 +784,8 @@ class Observer extends Signal {
         stopInputs(this);
         // If cued remove from cued queue
         if (this[prev]) unlink(this);
+        // Remove from output map
+        if (DEBUG) graph.delete(this);
         // Allow chaining in case Observer is subclassed elsewhere
         return this;
     }
