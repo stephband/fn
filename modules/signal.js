@@ -657,6 +657,23 @@ function unlink(b) {
     }
 }
 
+/*function handleAsync(signal, promise) {
+    return promise.then((v) => {
+        switch (v) {
+            case undefined:
+                break;
+            case true:
+                if (!signal[prev]) signal.cue();
+                break;
+            case false:
+                signal.stop();
+                break;
+            default:
+                throwInvalidReturn(signal);
+        }
+    });
+}*/
+
 function render(constructor) {
     let a = constructor[next];
     let b;
@@ -664,7 +681,8 @@ function render(constructor) {
         b = a[next];
         try {
             // Evaluate the signal
-            switch (Signal.evaluate(a, a.evaluate)) {
+            const object = Signal.evaluate(a, a.evaluate);
+            switch (object) {
                 case undefined:
                     // Unless an invalid dependency is flagged remove from observers
                     if (!hasInvalidDependency) unlink(a);
@@ -679,6 +697,13 @@ function render(constructor) {
                     unlink(a);
                     break;
                 default:
+                    // Allow async functions in Signal.frame(fn)
+                    if (object && object.then) {
+                        if (!hasInvalidDependency) unlink(a);
+                        //handleAsync(a, object);
+                        break;
+                    }
+
                     throwInvalidReturn(a)
             }
         }
@@ -732,7 +757,8 @@ class Observer extends Signal {
 
         try {
             // An initial, synchronous evaluation binds this observer to changes
-            switch (Signal.evaluate(this, this.evaluate)) {
+            const object = Signal.evaluate(this, this.evaluate);
+            switch (object) {
                 case undefined:
                     // If invalid dependency is flagged cue a render
                     if (hasInvalidDependency) this.cue();
@@ -746,6 +772,12 @@ class Observer extends Signal {
                     stopInputs(this);
                     break;
                 default:
+                    // Allow async functions in Signal.frame(fn)
+                    if (object && object.then) {
+                        if (hasInvalidDependency) this.cue();
+                        //handleAsync(a, object);
+                        break;
+                    }
                     throwInvalidReturn(this);
             }
         }
