@@ -20,54 +20,63 @@ function removeInput(signal, input) {
 */
 
 function removeOutput(signal, output) {
-    // Remove output from signal
-    let o = -1;
-    while (signal[++o] && signal[o] !== output);
-    while (signal[o++]) signal[o - 1] = signal[o];
+    if (signal.outputs) signal.outputs.delete(output);
 }
 
 export function clearInputs(signal) {
-    let n = 0;
-    while (signal[--n]) {
+    const inputs = signal.inputs;
+    if (!inputs || !inputs.size) return;
+
+    for (const input of inputs) {
         // -------------------------- Experimental -----------------------------
         // Stop inputs? An input with a stop method – an observer – can only have
         // become a dependency if it were constructed during a render (they don't
         // evaluate synchronously so they don't become dependencies otherwise).
         // Therefore also, it can only have one output, this. Therefore it is
-        // safe to stop it. I am right about this am I not?
-        if (signal[n].stop) signal[n].stop();
+        // safe to stop it.
+        if (input.stop) input.stop();
+        // OR
+        // Stop inputs? An Observer can only have become a dependency if it were
+        // constructed during a render (they don't evaluate synchronously so
+        // they don't become dependencies otherwise). Therefore also, it can
+        // only have one output, this. Therefore it is safe to stop it.
+        //if (input instanceof Observer) input.stop();
         // ---------------------------------------------------------------------
-        signal[n] = undefined;
     }
+
+    inputs.clear();
 }
 
 export function stopInputs(signal) {
     // Remove this from signal graph
-    let n = 0;
-    while (signal[--n]) {
+    const inputs = signal.inputs;
+    if (!inputs || !inputs.size) return;
+
+    for (const input of inputs) {
         // -------------------------- Experimental -----------------------------
         // Stop inputs? An input with a stop method – an observer – can only have
         // become a dependency if it were constructed during a render (they don't
         // evaluate synchronously so they don't become dependencies otherwise).
         // Therefore also, it can only have one output, this. Therefore it is
-        // safe to stop it. I am right about this am I not?
-        if (signal[n].stop) signal[n].stop();
+        // safe to stop it.
+        if (input.stop) input.stop();
+        // OR
+        // Stop inputs? An Observer can only have become a dependency if it were
+        // constructed during a render (they don't evaluate synchronously so
+        // they don't become dependencies otherwise). Therefore also, it can
+        // only have one output, this. Therefore it is safe to stop it.
+        //if (input instanceof Observer) input.stop();
         // -----------------------------------------------------------------
-        else removeOutput(signal[n], signal);
-        signal[n] = undefined;
+        else removeOutput(input, signal);
     }
+
+    inputs.clear();
 }
 
 export function setDependency(signal, dependent) {
-    // Set signal as an input of dependent
-    let n = 0;
-    while (dependent[--n]) if (dependent[n] === signal) break;
-    dependent[n] = signal;
-
-    // Set dependent as an output of signal
-    n = -1;
-    while (signal[++n]) if (signal[n] === dependent) break;
-    signal[n] = dependent;
+    // Set signal as an input of dependent and dependent as an output of signal
+    (dependent.inputs ||= new Set()).add(signal);
+    (signal.outputs   ||= new Set()).add(dependent);
 
     /*if (DEBUG) console.log(
         '%cSignal%c connect%c ' + signal.constructor.name + '#' + signal.id + ' - ' + dependent.constructor.name + '#' + dependent.id,
@@ -85,18 +94,24 @@ export function invalidateOutputs(signal) {
         'color: #718893; font-weight: 300;'
     );*/
 
-    let n = -1;
-    let output;
-    while (output = signal[++n]) {
-        signal[n] = undefined;
+    const outputs = signal.outputs;
+    if (!outputs || !outputs.size) return;
+
+    if (outputs.size === 1) {
+        const output = outputs.values().next().value;
+        outputs.clear();
         output.invalidate(signal);
+        return;
     }
+
+    const list = Array.from(outputs);
+    outputs.clear();
+    let n = -1;
+    while (list[++n]) list[n].invalidate(signal);
 }
 
 export function hasInput(signal, input) {
-    // Check if input exists in the -ve indexes
-    let n = 0;
-    while (signal[--n]) if (signal[n] === input) return true;
+    return Boolean(signal.inputs && signal.inputs.has(input));
 }
 
 
@@ -737,9 +752,7 @@ class Observer extends Signal {
             // We can set this as an input of evaluatingSignal. this will never
             // invalidate evaluatingSignal – it has no mechanism to do so – but
             // when evaluatingSignal is invalidated this will be stopped.
-            let n = 0;
-            while (evaluatingSignal[--n]) if (evaluatingSignal[n] === this) break;
-            evaluatingSignal[n] = this;
+            (evaluatingSignal.inputs ||= new Set()).add(this);
             // -----------------------------------------------------------------
         }
 

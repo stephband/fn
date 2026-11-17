@@ -140,8 +140,8 @@ Deno.test('Signal.frame(() => false)', async function() {
     const signal = Signal.frame(() => false);
 
     // No inputs or outputs
-    equals(signal[-1], undefined);
-    equals(signal[0], undefined);
+    equals(signal.inputs, undefined);
+    equals(signal.outputs, undefined);
 });
 
 Deno.test('Signal.frame(() => false)', async function() {
@@ -151,15 +151,15 @@ Deno.test('Signal.frame(() => false)', async function() {
         equals(count.value, 0);
     });
 
-    equals(signal[-1], count);
+    equals(signal.inputs.has(count), true);
 
     ++count.value;
     await wait(40);
-    equals(signal[-1], undefined);
+    equals(signal.inputs.size, 0);
 
     ++count.value;
     await wait(40);
-    equals(signal[-1], undefined);
+    equals(signal.inputs.size, 0);
 });
 
 
