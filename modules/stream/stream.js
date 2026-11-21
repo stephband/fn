@@ -15,8 +15,15 @@ function throwTypeError(source) {
 
 function push(stream, value) {
     if (value === undefined) return;
-    let n = -1;
-    while (stream[++n]) stream[n].push(value);
+    let n = 0;
+    let output;
+    while (output = stream[n]) {
+        output.push(value);
+        // Preserve attachment order without skipping siblings when an output
+        // stops or unpipes itself during push() and removeOutput() shifts
+        // subsequent outputs down into slot n.
+        if (stream[n] === output) n++;
+    }
     return stream;
 }
 
@@ -82,7 +89,7 @@ export class Consumer extends Stopable {
             removeOutput(input, this);
 
             // If input is stop-able and has no other outputs, stop it
-            if (input.stop && !input[0]) input.stop(input);
+            if (input.stop && !input[0]) input.stop();
         }
 
         // Set status and call done(fn) handlers

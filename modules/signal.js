@@ -907,7 +907,7 @@ export class FrameSignal extends Observer {
         }
         else {
             // Add to link list
-            constructor[tail] =link(constructor[tail], this);
+            constructor[tail] = link(constructor[tail], this);
         }
     }
 

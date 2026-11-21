@@ -45,7 +45,7 @@ export default class Stopable extends id {
     done(fn) {
         // Is stream already stopped? Call listener immediately.
         if (this.status === 'done') {
-            call(listener);
+            call(fn);
             return this;
         }
 
