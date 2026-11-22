@@ -1,9 +1,10 @@
 import Stream, { push } from './stream.js';
+import ColdStream from './cold-stream.js';
 
 /**
 GeneratorStream - Creates a stream from a generator function
 **/
-export class GeneratorStream extends Stream {
+export class GeneratorStream extends ColdStream {
     constructor(generator) {
         super();
         this.generator = generator;

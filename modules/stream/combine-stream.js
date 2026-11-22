@@ -41,7 +41,8 @@ new Combine({ a: stream, b: promise }, { mutable: true }).each((object) => {
 ```
 **/
 
-import Stream from './stream.js';
+import Stream     from './stream.js';
+import ColdStream from './cold-stream.js';
 
 const assign = Object.assign;
 const create = Object.create;
@@ -57,7 +58,7 @@ export default function Combine(object, options) {
     this.active  = false;
 }
 
-Combine.prototype = assign(create(Stream.prototype), {
+Combine.prototype = assign(create(ColdStream.prototype), {
     start: function() {
         const object = this.object;
         const values = this.mutable ? object : {} ;

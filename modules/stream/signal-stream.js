@@ -1,6 +1,7 @@
 
 import ObserveSignal from '../signal.js';
-import Stream from './stream.js';
+import Stream        from './stream.js';
+import ColdStream    from './cold-stream.js';
 
 const assign  = Object.assign;
 const create  = Object.create;
@@ -16,7 +17,7 @@ function SignalStream(evaluate, context) {
     };
 }
 
-SignalStream.prototype = assign(create(Stream.prototype), ObserveSignal.prototype, {
+SignalStream.prototype = assign(create(ColdStream.prototype), ObserveSignal.prototype, {
     start: function() {
         // Evaluate and send value to consumer
         this.fn();

@@ -1,9 +1,10 @@
 
-import self     from './self.js';
-import Stream   from './stream/stream.js';
-import Combine  from './stream/combine-stream.js';
-import Clock    from './stream/clock-stream.js';
-import Throttle from './stream/throttle-stream.js';
+import self       from './self.js';
+import Stream, { Consumer } from './stream/stream.js';
+import ColdStream from './stream/cold-stream.js';
+import Combine    from './stream/combine-stream.js';
+import Clock      from './stream/clock-stream.js';
+import Throttle   from './stream/throttle-stream.js';
 
 const global = globalThis;
 const A      = Array.prototype;
@@ -22,6 +23,14 @@ assign(Stream, {
     isStream: function(object) {
         return Stream.prototype.isPrototypeOf(object);
     },
+
+    /**
+    Stream.cold(start)
+    Creates a cold stream, optionally driven by a `start(push, stop)` function
+    invoked when a consumer is first attached. If `start` returns a cleanup
+    function it is registered with `.done()`.
+    **/
+    cold: (start) => new ColdStream(start),
 
     /**
     Stream.combine(inputs)
@@ -107,4 +116,4 @@ assign(Stream.prototype, {
         self
 });
 
-export { Stream as default }
+export { Stream as default, ColdStream, Consumer }

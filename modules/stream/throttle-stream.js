@@ -1,5 +1,6 @@
 
 import Stream     from './stream.js';
+import ColdStream from './cold-stream.js';
 import TimeStream from './clock-stream.js';
 
 const assign  = Object.assign;
@@ -12,7 +13,7 @@ export default function Throttle(duration) {
     this.duration = duration;
 }
 
-Throttle.prototype = assign(create(Stream.prototype), {
+Throttle.prototype = assign(create(ColdStream.prototype), {
     push: function(value) {
         // If no value
         if (value === undefined) {
