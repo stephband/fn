@@ -182,3 +182,32 @@ Deno.test('Stream.push() preserves order and does not skip siblings when an outp
 
     equals(order, ['a:1', 'b:1', 'a:2', 'b:2', 'b:3']);
 });
+
+Deno.test('Hot Consumer survives upstream stop() while Each/Reduce auto-stop', () => {
+    const seen = [];
+    class Sink extends Consumer {
+        push(value) { seen.push(value); }
+    }
+
+    const src1 = new HotBus();
+    const src2 = new HotBus();
+    const sink = new Sink();
+    const eachLog = [];
+    let eachDone = false;
+
+    // Pipe src1 into both a hot Consumer and a cold .each() consumer
+    src1.pipe(sink);
+    src1.each((v) => eachLog.push(v)).done(() => { eachDone = true; });
+    src1.push(1);
+    src1.stop();
+
+    // Cold .each() auto-stopped; hot Consumer stayed alive
+    is(eachDone, true);
+    is(sink.status, undefined);
+    equals(eachLog, [1]);
+
+    // A second source can still pipe into the hot Consumer
+    src2.pipe(sink);
+    src2.push(2);
+    equals(seen, [1, 2]);
+});

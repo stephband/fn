@@ -3,6 +3,8 @@ import noop     from '../noop.js';
 import Stopable from './stopable.js';
 
 
+const define = Object.defineProperty;
+
 export const cold = Symbol('cold');
 
 
@@ -33,9 +35,9 @@ export function stop(stream) {
         if (!output.stop) continue;
         // Remove stream from output's inputs
         removeInput(output, stream);
-        // Auto-stop downstream consumers and cold streams when they have no
-        // inputs left; leave hot Streams alive.
-        if (!output[-1] && (output[cold] || !(output instanceof Stream))) {
+        // Auto-stop cold streams and cold consumers when no inputs remain;
+        // leave hot Consumers and Streams alive.
+        if (!output[-1] && output[cold]) {
             output.stop();
         }
     }
@@ -121,6 +123,11 @@ class Reduce extends Consumer {
     }
 }
 
+// Mark Each and Reduce as cold consumers so they auto-stop when their
+// upstream stream stops, while plain Consumer subclasses stay hot.
+define(Each.prototype,   cold, { value: true });
+define(Reduce.prototype, cold, { value: true });
+
 
 /**
 Stream()
@@ -136,8 +143,8 @@ export default class Stream extends Consumer {
     /**
     .stop()
     Stops this stream, detaching from inputs and outputs. Downstream cold
-    streams and terminal consumers with no remaining inputs are stopped
-    automatically; downstream hot Streams stay alive.
+    streams and cold consumers with no remaining inputs are stopped
+    automatically; downstream hot Consumers and Streams stay alive.
     **/
     stop() {
         if (this.status === 'done') return this;
@@ -153,9 +160,9 @@ export default class Stream extends Consumer {
             if (!output.stop) continue;
             // Remove this from output's inputs
             removeInput(output, this);
-            // Auto-stop downstream consumers and cold streams when they have no
-            // inputs left; leave hot Streams alive.
-            if (!output[-1] && (output[cold] || !(output instanceof Stream))) {
+            // Auto-stop cold streams and cold consumers when no inputs remain;
+            // leave hot Consumers and Streams alive.
+            if (!output[-1] && output[cold]) {
                 output.stop();
             }
         }
@@ -180,7 +187,7 @@ export default class Stream extends Consumer {
 
         // If output is a cold stream and is not already running, wait for
         // output.start() to attach it to this
-        if (output[cold] && !(output[0] || output.status === 'running')) {
+        if (output[cold] && output.start && !(output[0] || output.status === 'running')) {
             return output;
         }
 

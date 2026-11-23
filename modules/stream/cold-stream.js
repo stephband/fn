@@ -80,7 +80,7 @@ export default class ColdStream extends Stream {
         }
 
         // If output is a cold stream and is not already running wait to start this
-        if (output[cold] && !(output[0] || output.status === 'running')) {
+        if (output[cold] && output.start && !(output[0] || output.status === 'running')) {
             return output;
         }
 
