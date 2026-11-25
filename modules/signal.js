@@ -1,6 +1,7 @@
 
 const global = globalThis;
 const DEBUG  = global.DEBUG;
+const list   = Symbol('list');
 const prev   = Symbol('prev');
 const next   = Symbol('next');
 const tail   = Symbol('tail');
@@ -27,6 +28,10 @@ export function clearInputs(signal) {
     const inputs = signal.inputs;
     if (!inputs || !inputs.size) return;
 
+    /* This tracks nested Signal.frame > Signal.frame instantiation and attempts
+    to clear them up automatically. But it can't get it right in all cases, and
+    it has a complexity cost. Better not to mess with it, and make authors
+    responsible for cleaning up their own nested Signal.frames.
     for (const input of inputs) {
         // -------------------------- Experimental -----------------------------
         // Stop inputs? An input with a stop method – an observer – can only have
@@ -43,16 +48,21 @@ export function clearInputs(signal) {
         //if (input instanceof Observer) input.stop();
         // ---------------------------------------------------------------------
     }
+    */
 
     inputs.clear();
 }
 
 export function stopInputs(signal) {
+    // Remove from output map
+    if (DEBUG) graph.delete(signal);
+
     // Remove this from signal graph
     const inputs = signal.inputs;
     if (!inputs || !inputs.size) return;
 
     for (const input of inputs) {
+        /*
         // -------------------------- Experimental -----------------------------
         // Stop inputs? An input with a stop method – an observer – can only have
         // become a dependency if it were constructed during a render (they don't
@@ -67,7 +77,7 @@ export function stopInputs(signal) {
         // only have one output, this. Therefore it is safe to stop it.
         //if (input instanceof Observer) input.stop();
         // -----------------------------------------------------------------
-        else removeOutput(input, signal);
+        else */ removeOutput(input, signal);
     }
 
     inputs.clear();
@@ -668,7 +678,8 @@ function unlink(b) {
     // if `a` is constructor at this point - a[next] is null so constructor[tail]
     // will be overwritten in the next .cue().
     else {
-        b.constructor[tail] = a;
+        const sentinel = b.constructor[list];
+        sentinel[tail] = a;
     }
 }
 
@@ -690,13 +701,13 @@ function unlink(b) {
 }*/
 
 function render(constructor) {
-    let a = constructor[next];
-    let b;
-    while (a) {
-        b = a[next];
+    let a;// = constructor[next];
+    let b = constructor[next];
+    while (a = b) {
         try {
             // Evaluate the signal
             const object = Signal.evaluate(a, a.evaluate);
+            b = a[next];
             switch (object) {
                 case undefined:
                     // Unless an invalid dependency is flagged remove from observers
@@ -708,6 +719,9 @@ function render(constructor) {
                 case false:
                     // Force removal from signal graph
                     stopInputs(a);
+                    // Edge case, but we may have unlinked a[next] when we stopped inputs
+/* Experimental guard trackign nested Signal.frame > Signal.frame
+                    b = a[next]; */
                     // And remove from observers
                     unlink(a);
                     break;
@@ -723,6 +737,7 @@ function render(constructor) {
             }
         }
         catch(error) {
+            b = a[next];
             unlink(a);
             if (DEBUG) console.error(
                 `%cSignal %c${ error.stack.replace(':', '%c') }`,
@@ -732,7 +747,7 @@ function render(constructor) {
             );
         }
 
-        a = b;
+        //a = b;
     }
 }
 
@@ -741,8 +756,19 @@ function throwInvalidReturn(signal) {
 }
 
 class Observer extends Signal {
+    #fn;
+
     constructor(fn) {
         super();
+
+        // Add to output map
+        if (DEBUG) graph.add(this);
+
+        /* This tracking of nested Signal.frame > Signal.frame has complexity
+        ramifications such as not being able to cleanly mount a custom element
+        that renders in a Signal.frame inside a Literal template. It's simpler
+        to just not deal with any of it, and authors need to be aware they are
+        responsible for cleaning up their own Signal.frames.
 
         // Check we are not currently evaluating. This would be bad because an
         // evaluation is ephemereal – it may run again, leaving this signal in
@@ -754,19 +780,22 @@ class Observer extends Signal {
             // when evaluatingSignal is invalidated this will be stopped.
             (evaluatingSignal.inputs ||= new Set()).add(this);
             // -----------------------------------------------------------------
-        }
+        }*/
+
+        // Prepare for entry into render queue linked list
+        this[prev] = null;
+        this[next] = null;
 
         // If no fn passed in we do not want to evaluate the signal immediately.
         // This provides for a sub-class to define .evaluate() and launch it
         // when it likes, as in Literal's Renderer.
         if (!fn) return;
+        this.#fn = fn;
 
-        // Set fn as evaluation function
-        this.evaluate = fn;
-
-        // Prepare for linked list
-        this[prev] = null;
-        this[next] = null;
+        if (DEBUG && !Observer.nestWarning && evaluatingSignal) {
+            console.trace('Signal warning - nested observer (Signal.frame/Signal.tick) inside observer: you are responsible for clearing up the nested observer');
+            Observer.nestWarning = true;
+        }
 
         try {
             // An initial, synchronous evaluation binds this observer to changes
@@ -802,14 +831,16 @@ class Observer extends Signal {
                 'color:#a2a8b3;'
             );
         }
+    }
 
-        // Add to output map
-        if (DEBUG) graph.add(this);
+    evaluate() {
+        const fn = this.#fn;
+        return fn();
     }
 
     invalidate(input) {
         // Static observers list
-        let head = this.constructor;
+        //let head = this.constructor;
 
         // If the observer is already cued do nothing
         if (this[prev]) return;
@@ -818,19 +849,22 @@ class Observer extends Signal {
         // Verify that input signal has the right to invalidate this
         if (input && !hasInput(this, input)) return;
 
-        // Clear inputs
+        // Clear inputs and cue
         clearInputs(this);
 
         this.cue();
+
+        // Tell the caller the observer signal has invalidated and cued
+        return true;
     }
 
     stop() {
+        // Sanity check
+        if (this === evaluatingSignal) throw new Error(`Signal - cannot .stop() an observer signal inside its own callback (instead \`return false;\`)`);
         // Remove from signal graph
         stopInputs(this);
         // If cued remove from cued queue
         if (this[prev]) unlink(this);
-        // Remove from output map
-        if (DEBUG) graph.delete(this);
         // Allow chaining in case Observer is subclassed elsewhere
         return this;
     }
@@ -857,7 +891,8 @@ function tick() {
 
 export class TickSignal extends Observer {
     cue() {
-        const constructor = this.constructor;
+        // Constructor is the render queue list sentinel
+        const constructor = this.constructor[list];
 
         // No observers are cued for render
         if (!constructor[next]) {
@@ -872,6 +907,8 @@ export class TickSignal extends Observer {
         }
     }
 
+    // Use the TickSignal constructor as the render queue list sentinel
+    static [list] = this;
     static [next] = null;
     static [tail] = null;
 }
@@ -896,7 +933,8 @@ function frame() {
 
 export class FrameSignal extends Observer {
     cue() {
-        const constructor = this.constructor;
+        // Constructor is the render queue list sentinel
+        const constructor = this.constructor[list];
 
         // No observers are cued for render
         if (!constructor[next]) {
@@ -911,6 +949,8 @@ export class FrameSignal extends Observer {
         }
     }
 
+    // Use the FrameSignal constructor as the render queue list sentinel
+    static [list] = this;
     static [next] = null;
     static [tail] = null;
 }
