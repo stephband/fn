@@ -96,8 +96,9 @@ Deno
 
     // Set DEBUG to false to remove any conditions that depend on it
     define: {
-        'window.DEBUG': (!!flags.debug) + '',
-        'DEBUG':        (!!flags.debug) + ''
+        'globalThis.DEBUG': (!!flags.debug) + '',
+        'window.DEBUG':     (!!flags.debug) + '',
+        'DEBUG':            (!!flags.debug) + ''
     },
 
     // Modules become entry points
